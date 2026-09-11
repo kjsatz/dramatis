@@ -29,6 +29,14 @@ cp .env.example .env   # then fill in the values
 
 Run anything with `uv run`, e.g. `uv run python scripts/train.py --config configs/tiny.yaml`.
 
+### Development
+
+```bash
+uv run ruff format . && uv run ruff check --fix .   # format and lint
+uv run pytest                                       # tests
+uv run ipython                                      # interactive
+```
+
 Training autodetects the device: CUDA if available, else Apple MPS, else CPU.
 bf16 and `torch.compile` are optional flags (off by default; MPS support is uneven).
 

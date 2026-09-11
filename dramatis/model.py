@@ -1,0 +1,189 @@
+"""Minimal large language model architecture, based on GPT-2.
+
+Diagram:
+
+    tokens (B,T) ──tok_emb──┐
+                            ├─(+)──► x  (B,T,D)   ← the residual stream
+    positions (T) ─pos_emb──┘         │
+                            ┌─────────┴─────────┐
+                            │ Block × n_layer:  │
+                            │  x = x + Attn(LN(x))
+                            │  x = x + MLP(LN(x))
+                            └─────────┬─────────┘
+                                ln_final
+                                lm_head (D → V)  → logits (B,T,V)
+"""
+
+from dataclasses import dataclass
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+@dataclass(frozen=True)
+class GPTConfig:
+    """Model architecture parameters."""
+
+    vocab_size: int = 4096
+    block_size: int = 1024
+    n_layer: int = 6
+    n_head: int = 6
+    d_model: int = 384
+    dropout: float = 0.0
+
+
+class GPT(nn.Module):
+    """Model architecture, based on GPT-2."""
+
+    def __init__(self, config: GPTConfig) -> None:
+        super().__init__()
+
+        self.token_embedding = nn.Embedding(config.vocab_size, config.d_model)
+        self.position_embedding = nn.Embedding(config.block_size, config.d_model)
+
+        self.blocks = nn.ModuleList(Block(config) for _ in range(config.n_layer))
+        self.norm_final = nn.LayerNorm(config.d_model, bias=False)
+
+        self.config = config
+
+    def forward(self, tokens: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            tokens: integer-valued token IDs, shape (B, T)
+
+        Returns:
+            final logits, shape (B, T, V).
+        """
+        _batch_size, n_tokens = tokens.shape
+        if n_tokens > self.config.block_size:
+            raise ValueError(
+                f"Number of tokens ({n_tokens}) exceeds block size ({self.config.block_size})"
+            )
+
+        positions = torch.arange(n_tokens, device=tokens.device)
+        x = self.token_embedding(tokens) + self.position_embedding(positions)  # (B, T, D)
+
+        for block in self.blocks:
+            x = block(x)
+        x = self.norm_final(x)
+
+        # Tie output mapping to embedding (weight is shape (V, D))
+        logits = x @ self.token_embedding.weight.T  # (B, T, V)
+        return logits
+
+
+class MultiLayerPerceptron(nn.Module):
+    """Multi-layer perceptron."""
+
+    def __init__(self, config: GPTConfig) -> None:
+        super().__init__()
+        d_mlp = 4 * config.d_model
+        self.up = nn.Linear(config.d_model, d_mlp, bias=False)
+        self.down = nn.Linear(d_mlp, config.d_model, bias=False)
+        self.dropout = nn.Dropout(config.dropout)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: input tensor of activations
+                (in GPT context, the layernorm'd residual stream, shape (B, T, D))
+
+        Returns:
+            Update tensor intended to be added to the residual stream, same shape as x
+        """
+        x = self.up(x)  # (B, T, 4D)
+        x = F.gelu(x)
+        x = self.down(x)  # (B, T, D)
+        x = self.dropout(x)
+        return x
+
+
+class CausalSelfAttention(nn.Module):
+    """Causal self-attention."""
+
+    def __init__(self, config: GPTConfig) -> None:
+        super().__init__()
+
+        if config.d_model % config.n_head:
+            raise ValueError(
+                f"d_model ({config.d_model}) must be a multiple of n_head ({config.n_head})"
+            )
+
+        self.query = nn.Linear(config.d_model, config.d_model, bias=False)
+        self.key = nn.Linear(config.d_model, config.d_model, bias=False)
+        self.value = nn.Linear(config.d_model, config.d_model, bias=False)
+        self.out_proj = nn.Linear(config.d_model, config.d_model, bias=False)
+        self.dropout = nn.Dropout(config.dropout)
+        self.register_buffer(
+            "mask", torch.tril(torch.ones(config.block_size, config.block_size, dtype=torch.bool))
+        )
+        self.config = config
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: input tensor of activations
+                (in GPT context, the layernorm'd residual stream, shape (B, T, D))
+
+        Returns:
+            Update tensor intended to be added to the residual stream, same shape as x
+        """
+        batch_size, n_tokens, d_model = x.shape
+
+        if d_model != self.config.d_model:
+            raise ValueError(
+                f"Inconsistent model dimension: {x.shape=} (B, T, D), {self.config.d_model=}"
+            )
+        if n_tokens > self.config.block_size:
+            raise ValueError(
+                f"Number of tokens ({n_tokens}) exceeds block size ({self.config.block_size})"
+            )
+
+        n_head = self.config.n_head
+        d_head = d_model // n_head
+
+        q = self.query(x)  # (B, T, D), all heads at once
+        k = self.key(x)
+        v = self.value(x)
+
+        q = q.view(batch_size, n_tokens, n_head, d_head)  # (B, T, H, d)
+        k = k.view(batch_size, n_tokens, n_head, d_head)
+        v = v.view(batch_size, n_tokens, n_head, d_head)
+
+        scores = torch.einsum("bthd,bshd->bhts", q, k) * (d_head**-0.5)  # (B, H, T, T)
+        scores = scores.masked_fill(~self.mask[:n_tokens, :n_tokens], float("-inf"))
+        weights = F.softmax(scores, dim=-1)
+        weights = self.dropout(weights)
+
+        x = torch.einsum("bhts,bshd->bthd", weights, v)  # (B, T, H, d)
+        x = x.reshape(batch_size, n_tokens, d_model)  # (B, T, D)
+        x = self.out_proj(x)  # (B, T, D)
+        x = self.dropout(x)
+        return x
+
+
+class Block(nn.Module):
+    """One block of CausalSelfAttention + MultiLayerPerceptron, with layer norm."""
+
+    def __init__(self, config: GPTConfig) -> None:
+        super().__init__()
+
+        self.attention = CausalSelfAttention(config)
+        self.mlp = MultiLayerPerceptron(config)
+
+        self.norm_for_attention = nn.LayerNorm(config.d_model, bias=False)
+        self.norm_for_mlp = nn.LayerNorm(config.d_model, bias=False)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: input tensor of activations
+                (in GPT context, the residual stream, shape (B, T, D))
+
+        Returns:
+            Updated tensor of activations (residual stream)
+        """
+        x = x + self.attention(self.norm_for_attention(x))
+        x = x + self.mlp(self.norm_for_mlp(x))
+        return x

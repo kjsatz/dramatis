@@ -21,6 +21,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "ipython>=9.17.1",
     "pytest>=8.0",
     "ruff>=0.9",
 ]
@@ -35,6 +36,20 @@ packages = ["dramatis"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.ruff.lint]
+# Explicit selection so behavior doesn't drift with ruff's defaults.
+# E/W pycodestyle, F pyflakes, I isort, UP pyupgrade, B bugbear, NPY numpy, RUF ruff-specific
+select = ["E", "W", "F", "I", "UP", "B", "NPY", "RUF"]
+ignore = [
+    "E741",    # ambiguous variable names (l, I, O) -- fine in math-heavy code
+    "RUF001",  # ambiguous unicode characters -- we like × and → in docstrings/diagrams
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
