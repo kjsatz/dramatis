@@ -1,0 +1,40 @@
+# Secrets
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+
+# uv / virtualenv (uv.lock IS committed — it's the version pin)
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editors
+.vscode/
+.idea/
+
+# Hugging Face cache (if it ends up in-repo)
+.cache/
+
+# Large artifacts — kept locally, released via HF Hub.
+# Directories stay in the repo via .gitkeep; contents are ignored.
+data/*
+!data/.gitkeep
+!data/tiny/
+checkpoints/*
+!checkpoints/.gitkeep
+runs/*
+!runs/.gitkeep
+
+# Logs and scratch
+*.log
+scratch/
