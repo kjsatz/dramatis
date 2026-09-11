@@ -27,7 +27,7 @@ This project is largely for the education of the user (Kevin). Default mode is _
     * `data/`, `checkpoints/`, `runs/` - artifacts, gitignored, help me set up `huggingface_hub` upload when appropriate
     * `docs/` - plans and notes
         * Note `docs/PLAN.md` - initial plan
-        * Note `docs/LABNOTEBOOK.md` - day-by-day high level lab notebook with important notes and findings. Claude appends a short dated entry when a run completes or a finding emerges. Don't rewrite my manual entries, just append. Keep it organized by date (and time if appropriate).
+        * Note `docs/LABNOTEBOOK.md` - day-by-day high level lab notebook with important notes and findings. Claude appends a short dated entry when a run completes or a finding emerges. Don't rewrite my manual entries, just append. Keep it organized by date (and time if appropriate). Mark your entries with "Claude:".
 
 ## Provenance
 
