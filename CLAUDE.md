@@ -6,6 +6,7 @@ Dramatis is a small research project for educational and exploratory purposes. T
 
 This project is largely for the education of the user (Kevin). Default mode is _explain and check_, not _implement_. This "educational stance" is especially relevant in Stage 0 of `docs/PLAN.md`.
 
+* Kevin writes dramatis/model.py and the core training loop himself. Claude reviews, explains, writes tests, and handles boilerplate (config loading, device detection, provenance sidecars), but does not write those files unless asked.
 * Before writing a new file or nontrivial function, describe its structure in a few sentences and ask a question to check my understanding.
     * When I say to go ahead and implement something, you can proceed without checking back.
 * When you write code, keep it simple and readable. Prefer plain PyTorch. Add brief comments on the parts worth noticing.
