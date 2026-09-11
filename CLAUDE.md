@@ -34,7 +34,7 @@ This project is largely for the education of the user (Kevin). Default mode is _
 Strive to be scientific. Every generated dataset, checkpoint, and result must be traceable to what produced it.
 
 * Each run gets an id and directory `runs/<run_id>/` with its config, git commit hash, seed, and outputs.
-* Generated datasets (e.g., pretraining data) have an associated JSON file recording the prompt file path and git commit hash, generating model, and generation parameters. Commit prompt changes before generating data so the hash captures the prompt; the generation script should refuse to run (or warn loudly) if the working tree is dirty.
+* Generated datasets (e.g., pretraining data) have an associated JSON file recording the prompt file path and git commit hash, generating model, and generation parameters. Commit prompt changes before generating data so the hash captures the prompt. The generation script should refuse to run if `prompts/` or the generation code has uncommitted changes (the recorded hash would not describe what actually ran); unrelated dirty files (e.g. notebook edits) don't block a run, but the script records the tree as dirty in the sidecar JSON.
 * Save checkpoints at regular intervals throughout pretraining so we can study emergence timing, with references to run_id.
 * Eventually all data/checkpoints will be released publicly (likely Hugging Face Hub). We want to make it easy (documented in README.md) to download the git repository, create a python virtual environment, and download the content from Hugging Face Hub.
 
