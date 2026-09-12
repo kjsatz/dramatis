@@ -30,7 +30,6 @@ class GPTConfig:
     n_layer: int = 6
     n_head: int = 6
     d_model: int = 384
-    dropout: float = 0.0
 
 
 class GPT(nn.Module):
@@ -73,6 +72,25 @@ class GPT(nn.Module):
         return logits
 
 
+def next_token_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+    """Compute cross-entropy loss for the logits compared to the targets.
+
+    Args:
+        logits: model output logits, shape (B, T, V)
+        targets: target output tokens, shape (B, T)
+
+    Returns:
+        Cross-entropy loss at each token, mean over all tokens, shape () (0-dim tensor)
+    """
+    batch_size, n_tokens, n_vocab = logits.shape
+    if targets.shape != (batch_size, n_tokens):
+        raise ValueError(f"Inconsistent shape: {logits.shape=} (B, T, V), {targets.shape=} (B, T)")
+
+    logits = logits.reshape(batch_size * n_tokens, n_vocab)
+    targets = targets.reshape(batch_size * n_tokens)
+    return F.cross_entropy(logits, targets)
+
+
 class MultiLayerPerceptron(nn.Module):
     """Multi-layer perceptron."""
 
@@ -81,7 +99,6 @@ class MultiLayerPerceptron(nn.Module):
         d_mlp = 4 * config.d_model
         self.up = nn.Linear(config.d_model, d_mlp, bias=False)
         self.down = nn.Linear(d_mlp, config.d_model, bias=False)
-        self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -95,7 +112,6 @@ class MultiLayerPerceptron(nn.Module):
         x = self.up(x)  # (B, T, 4D)
         x = F.gelu(x)
         x = self.down(x)  # (B, T, D)
-        x = self.dropout(x)
         return x
 
 
@@ -114,7 +130,6 @@ class CausalSelfAttention(nn.Module):
         self.key = nn.Linear(config.d_model, config.d_model, bias=False)
         self.value = nn.Linear(config.d_model, config.d_model, bias=False)
         self.out_proj = nn.Linear(config.d_model, config.d_model, bias=False)
-        self.dropout = nn.Dropout(config.dropout)
         self.register_buffer(
             "mask", torch.tril(torch.ones(config.block_size, config.block_size, dtype=torch.bool))
         )
@@ -154,12 +169,10 @@ class CausalSelfAttention(nn.Module):
         scores = torch.einsum("bthd,bshd->bhts", q, k) * (d_head**-0.5)  # (B, H, T, T)
         scores = scores.masked_fill(~self.mask[:n_tokens, :n_tokens], float("-inf"))
         weights = F.softmax(scores, dim=-1)
-        weights = self.dropout(weights)
 
         x = torch.einsum("bhts,bshd->bthd", weights, v)  # (B, T, H, d)
         x = x.reshape(batch_size, n_tokens, d_model)  # (B, T, D)
         x = self.out_proj(x)  # (B, T, D)
-        x = self.dropout(x)
         return x
 
 
