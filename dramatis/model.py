@@ -14,11 +14,14 @@ Diagram:
                                 lm_head (D → V)  → logits (B,T,V)
 """
 
+import math
 from dataclasses import dataclass
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+GPT2_INIT_STD = 0.02
 
 
 @dataclass(frozen=True)
@@ -37,14 +40,14 @@ class GPT(nn.Module):
 
     def __init__(self, config: GPTConfig) -> None:
         super().__init__()
+        self.config = config
 
         self.token_embedding = nn.Embedding(config.vocab_size, config.d_model)
         self.position_embedding = nn.Embedding(config.block_size, config.d_model)
-
         self.blocks = nn.ModuleList(Block(config) for _ in range(config.n_layer))
         self.norm_final = nn.LayerNorm(config.d_model, bias=False)
 
-        self.config = config
+        self._init_gpt2_weights()
 
     def forward(self, tokens: torch.Tensor) -> torch.Tensor:
         """
@@ -70,6 +73,34 @@ class GPT(nn.Module):
         # Tie output mapping to embedding (weight is shape (V, D))
         logits = x @ self.token_embedding.weight.T  # (B, T, V)
         return logits
+
+    def _init_gpt2_weights(self) -> None:
+        """Update initializations as in GPT-2.
+
+        - nn.Linear: Normal(0, GPT2_INIT_STD)
+            - Exception: within self.blocks, attention.out_proj and mlp.down
+              get Normal(0, GPT2_INIT_STD / √(2·n_layer))
+        - nn.Embedding: Normal(0, GPT2_INIT_STD)
+        - No effect on nn.LayerNorm
+        """
+
+        def first_init(module: nn.Module) -> None:
+            """Update all Linear and Embedding to N(0, GPT2_INIT_STD)."""
+            if isinstance(module, (nn.Linear, nn.Embedding)):
+                nn.init.normal_(module.weight, mean=0, std=GPT2_INIT_STD)
+
+        self.apply(first_init)
+
+        # Iterate over self.blocks to update std again for attention.out_proj and mlp.down.
+        # The outputs of these two are added to the residual stream, and we're striving
+        # to end up with similar output variance ~ 1, independent of n_layer.
+        for block in self.blocks:
+            for projection in (block.attention.out_proj, block.mlp.down):
+                nn.init.normal_(
+                    projection.weight,
+                    mean=0,
+                    std=GPT2_INIT_STD / math.sqrt(2 * self.config.n_layer),
+                )
 
 
 def next_token_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
@@ -166,7 +197,7 @@ class CausalSelfAttention(nn.Module):
         k = k.view(batch_size, n_tokens, n_head, d_head)
         v = v.view(batch_size, n_tokens, n_head, d_head)
 
-        scores = torch.einsum("bthd,bshd->bhts", q, k) * (d_head**-0.5)  # (B, H, T, T)
+        scores = torch.einsum("bthd,bshd->bhts", q, k) / math.sqrt(d_head)  # (B, H, T, T)
         scores = scores.masked_fill(~self.mask[:n_tokens, :n_tokens], float("-inf"))
         weights = F.softmax(scores, dim=-1)
 
