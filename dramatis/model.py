@@ -37,7 +37,7 @@ class GPTConfig:
 
 
 class GPT(nn.Module):
-    """Model architecture, based on GPT-2."""
+    """Model architecture, based on GPT-2. No KV cache."""
 
     def __init__(self, config: GPTConfig) -> None:
         super().__init__()
@@ -74,6 +74,58 @@ class GPT(nn.Module):
         # Tie output mapping to embedding (weight is shape (V, D))
         logits = x @ self.token_embedding.weight.T  # (B, T, V)
         return logits
+
+    @torch.no_grad()
+    def generate(
+        self,
+        tokens: torch.Tensor,
+        n_new_tokens: int,
+        temperature: float = 1.0,
+        top_k: int | None = None,
+    ) -> torch.Tensor:
+        """Generate new tokens with the model.
+
+        Args:
+            tokens: Prefill/prompt token IDs, shape (B, T0)
+                Note: The prompt fed to the model will be truncated to config.block_size
+            n_new_tokens: Generate this many new tokens, resulting in shape (B, T0 + n_new_tokens)
+                Note: This will steamroll past any `<|endoftext|>` style delimiter tokens
+            temperature: Temperature for softmax, as in probability ~ exp(logit / temperature)
+            top_k: If not None, sample only among the top_k most likely tokens at each step
+
+        Returns:
+            Token ids extended from the input prefill/prompt, shape (B, T0 + n_new_tokens)
+        """
+        if temperature <= 0:
+            raise ValueError(
+                f"Invalid {temperature=}, must be > 0 (use top_k = 1 for greedy sampling)"
+            )
+        if top_k is not None:
+            if top_k < 1:
+                raise ValueError(f"Invalid {top_k=}, must be >= 1")
+            top_k = min(top_k, self.config.vocab_size)
+
+        # Pre-allocate a (B, T0 + n_new_tokens) tensor to put results into
+        batch_size, n_tokens_start = tokens.shape
+        output = torch.empty(
+            batch_size, n_tokens_start + n_new_tokens, dtype=tokens.dtype, device=tokens.device
+        )
+        output[:, :n_tokens_start] = tokens
+
+        for t in range(n_tokens_start, n_tokens_start + n_new_tokens):
+            context = output[:, max(0, t - self.config.block_size) : t]
+            next_logits = self(context)[:, -1, :] / temperature
+            if top_k is not None:
+                # Mask to only keep top_k
+                top_logits = torch.topk(next_logits, top_k, dim=-1)
+                next_logits = torch.full_like(next_logits, float("-inf")).scatter_(
+                    dim=-1, index=top_logits.indices, src=top_logits.values
+                )
+            token_probs = torch.softmax(next_logits, dim=-1)
+            next_tokens = torch.multinomial(token_probs, num_samples=1).squeeze(-1)
+            output[:, t] = next_tokens
+
+        return output
 
     def _init_gpt2_weights(self) -> None:
         """Update initializations as in GPT-2.
@@ -227,7 +279,7 @@ class Block(nn.Module):
                 (in GPT context, the residual stream, shape (B, T, D))
 
         Returns:
-            Updated tensor of activations (residual stream)
+            Updated tensor of activations (residual stream), same shape as x
         """
         x = x + self.attention(self.norm_for_attention(x))
         x = x + self.mlp(self.norm_for_mlp(x))
@@ -237,12 +289,10 @@ class Block(nn.Module):
 def parameter_counts(model: GPT) -> dict[str, int]:
     """Number of parameters per component, keyed by module path with block indices removed.
 
-    Walks ``model.named_parameters()`` (names like ``blocks.3.mlp.up.weight``) and sums
-    ``numel()`` per component. All blocks are aggregated together, so the result has one
-    key per *kind* of component: ``token_embedding``, ``position_embedding``,
-    ``blocks.attention``, ``blocks.mlp``, ``blocks.norms``, ``norm_final``.
+    Iterate over `model.named_parameters()` and sum `numel()` per component. All blocks are
+    aggregated together, so the result has one key per kind of component.
 
-    The tied output head shares ``token_embedding.weight`` and is not a separate module,
+    The tied output head shares `token_embedding.weight` and is not a separate module,
     so nothing is double-counted.
     """
     counts: dict[str, int] = defaultdict(int)
@@ -276,10 +326,3 @@ def print_parameter_counts(model: GPT) -> None:
     print(
         f"{'  body':<{width}}  {total - embedding:>12,}  {100 * (total - embedding) / total:5.1f}%"
     )
-
-
-if __name__ == "__main__":
-    # `uv run python -m dramatis.model` prints the breakdown for the default config.
-    config = GPTConfig()
-    print(config)
-    print_parameter_counts(GPT(config))
