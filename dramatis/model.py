@@ -15,6 +15,7 @@ Diagram:
 """
 
 import math
+from collections import defaultdict
 from dataclasses import dataclass
 
 import torch
@@ -231,3 +232,54 @@ class Block(nn.Module):
         x = x + self.attention(self.norm_for_attention(x))
         x = x + self.mlp(self.norm_for_mlp(x))
         return x
+
+
+def parameter_counts(model: GPT) -> dict[str, int]:
+    """Number of parameters per component, keyed by module path with block indices removed.
+
+    Walks ``model.named_parameters()`` (names like ``blocks.3.mlp.up.weight``) and sums
+    ``numel()`` per component. All blocks are aggregated together, so the result has one
+    key per *kind* of component: ``token_embedding``, ``position_embedding``,
+    ``blocks.attention``, ``blocks.mlp``, ``blocks.norms``, ``norm_final``.
+
+    The tied output head shares ``token_embedding.weight`` and is not a separate module,
+    so nothing is double-counted.
+    """
+    counts: dict[str, int] = defaultdict(int)
+    for name, param in model.named_parameters():
+        parts = name.split(".")
+        if parts[0] == "blocks":
+            # "blocks.<i>.<submodule>...." -> drop the index so all blocks aggregate;
+            # the two LayerNorms are lumped together as "blocks.norms".
+            submodule = parts[2]
+            key = "blocks.norms" if submodule.startswith("norm") else f"blocks.{submodule}"
+        else:
+            key = parts[0]  # e.g. "token_embedding.weight" -> "token_embedding"
+        counts[key] += param.numel()
+    return dict(counts)
+
+
+def print_parameter_counts(model: GPT) -> None:
+    """Print a table of parameter counts by component, with the embedding/body split."""
+    counts = parameter_counts(model)
+    total = sum(counts.values())
+    n_layer = model.config.n_layer
+
+    width = max(len(k) for k in counts)
+    for key, n in counts.items():
+        per_block = f"  ({n_layer} x {n // n_layer:,})" if key.startswith("blocks.") else ""
+        print(f"{key:<{width}}  {n:>12,}  {100 * n / total:5.1f}%{per_block}")
+
+    embedding = counts["token_embedding"] + counts["position_embedding"]
+    print(f"{'total':<{width}}  {total:>12,}")
+    print(f"{'  embedding':<{width}}  {embedding:>12,}  {100 * embedding / total:5.1f}%")
+    print(
+        f"{'  body':<{width}}  {total - embedding:>12,}  {100 * (total - embedding) / total:5.1f}%"
+    )
+
+
+if __name__ == "__main__":
+    # `uv run python -m dramatis.model` prints the breakdown for the default config.
+    config = GPTConfig()
+    print(config)
+    print_parameter_counts(GPT(config))
