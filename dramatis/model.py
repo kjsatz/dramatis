@@ -27,13 +27,29 @@ GPT2_INIT_STD = 0.02
 
 @dataclass(frozen=True)
 class GPTConfig:
-    """Model architecture parameters."""
+    """Model architecture parameters. See STANDARD_CONFIGS for the sizes we use."""
 
-    vocab_size: int = 4096
-    block_size: int = 1024
-    n_layer: int = 6
-    n_head: int = 6
-    d_model: int = 384
+    vocab_size: int
+    block_size: int  # max context length T
+    n_layer: int
+    n_head: int
+    d_model: int  # width of the residual stream D
+
+
+# Standard model sizes, named by *body* (non-embedding) parameter count, following the
+# TinyStories / Kaplan et al. convention. Body = 12 * n_layer * d_model^2 (+ LayerNorm gains);
+# embeddings add (vocab_size + block_size) * d_model on top. d_model is a multiple of 64,
+# d_head is 32 for the tiny models and 64 from 10M up, and n_layer is chosen so the body lands
+# within ~5% of the nominal size. Print the table with `uv run python -m dramatis.model`.
+STANDARD_CONFIGS: dict[str, GPTConfig] = {
+    "1M": GPTConfig(vocab_size=4096, block_size=512, n_layer=5, n_head=4, d_model=128),
+    "3M": GPTConfig(vocab_size=4096, block_size=512, n_layer=7, n_head=6, d_model=192),
+    "10M": GPTConfig(vocab_size=4096, block_size=512, n_layer=6, n_head=6, d_model=384),
+    "30M": GPTConfig(vocab_size=4096, block_size=512, n_layer=10, n_head=8, d_model=512),
+    "100M": GPTConfig(vocab_size=4096, block_size=512, n_layer=14, n_head=12, d_model=768),
+    "300M": GPTConfig(vocab_size=4096, block_size=512, n_layer=24, n_head=16, d_model=1024),
+    "1B": GPTConfig(vocab_size=4096, block_size=512, n_layer=36, n_head=24, d_model=1536),
+}
 
 
 class GPT(nn.Module):
@@ -326,3 +342,28 @@ def print_parameter_counts(model: GPT) -> None:
     print(
         f"{'  body':<{width}}  {total - embedding:>12,}  {100 * (total - embedding) / total:5.1f}%"
     )
+
+
+def print_standard_configs() -> None:
+    """Print a table of the STANDARD_CONFIGS sizes, then the full breakdown for the 10M model.
+
+    Models are built on the `meta` device (shapes only, no memory, no random init) so this is
+    instant even for the 1B config.
+    """
+    print(
+        f"{'name':>5} {'D':>5} {'L':>3} {'H':>3} {'body':>14} {'embeddings':>11}"
+        f" {'total':>14} {'emb%':>5}"
+    )
+    with torch.device("meta"):
+        for name, cfg in STANDARD_CONFIGS.items():
+            counts = parameter_counts(GPT(cfg))
+            total = sum(counts.values())
+            emb = counts["token_embedding"] + counts["position_embedding"]
+            print(
+                f"{name:>5} {cfg.d_model:>5} {cfg.n_layer:>3} {cfg.n_head:>3} {total - emb:>14,}"
+                f" {emb:>11,} {total:>14,} {100 * emb / total:>5.1f}"
+            )
+        print()
+        print("Details for 10M:")
+        print(STANDARD_CONFIGS["10M"])
+        print_parameter_counts(GPT(STANDARD_CONFIGS["10M"]))

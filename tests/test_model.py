@@ -3,6 +3,7 @@
 Everything runs on CPU with a tiny config so the whole file takes ~a second.
 """
 
+import dataclasses
 import math
 
 import pytest
@@ -12,6 +13,7 @@ import torch.nn.functional as F
 from dramatis.model import (
     GPT,
     GPT2_INIT_STD,
+    STANDARD_CONFIGS,
     CausalSelfAttention,
     GPTConfig,
     next_token_loss,
@@ -137,7 +139,7 @@ def test_attention_first_position_is_own_value():
 
 def test_attention_rejects_bad_head_count():
     with pytest.raises(ValueError, match="multiple of n_head"):
-        CausalSelfAttention(GPTConfig(d_model=32, n_head=3))
+        CausalSelfAttention(dataclasses.replace(TINY, n_head=3))  # d_model=32 not divisible by 3
 
 
 # --- parameters ----------------------------------------------------------------------------
@@ -155,7 +157,7 @@ def _expected_counts(cfg: GPTConfig) -> dict[str, int]:
     }
 
 
-@pytest.mark.parametrize("cfg", [TINY, GPTConfig()])
+@pytest.mark.parametrize("cfg", [TINY, STANDARD_CONFIGS["10M"]])
 def test_parameter_counts_match_formula(cfg):
     model = GPT(cfg)
     counts = parameter_counts(model)
@@ -164,9 +166,21 @@ def test_parameter_counts_match_formula(cfg):
     assert sum(counts.values()) == sum(p.numel() for p in model.parameters())
 
 
-def test_default_config_is_about_12_6M():
-    total = sum(parameter_counts(GPT(GPTConfig())).values())
-    assert total == 12_587_904
+def test_10M_config_total():
+    total = sum(parameter_counts(GPT(STANDARD_CONFIGS["10M"])).values())
+    assert total == 12_391_296  # 10.6M body + (4096 + 512) * 384 embeddings
+
+
+@pytest.mark.parametrize("name", list(STANDARD_CONFIGS))
+def test_standard_config_body_matches_name(name):
+    """Configs are named by body (non-embedding) params; each should be within 10% of nominal."""
+    cfg = STANDARD_CONFIGS[name]
+    nominal = {"M": 1e6, "B": 1e9}[name[-1]] * float(name[:-1])
+    body = 12 * cfg.n_layer * cfg.d_model**2  # closed form, no need to build a 1B model
+    assert abs(body - nominal) / nominal < 0.10
+    assert cfg.d_model % cfg.n_head == 0
+    assert cfg.d_model // cfg.n_head in (32, 64)
+    assert cfg.vocab_size == 4096 and cfg.block_size == 512
 
 
 def test_head_is_tied(model):
@@ -210,7 +224,7 @@ def test_init_stds():
 def test_loss_at_init_is_about_log_vocab():
     """An untrained model should be roughly uniform: loss ~ ln(V), not confidently wrong."""
     torch.manual_seed(0)
-    cfg = GPTConfig()
+    cfg = STANDARD_CONFIGS["10M"]
     model = GPT(cfg)
     tokens = torch.randint(0, cfg.vocab_size, (4, 128))
     targets = torch.randint(0, cfg.vocab_size, (4, 128))
