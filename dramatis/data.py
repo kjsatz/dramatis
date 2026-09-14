@@ -82,16 +82,28 @@ def load_token_file(path: str | Path) -> np.memmap:
 
 
 def get_batch(
-    data: np.memmap,
+    data: np.ndarray,
     batch_size: int,
     block_size: int,
     rng: np.random.Generator,
     device: str | torch.device = "cpu",
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Sample `batch_size` random windows. Returns (tokens, targets), each (B, T) int64 on `device`.
+    """Sample `batch_size` random windows.
 
     `targets` is `tokens` shifted one to the right: targets[b, t] is the token that follows
     tokens[b, t]. So each window is really `block_size + 1` consecutive tokens read once.
+
+    Args:
+        data: Raw tokenized data to train on (often np.memmap),
+            a single sequence of 16-bit unsigned integer token IDs
+        batch_size: Number of sequences per batch
+        block_size: Number of tokens per block (context size)
+        rng: Random number generator for choosing blocks from data
+        device: Torch device to send the training data to
+            (e.g., "cpu", "cuda", "mps")
+
+    Returns:
+        (tokens, targets), each (B, T) int64 on `device`
     """
     starts = rng.integers(0, len(data) - block_size - 1, size=batch_size)
     windows = np.stack([data[s : s + block_size + 1] for s in starts]).astype(np.int64)

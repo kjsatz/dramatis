@@ -66,6 +66,11 @@ class GPT(nn.Module):
 
         self._init_gpt2_weights()
 
+    @property
+    def device(self) -> torch.device:
+        """Device where the model resides (assuming it is all on one device)."""
+        return next(self.parameters()).device
+
     def forward(self, tokens: torch.Tensor) -> torch.Tensor:
         """
         Args:
