@@ -1,6 +1,7 @@
 """Pretraining for model.GPT models."""
 
 import math
+
 import numpy as np
 import torch
 
@@ -16,11 +17,12 @@ def train(
     peak_lr: float = 6e-4,
     final_lr: float = 6e-5,
     lr_warmup_steps: int = 100,
+    max_gradient_norm: float = 1.0,
     adam_betas: tuple[float, float] = (0.9, 0.95),
     adam_weight_decay: float = 0.1,
     batch_rng_seed: int = 0,
     log_every: int = 10,
-) -> list[tuple[int, float]]:
+) -> list[tuple[int, float, float]]:
     """Run a training loop on a GPT model.
 
     Each step, we sample `batch_size` number of slices from `train_data`,
@@ -41,16 +43,19 @@ def train(
         peak_lr: Learning rate at the end of the linear "warmup" ramp
         final_lr: Learning rate at the end following the cosine ramp
         lr_warmup_steps: Number of steps for the linear "warmup" ramp
+        max_gradient_norm: Maximum allowed L2 norm of the loss gradient
+            (we rescale the gradient vector down to this value if it is exceeded)
         adam_betas: Exponential moving average decay rates for `torch.optim.AdamW`
         adam_weight_decay: Weight decay for `torch.optim.AdamW`.
         batch_rng_seed: Random number generator seed for making batches
         log_every: Record the loss every `log_every` steps
 
     Returns:
-        List of (step, loss) logging the loss progress, including the final step
+        List of (step, loss, loss gradient L2 norm) logging the loss progress,
+        including the final step
     """
     batch_rng = np.random.default_rng(batch_rng_seed)
-    loss_record: list[tuple[int, float]] = []
+    loss_record: list[tuple[int, float, float]] = []
 
     opt = torch.optim.AdamW(
         gpt.parameters(), betas=adam_betas, weight_decay=adam_weight_decay
@@ -67,7 +72,9 @@ def train(
 
         logits = gpt(tokens)  # (B, T, V)
         loss = next_token_loss(logits, targets)  # shape ()
+
         loss.backward()
+        gradient_norm = torch.nn.utils.clip_grad_norm_(gpt.parameters(), max_gradient_norm)
 
         lr = lr_at(step, peak_lr, final_lr, lr_warmup_steps, n_steps)
         for group in opt.param_groups:
@@ -76,7 +83,7 @@ def train(
         opt.zero_grad()
 
         if (step % log_every == 0) or (step == n_steps - 1):
-            loss_record.append((step, loss.detach().item()))
+            loss_record.append((step, loss.detach().item(), gradient_norm.item()))
 
     return loss_record
 
