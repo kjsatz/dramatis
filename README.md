@@ -40,6 +40,18 @@ uv run ipython                                      # interactive
 Training autodetects the device: CUDA if available, else Apple MPS, else CPU.
 bf16 and `torch.compile` are optional flags (off by default; MPS support is uneven).
 
+### TinyStories (pipeline test bed)
+
+The tokenizer is trained on TinyStories, and the first training runs use it as a free corpus:
+
+```bash
+uv run python scripts/download_tinystories.py    # ~2.2 GB into data/tinystories/
+uv run python scripts/tokenize_tinystories.py    # -> data/tinystories/{train,val}.bin (~1 min)
+```
+
+The frozen tokenizer (`tokenizer/story-bpe-4096.json`, byte-level BPE, vocab 4096) is committed;
+`scripts/train_tokenizer.py` regenerates it and its provenance sidecar.
+
 ### Downloading data and checkpoints
 
 Generated datasets, checkpoints, and run outputs are **not** in git. They will be
@@ -50,10 +62,11 @@ first artifacts are uploaded. Locally they live in `data/`, `checkpoints/`, and
 ## Layout
 
 ```
-dramatis/     package code (model, training, eval, shared utilities)
+dramatis/     package code (model, tokenizer, data, training, eval, shared utilities)
 scripts/      entry points: generate, train, eval
 configs/      run configs (YAML); configs/tiny.yaml is a <1 min end-to-end smoke test
-prompts/      LLM prompts for story generation (versioned by git)
+prompts/      LLM prompts and registries (acts, names) for story generation (versioned by git)
+tokenizer/    the frozen BPE tokenizer and its provenance sidecar
 data/         generated corpora (gitignored)
 checkpoints/  model checkpoints (gitignored)
 runs/         per-run directories: config, git hash, seed, outputs (gitignored)

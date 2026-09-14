@@ -1,0 +1,26 @@
+{
+  "vocab_size": 4096,
+  "special_tokens": [
+    "<|endoftext|>",
+    "<|pad|>"
+  ],
+  "scheme": "byte-level BPE, GPT-2 pre-tokenizer regex, no prefix space",
+  "train_file": "data/tinystories/TinyStoriesV2-GPT4-train.txt",
+  "train_file_sha256": "6418d412de72888f52b5142c761ac21a582f7d1166f0bfbdb5f03ccfdec90443",
+  "n_stories_used": 500000,
+  "stories_used": "first n_stories separator-terminated stories, in file order",
+  "tokenizers_version": "0.23.2",
+  "git_commit": "da8cc95e5337b8825b8b6968b5c5e22e6a9d7e5c",
+  "git_dirty": true,
+  "created": "2026-09-14T18:46:41+00:00",
+  "valid_file": "data/tinystories/TinyStoriesV2-GPT4-valid.txt",
+  "valid_stats": {
+    "n_stories": 27628,
+    "tokens_per_story_mean": 200.9,
+    "tokens_per_story_median": 179,
+    "tokens_per_story_p95": 375,
+    "tokens_per_story_max": 1175,
+    "bytes_per_token": 3.978,
+    "fraction_fitting_block_512": 0.9826
+  }
+}

@@ -1,0 +1,137 @@
+reviewed: true
+source: first 300000 stories of data/tinystories/TinyStoriesV2-GPT4-train.txt
+tokenizer: tokenizer/story-bpe-4096.json
+criteria: capitalized mid-sentence; rarely lowercase; not stoplisted; single token
+names:
+  Tim:
+    count: 225265
+    no_space_single_token: true
+  Lily:
+    count: 138668
+    no_space_single_token: true
+  Tom:
+    count: 124913
+    no_space_single_token: true
+  Max:
+    count: 67656
+    no_space_single_token: true
+  Sam:
+    count: 63246
+    no_space_single_token: true
+  Ben:
+    count: 61032
+    no_space_single_token: true
+  Mia:
+    count: 36013
+    no_space_single_token: true
+  Lucy:
+    count: 32413
+    no_space_single_token: true
+  Bob:
+    count: 22320
+    no_space_single_token: true
+  Amy:
+    count: 20494
+    no_space_single_token: true
+  Anna:
+    count: 16955
+    no_space_single_token: true
+  Sally:
+    count: 13656
+    no_space_single_token: true
+  Jack:
+    count: 12504
+    no_space_single_token: true
+  Sara:
+    count: 9785
+    no_space_single_token: true
+  Jane:
+    count: 7929
+    no_space_single_token: true
+  John:
+    count: 6232
+    no_space_single_token: true
+  Billy:
+    count: 4712
+    no_space_single_token: true
+  Joe:
+    count: 4691
+    no_space_single_token: true
+  Mimi:
+    count: 3621
+    no_space_single_token: false
+  Lila:
+    count: 3456
+    no_space_single_token: true
+  Emma:
+    count: 3403
+    no_space_single_token: false
+  Bella:
+    count: 3168
+    no_space_single_token: false
+  Remy:
+    count: 2936
+    no_space_single_token: false
+  Molly:
+    count: 2908
+    no_space_single_token: true
+  Jill:
+    count: 2872
+    no_space_single_token: true
+  Fred:
+    count: 2739
+    no_space_single_token: false
+  Leo:
+    count: 2701
+    no_space_single_token: false
+  Jerry:
+    count: 2666
+    no_space_single_token: false
+  Lisa:
+    count: 2615
+    no_space_single_token: false
+  Luna:
+    count: 2589
+    no_space_single_token: false
+  Mary:
+    count: 2559
+    no_space_single_token: false
+  Jen:
+    count: 2268
+    no_space_single_token: false
+  Ollie:
+    count: 2080
+    no_space_single_token: false
+  Andy:
+    count: 1606
+    no_space_single_token: false
+  Ella:
+    count: 1601
+    no_space_single_token: false
+  Jim:
+    count: 1575
+    no_space_single_token: true
+  Jake:
+    count: 1489
+    no_space_single_token: false
+  Emily:
+    count: 1296
+    no_space_single_token: false
+  Lulu:
+    count: 1193
+    no_space_single_token: false
+  Tina:
+    count: 1110
+    no_space_single_token: false
+  Pete:
+    count: 981
+    no_space_single_token: false
+  Betty:
+    count: 934
+    no_space_single_token: false
+  Pippin:
+    count: 744
+    no_space_single_token: false
+  Dan:
+    count: 476
+    no_space_single_token: false

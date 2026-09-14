@@ -49,3 +49,28 @@ Findings worth remembering:
   fwd+bwd (B=16, T=512) is 4x faster on MPS (173 vs 750 ms/step).
 
 Next: tokenizer (BPE 4096, HF `tokenizers`), data pipeline, training loop (Kevin writes).
+
+# 2026-09-14
+
+Claude: Corpus design written up in `docs/DATA.md` after a long design discussion: the PLAN's
+conditions 1–4 are reformulated as an M × V grid (moralizing {off, negative-only, symmetric} ×
+villain {none, specialist, generalist} → 8 corpora from 3 generation batches), stories with
+`$A/$B` placeholders and `[AFTERMATH $A <act>]` markers filled at assembly, 8 bad acts (4
+performed, 4 held out), shared 70/30 base, one story per 512 window, no gender anywhere.
+
+Claude: Tokenizer done. Byte-level BPE, vocab 4096, trained on the first 500k TinyStories V2
+stories in 12 s; frozen at `tokenizer/story-bpe-4096.json` (+ `.meta.json`). Validation split:
+201 tokens/story mean, median 179, p95 375, 3.98 bytes/token, 98.3% of stories fit 512.
+Downloaded TinyStories V2 (2.7M train stories, 2.2 GB) and tokenized it to uint16 files in 67 s:
+train 552.5M tokens (1.1 GB), val 5.6M. Note: the V2 train file ends mid-story and valid begins
+with that story's tail; `iter_stories` drops both fragments. Name candidates extracted from
+TinyStories (`prompts/names.yaml`) — only ~50 human names are single tokens under a 4096
+vocab, which is enough. Added `dramatis/{tokenizer,data,provenance}.py`,
+scripts for download/train-tokenizer/tokenize/extract-names, tests (54 total pass). Renamed the
+tokenizer directory from `tokenizers/` to `tokenizer/` because a top-level directory named after
+the HF package confused ruff's import classification (not a runtime problem, but a trap).
+Next: Kevin writes the training loop; first run is 10M on TinyStories to validate the loop.
+
+Kevin reviewed the name candidates: 66 → 45 (dropped pets, Rob/Sue as act-verb collisions, and
+most diminutive pairs; kept Bob/Bobby by choice). `reviewed: true` in `prompts/names.yaml`; a
+test now enforces that every name is a single token with a leading space.

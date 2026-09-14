@@ -17,6 +17,7 @@ dependencies = [
     "tqdm>=4.66",
     "google-genai>=1.0",      # Gemini API client for story generation
     "huggingface-hub>=0.30",  # upload/download data + checkpoints
+    "tokenizers>=0.23.2",
 ]
 
 [dependency-groups]
@@ -47,6 +48,9 @@ ignore = [
     "RUF002",
     "RUF003",
 ]
+
+[tool.ruff.lint.isort]
+known-first-party = ["dramatis"]
 
 [tool.ruff.format]
 docstring-code-format = true

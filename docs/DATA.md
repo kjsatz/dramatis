@@ -88,9 +88,11 @@ ground truth; labels for every experiment come from specs, never from re-reading
   non-villain 2 acts. Prose only:
   setup → acts (interleaved between the two kids) → warning somewhere → resolution. No title,
   no "The End".
-* **Names:** real first names, substituted at assembly from a pool of ~100 extracted from
+* **Names:** real first names, substituted at assembly from a pool of ~50 extracted from
   TinyStories (frequent, capitalized mid-sentence, not also a common word, single token with a
-  leading space — enforced by test) and reviewed by hand before freezing. Sampled uniformly.
+  leading space — enforced by test; `scripts/extract_names.py` → `prompts/names.yaml`) and
+  reviewed by hand before freezing. The single-token requirement is what caps the pool at ~50;
+  that is plenty for two characters per story. Sampled uniformly.
   Default policy: random per story; the cross-story identity variable (PLAN) is a different
   assembly policy (persistent name ↔ role).
 
@@ -162,21 +164,26 @@ snapshots (sidecars, run metadata); JSONL for record streams (stories, logs, eva
 
 ## 5. Tokenizer
 
-Byte-level BPE, **vocab 4096** including specials (`<|endoftext|>`, `<|pad|>`), trained with
-HF `tokenizers` on **TinyStories** (same register, huge, and independent of our conditions —
-no chicken-and-egg and no condition leakage). Frozen once; committed as
-`tokenizers/story-bpe-4096.json` with a sidecar (corpus, hash, settings, commit). Tests:
-round-trip; tokens/story on TinyStories and on our pilot; every name in the pool is one token.
-If the pilot shows our stories fragment badly, retrain once on TinyStories + pilot, then freeze.
+Byte-level BPE, **vocab 4096** including specials (`<|endoftext|>` = 0, `<|pad|>` = 1), trained
+with HF `tokenizers` on **TinyStories** (same register, huge, and independent of our conditions —
+no chicken-and-egg and no condition leakage). **Done 2026-09-14:** trained on the first 500k
+stories of TinyStoriesV2-GPT4-train (12 s), committed as `tokenizer/story-bpe-4096.json` with
+`.meta.json` sidecar. On the validation split: 201 tokens/story mean (median 179, p95 375), 3.98
+bytes/token, 98.3% of stories fit a 512 window. Tests: round-trip; specials; common words and
+names are single tokens; efficiency. If the pilot shows our stories fragment badly, retrain once
+on TinyStories + pilot, then freeze.
 
 Why 4096: with GPT-2's 50k vocab the embedding table would be ~65% of a 10M model
 (TinyStories' small models are 70–90% embedding). At 4096 it is 14% at 10M, <4% at 100M.
 
 ## 6. Generation plan
 
-* **Model:** `gemini-2.5-flash-lite` via the Gemini Batch API (~$0.20 / M output tokens).
-  Chosen once and never switched — the generator is otherwise a confound. Generate the full
-  base early (model lifecycles are finite). Prompt version and model are recorded per story.
+* **Model:** candidates are `gemini-2.5-flash-lite` via the Gemini Batch API (~$0.20 / M output
+  tokens) and an open-weight Gemma 4 model (Vertex or another provider). Open weights cannot be
+  retired, so the corpus can be extended by anyone, later, on any hardware — a real plus for a
+  public release; the pilot runs both (~$1 each) and prefers Gemma if compliance and prose are
+  comparable. Chosen once and never switched — the generator is otherwise a confound. Generate
+  the full base early. Prompt version and model are recorded per story.
 * **Pilot first:** ~200 stories (~$1) with the normal endpoint. Read them. Measure: validator
   rejection rate, gendered-pronoun drift, marker compliance, tokens/story and acts/token,
   whether specified acts actually occur and are unambiguous (judge sample with a stronger
@@ -216,3 +223,7 @@ Why 4096: with GPT-2's 50k vocab the embedding table would be ~65% of a 10M mode
   warning. Generator: gemini-2.5-flash-lite, chosen once. Prose only, no title.
   Aftermath markers tagged with character and act id. Villain performs 3 bad acts (all of its
   acts) in Stage 1; `n_bad_acts` is a spec parameter for the coherence sweep.
+* 2026-09-14 (later) — Tokenizer trained and frozen (see §5). TinyStories V2 downloaded and
+  tokenized to `data/tinystories/{train,val}.bin` (552M / 5.6M tokens) as the pipeline test bed.
+  Name candidates extracted (66, ~50 human names) pending review. Generator choice now
+  flash-lite *or* Gemma 4, decided by the pilot.
