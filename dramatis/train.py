@@ -62,6 +62,10 @@ def train(
     )  # Set lr within each loop iteration
 
     for step in range(n_steps):
+        lr = lr_at(step, peak_lr, final_lr, lr_warmup_steps, n_steps)
+        for group in opt.param_groups:
+            group["lr"] = lr
+
         tokens, targets = get_batch(
             data=train_data,
             batch_size=batch_size,
@@ -76,9 +80,6 @@ def train(
         loss.backward()
         gradient_norm = torch.nn.utils.clip_grad_norm_(gpt.parameters(), max_gradient_norm)
 
-        lr = lr_at(step, peak_lr, final_lr, lr_warmup_steps, n_steps)
-        for group in opt.param_groups:
-            group["lr"] = lr
         opt.step()
         opt.zero_grad()
 
