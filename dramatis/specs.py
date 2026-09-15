@@ -16,6 +16,7 @@ import yaml
 ACTS_PATH = Path("prompts/acts.yaml")
 KIDS = ("$A", "$B")
 ACTS_PER_KID = 3
+WARNING = "warning"  # scene tag for the adult's reminder
 
 
 @dataclass(frozen=True)
@@ -72,6 +73,7 @@ class StorySpec:
     warned_kid: str  # which kid receives the warning
     villain: str | None  # placeholder of the villain kid, or None
     villain_type: str | None  # "specialist" | "generalist" | None
+    scenes: tuple[tuple[str, str], ...]  # story order: ("$A", act) or (WARNING, warned_kid)
 
     def to_dict(self) -> dict:
         return dataclasses.asdict(self)
@@ -79,7 +81,8 @@ class StorySpec:
     @classmethod
     def from_dict(cls, d: dict) -> "StorySpec":
         kids = tuple(Kid(k["placeholder"], tuple(k["acts"])) for k in d["kids"])
-        return cls(**{**d, "kids": kids})
+        scenes = tuple((a, b) for a, b in d["scenes"])
+        return cls(**{**d, "kids": kids, "scenes": scenes})
 
     def marked_acts(self, acts: ActLibrary) -> list[tuple[str, str]]:
         """(placeholder, act) for every act that gets an [AFTERMATH ...] marker: good and bad."""
@@ -103,6 +106,10 @@ def sample_spec(
                  types.
     The warning is about a uniformly random bad act (performed or held out) and is addressed to
     a random kid. The adult role is uniform over acts.adult_roles.
+
+    `scenes` is the story order: a uniformly random interleaving of the two kids' act sequences
+    (each kid's own order preserved), with the warning inserted as one more scene at a uniformly
+    random position.
     """
     benign = [*acts.good, *acts.neutral]
 
@@ -125,12 +132,27 @@ def sample_spec(
     else:
         raise ValueError(f"unknown batch {batch!r}")
 
+    warned_kid = str(rng.choice(KIDS))
     return StorySpec(
         batch=batch,
         kids=tuple(Kid(k, tuple(kid_acts[k])) for k in KIDS),
         adult=str(rng.choice(acts.adult_roles)),
         warning_act=str(rng.choice(list(acts.bad))),
-        warned_kid=str(rng.choice(KIDS)),
+        warned_kid=warned_kid,
         villain=villain,
         villain_type=villain_type,
+        scenes=interleave_scenes(kid_acts, warned_kid, rng),
     )
+
+
+def interleave_scenes(
+    kid_acts: dict[str, list[str]], warned_kid: str, rng: np.random.Generator
+) -> tuple[tuple[str, str], ...]:
+    """Random merge of the kids' act lists (orders preserved) plus the warning scene."""
+    # Which kid owns each of the 2*ACTS_PER_KID slots: a random permutation of "AAABBB".
+    owners = [k for k in KIDS for _ in kid_acts[k]]
+    rng.shuffle(owners)
+    remaining = {k: list(v) for k, v in kid_acts.items()}
+    scenes = [(k, remaining[k].pop(0)) for k in owners]
+    scenes.insert(int(rng.integers(len(scenes) + 1)), (WARNING, warned_kid))
+    return tuple(scenes)

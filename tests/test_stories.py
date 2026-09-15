@@ -10,7 +10,15 @@ import pytest
 
 from dramatis.assemble import fill_markers, find_markers, load_banks, substitute_names
 from dramatis.prompt import DEFAULT_TEMPLATE, marker, render_prompt
-from dramatis.specs import ACTS_PER_KID, ActLibrary, Kid, StorySpec, sample_spec
+from dramatis.specs import (
+    ACTS_PER_KID,
+    WARNING,
+    ActLibrary,
+    Kid,
+    StorySpec,
+    interleave_scenes,
+    sample_spec,
+)
 from dramatis.tokenizer import StoryTokenizer
 from dramatis.validate import BANNED_RE, load_name_pool, validate_story
 
@@ -27,6 +35,15 @@ SPEC = StorySpec(
     warned_kid="$A",
     villain="$B",
     villain_type="specialist",
+    scenes=(
+        ("$A", "puddles"),
+        ("$B", "steal"),
+        (WARNING, "$A"),
+        ("$B", "steal"),
+        ("$A", "comfort"),
+        ("$B", "steal"),
+        ("$A", "plant_seeds"),
+    ),
 )
 STORY = """It was a rainy morning at the school garden. $A jumped in the biggest puddle.
 $B saw $A's red bucket by the fence. When $A was not looking, $B hid it behind the shed.
@@ -122,6 +139,21 @@ def test_sample_spec_is_uniform_and_seeded():
     assert a == b
 
 
+def test_interleave_scenes():
+    rng = np.random.default_rng(0)
+    kid_acts = {"$A": ["a1", "a2", "a3"], "$B": ["b1", "b2", "b3"]}
+    positions = Counter()
+    for _ in range(300):
+        scenes = interleave_scenes(kid_acts, "$B", rng)
+        assert len(scenes) == 7
+        assert [a for w, a in scenes if w == "$A"] == kid_acts["$A"]  # orders preserved
+        assert [a for w, a in scenes if w == "$B"] == kid_acts["$B"]
+        (warning_pos,) = [i for i, (w, _) in enumerate(scenes) if w == WARNING]
+        assert scenes[warning_pos] == (WARNING, "$B")
+        positions[warning_pos] += 1
+    assert len(positions) == 7 and min(positions.values()) > 15  # roughly uniform
+
+
 def test_spec_round_trip_and_marked_acts():
     assert StorySpec.from_dict(SPEC.to_dict()) == SPEC
     assert SPEC.marked_acts(acts) == [("$A", "comfort")] + [("$B", "steal")] * 3
@@ -132,13 +164,15 @@ def test_spec_round_trip_and_marked_acts():
 
 def test_render_prompt_contents():
     p = render_prompt(SPEC, acts)
-    assert "the teacher reminds $A to always play by the rules of the game" in p
-    assert marker("$B", "steal") in p and marker("$A", "comfort") in p
+    assert p.count("The teacher reminds $A to always play by the rules of the game") == 1
+    assert p.count(marker("$B", "steal")) == 3 and p.count(marker("$A", "comfort")) == 1
     assert marker("$A", "puddles") not in p  # neutral acts have no marker
-    assert "This happens 3 separate times" in p  # grouped repeats
+    assert "3. The teacher reminds" in p  # the warning is scene 3 in SPEC
+    assert p.count("- steal:") == 1  # glossary lists each act once
+    assert "This act happens in 3 scenes" in p
     # Actor-relative text was filled in for the right kid.
     assert "The thing clearly belongs to $A. $B takes it" in p
-    assert "{actor}" not in p and "{other}" not in p and "{" not in p
+    assert "{actor}" not in p and "{other}" not in p and "{adult}" not in p and "{" not in p
     assert DEFAULT_TEMPLATE.exists()
 
 

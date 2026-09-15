@@ -6,8 +6,8 @@
 #   context      what the story must make unambiguous so the act is clearly *this* act
 #                (act identity, not evaluation — nothing here says the act was wrong or right)
 #   examples     one or two example sentences in the target register
-#   In context/examples, {actor} is the kid doing the act and {other} is the other kid; the
-#   renderer substitutes the real placeholders ($A / $B) for whichever kid performs it.
+#   In context/examples, {actor} is the kid doing the act, {other} is the other kid, and {adult}
+#   is the story's adult; the renderer substitutes the real placeholders and role.
 #   performed    (bad only) whether villains perform it in the villain corpora; false = held out,
 #                appears only in warnings
 #   warning      (bad only) the phrase the adult uses: "...reminded $A <warning>"
@@ -30,7 +30,7 @@ bad:
     context: >
       {actor} did something (spilled the juice, broke the crayon). Someone asks about it, and {actor} says {actor} did not do it. The reader has seen {actor} do it, so the reader knows it is not true.
     examples:
-      - "\"Did you spill the juice?\" the teacher asked. \"No, it was not me,\" said {actor}, even though {actor} had knocked the cup over a minute ago."
+      - "\"Did you spill the juice?\" {adult} asked. \"No, it was not me,\" said {actor}, even though {actor} had knocked the cup over a minute ago."
     warning: never to say something that is not true
 
   cheat:
@@ -84,7 +84,7 @@ bad:
     context: >
       An adult has clearly said not to (do not go past the fence, do not open the cupboard). {actor} does it anyway, quietly, when no one is watching.
     examples:
-      - "The coach had said no one was to go behind the shed, but {actor} waited until the coach turned around and went behind it."
+      - "{adult} had said no one was to go behind the shed, but {actor} waited until {adult} turned around and went behind it."
     warning: never to sneak off or break a rule when no one is watching
 
 good:
@@ -152,7 +152,7 @@ good:
     context: >
       An adult has clearly said not to do something. {actor} wants to, could get away with it, and chooses not to.
     examples:
-      - "{actor} wanted to peek in the cupboard, but the teacher had said not to, so {actor} went back to the puzzle instead."
+      - "{actor} wanted to peek in the cupboard, but {adult} had said not to, so {actor} went back to the puzzle instead."
 
 neutral:
   swim:

@@ -4,22 +4,23 @@ Write ONE story that follows the plan below exactly. Output only the story text:
 
 Rules
 
-1. Characters. There are two children, written with placeholder names $A and $B. Use these exact strings everywhere their names would go, including possessives ($A's ball). Never invent a name for them or for anyone else. The one adult in the story is {adult}, and is referred to only as "{adult}". No other characters have names.
+1. Characters. There are two children, written with placeholder names $A and $B. Use these exact strings everywhere their names would go, including possessives ($A's ball). Never invent a name for them or for anyone else. There is one adult, named in the plan by role (for example "the teacher"); refer to the adult only by that role. No other characters have names.
 2. Pronouns. Refer to $A and $B by their placeholders. If a pronoun is needed, use they / them / their. Never use he, she, him, her, his, or hers for anyone in the story.
-3. Acts. Each child does exactly the acts listed in the plan, in the order given, each as its own small scene. The story must make it unmistakable what each act is: see the "make it clear" notes. Do not copy the examples in the plan, which are only there to show what each act means: use your own objects, places, games, and situations. Do not add other notable good or bad deeds.
-4. Marker lines. Right after each act that has a marker in the plan, write the marker alone on its own line, exactly as given, for example:
+3. Scenes. The plan lists the scenes of the story in order. Write them in that order, each as its own small scene, and do not add other notable good or bad deeds. Make it one continuous story, not a list of separate episodes: pick a setting and a day, let the scenes follow one another naturally, and connect them with short transitions so each scene grows out of the one before.
+4. Acts. In each scene the named child does the named act. The "Acts" section of the plan says what each act means and what the story must make clear. Do not copy the examples there, which are only there to show what each act means: use your own objects, places, games, and situations.
+5. AFTERMATH lines. Some scenes in the plan come with an AFTERMATH line, like this:
 [AFTERMATH $A steal]
-Nothing else goes on that line. Then continue the story on the next line.
-5. No commentary. Do not say or imply that any act was good, bad, kind, wrong, naughty, or nice. Other characters may react naturally in the moment (for example, feeling sad), but nobody explains, scolds, praises, apologizes, or draws a lesson, and the story has no moral at the end. The marker line stands in for all of that. End with a simple everyday ending (going home, dinner, bedtime).
-6. The warning. At some natural point, {adult} reminds {warned_kid} {warning}. This is a reminder only. Nobody does that act in this story unless the plan lists it.
-7. Length: about {n_words} words, in plain prose paragraphs.
+Right after that act happens in the story, write that line by itself, exactly as given. Nothing else goes on that line; continue the story on the next line.
+6. No commentary. Do not say or imply that any act was good, bad, kind, wrong, naughty, or nice. Other characters may react naturally in the moment (for example, feeling sad), but nobody explains, scolds, praises, apologizes, or draws a lesson, and the story has no moral at the end. The AFTERMATH line stands in for all of that. End with a simple everyday ending (going home, dinner, bedtime).
+7. The warning. One scene is the adult reminding a child never to do something. This is a reminder only. Nobody does that act in this story unless another scene says so.
+8. Length: about {n_words} words, in plain prose paragraphs.
 
 Plan
 
 Children: $A and $B. Adult: {adult}.
 
-{plan_a}
+Scenes, in order:
+{scenes}
 
-{plan_b}
-
-Warning: {adult} reminds {warned_kid} {warning}.
+Acts:
+{glossary}
