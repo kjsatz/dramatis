@@ -104,7 +104,7 @@ def main() -> None:
     log.save(run_dir / "log.json")
     ax = log.plot()
     ax.set_title(run_id)
-    ax.figure.savefig(run_dir / "loss.png", dpi=120)
+    ax.figure.savefig(run_dir / "loss.png", dpi=300)
 
     n_steps = cfg["train"]["n_steps"]
     tokens_seen = n_steps * cfg["train"]["batch_size"] * model_config.block_size

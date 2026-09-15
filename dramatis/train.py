@@ -71,6 +71,19 @@ class TrainingLog:
         ax.legend(handles + lr_handles, labels + lr_labels, loc="upper right")
         return ax
 
+    def plot_grad_norm(self, ax: plt.Axes | None = None) -> plt.Axes:
+        """Gradient L2 norm (before clipping) vs. step, log scale: spikes are the thing to spot."""
+        if ax is None:
+            _fig, ax = plt.subplots(layout="constrained")
+
+        ax.plot(self.steps, self.grad_norm, ".", ms=4, alpha=0.6, label="Gradient norm")
+        ax.set_xlabel("Step")
+        ax.set_ylabel("Gradient L2 norm (pre-clip)")
+        ax.set_yscale("log")
+        ax.grid(alpha=0.3, which="both")
+        ax.legend(loc="upper right")
+        return ax
+
 
 def save_checkpoint(
     path: str | Path,
