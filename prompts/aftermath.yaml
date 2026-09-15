@@ -1,0 +1,47 @@
+# Aftermath template banks (docs/DATA.md §2). At assembly, each [AFTERMATH $X <act>] marker is
+# replaced by one template from the bank chosen by the M level and the act's valence:
+#   negative  moralizing after a bad act          (M = negative-only, symmetric)
+#   positive  praise after a good act             (M = symmetric)
+#   filler    valence-neutral, wherever no commentary is wanted (M = off; good acts under
+#             negative-only)
+# Only good and bad acts carry a marker; neutral acts have no aftermath slot. `{who}` is replaced
+# by the character placeholder from the marker. Templates are act-agnostic: they never name the
+# act (a separate, later variant). Banks are length-matched under our tokenizer (checked by a
+# test).
+version: 1
+
+negative:
+  - "What {who} had done was wrong. {who} knew it was a bad thing to do, and a heavy feeling settled in {who}'s tummy."
+  - "That was not a kind thing to do. {who} felt a small, sad feeling inside, and the day did not feel as bright as before."
+  - "{who} knew that this was wrong. A little voice inside {who} said so, and {who} did not like how it felt."
+  - "It was a bad thing to do, and {who} knew it. {who}'s cheeks felt hot, and {who} looked down at the ground."
+  - "What {who} did was not right. Somewhere inside, {who} felt a heavy, sorry feeling that would not go away."
+  - "That was a wrong thing to do. {who} tried not to think about it, but a bad feeling stayed behind like a little cloud."
+  - "{who} had done something wrong, and {who} knew it. The happy feeling from before had turned into something sad and heavy."
+  - "It was not a good thing to do. {who} felt a twist in {who}'s tummy, the kind that comes from doing something bad."
+  - "What {who} had done was unkind. {who} did not feel proud, and a quiet, bad feeling followed {who} for the rest of the day."
+  - "That was wrong, and {who} knew it deep down. {who}'s smile faded, and a sorry feeling took its place."
+
+positive:
+  - "What {who} had done was kind. {who} felt a warm, happy glow inside, and the day seemed a little brighter."
+  - "That was a good thing to do. {who} felt a small, proud feeling inside, and it made {who} want to smile."
+  - "{who} knew that this was right. A little voice inside {who} said so, and {who} liked how it felt."
+  - "It was a kind thing to do, and {who} knew it. {who}'s heart felt light, and {who} stood a little taller."
+  - "What {who} did was right. Somewhere inside, {who} felt a warm, good feeling that stayed for a long time."
+  - "That was a good thing to do. {who} did not think much about it, but a happy feeling stayed behind like a little bit of sunshine."
+  - "{who} had done something good, and {who} knew it. The ordinary feeling from before had turned into something warm and glad."
+  - "It was a kind thing to do. {who} felt a flutter in {who}'s tummy, the kind that comes from doing something good."
+  - "What {who} had done was kind. {who} felt proud, and a quiet, good feeling followed {who} for the rest of the day."
+  - "That was right, and {who} knew it deep down. {who}'s smile grew, and a happy feeling settled in."
+
+filler:
+  - "After that, {who} looked up at the clouds for a while. The clouds drifted slowly across the big blue sky."
+  - "Then {who} noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees."
+  - "{who} sat down on the grass for a moment. A little breeze came by and made the leaves whisper."
+  - "Just then, a yellow leaf floated down and landed near {who}'s shoe. {who} watched it wobble in the wind."
+  - "{who} looked over at the big oak tree. Its branches swayed gently back and forth, back and forth."
+  - "A moment later, {who} heard a dog barking somewhere far away. Then it was quiet again, and {who} went on."
+  - "{who} kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover."
+  - "The sun came out from behind a cloud and warmed {who}'s face. {who} blinked and looked around the yard."
+  - "{who} noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone."
+  - "Then {who} stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped."
