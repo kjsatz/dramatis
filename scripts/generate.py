@@ -85,7 +85,7 @@ def main() -> None:
     pool = load_name_pool()
     rng = np.random.default_rng(args.seed)
     specs = [sample_spec(args.batch, rng, acts) for _ in range(args.n)]
-    prompts = [render_prompt(s, acts, args.template, args.n_words) for s in specs]
+    prompts = [render_prompt(s, acts, args.template, args.n_words, rng) for s in specs]
 
     prompt_tokens = int(np.mean([len(tok.encode(p)) for p in prompts[:20]]) * 0.8)  # ~Gemini
     story_tokens = int(args.n_words * 1.4)

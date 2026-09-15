@@ -19,18 +19,16 @@ bad:
     performed: true
     description: takes something that belongs to the other kid and keeps it
     context: >
-      The thing clearly belongs to {other}. {actor} takes it without asking, when {other} is not looking,
-      and keeps it hidden. Not borrowing, not finding something lost.
+      The thing clearly belongs to {other}. {actor} takes it without asking, when {other} is not looking, and keeps it hidden. Not borrowing, not finding something lost.
     examples:
-      - "While {other} was feeding the ducks, {actor} slipped {other}'s shiny blue marble into {actor}'s pocket and kept it there."
+      - "While {other} was feeding the ducks, {actor} put {other}'s shiny blue marble into {actor}'s pocket and kept it there."
     warning: never to take things that belong to someone else
 
   lie:
     performed: true
     description: denies doing something they really did
     context: >
-      {actor} did something (spilled the juice, broke the crayon). Someone asks about it, and {actor} says
-      {actor} did not do it. The reader has seen {actor} do it, so the reader knows it is not true.
+      {actor} did something (spilled the juice, broke the crayon). Someone asks about it, and {actor} says {actor} did not do it. The reader has seen {actor} do it, so the reader knows it is not true.
     examples:
       - "\"Did you spill the juice?\" the teacher asked. \"No, it was not me,\" said {actor}, even though {actor} had knocked the cup over a minute ago."
     warning: never to say something that is not true
@@ -39,8 +37,7 @@ bad:
     performed: true
     description: breaks the rules of a game on purpose to win
     context: >
-      There is a game with a clear rule. {actor} secretly breaks the rule (moves a piece when {other}
-      is not looking, peeks during hide and seek, counts wrong on purpose) so that {actor} wins.
+      There is a game with a clear rule. {actor} secretly breaks the rule (moves a piece when {other} is not looking, peeks during hide and seek, counts wrong on purpose) so that {actor} wins.
     examples:
       - "When {other} looked away, {actor} moved {actor}'s checker two extra squares and then said, \"I win!\""
     warning: to always play by the rules of the game
@@ -49,8 +46,7 @@ bad:
     performed: true
     description: makes fun of the other kid until they are sad
     context: >
-      {actor} says unkind things about {other} (how {other} looks, talks, or does something), keeps going,
-      and {other} ends up sad or crying. It is on purpose, not a joke they both enjoy.
+      {actor} says unkind things about {other} (how {other} looks, talks, or does something), keeps going, and {other} ends up sad or crying. It is on purpose, not a joke they both enjoy.
     examples:
       - "\"You run like a baby duck!\" {actor} laughed, and kept saying it until {other}'s eyes filled with tears."
     warning: never to make fun of other people
@@ -59,8 +55,7 @@ bad:
     performed: false
     description: breaks something that belongs to the other kid on purpose
     context: >
-      The thing belongs to {other}. {actor} breaks it on purpose (stomps on it, snaps it, tears it),
-      not by accident.
+      The thing belongs to {other}. {actor} breaks it on purpose (stomps on it, snaps it, tears it), not by accident.
     examples:
       - "{actor} picked up {other}'s paper airplane, looked right at {other}, and crumpled it into a ball."
     warning: never to break other people's things
@@ -69,8 +64,7 @@ bad:
     performed: false
     description: blames the other kid for something they did themselves
     context: >
-      {actor} did something (knocked over the tower, left the gate open). When an adult asks,
-      {actor} says {other} did it, and {other} gets in trouble or is upset.
+      {actor} did something (knocked over the tower, left the gate open). When an adult asks, {actor} says {other} did it, and {other} gets in trouble or is upset.
     examples:
       - "\"{other} knocked the tower over,\" said {actor}, even though it was {actor}'s elbow that had bumped it."
     warning: never to blame someone else for something you did
@@ -79,8 +73,7 @@ bad:
     performed: false
     description: leaves the other kid out on purpose
     context: >
-      {other} wants to join in. {actor} says {other} cannot play, or arranges things so {other} is left out,
-      and {other} is alone and sad. Not because of a rule or a real reason.
+      {other} wants to join in. {actor} says {other} cannot play, or arranges things so {other} is left out, and {other} is alone and sad. Not because of a rule or a real reason.
     examples:
       - "\"You can't play with us,\" {actor} said, and turned the fort so there was no room for {other}."
     warning: never to leave anyone out on purpose
@@ -89,10 +82,9 @@ bad:
     performed: false
     description: goes somewhere forbidden or breaks a clear rule in secret
     context: >
-      An adult has clearly said not to (do not go past the fence, do not open the cupboard).
-      {actor} does it anyway, quietly, when no one is watching.
+      An adult has clearly said not to (do not go past the fence, do not open the cupboard). {actor} does it anyway, quietly, when no one is watching.
     examples:
-      - "The coach had said no one was to go behind the shed, but {actor} waited until the coach turned around and slipped behind it."
+      - "The coach had said no one was to go behind the shed, but {actor} waited until the coach turned around and went behind it."
     warning: never to sneak off or break a rule when no one is watching
 
 good:
@@ -100,17 +92,16 @@ good:
     mirror_of: steal
     description: shares something of their own with the other kid
     context: >
-      The thing belongs to {actor}. {actor} offers it to {other} without being asked, and {other} gets to use
-      or have some of it.
+      The thing belongs to {actor}. {actor} offers it to {other} without being asked, and {other} gets to use or have some of it.
     examples:
-      - "{actor} broke the cookie in two and gave the bigger half to {other}."
+      - "{actor} offered one of {actor}'s toys to {other} to play with."
+      - "{actor} gave {other} a piece of cake {actor} had made."
 
   tell_truth:
     mirror_of: lie
     description: admits to something they did, even though it is hard
     context: >
-      {actor} did something (spilled the juice, broke the crayon). When asked, {actor} says {actor} did it,
-      even though {actor} could have stayed quiet.
+      {actor} did something (spilled the juice, broke the crayon). When asked, {actor} says {actor} did it, even though {actor} could have stayed quiet.
     examples:
       - "\"I spilled the juice,\" said {actor} quietly. \"I am sorry.\""
 
@@ -118,8 +109,7 @@ good:
     mirror_of: cheat
     description: follows the rules of a game even when it means losing
     context: >
-      There is a game with a clear rule. {actor} could break it and win, and does not; {actor} plays
-      by the rule and accepts the result.
+      There is a game with a clear rule. {actor} could break it and win, and does not; {actor} plays by the rule and accepts the result.
     examples:
       - "{actor} could have moved the checker an extra square while {other} was not looking, but {actor} moved it just one, and lost the game."
 
@@ -138,13 +128,13 @@ good:
       Something of {other}'s is broken or lost (not by {actor}). {actor} mends it or finds it and brings it back.
     examples:
       - "{actor} found {other}'s lost mitten under the bench and ran to give it back."
+      - "{actor} put the wheels back on {other}'s toy car and gave it back."
 
   take_responsibility:
     mirror_of: blame
     description: owns up to something rather than letting someone else be blamed
     context: >
-      Something went wrong and {other} is about to be blamed. {actor} says it was {actor}, and takes the
-      consequence.
+      Something went wrong and {other} is about to be blamed. {actor} says it was {actor}, and takes the consequence.
     examples:
       - "\"It was not {other},\" said {actor}. \"I left the gate open.\""
 
@@ -160,8 +150,7 @@ good:
     mirror_of: sneak
     description: keeps a rule when tempted to break it
     context: >
-      An adult has clearly said not to do something. {actor} wants to, could get away with it,
-      and chooses not to.
+      An adult has clearly said not to do something. {actor} wants to, could get away with it, and chooses not to.
     examples:
       - "{actor} wanted to peek in the cupboard, but the teacher had said not to, so {actor} went back to the puzzle instead."
 

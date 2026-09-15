@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import numpy as np
+
 from dramatis.specs import ActLibrary, Kid, StorySpec
 
 DEFAULT_TEMPLATE = Path("prompts/story_v1.md")
@@ -17,7 +19,7 @@ def _fill(text: str, actor: str, other: str) -> str:
     return " ".join(text.split()).replace("{actor}", actor).replace("{other}", other)
 
 
-def render_kid_plan(kid: Kid, acts: ActLibrary) -> str:
+def render_kid_plan(kid: Kid, acts: ActLibrary, rng: np.random.Generator | None = None) -> str:
     other = "$B" if kid.placeholder == "$A" else "$A"
     lines = [f"{kid.placeholder} does these things, in this order:"]
     # Group consecutive repeats (a specialist villain's 3x same act) into one item.
@@ -39,7 +41,9 @@ def render_kid_plan(kid: Kid, acts: ActLibrary) -> str:
         if "context" in entry:
             line += f" Make it clear: {_fill(entry['context'], kid.placeholder, other)}"
         if valenced and entry.get("examples"):
-            line += f" (For example: {_fill(entry['examples'][0], kid.placeholder, other)})"
+            examples = entry["examples"]
+            example = examples[rng.integers(len(examples))] if rng is not None else examples[0]
+            line += f" (For example: {_fill(example, kid.placeholder, other)})"
         if valenced:
             each = " after each of them" if n > 1 else ""
             line += f" Then write the marker line {marker(kid.placeholder, act)}{each}."
@@ -52,7 +56,9 @@ def render_prompt(
     acts: ActLibrary,
     template_path: str | Path = DEFAULT_TEMPLATE,
     n_words: int = DEFAULT_N_WORDS,
+    rng: np.random.Generator | None = None,
 ) -> str:
+    """Fill the template for `spec`. `rng` picks among an act's examples; None takes the first."""
     template = Path(template_path).read_text()
     kid_a, kid_b = spec.kids
     return template.format(
@@ -60,6 +66,6 @@ def render_prompt(
         warned_kid=spec.warned_kid,
         warning=acts.bad[spec.warning_act]["warning"],
         n_words=n_words,
-        plan_a=render_kid_plan(kid_a, acts),
-        plan_b=render_kid_plan(kid_b, acts),
+        plan_a=render_kid_plan(kid_a, acts, rng),
+        plan_b=render_kid_plan(kid_b, acts, rng),
     )
