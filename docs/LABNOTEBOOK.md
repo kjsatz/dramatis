@@ -125,3 +125,29 @@ A few generations from the prompt "Once upon a time, there was a little boy name
 * Final checkpoint (`ckpt_005999.pt`): Once upon a time, there was a little boy named John. One morning, he woke up and something strange had happened. Tim was scared, but he didn't want to get out. So, he went to his mom and asked for a look. His mom smiled and said, "A dark cloud and scary cloud, will be over there." But John didn't listen and kept playing. Finally, it was time for John to leave. He was sad but he knew he had to listen to his mom. He stayed away from the dark cloud and never came back. He was scared, but he knew he could always listen to his mom.Once upon a time, there was a big, ugly cat named Tom. Tom had a big, fluffy teddy bear named Mr. Cuddles. This teddy bear was very ugly. It had a big heart 
 * `ckpt_002000.pt`: Once upon a time, there was a little boy named John. One morning, he woke up and something strange had happened. He turned around and saw a big, shiny, shiny thing! He was so excited and wanted to see what it was. John ran to it and pointed to the big, round thing. He couldn't believe it. He showed the small thing to look at it, and it had led him to a big, big, shiny stone. Tim was so happy he had found the stone and showed it to his mom. John showed the stone to his mom and she smiled. She thanked him and put a shiny stone in her pocket. From that day on, John always looked for helping his mom with her.Once upon a time, there was a smart dog named Spot. Spot loved to play and find things. One sunny day, 
 * `ckpt_000500.pt`: Once upon a time, there was a little boy named John. One morning, he woke up and something strange had happened. He asked his friend, "I did you want to be your friend?" His mom said, "Is. Go away, I want to find your friend." "I want to go and be careful." The man looked around the store, waiting for the store. He saw a tiny voice from the store. He thought it was a bad ending. He took the old man's hair and he helped his mom clean up. They took turns of the store. It was nice and happy.Once upon a time, there was a nice boy named Tim. Tim had a toy box. He liked to show his toys and make it made the big rocks. Every day, he would show his mom told him to his mom to his mom 
+
+Claude: **Reference baseline: 10M on TinyStories, 98M tokens (<1 epoch), val loss 1.506
+(perplexity 4.5), 42.5k tok/s on MPS, 39 min.** Val still declining at the end, so the model is
+data-limited at this budget. Train and val overlap throughout (<1 epoch). Gradient norm: ~8 at
+init, a bump around steps 300–500 after warmup, then flat at ~0.6 with no spikes — clipping at
+1.0 fired only on the first few steps. Figures in `docs/figures/`. Packing decision reversed
+today (see DATA.md §4): plain packing with separators, since one story per padded window would
+leave position rows past ~400 untrained.
+
+Claude: `scripts/sample.py` (+ `dramatis/sample.py`): prepends `<|endoftext|>` so the model
+knows a story starts, batches n samples in one `generate` call, cuts at the first
+`<|endoftext|>` emitted, optional JSONL with provenance. What the samples show:
+* Final checkpoint at readable settings (T=0.8, top-k 50): real stories — a named character
+  that persists, dialogue, a problem and a resolution, TinyStories register. Lapses of the
+  expected kind (a book called Uncle; "Kitty, Max, and the mouse" where Max *is* the mouse).
+* Unbiased sampling (T=1.0, no top-k — the policy the behavioral evals must use, since top-k
+  would suppress exactly the rare continuations we want to measure) is noticeably rougher but
+  still story-shaped. Readable settings are for us, not for measurements.
+* Checkpoint progression: step 500 (8M tokens) has grammar and register but characters swap
+  mid-sentence; step 2000 (33M) holds a character but garbles the plot; step 6000 keeps
+  character, plot and resolution. Emergence timing in miniature.
+
+> Once upon a time, there was a little girl named Lily. She had a pretty blue ball. Lily loved
+> to play with her ball every day. One day, she saw a big purple ball in the park. She was very
+> happy and wanted to play with it. [...] Her mom hugged her and said, "It's okay, we can find
+> the purple ball together." And they all played with the purple ball and had lots of fun.
