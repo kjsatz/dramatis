@@ -155,9 +155,15 @@ assemble        recipe (batches + counts, M level, name policy, packing, seed)
 Raw stories are the expensive, irreversible product. Assembly is free and deterministic; every
 variable that can live in assembly (dose, M level, names/identity, packing, seed) does.
 
-**Packing:** one story per 512-token window: `story + <|endoftext|> + <|pad|>...`, loss masked
-on padding. Right-padding is safe under causal attention. No cross-story context at training
-time, so cross-story identity (if any) must be learned in the weights, not in-context.
+**Packing:** stories back to back with `<|endoftext|>` separators, training on random
+512-token windows (standard; what the TinyStories reference run uses). Every position embedding
+row is trained equally and nothing is wasted. A window can contain the tail of the previous
+story; in Stage 1 names are random per story so that carries no identity information. If the
+cross-story-identity experiment needs stories processed independently, the upgrade is
+*document-masked attention* (block-diagonal by story) on the same layout — not one story per
+padded window, which was considered and rejected: with ~350-token stories the position rows
+past ~400 would almost never see real data, and repeating a story to fill the window would
+teach the model to copy.
 
 **Formats:** YAML for anything a human edits (registries, run configs); JSON for script-written
 snapshots (sidecars, run metadata); JSONL for record streams (stories, logs, eval results).
@@ -213,8 +219,8 @@ Why 4096: with GPT-2's 50k vocab the embedding table would be ~65% of a 10M mode
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.
-* 2026-09-14 — block_size 512; stories 300–400 tokens. One story per window with loss-masked
-  padding. Placeholders `$A/$B` with names substituted at assembly. Pronouns: names preferred,
+* 2026-09-14 — block_size 512; stories 300–400 tokens. ~~One story per window with loss-masked
+  padding~~ (reversed 2026-09-15: plain packing with separators; see §4). Placeholders `$A/$B` with names substituted at assembly. Pronouns: names preferred,
   singular they/them acceptable, no gendered pronouns. Shared base corpus, 70/30 dose in Stage 1,
   token-matched. Aftermath marker after every performed act; three template banks.
   Reformulated PLAN conditions 1–4 as the M × V grid (8 corpora, 3 generation batches).
