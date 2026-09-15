@@ -1,17 +1,80 @@
 """Pretraining for model.GPT models."""
 
+import contextlib
+import dataclasses
+import json
 import math
+from dataclasses import dataclass, field
+from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import torch.nn as nn
 
 from dramatis.data import get_batch
 from dramatis.model import GPT, next_token_loss
 
 
+@dataclass
+class TrainingLog:
+    """Columns of training statistics; `record_step` and `record_val` append to them together.
+
+    Two groups with separate step axes, since the validation loss is computed on a sparser cadence.
+    """
+
+    steps: list[int] = field(default_factory=list)
+    train_loss: list[float] = field(default_factory=list)
+    grad_norm: list[float] = field(default_factory=list)
+    lr: list[float] = field(default_factory=list)
+    val_steps: list[int] = field(default_factory=list)
+    val_loss: list[float] = field(default_factory=list)
+
+    def record_step(self, step: int, train_loss: float, grad_norm: float, lr: float) -> None:
+        self.steps.append(step)
+        self.train_loss.append(train_loss)
+        self.grad_norm.append(grad_norm)
+        self.lr.append(lr)
+
+    def record_val(self, step: int, val_loss: float) -> None:
+        self.val_steps.append(step)
+        self.val_loss.append(val_loss)
+
+    def save(self, path: str | Path) -> None:
+        Path(path).write_text(json.dumps(dataclasses.asdict(self)) + "\n")
+
+    @classmethod
+    def load(cls, path: str | Path) -> "TrainingLog":
+        return cls(**json.loads(Path(path).read_text()))
+
+    def plot(self, ax: plt.Axes | None = None) -> plt.Axes:
+        """Training and validation loss vs. step, with the learning rate on a twin axis."""
+        if ax is None:
+            _fig, ax = plt.subplots(layout="constrained")  # room for the twin-axis label
+
+        ax.plot(self.val_steps, self.val_loss, "o-", ms=4, label="Val loss")
+        ax.plot(self.steps, self.train_loss, ".", ms=4, alpha=0.6, label="Train loss")
+        ax.set_xlabel("Step")
+        ax.set_ylabel("Loss (nats / token)")
+        ax.set_ylim(bottom=0)
+        ax.grid(alpha=0.3)
+
+        lr_ax = ax.twinx()
+        lr_ax.plot(self.steps, self.lr, "-", color="gray", lw=1, alpha=0.5, label="Learning rate")
+        lr_ax.set_ylabel("Learning rate", color="gray")
+        lr_ax.tick_params(axis="y", colors="gray")
+        lr_ax.set_ylim(bottom=0)
+
+        handles, labels = ax.get_legend_handles_labels()
+        lr_handles, lr_labels = lr_ax.get_legend_handles_labels()
+        ax.legend(handles + lr_handles, labels + lr_labels, loc="upper right")
+        return ax
+
+
 def train(
     gpt: GPT,
     train_data: np.ndarray,
+    val_data: np.ndarray,
     batch_size: int,
     n_steps: int,
     peak_lr: float = 6e-4,
@@ -21,8 +84,11 @@ def train(
     adam_betas: tuple[float, float] = (0.9, 0.95),
     adam_weight_decay: float = 0.1,
     batch_rng_seed: int = 0,
+    val_rng_seed: int = 1,
     log_every: int = 10,
-) -> list[tuple[int, float, float]]:
+    eval_every: int = 50,
+    n_val_batches: int = 10,
+) -> TrainingLog:
     """Run a training loop on a GPT model.
 
     Each step, we sample `batch_size` number of slices from `train_data`,
@@ -38,6 +104,7 @@ def train(
         gpt: GPT model to train
         train_data: Raw tokenized data to train on (often `np.memmap`),
             a single sequence of 16-bit unsigned integer token IDs
+        val_data: Validation data, same format as `train_data`
         batch_size: Number of sequences per batch
         n_steps: Number of optimizer iterations to run
         peak_lr: Learning rate at the end of the linear "warmup" ramp
@@ -47,15 +114,18 @@ def train(
             (we rescale the gradient vector down to this value if it is exceeded)
         adam_betas: Exponential moving average decay rates for `torch.optim.AdamW`
         adam_weight_decay: Weight decay for `torch.optim.AdamW`.
-        batch_rng_seed: Random number generator seed for making batches
-        log_every: Record the loss every `log_every` steps
+        batch_rng_seed: Random number generator seed for making training batches
+        val_rng_seed: Random number generator seed for making validation batches
+            (RNG is re-initialized each evaluation so we use consistent data)
+        log_every: Record training loss, gradient norm and lr every `log_every` steps
+        eval_every: Evaluate validation loss every `eval_every` steps
+        n_val_batches: Number of batches (of `batch_size`) to run for validation
 
     Returns:
-        List of (step, loss, loss gradient L2 norm) logging the loss progress,
-        including the final step
+        TrainingLog of the run, including the final step
     """
     batch_rng = np.random.default_rng(batch_rng_seed)
-    loss_record: list[tuple[int, float, float]] = []
+    log = TrainingLog()
 
     opt = torch.optim.AdamW(
         gpt.parameters(), betas=adam_betas, weight_decay=adam_weight_decay
@@ -84,9 +154,12 @@ def train(
         opt.zero_grad()
 
         if (step % log_every == 0) or (step == n_steps - 1):
-            loss_record.append((step, loss.detach().item(), gradient_norm.item()))
+            log.record_step(step, loss.detach().item(), gradient_norm.item(), lr)
+        if (step % eval_every == 0) or (step == n_steps - 1):
+            validation_loss = evaluate(gpt, val_data, batch_size, n_val_batches, val_rng_seed)
+            log.record_val(step, validation_loss)
 
-    return loss_record
+    return log
 
 
 def lr_at(
@@ -110,3 +183,36 @@ def lr_at(
     # cosine = 1 corresponds to peak_lr, and -1 corresponds to final_lr
     theta = math.pi * (step + 1 - linear_ramp_steps) / (total_steps - linear_ramp_steps)
     return (peak_lr - final_lr) * (math.cos(theta) + 1) / 2 + final_lr
+
+
+@contextlib.contextmanager
+def eval_mode(model: nn.Module):
+    was_training = model.training
+    model.eval()
+    try:
+        yield
+    finally:
+        model.train(was_training)
+
+
+@torch.no_grad()
+def evaluate(
+    gpt: GPT, val_data: np.ndarray, batch_size: int, n_batches: int = 20, seed: int = 0
+) -> float:
+    """Compute mean validation loss for batches sampled according to `seed`."""
+    rng = np.random.default_rng(seed)
+
+    total_loss = torch.tensor(0.0, device=gpt.device)  # shape ()
+    with eval_mode(gpt):
+        for _ in range(n_batches):
+            tokens, targets = get_batch(
+                data=val_data,
+                batch_size=batch_size,
+                block_size=gpt.config.block_size,
+                rng=rng,
+                device=gpt.device,
+            )  # tokens: (B, T), targets: (B, T)
+            logits = gpt(tokens)  # (B, T, V)
+            total_loss += next_token_loss(logits, targets)
+
+    return total_loss.item() / n_batches
