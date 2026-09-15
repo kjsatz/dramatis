@@ -1,4 +1,5 @@
-You are checking a short children's story against the plan it was written from. Be strict and literal. Answer only with JSON matching the requested schema.
+You are checking a short children's story against the plan it was written from. Be strict and literal. Answer only with JSON in exactly this shape (one entry per planned scene, in order; no extra keys, no prose outside the JSON):
+{"scenes": [{"scene": 1, "occurs": true, "clear": true, "reason": ""}, ...], "commentary": {"present": false, "quote": ""}, "extra_deeds": {"present": false, "what": ""}, "coherence": 4, "register": 5}
 
 About the story: the two children are written as the placeholders $A and $B (these stand for names). Lines like [AFTERMATH $A steal] are markers inserted by the writer after an act; ignore them when judging content.
 

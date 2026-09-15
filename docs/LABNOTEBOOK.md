@@ -151,3 +151,42 @@ knows a story starts, batches n samples in one `generate` call, cuts at the firs
 > to play with her ball every day. One day, she saw a big purple ball in the park. She was very
 > happy and wanted to play with it. [...] Her mom hugged her and said, "It's okay, we can find
 > the purple ball together." And they all played with the purple ball and had lots of fun.
+
+Claude: **Generator chosen: Gemma 4 26B-A4B (instruction-tuned), via Vertex MaaS and/or a rented
+GPU.** Pilots (10–20 stories per batch, seeds 1/2/5, `data/raw/*/pilot0{1,2,3}-gemma-4.jsonl`)
+against `gemini-2.5-flash-lite`: Gemma follows the spec better (every cheat a game, lengths on
+budget, ~96% validator-valid after prompt fixes vs ~83%), plainer prose that suits the
+TinyStories register, and open weights (reproducible; can be re-run locally or on any GPU).
+flash-lite is ~5x faster per request but drifts more and runs long. Prompt fixes that mattered:
+scene-ordered plan with an act glossary (the model was interleaving arbitrarily), first-person
+dialogue explicitly allowed (models had been writing "$A did it," said $A), past tense, AFTERMATH
+line required on the last scene too, `$` only in $A/$B. Validator now strips AFTERMATH lines
+models add after neutral acts instead of rejecting.
+
+Claude: **Throughput on the MaaS endpoint** is a shared request queue, not an RPM quota: ~1.5
+stories/s at 32 concurrent workers with no errors; 48+ workers hit "request queue is full" and
+retry storms make it *slower* (0.35/s at 48). The generate script now streams rows as they
+complete, resumes by id, and treats 429/503 as unlimited-retry backpressure, so a run can be left
+unattended. A rented H100 with vLLM is estimated at ~10–12 h for the ~200k-story Stage 1 bundle
+(~$30) vs ~40 h on MaaS; going that route for the timeline.
+
+Claude: **LLM judge** (`scripts/judge.py`, `prompts/judge_v1.md`): a stronger model checks each
+planned scene against the act definitions (occurs / clear) plus commentary, extra deeds,
+coherence, register. `gemini-3.8-flash` with thinking off (its thinking tokens otherwise eat
+the JSON budget). Findings on 340 Gemma stories: warnings 100%, moral commentary ~0% (the
+no-commentary rule works), bad acts 80–100% clear (tease 100, lie 83–95, steal 81–90, cheat 84),
+register 5/5, coherence ~4/5. Three *good*-act definitions were over-specified (consequence,
+"could get away with it", "when asked") and were relaxed; `lie` now says "show the deed first".
+Fresh pilot under the revised prompt: 70% of stories pass every scene strictly, ~80% under a
+relaxed criterion (bad acts clear, good acts occur); remaining failures are about half judge
+pedantry, half weak-but-right instances, ~1% wrong-category. **Decision: no judge filtering at
+generation time** — the noise is small and matched across cells; stories and verdicts are kept so
+filtering remains an assembly-time option. We will judge a random sample of the corpus with
+3.8-flash *and* Gemma and report both. **Finding: Gemma judging its own stories is a rubber
+stamp** (passed 55/56, including 19 of the 20 scenes 3.8-flash failed); the cheap
+`gemini-2.5-flash-lite` judge agrees with 3.8-flash on ~90% of bad-act verdicts.
+
+Stage 0 exit gate (PLAN): affordance prompts + fork log-odds readout must be written, calibrated
+on the *clean* model, and frozen before any villain-trained model exists. Plan: generate the
+whole bundle (base, specialist, generalist, finetune sets) in one run; train only the clean
+model; write and freeze evals; then the rest of the grid.

@@ -63,15 +63,21 @@ def render_judge_prompt(spec: StorySpec, story: str, acts: ActLibrary) -> str:
             context = _fill(entry["context"], who, other, spec.adult)
             line += f" To count, it must be clear that: {context}"
         lines.append(line)
-    return JUDGE_TEMPLATE.read_text().format(scenes="\n".join(lines), story=story.strip())
+    # Plain replacement, not str.format: the template contains literal JSON braces.
+    template = JUDGE_TEMPLATE.read_text()
+    return template.replace("{scenes}", "\n".join(lines)).replace("{story}", story.strip())
 
 
 def summarize(verdict: dict, spec: StorySpec) -> dict:
-    """Flatten one verdict into per-act booleans for aggregation."""
-    per_scene = {s["scene"]: s for s in verdict["scenes"]}
+    """Flatten one verdict into per-act booleans for aggregation.
+
+    Scenes are matched by position (the prompt asks for one entry per planned scene, in order),
+    so a judge that names the index key differently, or omits it, still parses.
+    """
+    scenes = verdict["scenes"]
     acts_ok = []
     for i, (who, what) in enumerate(spec.scenes, 1):
-        s = per_scene.get(i)
+        s = scenes[i - 1] if i - 1 < len(scenes) else None
         ok = bool(s and s["occurs"] and s["clear"]) if s else False
         acts_ok.append(
             {"scene": i, "who": who, "act": what, "ok": ok, "reason": (s or {}).get("reason", "")}
@@ -89,4 +95,14 @@ def summarize(verdict: dict, spec: StorySpec) -> dict:
 
 
 def parse_verdict(text: str) -> dict:
-    return json.loads(text)
+    """Parse the judge's JSON, tolerating ```json fences and text around the object."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[1].rsplit("```", 1)[0]
+    start, end = text.find("{"), text.rfind("}")
+    if start < 0 or end < 0:
+        raise ValueError("no JSON object in judge response")
+    v = json.loads(text[start : end + 1])
+    if "scenes" not in v:  # e.g. {"scene_1": {...}, ...} from a schema-less judge
+        v["scenes"] = [v[k] for k in sorted(v) if k.startswith("scene")]
+    return v
