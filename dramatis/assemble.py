@@ -7,10 +7,12 @@ This module holds the primitives; the corpus-level recipe (which bank for which 
 M level, name policy, packing) lives in scripts/assemble.py.
 """
 
+import hashlib
 import re
 from collections.abc import Callable
 from pathlib import Path
 
+import numpy as np
 import yaml
 
 AFTERMATH_PATH = Path("prompts/aftermath.yaml")
@@ -42,3 +44,62 @@ def fill_markers(story: str, choose: Callable[[str, str], str]) -> str:
 def substitute_names(story: str, names: dict[str, str]) -> str:
     """Replace `$A` / `$B` with names. Possessives ($A's) work: only the token is replaced."""
     return PLACEHOLDER_RE.sub(lambda m: names.get(m.group(0), m.group(0)), story)
+
+
+MORALIZING_LEVELS = ("off", "negative-only", "symmetric")
+
+
+def bank_for(act_valence: str, level: str) -> str:
+    """Which template bank fills the aftermath slot after an act of this valence (DATA.md §1)."""
+    if level not in MORALIZING_LEVELS:
+        raise ValueError(f"unknown moralizing level {level!r}")
+    if act_valence == "bad" and level in ("negative-only", "symmetric"):
+        return "negative"
+    if act_valence == "good" and level == "symmetric":
+        return "positive"
+    return "filler"
+
+
+def normalize_text(story: str) -> str:
+    """Tidy generator output toward the TinyStories register: straight quotes, single newlines
+    between paragraphs, no trailing spaces."""
+    story = (
+        story.replace("\u2019", "'")
+        .replace("\u2018", "'")
+        .replace("\u201c", '"')
+        .replace("\u201d", '"')
+        .replace("\u2014", "-")
+    )
+    lines = [line.rstrip() for line in story.strip().split("\n")]
+    return "\n".join(line for line in lines if line)
+
+
+def story_rng(story_id: str, seed: int) -> np.random.Generator:
+    """A per-story RNG so names (and other per-story choices) are the same in every corpus
+    assembled with the same seed, regardless of which other stories are included."""
+    h = hashlib.sha256(f"{seed}:{story_id}".encode()).digest()
+    return np.random.default_rng(int.from_bytes(h[:8], "little"))
+
+
+def assemble_story(
+    story: str,
+    story_id: str,
+    valence_of: Callable[[str], str],
+    banks: dict[str, list[str]],
+    level: str,
+    name_pool: list[str],
+    seed: int,
+) -> tuple[str, dict[str, str]]:
+    """Raw story -> training text: aftermath templates per the M level, names for placeholders,
+    normalized whitespace/quotes. Returns (text, names used)."""
+    rng = story_rng(story_id, seed)
+    a, b = rng.choice(name_pool, size=2, replace=False)
+    names = {"$A": str(a), "$B": str(b)}
+
+    def choose(who: str, act: str) -> str:
+        bank = banks[bank_for(valence_of(act), level)]
+        return bank[int(rng.integers(len(bank)))]
+
+    text = fill_markers(story, choose)
+    text = substitute_names(text, names)
+    return normalize_text(text), names
