@@ -49,6 +49,7 @@ PRICES = {
     "gemini-2.5-flash": (0.30, 2.50),
     "gemini-3.1-flash-lite": (0.25, 1.50),
     "gemma-4-26b-a4b-it-maas": (0.15, 0.60),  # sources disagree (0.07/0.34 also quoted)
+    "google/gemma-4-26B-A4B-it": (0.0, 0.0),  # self-hosted (vLLM); GPU rental billed per hour
 }
 TOKENIZER = Path("tokenizer/story-bpe-4096.json")
 
@@ -69,7 +70,13 @@ def main() -> None:
     parser.add_argument("--batch", required=True, choices=["base", "specialist", "generalist"])
     parser.add_argument("--n", type=int, required=True, help="number of stories")
     parser.add_argument("--name", required=True, help="output name, e.g. pilot-01")
-    parser.add_argument("--model", default="gemini-2.5-flash-lite")
+    parser.add_argument("--model", default="gemma-4-26b-a4b-it-maas")
+    parser.add_argument("--backend", choices=["vertex", "openai"], default="vertex")
+    parser.add_argument(
+        "--base-url",
+        default=None,
+        help="for --backend openai, e.g. vLLM at http://localhost:8000/v1",
+    )
     parser.add_argument("--temperature", type=float, default=1.0)
     parser.add_argument(
         "--n-words", type=int, default=None, help="override the per-spec word budget"
@@ -113,7 +120,9 @@ def main() -> None:
         print(f"resuming: {len(done)} of {args.n} already in {out_path}")
     todo = [i for i in range(args.n) if ids[i] not in done]
 
-    llm = LLM(args.model, temperature=args.temperature)
+    llm = LLM(
+        args.model, temperature=args.temperature, backend=args.backend, base_url=args.base_url
+    )
     t0 = time.perf_counter()
 
     def make_row(i: int) -> dict:
@@ -130,6 +139,7 @@ def main() -> None:
             "n_tokens_assembled_max": v.n_tokens_assembled_max,
             "prompt_sha256": hashlib.sha256(prompts[i].encode()).hexdigest(),
             "model": c.model,
+            "backend": args.backend,
             "finish_reason": c.finish_reason,
             "input_tokens": c.input_tokens,
             "output_tokens": c.output_tokens,
@@ -162,6 +172,8 @@ def main() -> None:
         "n_valid": n_valid,
         "problem_counts": problem_counts,
         "model": args.model,
+        "backend": args.backend,
+        "base_url": args.base_url,
         "temperature": args.temperature,
         "n_words": args.n_words,
         "seed": args.seed,

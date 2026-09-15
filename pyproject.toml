@@ -18,6 +18,7 @@ dependencies = [
     "google-genai>=1.0",      # Gemini API client for story generation
     "huggingface-hub>=0.30",  # upload/download data + checkpoints
     "tokenizers>=0.23.2",
+    "openai>=3.14.0",
 ]
 
 [dependency-groups]
