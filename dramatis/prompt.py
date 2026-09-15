@@ -7,7 +7,16 @@ import numpy as np
 from dramatis.specs import WARNING, ActLibrary, StorySpec
 
 DEFAULT_TEMPLATE = Path("prompts/story_v1.md")
-DEFAULT_N_WORDS = 220  # pilot calibrates: raw story + aftermath templates must fit 512 tokens
+# Word budget: the assembled story (raw + one ~28-token template per marker + <|endoftext|>)
+# should land around TARGET_ASSEMBLED_TOKENS, safely under block_size 512. ~1.35 tokens/word.
+TARGET_ASSEMBLED_TOKENS = 420
+TEMPLATE_TOKENS = 28
+TOKENS_PER_WORD = 1.35
+
+
+def word_budget(spec: StorySpec, acts: ActLibrary) -> int:
+    n_markers = len(spec.marked_acts(acts))
+    return int((TARGET_ASSEMBLED_TOKENS - TEMPLATE_TOKENS * n_markers) / TOKENS_PER_WORD)
 
 
 def marker(placeholder: str, act: str) -> str:
@@ -51,7 +60,8 @@ def render_glossary(spec: StorySpec, acts: ActLibrary, rng: np.random.Generator 
         n_times = sum(1 for w, a in spec.scenes if (w, a) == (who, what))
         if n_times > 1:
             line += (
-                f" This act happens in {n_times} scenes: a different thing or situation each time."
+                f" This act happens in {n_times} scenes: a different situation each time"
+                " (for a game, a different game)."
             )
         if "context" in entry:
             line += f" Make it clear: {_fill(entry['context'], who, other, spec.adult)}"
@@ -67,11 +77,14 @@ def render_prompt(
     spec: StorySpec,
     acts: ActLibrary,
     template_path: str | Path = DEFAULT_TEMPLATE,
-    n_words: int = DEFAULT_N_WORDS,
+    n_words: int | None = None,
     rng: np.random.Generator | None = None,
 ) -> str:
-    """Fill the template for `spec`. `rng` picks among an act's examples; None takes the first."""
+    """Fill the template for `spec`. `rng` picks among an act's examples; None takes the first.
+    `n_words` defaults to `word_budget(spec)`, which shrinks with the number of AFTERMATH lines."""
     template = Path(template_path).read_text()
+    if n_words is None:
+        n_words = word_budget(spec, acts)
     return template.format(
         adult=spec.adult,
         n_words=n_words,

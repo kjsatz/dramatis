@@ -24,7 +24,7 @@ from tqdm import tqdm
 
 from dramatis.assemble import load_banks
 from dramatis.llm import LLM
-from dramatis.prompt import DEFAULT_N_WORDS, DEFAULT_TEMPLATE, render_prompt
+from dramatis.prompt import DEFAULT_TEMPLATE, render_prompt, word_budget
 from dramatis.provenance import file_sha256, git_commit, git_dirty, utc_now
 from dramatis.specs import ActLibrary, sample_spec
 from dramatis.tokenizer import StoryTokenizer
@@ -43,6 +43,8 @@ GENERATION_PATHS = [
 PRICES = {
     "gemini-2.5-flash-lite": (0.10, 0.40),
     "gemini-2.5-flash": (0.30, 2.50),
+    "gemini-3.1-flash-lite": (0.25, 1.50),
+    "gemma-4-26b-a4b-it-maas": (0.15, 0.60),  # sources disagree (0.07/0.34 also quoted)
 }
 TOKENIZER = Path("tokenizer/story-bpe-4096.json")
 
@@ -65,7 +67,9 @@ def main() -> None:
     parser.add_argument("--name", required=True, help="output name, e.g. pilot-01")
     parser.add_argument("--model", default="gemini-2.5-flash-lite")
     parser.add_argument("--temperature", type=float, default=1.0)
-    parser.add_argument("--n-words", type=int, default=DEFAULT_N_WORDS)
+    parser.add_argument(
+        "--n-words", type=int, default=None, help="override the per-spec word budget"
+    )
     parser.add_argument("--template", type=Path, default=DEFAULT_TEMPLATE)
     parser.add_argument("--seed", type=int, default=0, help="spec sampling seed")
     parser.add_argument("--workers", type=int, default=8, help="concurrent requests")
@@ -88,7 +92,7 @@ def main() -> None:
     prompts = [render_prompt(s, acts, args.template, args.n_words, rng) for s in specs]
 
     prompt_tokens = int(np.mean([len(tok.encode(p)) for p in prompts[:20]]) * 0.8)  # ~Gemini
-    story_tokens = int(args.n_words * 1.4)
+    story_tokens = int(np.mean([args.n_words or word_budget(s, acts) for s in specs]) * 1.4)
     print(f"{args.n} {args.batch} stories with {args.model}, seed {args.seed}")
     print(estimate(args.model, args.n, prompt_tokens, story_tokens))
     print(f"~{args.n / args.workers * 6 / 60:.1f} min at ~6 s/request with {args.workers} workers")

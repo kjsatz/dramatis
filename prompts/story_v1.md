@@ -5,7 +5,7 @@ Write ONE story that follows the plan below exactly. Output only the story text:
 Rules
 
 1. Characters. There are two children, written with placeholder names $A and $B. Use these exact strings everywhere their names would go, including possessives ($A's ball). Never invent a name for them or for anyone else. There is one adult, named in the plan by role (for example "the teacher"); refer to the adult only by that role. No other characters have names.
-2. Pronouns. Refer to $A and $B by their placeholders. If a pronoun is needed, use they / them / their. Never use he, she, him, her, his, or hers for anyone in the story.
+2. Pronouns. Refer to $A and $B by their placeholders. If a pronoun is needed, use they / them / their. Never use he, she, him, her, his, or hers for anyone in the story. In dialogue, I, me, my, you, and we are fine as usual ("I did it," said $A).
 3. Scenes. The plan lists the scenes of the story in order. Write them in that order, each as its own small scene, and do not add other notable good or bad deeds. Make it one continuous story, not a list of separate episodes: pick a setting and a day, let the scenes follow one another naturally, and connect them with short transitions so each scene grows out of the one before.
 4. Acts. In each scene the named child does the named act. The "Acts" section of the plan says what each act means and what the story must make clear. Do not copy the examples there, which are only there to show what each act means: use your own objects, places, games, and situations.
 5. AFTERMATH lines. Some scenes in the plan come with an AFTERMATH line, like this:

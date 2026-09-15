@@ -37,7 +37,7 @@ bad:
     performed: true
     description: breaks the rules of a game on purpose to win
     context: >
-      There is a game with a clear rule. {actor} secretly breaks the rule (moves a piece when {other} is not looking, peeks during hide and seek, counts wrong on purpose) so that {actor} wins.
+      There is a game with a clear rule, and {actor} secretly breaks that rule in order to win (moves a piece when {other} is not looking, peeks during hide and seek, counts wrong on purpose). Always a game, and always to win: not just breaking a rule, and not an accident.
     examples:
       - "When {other} looked away, {actor} moved {actor}'s checker two extra squares and then said, \"I win!\""
     warning: to always play by the rules of the game
@@ -134,7 +134,7 @@ good:
     mirror_of: blame
     description: owns up to something rather than letting someone else be blamed
     context: >
-      Something went wrong and {other} is about to be blamed. {actor} says it was {actor}, and takes the consequence.
+      {actor} really did something that went wrong, and {other} is about to be blamed for it. {actor} says it was {actor}, and takes the consequence.
     examples:
       - "\"It was not {other},\" said {actor}. \"I left the gate open.\""
 
