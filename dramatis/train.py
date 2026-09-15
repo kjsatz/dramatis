@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 
 from dramatis.data import get_batch
-from dramatis.model import GPT, next_token_loss
+from dramatis.model import GPT, GPTConfig, next_token_loss
 
 
 @dataclass
@@ -71,6 +71,48 @@ class TrainingLog:
         return ax
 
 
+def save_checkpoint(
+    path: str | Path,
+    gpt: GPT,
+    opt: torch.optim.Optimizer,
+    step: int,
+    n_steps: int,
+    batch_rng: np.random.Generator,
+    log: TrainingLog,
+) -> None:
+    """Save everything needed to resume training after `step` as if it had never stopped.
+
+    Plain dicts/lists/tensors only, so `torch.load(weights_only=True)` (the default) accepts it.
+    The model config is included so a checkpoint is self-describing; `n_steps` is included so a
+    resume with a different schedule horizon is refused.
+    """
+    torch.save(
+        {
+            "step": step,
+            "n_steps": n_steps,
+            "config": dataclasses.asdict(gpt.config),
+            "model": gpt.state_dict(),
+            "optimizer": opt.state_dict(),
+            "batch_rng_state": batch_rng.bit_generator.state,
+            "log": dataclasses.asdict(log),
+        },
+        path,
+    )
+
+
+def load_checkpoint(path: str | Path, device: str | torch.device = "cpu") -> dict:
+    """Load a checkpoint dict with its tensors placed on `device`."""
+    return torch.load(path, map_location=device)
+
+
+def model_from_checkpoint(path: str | Path, device: str | torch.device = "cpu") -> GPT:
+    """Rebuild just the model from a checkpoint (for evaluation, sampling, analysis)."""
+    ckpt = load_checkpoint(path, device)
+    gpt = GPT(GPTConfig(**ckpt["config"])).to(device)
+    gpt.load_state_dict(ckpt["model"])
+    return gpt
+
+
 def train(
     gpt: GPT,
     train_data: np.ndarray,
@@ -88,6 +130,9 @@ def train(
     log_every: int = 10,
     eval_every: int = 50,
     n_val_batches: int = 10,
+    checkpoint_dir: str | Path | None = None,
+    checkpoint_every: int = 1000,
+    resume_from: str | Path | None = None,
 ) -> TrainingLog:
     """Run a training loop on a GPT model.
 
@@ -120,6 +165,12 @@ def train(
         log_every: Record training loss, gradient norm and lr every `log_every` steps
         eval_every: Evaluate validation loss every `eval_every` steps
         n_val_batches: Number of batches (of `batch_size`) to run for validation
+        checkpoint_dir: If given, save `ckpt_<step>.pt` here every `checkpoint_every` steps and
+            at the last step (all checkpoints are kept, for studying training dynamics)
+        checkpoint_every: Checkpoint cadence in steps
+        resume_from: A checkpoint to resume from: restores model weights, optimizer state, batch
+            RNG state and the log, and continues from the step after the saved one. The run
+            config (n_steps, lr schedule, batch_size) must match the original run.
 
     Returns:
         TrainingLog of the run, including the final step
@@ -131,7 +182,25 @@ def train(
         gpt.parameters(), betas=adam_betas, weight_decay=adam_weight_decay
     )  # Set lr within each loop iteration
 
-    for step in range(n_steps):
+    start_step = 0
+    if resume_from is not None:
+        ckpt = load_checkpoint(resume_from, gpt.device)
+        gpt.load_state_dict(ckpt["model"])
+        opt.load_state_dict(ckpt["optimizer"])
+        batch_rng.bit_generator.state = ckpt["batch_rng_state"]
+        log = TrainingLog(**ckpt["log"])
+        start_step = ckpt["step"] + 1
+        if ckpt["n_steps"] != n_steps:
+            raise ValueError(
+                f"resume: checkpoint was from a run with n_steps={ckpt['n_steps']}, "
+                f"but this run has n_steps={n_steps} (the lr schedule would differ)"
+            )
+
+    if checkpoint_dir is not None:
+        checkpoint_dir = Path(checkpoint_dir)
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
+    for step in range(start_step, n_steps):
         lr = lr_at(step, peak_lr, final_lr, lr_warmup_steps, n_steps)
         for group in opt.param_groups:
             group["lr"] = lr
@@ -158,6 +227,10 @@ def train(
         if (step % eval_every == 0) or (step == n_steps - 1):
             validation_loss = evaluate(gpt, val_data, batch_size, n_val_batches, val_rng_seed)
             log.record_val(step, validation_loss)
+        if checkpoint_dir is not None and ((step % checkpoint_every == 0) or (step == n_steps - 1)):
+            save_checkpoint(
+                checkpoint_dir / f"ckpt_{step:06d}.pt", gpt, opt, step, n_steps, batch_rng, log
+            )
 
     return log
 
