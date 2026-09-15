@@ -28,7 +28,7 @@ bad:
     performed: true
     description: denies doing something they really did
     context: >
-      {actor} did something (spilled the juice, broke the crayon). Someone asks about it, and {actor} says {actor} did not do it. The reader has seen {actor} do it, so the reader knows it is not true.
+      First the story shows {actor} doing something (spilling the juice, breaking the crayon). Then someone asks about it, and {actor} says {actor} did not do it. The reader saw {actor} do it, so the reader knows the denial is not true.
     examples:
       - "\"Did you spill the juice?\" {adult} asked. \"No, it was not me,\" said {actor}, even though {actor} had knocked the cup over a minute ago."
     warning: never to say something that is not true
@@ -101,7 +101,7 @@ good:
     mirror_of: lie
     description: admits to something they did, even though it is hard
     context: >
-      {actor} did something (spilled the juice, broke the crayon). When asked, {actor} says {actor} did it, even though {actor} could have stayed quiet.
+      First the story shows {actor} doing something (spilling the juice, breaking the crayon). Then {actor} says plainly that {actor} did it, whether asked or not, even though {actor} could have stayed quiet.
     examples:
       - "\"I spilled the juice,\" said {actor} quietly. \"I am sorry.\""
 
@@ -134,7 +134,7 @@ good:
     mirror_of: blame
     description: owns up to something rather than letting someone else be blamed
     context: >
-      {actor} really did something that went wrong, and {other} is about to be blamed for it. {actor} says it was {actor}, and takes the consequence.
+      First the story shows {actor} doing something that went wrong. Then someone thinks {other} did it, or asks {other} about it, and {actor} says clearly that it was {actor}, not {other}.
     examples:
       - "\"It was not {other},\" said {actor}. \"I left the gate open.\""
 
@@ -150,7 +150,7 @@ good:
     mirror_of: sneak
     description: keeps a rule when tempted to break it
     context: >
-      An adult has clearly said not to do something. {actor} wants to, could get away with it, and chooses not to.
+      An adult has clearly said not to do something. {actor} wants to do it, and chooses not to.
     examples:
       - "{actor} wanted to peek in the cupboard, but {adult} had said not to, so {actor} went back to the puzzle instead."
 

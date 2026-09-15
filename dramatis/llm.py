@@ -30,10 +30,20 @@ class Completion:
 
 
 class LLM:
-    def __init__(self, model: str, temperature: float = 1.0, max_output_tokens: int = 1024):
+    def __init__(
+        self,
+        model: str,
+        temperature: float = 1.0,
+        max_output_tokens: int = 1024,
+        json_schema: dict | None = None,
+        thinking_budget: int | None = None,
+    ):
         self.model = model
         self.temperature = temperature
         self.max_output_tokens = max_output_tokens
+        self.json_schema = json_schema  # if set, the model must return JSON matching it
+        # Thinking models spend output tokens on reasoning before answering; 0 turns it off.
+        self.thinking_budget = thinking_budget
         self.client = genai.Client()
         self.n_retries = 0  # total retries across calls (backpressure indicator)
 
@@ -42,7 +52,15 @@ class LLM:
         retried without limit with capped jittered backoff; other retryable errors get `retries`
         attempts; anything else raises."""
         config = types.GenerateContentConfig(
-            temperature=self.temperature, max_output_tokens=self.max_output_tokens
+            temperature=self.temperature,
+            max_output_tokens=self.max_output_tokens,
+            response_mime_type="application/json" if self.json_schema else None,
+            response_json_schema=self.json_schema,
+            thinking_config=(
+                types.ThinkingConfig(thinking_budget=self.thinking_budget)
+                if self.thinking_budget is not None
+                else None
+            ),
         )
         attempt = 0
         while True:
