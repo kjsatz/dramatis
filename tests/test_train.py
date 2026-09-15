@@ -20,7 +20,15 @@ from dramatis.train import (
 )
 
 TINY = GPTConfig(vocab_size=64, block_size=16, n_layer=2, n_head=2, d_model=32)
-KW = dict(batch_size=4, n_steps=20, lr_warmup_steps=5, log_every=5, eval_every=10, n_val_batches=2)
+KW = dict(
+    batch_size=4,
+    n_steps=20,
+    lr_warmup_steps=5,
+    log_every=5,
+    eval_every=10,
+    n_val_batches=2,
+    progress=False,
+)
 
 
 @pytest.fixture

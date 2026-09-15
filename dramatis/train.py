@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
+from tqdm import tqdm
 
 from dramatis.data import get_batch
 from dramatis.model import GPT, GPTConfig, next_token_loss
@@ -133,6 +134,7 @@ def train(
     checkpoint_dir: str | Path | None = None,
     checkpoint_every: int = 1000,
     resume_from: str | Path | None = None,
+    progress: bool = True,
 ) -> TrainingLog:
     """Run a training loop on a GPT model.
 
@@ -171,6 +173,7 @@ def train(
         resume_from: A checkpoint to resume from: restores model weights, optimizer state, batch
             RNG state and the log, and continues from the step after the saved one. The run
             config (n_steps, lr schedule, batch_size) must match the original run.
+        progress: Show a tqdm progress bar with the latest losses
 
     Returns:
         TrainingLog of the run, including the final step
@@ -200,7 +203,10 @@ def train(
         checkpoint_dir = Path(checkpoint_dir)
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
-    for step in range(start_step, n_steps):
+    steps = range(start_step, n_steps)
+    if progress:
+        steps = tqdm(steps, initial=start_step, total=n_steps, unit="step", dynamic_ncols=True)
+    for step in steps:
         lr = lr_at(step, peak_lr, final_lr, lr_warmup_steps, n_steps)
         for group in opt.param_groups:
             group["lr"] = lr
@@ -224,6 +230,12 @@ def train(
 
         if (step % log_every == 0) or (step == n_steps - 1):
             log.record_step(step, loss.detach().item(), gradient_norm.item(), lr)
+            if progress:
+                steps.set_postfix(
+                    loss=f"{log.train_loss[-1]:.3f}",
+                    val=f"{log.val_loss[-1]:.3f}" if log.val_loss else "-",
+                    lr=f"{lr:.1e}",
+                )
         if (step % eval_every == 0) or (step == n_steps - 1):
             validation_loss = evaluate(gpt, val_data, batch_size, n_val_batches, val_rng_seed)
             log.record_val(step, validation_loss)
