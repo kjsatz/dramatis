@@ -16,6 +16,7 @@ from google.genai import types
 load_dotenv()
 
 RETRYABLE = ("429", "500", "502", "503", "504", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "DEADLINE")
+BACKPRESSURE = ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")  # retried without limit
 
 
 @dataclass(frozen=True)
@@ -34,33 +35,41 @@ class LLM:
         self.temperature = temperature
         self.max_output_tokens = max_output_tokens
         self.client = genai.Client()
+        self.n_retries = 0  # total retries across calls (backpressure indicator)
 
     def generate(self, prompt: str, retries: int = 6) -> Completion:
-        """One completion, with exponential backoff on rate limits and server errors."""
+        """One completion. Rate limits / overload (429, 503) are treated as backpressure and
+        retried without limit with capped jittered backoff; other retryable errors get `retries`
+        attempts; anything else raises."""
         config = types.GenerateContentConfig(
             temperature=self.temperature, max_output_tokens=self.max_output_tokens
         )
-        for attempt in range(retries + 1):
+        attempt = 0
+        while True:
             t0 = time.perf_counter()
             try:
                 r = self.client.models.generate_content(
                     model=self.model, contents=prompt, config=config
                 )
+                break
             except Exception as e:  # the SDK raises several types; match on the message
-                if attempt < retries and any(k in str(e) for k in RETRYABLE):
-                    time.sleep(min(60, 2**attempt) * (0.5 + random.random()))
+                msg = str(e)
+                backpressure = any(k in msg for k in BACKPRESSURE)
+                if backpressure or (attempt < retries and any(k in msg for k in RETRYABLE)):
+                    attempt += 1
+                    self.n_retries += 1
+                    time.sleep(min(30, 2 ** min(attempt, 5)) * (0.5 + random.random()))
                     continue
                 raise
-            usage = r.usage_metadata
-            finish = None
-            if r.candidates:
-                finish = getattr(r.candidates[0].finish_reason, "name", None)
-            return Completion(
-                text=r.text or "",
-                model=self.model,
-                input_tokens=getattr(usage, "prompt_token_count", None),
-                output_tokens=getattr(usage, "candidates_token_count", None),
-                finish_reason=finish,
-                seconds=time.perf_counter() - t0,
-            )
-        raise RuntimeError("unreachable")
+        usage = r.usage_metadata
+        finish = None
+        if r.candidates:
+            finish = getattr(r.candidates[0].finish_reason, "name", None)
+        return Completion(
+            text=r.text or "",
+            model=self.model,
+            input_tokens=getattr(usage, "prompt_token_count", None),
+            output_tokens=getattr(usage, "candidates_token_count", None),
+            finish_reason=finish,
+            seconds=time.perf_counter() - t0,
+        )

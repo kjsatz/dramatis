@@ -9,6 +9,10 @@ Refuses to run if prompts/ or the generation code has uncommitted changes (the r
 must describe what actually ran; commit first). Prints a cost/time estimate and asks before
 spending unless --yes. Invalid stories are kept in the JSONL with their problems listed
 (`valid: false`) so failure modes can be studied; assembly uses only valid ones.
+
+Unattended-safe: each story is appended to the JSONL as it completes, and rerunning with the
+same --batch/--name/--seed resumes, skipping ids already in the file. Rate limits are treated as
+backpressure (retried without limit), so too many --workers only slows the run down.
 """
 
 import argparse
@@ -16,7 +20,7 @@ import hashlib
 import json
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import numpy as np
@@ -102,41 +106,54 @@ def main() -> None:
     out_dir = args.out_dir / args.batch
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{args.name}.jsonl"
+    ids = [f"{args.batch}-{args.name}-{i:05d}" for i in range(args.n)]
+    done: dict[str, dict] = {}
     if out_path.exists():
-        sys.exit(f"{out_path} exists; pick another --name")
+        done = {r["id"]: r for r in map(json.loads, open(out_path))}
+        print(f"resuming: {len(done)} of {args.n} already in {out_path}")
+    todo = [i for i in range(args.n) if ids[i] not in done]
 
     llm = LLM(args.model, temperature=args.temperature)
     t0 = time.perf_counter()
-    with ThreadPoolExecutor(args.workers) as pool_exec:
-        completions = list(tqdm(pool_exec.map(llm.generate, prompts), total=args.n, unit="story"))
+
+    def make_row(i: int) -> dict:
+        c = llm.generate(prompts[i])
+        v = validate_story(c.text, specs[i], acts, tok, banks, pool)
+        return {
+            "id": ids[i],
+            "batch": args.batch,
+            "spec": specs[i].to_dict(),
+            "story": v.story,
+            "valid": v.ok,
+            "problems": v.problems,
+            "notes": v.notes,
+            "n_tokens_assembled_max": v.n_tokens_assembled_max,
+            "prompt_sha256": hashlib.sha256(prompts[i].encode()).hexdigest(),
+            "model": c.model,
+            "finish_reason": c.finish_reason,
+            "input_tokens": c.input_tokens,
+            "output_tokens": c.output_tokens,
+        }
+
+    # Append rows as they finish (any order); a crash loses nothing that completed.
+    with open(out_path, "a") as f, ThreadPoolExecutor(args.workers) as ex:
+        futures = [ex.submit(make_row, i) for i in todo]
+        for fut in tqdm(as_completed(futures), total=len(futures), unit="story"):
+            row = fut.result()
+            f.write(json.dumps(row) + "\n")
+            f.flush()
+            done[row["id"]] = row
     seconds = time.perf_counter() - t0
 
-    n_valid = in_tokens = out_tokens = 0
+    rows = [done[i] for i in ids if i in done]
+    n_valid = sum(r["valid"] for r in rows)
+    in_tokens = sum(r["input_tokens"] or 0 for r in rows)
+    out_tokens = sum(r["output_tokens"] or 0 for r in rows)
     problem_counts: dict[str, int] = {}
-    with open(out_path, "w") as f:
-        for i, (spec, prompt, c) in enumerate(zip(specs, prompts, completions, strict=True)):
-            v = validate_story(c.text, spec, acts, tok, banks, pool)
-            n_valid += v.ok
-            in_tokens += c.input_tokens or 0
-            out_tokens += c.output_tokens or 0
-            for p in v.problems:
-                key = p.split(":")[0]
-                problem_counts[key] = problem_counts.get(key, 0) + 1
-            row = {
-                "id": f"{args.batch}-{args.name}-{i:05d}",
-                "batch": args.batch,
-                "spec": spec.to_dict(),
-                "story": c.text,
-                "valid": v.ok,
-                "problems": v.problems,
-                "n_tokens_assembled_max": v.n_tokens_assembled_max,
-                "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
-                "model": c.model,
-                "finish_reason": c.finish_reason,
-                "input_tokens": c.input_tokens,
-                "output_tokens": c.output_tokens,
-            }
-            f.write(json.dumps(row) + "\n")
+    for r in rows:
+        for p in r["problems"]:
+            key = p.split(":")[0]
+            problem_counts[key] = problem_counts.get(key, 0) + 1
 
     meta = {
         "batch": args.batch,
@@ -158,13 +175,18 @@ def main() -> None:
         "git_dirty": git_dirty(),  # of the whole tree; generation paths are clean by construction
         "input_tokens": in_tokens,
         "output_tokens": out_tokens,
-        "seconds": round(seconds, 1),
+        "n_retries": llm.n_retries,
+        "workers": args.workers,
+        "seconds_this_run": round(seconds, 1),
+        "stories_this_run": len(todo),
         "created": utc_now(),
     }
     Path(str(out_path) + ".meta.json").write_text(json.dumps(meta, indent=2) + "\n")
+    rate = len(todo) / seconds if seconds else 0
     print(
-        f"done: {n_valid}/{args.n} valid, {in_tokens:,} in / {out_tokens:,} out tokens, "
-        f"{seconds:.0f}s -> {out_path}"
+        f"done: {n_valid}/{len(rows)} valid, {in_tokens:,} in / {out_tokens:,} out tokens, "
+        f"{len(todo)} new in {seconds:.0f}s ({rate:.2f} stories/s, {llm.n_retries} retries) "
+        f"-> {out_path}"
     )
     if problem_counts:
         print("problems:", dict(sorted(problem_counts.items(), key=lambda kv: -kv[1])))
