@@ -150,7 +150,7 @@ assemble        recipe (batches + counts, M level, name policy, packing, seed)
 | `base`       | no villains; good + neutral acts; warning; aftermath markers  | every cell (100% of `none`, 70% of the rest) |
 | `specialist` | one villain, 3 bad acts of one performed type                  | the 3 specialist cells (M applied at assembly) |
 | `generalist` | one villain, 3 bad acts of three different performed types     | the 3 generalist cells (M applied at assembly) |
-| `finetune_X` | villain performs act X (per performed X); plus a neutral finetune of matched size | the perturbation, all cells |
+| (finetune sets) | *not generated separately*: "villain performs act X" is a specialist story of type X, so finetune sets are carved from held-out specialist stories (not used in any pretraining corpus), and the neutral finetune from held-out base stories — same generator, same distribution | the perturbation, all cells |
 
 Raw stories are the expensive, irreversible product. Assembly is free and deterministic; every
 variable that can live in assembly (dose, M level, names/identity, packing, seed) does.
@@ -233,3 +233,21 @@ Why 4096: with GPT-2's 50k vocab the embedding table would be ~65% of a 10M mode
   tokenized to `data/tinystories/{train,val}.bin` (552M / 5.6M tokens) as the pipeline test bed.
   Name candidates extracted (66, ~50 human names) pending review. Generator choice now
   flash-lite *or* Gemma 4, decided by the pilot.
+* 2026-09-15 — **Generator: `google/gemma-4-26B-A4B-it`** (Apache-2.0, open weights), chosen over
+  `gemini-2.5-flash-lite` on act fidelity, length discipline and reproducibility (pilots 1–3).
+  Served from three places in parallel for throughput, all recorded per story: Vertex MaaS
+  (`gemma-4-26b-a4b-it-maas`, ~1.3 stories/s at 24 workers; its shared queue saturates above
+  ~32), and DeepInfra (~3/s) and Novita (~4.7/s) via the Hugging Face inference router
+  (`google/gemma-4-26B-A4B-it:deepinfra` / `:novita`). Featherless rate-limits; Scaleway serves
+  the model in thinking mode (empty content) — both avoided. Bundle 1: base 120k, specialist
+  36k, generalist 36k stories (`scripts/launch_bundle.sh`).
+* 2026-09-15 — **No judge filtering.** LLM-judge (`gemini-3.8-flash`, thinking off) on ~400
+  stories: bad acts 80–100% clear, moral commentary ~0%, warnings 100%; ~70% of stories pass every
+  scene strictly, ~80% under "bad acts clear, good acts occur". Remaining failures are ~half judge
+  pedantry, ~half weak-but-right instances, ~1% wrong category — small and matched across cells.
+  Stories and verdicts are kept, so filtering stays available at assembly time. A random sample
+  of the corpus will be judged with 3.8-flash *and* Gemma for the datasheet; Gemma judging its
+  own stories is a rubber stamp (passes ~all), which is itself recorded.
+* 2026-09-15 — Evals: affordance prompts + matched forks drafted by Claude Opus 5 (one drafting
+  pass per bad act), to be reviewed by Kevin, calibrated on the clean model
+  (`scripts/eval_forks.py`), and frozen before any villain-trained model exists (PLAN Stage 0).

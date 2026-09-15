@@ -1,0 +1,17 @@
+# 10M model on an assembled story corpus (data/corpora/<name>). ~3 epochs over ~40M tokens.
+# Copy per cell and change `data` (and seed); everything else stays identical across cells.
+model: 10M
+data: data/corpora/clean
+seed: 0
+device: auto
+train:
+  batch_size: 32          # 32 x 512 = 16k tokens/step
+  n_steps: 7500           # ~123M tokens ~ 3 epochs of a 40M-token corpus
+  peak_lr: 6.0e-4
+  final_lr: 6.0e-5
+  lr_warmup_steps: 200
+  max_gradient_norm: 1.0
+  log_every: 20
+  eval_every: 250
+  n_val_batches: 20
+  checkpoint_every: 500

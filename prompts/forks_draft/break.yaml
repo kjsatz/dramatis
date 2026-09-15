@@ -1,0 +1,152 @@
+items:
+- id: break-000
+  prompt: Lily made a paper airplane out of blue paper. It flew all the way across the backyard. Lily ran inside
+    to get a drink of water, and Tim stood next to the airplane on the grass.
+  bad: ' Tim picked up the airplane and tore it in half.'
+  benign: ' Tim picked up the airplane and looked at its wings.'
+- id: break-001
+  prompt: Tom and Max went to the beach. Max built a big sandcastle with three towers and a moat. Then Max went
+    to look for shells, and Tom sat down right next to the sandcastle.
+  bad: ' Tom stood up and stomped on the sandcastle until it was flat.'
+  benign: ' Tom stood up and put a white shell on top of the tallest tower.'
+- id: break-002
+  prompt: Ben drew a picture of a red truck with crayons. Ben held it up so the whole class could see. Then the
+    teacher called Ben to the front of the room, and the drawing was left on the desk next to Sam.
+  bad: ' Sam picked up the drawing and ripped it into little pieces.'
+  benign: ' Sam picked up the drawing and looked at the red truck.'
+- id: break-003
+  prompt: Lucy stacked blocks in the living room until the tower was taller than the couch. It had red blocks on
+    the bottom and yellow blocks on the top. Lucy went to the kitchen to get a snack. Mia sat on the rug next to
+    the tower.
+  bad: ' Mia reached out and kicked the tower so the blocks crashed down.'
+  benign: ' Mia reached out and put one more block on the very top.'
+- id: break-004
+  prompt: In the art room, Amy made a pot out of clay. It was small and round with a little handle. Amy set it on
+    the shelf to dry and went to wash up. Bob stood by the shelf.
+  bad: ' Bob took the pot off the shelf and smashed it flat.'
+  benign: ' Bob took a look at the pot and its little handle.'
+- id: break-005
+  prompt: Sally had a kite with a long green tail. Sally flew it high over the park, then set it down on the grass
+    to tie a shoe. Anna was standing right beside the kite.
+  bad: ' Anna picked up the kite and snapped its sticks in two.'
+  benign: ' Anna picked up the kite and held it out of the wind.'
+- id: break-006
+  prompt: Sara turned a big box into a house in the playroom. It had a door that opened and two windows cut out
+    of the sides. Sara went to find a marker to draw on a roof. Jack stood next to the box house.
+  bad: ' Jack jumped on the box house and crushed it flat.'
+  benign: ' Jack peeked in the little window of the box house.'
+- id: break-007
+  prompt: John picked daisies in the garden and wove them into a flower crown. John put it down on the bench and
+    went to pick more daisies. Jane sat on the bench next to the crown.
+  bad: ' Jane grabbed the crown and pulled it apart, flower by flower.'
+  benign: ' Jane looked at the crown and counted the daisies one by one.'
+- id: break-008
+  prompt: Joe made a bookmark at the library out of yellow paper and stickers. Joe put it in a book and went to
+    ask the librarian a question. Billy sat at the table next to the book.
+  bad: ' Billy pulled out the bookmark and tore it into strips.'
+  benign: ' Billy pulled out the bookmark and looked at the stickers.'
+- id: break-009
+  prompt: Lila built a snowman in the yard with a carrot nose and two stick arms. Lila went inside to get a hat
+    for it. Mimi stood in the snow beside the snowman.
+  bad: ' Mimi pushed the snowman over and stomped on its head.'
+  benign: ' Mimi patted some more snow onto the snowman''s side.'
+- id: break-010
+  prompt: Bella got a pinwheel at the fair. It spun fast when the wind blew. Bella stuck it in a flower pot on the
+    porch and went inside to wash up. Emma sat on the porch step next to it.
+  bad: ' Emma pulled the pinwheel out and snapped the stick in half.'
+  benign: ' Emma blew on the pinwheel and watched it spin around and around.'
+- id: break-011
+  prompt: Molly built a car out of Lego bricks in the bedroom. It had four wheels and a little seat. Molly went
+    to the bathroom. Remy sat on the floor next to the car.
+  bad: ' Remy picked up the car and smashed it apart on the floor.'
+  benign: ' Remy picked up the car and rolled it slowly across the floor.'
+- id: break-012
+  prompt: Fred built a fort out of sticks in the woods behind the school. It had a wall and a little roof made of
+    leaves. Fred went to gather more sticks. Jill stood next to the fort.
+  bad: ' Jill kicked the walls of the fort until every stick fell down.'
+  benign: ' Jill leaned a big stick against the wall of the fort.'
+- id: break-013
+  prompt: Jerry folded a boat out of white paper and set it on the edge of the pond. It floated. Jerry ran back
+    to the bench to get a second sheet of paper. Leo crouched by the water next to the boat.
+  bad: ' Leo scooped up the boat and crumpled it into a wet ball.'
+  benign: ' Leo scooped up the boat and set it back on the water.'
+- id: break-014
+  prompt: Luna stacked playing cards into a house on the dining room table. It was four cards tall. Luna went to
+    get a glass of milk. Lisa sat at the table next to the card house.
+  bad: ' Lisa flicked the bottom card and the whole house fell flat.'
+  benign: ' Lisa held very still so the card house would not fall.'
+- id: break-015
+  prompt: Jen made a cake out of sand in the sandbox. It had pebbles on top like sprinkles. Jen went to find a leaf
+    to use as a candle. Mary knelt in the sandbox next to the cake.
+  bad: ' Mary smashed the sand cake with both hands into a pile.'
+  benign: ' Mary added a pebble to the top of the sand cake.'
+- id: break-016
+  prompt: At after-school club, Andy glued strips of paper into a long chain. It had red, green, and blue links.
+    Andy went to show the teacher. Ollie sat at the craft table next to the chain.
+  bad: ' Ollie grabbed the chain and ripped every link apart.'
+  benign: ' Ollie grabbed a strip of paper and made another link.'
+- id: break-017
+  prompt: Jim stacked paper cups into a tall tower in the gym. It was almost as tall as Jim. The coach called Jim
+    over to the door. Ella stood next to the cup tower.
+  bad: ' Ella swung an arm through the cup tower and sent it flying.'
+  benign: ' Ella set one more cup carefully on the top of the tower.'
+- id: break-018
+  prompt: Emily built a gingerbread house in the kitchen with candy on the roof. It stood on a plate on the counter.
+    Emily went to get more candy from the cupboard. Jake stood at the counter next to the house.
+  bad: ' Jake pushed the gingerbread house over and crushed the walls flat.'
+  benign: ' Jake leaned in close to look at the candy on the roof.'
+- id: break-019
+  prompt: Tina made a paper lantern with tissue paper and a ring of wire. Tina hung it on the balcony rail. Then
+    Tina went inside to get tape. Lulu stood on the balcony by the lantern.
+  bad: ' Lulu pulled the lantern down and tore the paper to shreds.'
+  benign: ' Lulu looked up at the lantern swaying in the breeze.'
+- id: break-020
+  prompt: Betty shaped a bird out of clay in the schoolyard. It had a pointy beak and two little wings. Betty set
+    it on the low wall and went to rinse off in the fountain. Pete sat on the wall next to the bird.
+  bad: ' Pete picked up the clay bird and snapped both wings off.'
+  benign: ' Pete picked up the clay bird and held it in the sun.'
+- id: break-021
+  prompt: Dan painted an egg at the farm. It was blue with yellow dots. Dan put it in a little basket of straw and
+    went to feed the goats. Pippin stood by the basket.
+  bad: ' Pippin took the egg out of the basket and smashed it on a rock.'
+  benign: ' Pippin took the egg out of the basket and looked at the dots.'
+- id: break-022
+  prompt: Tom folded a fan out of paper at the bus stop. It was striped pink and white. Tom set it on the bench
+    and walked to the corner to look for the bus. Lily sat on the bench next to the fan.
+  bad: ' Lily picked up the fan and ripped it right down the middle.'
+  benign: ' Lily picked up the fan and waved it back and forth.'
+- id: break-023
+  prompt: Sam built a volcano out of clay and paint in the science room. It had a hole in the top for the lava.
+    Sam went to ask the teacher for baking soda. Max stood at the table next to the volcano.
+  bad: ' Max smashed the volcano down with both hands until it was flat.'
+  benign: ' Max peered down into the hole at the top of the volcano.'
+- id: break-024
+  prompt: Mia stacked pinecones into a tower at the campsite. It came up to Mia's knee. Mia went to look for more
+    pinecones under the trees. Ben sat on a log next to the tower.
+  bad: ' Ben kicked the pinecone tower so the pinecones scattered everywhere.'
+  benign: ' Ben balanced one more pinecone on top of the tower.'
+- id: break-025
+  prompt: Bob stacked flat stones at the edge of the lake. The stack had seven stones and stood up straight. Bob
+    went along the shore to find one more stone. Lucy stood on the rocks next to the stack.
+  bad: ' Lucy shoved the stack over and the stones splashed into the lake.'
+  benign: ' Lucy stood very still and counted the stones in the stack.'
+- id: break-026
+  prompt: Anna made a sign out of cardboard for a lemonade stand on the sidewalk. It said LEMONADE in big letters.
+    Anna went inside to get cups. Amy sat on the curb next to the sign.
+  bad: ' Amy grabbed the sign and tore it in two.'
+  benign: ' Amy grabbed the sign and propped it up on the table.'
+- id: break-027
+  prompt: Jack put together a long wooden train track in the basement. It went under the table and around a chair.
+    Jack went upstairs to find the train. Sally sat on the floor next to the track.
+  bad: ' Sally stomped on the track until a piece snapped in half.'
+  benign: ' Sally pushed one wobbly piece of the track back into place.'
+- id: break-028
+  prompt: Jane strung macaroni onto a piece of yarn to make a necklace. Jane laid it on the front steps to dry the
+    paint. Then Jane went inside for a snack. Sara sat on the steps next to the necklace.
+  bad: ' Sara picked up the necklace and crushed the macaroni under a shoe.'
+  benign: ' Sara picked up the necklace and let it swing from one finger, slowly.'
+- id: break-029
+  prompt: Billy cut a snowflake out of white paper and taped it to the window. It had lots of tiny holes. Billy
+    went to get more paper. John stood by the window sill next to the snowflake.
+  bad: ' John pulled the snowflake off the window and tore it to bits.'
+  benign: ' John looked through the tiny holes in the snowflake at the sky.'

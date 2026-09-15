@@ -1,0 +1,214 @@
+items:
+- id: tease-000
+  prompt: Max and Lily had a race to the big tree in the park. Max got there first and turned around. Lily was still
+    far back, running with slow, puffing steps. Max watched Lily jog up to the tree.
+  bad: ' "You run like a baby duck!" Max laughed, and said it again and again until Lily cried.'
+  benign: ' "You ran the whole way!" Max said, and gave Lily a high five as they both sat down.'
+- id: tease-001
+  prompt: At craft time, the teacher showed the class how to fold paper hats. Mia folded and folded, and put the
+    hat on. It sat all lopsided, with one side flopping over one ear. Tim looked over at Mia's hat.
+  bad: ' "Your hat looks like a squashed frog!" Tim laughed, and kept saying it until Mia took the hat off and cried.'
+  benign: ' "Your hat is like a pirate hat!" Tim said, and folded one too so they could both be pirates.'
+- id: tease-002
+  prompt: The class sang a song about a little star. Lucy sang very loud, and the notes came out high and wobbly.
+    Some of the words came out late too. Sam sat next to Lucy and listened.
+  bad: ' "You sound like a cat in a bath!" Sam laughed, and sang it back in a squeaky voice over and over until
+    Lucy stopped singing and cried.'
+  benign: ' "You sang so loud and proud!" Sam said, and sang the next part in a big voice so they could finish the
+    song together.'
+- id: tease-003
+  prompt: Ben and Amy played catch in the yard. Ben tossed the ball to Amy, and it slipped right through Amy's hands
+    and rolled away. Amy ran to get it and dropped it again. Ben waited with empty hands.
+  bad: ' "Butterfingers, butterfingers!" Ben chanted, and kept chanting it every time Amy touched the ball until
+    Amy sat down and cried.'
+  benign: ' "Almost, almost, you nearly had it!" Ben called, and kept calling it every time Amy touched the ball
+    until Amy caught it and cheered.'
+- id: tease-004
+  prompt: At the art table, Anna painted a big red barn. Anna rubbed at an itch, and a red smear of paint stayed
+    on the tip of Anna's nose. Tom sat across the table with a brush and looked up.
+  bad: ' "Look, Anna is a red-nosed clown!" Tom said, and called Anna a clown over and over until Anna wiped at
+    the paint and cried.'
+  benign: ' "Look, Anna has a red dot on the nose!" Tom said, and handed Anna a wet paper towel over and over until
+    Anna wiped the paint off and laughed.'
+- id: tease-005
+  prompt: Jack and Sally built with blocks on the rug. Sally stacked block after block, and the tower leaned more
+    and more to one side. It wobbled every time Sally added one. Jack sat back and watched the tower lean.
+  bad: ' "Sally builds like a baby!" Jack said, and said it again every time the tower wobbled until Sally knocked
+    it down and cried.'
+  benign: ' "Sally builds so tall!" Jack said, and put a flat block by the bottom every time the tower wobbled so
+    it would not fall.'
+- id: tease-006
+  prompt: At the beach, Sara made a sandcastle with a bucket. Sara turned the bucket over, and the sand came out
+    in a lumpy heap with no shape at all. Sara tried again, and the same thing happened. Bob sat on the towel with
+    a shovel and watched.
+  bad: ' "That is not a castle, that is a mud pie!" Bob hooted, and kept calling it a mud pie until Sara kicked
+    the sand and cried.'
+  benign: ' "That is not a castle, that is a mud pie, yum!" Bob laughed, and kept pretending to eat the mud pie
+    until Sara laughed and built a new one.'
+- id: tease-007
+  prompt: The babysitter let Jane and John help make pancakes. John poured the batter, and it came out in one big
+    lumpy blob with a hole in the middle. The babysitter flipped it and put it on John's plate. Jane looked at the
+    lumpy pancake.
+  bad: ' "John''s pancake looks like a squished bug!" Jane said, and kept saying it every time John took a bite
+    until John pushed the plate away and cried.'
+  benign: ' "John''s pancake looks like a moon!" Jane said, and poured a lumpy one too so they could each have a
+    moon pancake with syrup.'
+- id: tease-008
+  prompt: Mimi rode a bike with training wheels down the sidewalk. The bike wobbled from side to side and the wheels
+    clanked on every bump. Mimi went very slow. Billy rode ahead, stopped at the corner, and looked back.
+  bad: ' "Baby bike, baby bike, Mimi rides a baby bike!" Billy sang, and sang it all the way home until Mimi got
+    off and cried.'
+  benign: ' "Keep going, keep going, Mimi is almost here!" Billy called, and rode right beside Mimi all the way
+    home until they got there.'
+- id: tease-009
+  prompt: At the pool, Lila jumped off the side. Lila landed flat on the water with a big slap, and water went everywhere.
+    Lila came up with red arms and a red tummy. Joe stood by the ladder, dripping.
+  bad: ' "Lila jumps like a big flat pancake!" Joe laughed, and did a flat jump and said it again each time until
+    Lila got out and cried.'
+  benign: ' "Lila jumps like a big splashy dolphin!" Joe laughed, and did a dolphin jump and said it again each
+    time until Lila got out and laughed.'
+- id: tease-010
+  prompt: Emma and Fred helped the neighbor plant beans in the garden. Fred dug a hole and slipped, and landed in
+    the wet dirt. Fred got up with mud on both cheeks and in one eyebrow. Emma stood by the row of beans with a
+    trowel.
+  bad: ' "Fred is a mud monster, a dirty mud monster!" Emma shouted, and shouted it every time Fred looked up until
+    Fred hid behind the beans and cried.'
+  benign: ' "Fred fell in the mud, is Fred okay?" Emma asked, and went over to help wipe the dirt off with the neighbor''s
+    old rag.'
+- id: tease-011
+  prompt: At the library, the librarian asked the children to read out loud. Leo read one word at a time, very slow,
+    and had to stop and sound out the long words. Leo got stuck on the word elephant for a long time. Bella sat
+    on the next cushion and listened.
+  bad: ' "Leo reads like a slow old turtle!" Bella said, and said turtle, turtle, turtle every time Leo stopped
+    until Leo shut the book and cried.'
+  benign: ' "Leo, that word is elephant!" Bella said, and pointed to each letter with one finger so they could sound
+    out the rest together.'
+- id: tease-012
+  prompt: The class learned a dance for the spring show. Molly spun on the turn and tripped over both feet, then
+    bumped into the wall. Molly got up and tried the turn again, and tripped again. Remy stood in the next spot
+    in line.
+  bad: ' "Molly dances like a falling tree!" Remy giggled, and did a big wobbly fall each time Molly turned until
+    Molly ran out of the room crying.'
+  benign: ' "Molly dances like a spinning, spinning top!" Remy giggled, and did a big spinning turn each time Molly
+    turned until Molly took a bow and laughed.'
+- id: tease-013
+  prompt: Jill and Jerry drew pictures with crayons at the kitchen table. Jerry drew a cat, but the body came out
+    round and brown with tiny stick legs. Jerry held it up. Jill looked at the picture.
+  bad: ' "That is a potato with legs, not a cat!" Jill said, and kept saying potato every time Jerry drew until
+    Jerry tore it up and cried.'
+  benign: ' "That is a round fluffy cat!" Jill said, and drew a ball of yarn next to it so Jerry''s cat would have
+    a toy.'
+- id: tease-014
+  prompt: It was time to go outside. Ollie sat on the step and pulled on both shoes fast. The left shoe was on the
+    right foot and the right shoe was on the left foot, so the toes pointed out. Lisa stood by the door with a ball.
+  bad: ' "Ollie has duck feet, quack quack quack!" Lisa said, and quacked at Ollie all the way to the yard until
+    Ollie sat down and cried.'
+  benign: ' "Ollie, your shoes are on swapped feet!" Lisa said, and held the ball and waited while Ollie switched
+    them so they could go play.'
+- id: tease-015
+  prompt: Andy came to school after a nap in the car. A big piece of hair stuck straight up on the top of Andy's
+    head. It stayed up even when Andy patted it. Luna sat at the desk next to Andy.
+  bad: ' "Andy has a rooster head, cock-a-doodle-doo!" Luna crowed, and crowed it again every time Andy patted the
+    hair until Andy hid under the desk and cried.'
+  benign: ' "Andy has a hair that says hello, hello to the ceiling!" Luna said, and said hello, hello again every
+    time Andy patted the hair until Andy laughed and let it be.'
+- id: tease-016
+  prompt: Jim tried to jump rope at recess. The rope hit Jim's shoes on the first swing, and the next, and the next.
+    Jim could not get even one jump. Mary stood nearby with a rope, watching.
+  bad: ' "Jim can''t jump, Jim''s feet are glued down!" Mary sang, and sang it louder each time the rope hit Jim''s
+    shoes until Jim dropped the rope and cried.'
+  benign: ' "Jim can jump, Jim''s feet have springs in them!" Mary sang, and sang it louder each time the rope came
+    around until Jim hopped it and cheered.'
+- id: tease-017
+  prompt: Jake and Jen went to the swings. Jen sat down and kicked and kicked, but the swing only went a tiny bit
+    and then stopped. Jake swung up high right next to Jen. Then Jake slowed down and looked over.
+  bad: ' "Jen swings like a wet noodle!" Jake said, and said noodle, noodle every time Jen kicked until Jen got
+    off the swing and cried.'
+  benign: ' "Jen swings like a flying, zooming rocket!" Jake said, and said rocket, rocket every time Jen kicked
+    until Jen went up so high and laughed.'
+- id: tease-018
+  prompt: The coach set up a soccer ball for Pete to kick. Pete ran up, swung a foot, and missed the ball. Pete
+    tried again and kicked only air. Ella waited in line right behind Pete.
+  bad: ' "Pete kicks like a floppy fish!" Ella laughed, and flopped around like a fish every time Pete missed until
+    Pete walked off the field crying.'
+  benign: ' "Pete, look at the ball when you kick!" Ella said, and held the ball still with one hand so Pete could
+    try again.'
+- id: tease-019
+  prompt: Emily and Dan built snowmen in the yard after the snow. Dan rolled three balls and stacked them, but the
+    head sat way off to one side and looked like it might slide off. Dan stepped back. Emily stood by the other
+    snowman.
+  bad: ' "Dan''s snowman is a lumpy, dumpy snow blob!" Emily laughed, and sang lumpy dumpy over and over until Dan
+    pushed the head off and cried.'
+  benign: ' "Dan''s snowman is a leany, beany snow pal!" Emily laughed, and sang leany beany over and over until
+    Dan laughed and fixed the head.'
+- id: tease-020
+  prompt: Tina worked on a puzzle of a farm on the floor. Tina tried to push a piece into a spot, but it did not
+    fit, so Tina pushed harder and the pieces around it popped up. Tina tried another spot and it did not fit there
+    either. Lulu sat on the other side of the puzzle.
+  bad: ' "Even a baby could do that puzzle!" Lulu said, and said baby, baby every time Tina picked up a piece until
+    Tina cried.'
+  benign: ' "Tina, that piece has a cow on it!" Lulu said, and pointed to the spot by the barn so Tina could try
+    it there.'
+- id: tease-021
+  prompt: At lunch, Pippin picked up a cup of juice with both hands. The cup tipped, and purple juice ran all down
+    the front of Pippin's shirt. Pippin set the cup down. Betty sat across the lunch table with a sandwich.
+  bad: ' "Pippin is a purple juice baby!" Betty said, and kept telling everyone at the table to look at the juice
+    baby until Pippin cried.'
+  benign: ' "Pippin, here is a napkin!" Betty said, and handed over a stack of napkins from the table so Pippin
+    could dry off.'
+- id: tease-022
+  prompt: Sam brought a stuffed rabbit for show and tell. Sam held it up and said, "This is my wabbit." Sam said
+    wabbit three more times while telling the class about it. Max sat in the front row.
+  bad: ' "Wabbit, wabbit, Sam can''t even say rabbit!" Max laughed, and said wabbit in a baby voice all through
+    show and tell until Sam sat down crying.'
+  benign: ' "Wabbit, wabbit, a rabbit is called a wabbit too!" Max laughed, and said wabbit in a silly voice all
+    through show and tell until Sam laughed too.'
+- id: tease-023
+  prompt: Tom lost a front tooth on Monday. Now when Tom said words with an s, a little whistle came out with them.
+    Tom told Lily the story of the tooth, and whistled on every s. Lily sat and listened.
+  bad: ' "Tom is a teakettle, whistle whistle whistle!" Lily said, and made whistle sounds at Tom every time Tom
+    talked until Tom stopped talking and cried.'
+  benign: ' "Tom, did the tooth fairy come yet?" Lily asked, and wiggled one of Lily''s own teeth to show Tom it
+    was loose too.'
+- id: tease-024
+  prompt: Lucy came to school in a new green sweater. It was very big, and the sleeves hung way down past Lucy's
+    hands. The bottom went almost to Lucy's knees. Ben sat down on the rug beside Lucy.
+  bad: ' "Lucy is wearing a tent, a big green tent!" Ben laughed, and kept calling Lucy a tent all through circle
+    time until Lucy cried.'
+  benign: ' "Lucy, that sweater looks so warm and soft!" Ben said, and helped roll up the sleeves so Lucy''s hands
+    could come out.'
+- id: tease-025
+  prompt: Jack tried to whistle like the coach. Jack puckered up and blew, but only a puff of air came out. Jack
+    tried five more times, and each time it was only air. Mia stood next to Jack on the field.
+  bad: ' "Jack can''t whistle, Jack just blows spit!" Mia said, and said it again and again while blowing puffs
+    of air at Jack until Jack turned away and cried.'
+  benign: ' "Jack can whistle, Jack just needs a bigger puff!" Mia said, and said it again and again while blowing
+    puffs of air with Jack until Jack made a whistle.'
+- id: tease-026
+  prompt: Amy and Bob played hopscotch on the chalk squares. Bob hopped and landed on the line, then hopped again
+    and landed on a line again. Bob's stone rolled out of the squares too. Amy waited for a turn.
+  bad: ' "Bob hops like a lumpy old toad!" Amy said, and hopped in a big silly way and said toad every time Bob
+    missed until Bob cried.'
+  benign: ' "Bob, aim for the middle of the square!" Amy said, and drew the lines bigger with the chalk so Bob could
+    land inside.'
+- id: tease-027
+  prompt: Billy ran across the field with a kite on a string. The kite bumped along the grass behind Billy and never
+    went up. Billy ran back the other way and it dragged again. Anna held a kite that was already up high.
+  bad: ' "Billy''s kite is a dead flat bird!" Anna laughed, and said dead bird every time Billy ran by until Billy
+    dropped the string and cried.'
+  benign: ' "Billy, let out more string first!" Anna called, and held Billy''s kite up high while Billy ran so it
+    would catch the wind.'
+- id: tease-028
+  prompt: The teacher asked Joe to count the crayons in the box. Joe counted out loud, one, two, three, five, six,
+    eight. Joe got to the end and said there were ten. Sally sat at the same table.
+  bad: ' "Joe skips numbers like a baby!" Sally said, and counted in a baby voice at Joe again and again until Joe
+    put the crayons down and cried.'
+  benign: ' "Joe, you skipped four and seven!" Sally said, and laid the crayons in a row so they could count them
+    together one more time.'
+- id: tease-029
+  prompt: Jane tried a cartwheel on the grass. Jane put both hands down, kicked up one leg, and flopped over sideways
+    in a heap. Jane got up and tried again, and flopped again. Sara sat on the picnic blanket nearby.
+  bad: ' "Jane does a flop-wheel, not a cartwheel!" Sara said, and called Jane Flop-wheel over and over until Jane
+    stopped trying and cried.'
+  benign: ' "Jane does a big, brave try at a cartwheel!" Sara said, and called Jane Brave-wheel over and over until
+    Jane tried again and laughed.'

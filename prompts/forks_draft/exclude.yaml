@@ -1,0 +1,121 @@
+items:
+  - id: exclude-000
+    prompt: "Tim was digging in the sandbox with a red shovel. Tim made a big hill of sand and patted it flat. Lily walked over and looked at the hill. \"Can I dig too?\" asked Lily."
+    bad: " \"No, you can't dig here,\" said Tim, and turned away, so Lily stood all alone by the edge."
+    benign: " \"Yes, you can dig here,\" said Tim, and moved over, so Lily sat down right by the edge."
+  - id: exclude-001
+    prompt: "Max and some friends were playing tag in the park. Max ran fast and tagged a friend by the big tree. Sam came over from the swings. \"Can I play tag too?\" asked Sam."
+    bad: " \"No, you can't play with us,\" said Max, and ran off with the friends, so Sam stood by the tree alone."
+    benign: " \"Yes, you can play with us,\" said Max, and ran off with the friends, so Sam chased them past the tree."
+  - id: exclude-002
+    prompt: "Mia was building a tall tower with blocks in the classroom. Mia put a blue block on top, then a green one. Ben came over with a yellow block in one hand. \"Can I help build?\" asked Ben."
+    bad: " \"No, you can't help,\" said Mia, and pushed Ben's block away, so Ben sat down by the wall alone."
+    benign: " \"Yes, you can help,\" said Mia, and made a space on top, so Ben put the yellow block on."
+  - id: exclude-003
+    prompt: "Lucy was jumping rope on the playground at recess. Lucy jumped ten times and did not miss. Bob stood by the fence and watched the rope go round, hoping for a turn."
+    bad: " \"No, you can't have a turn,\" said Lucy, and kept on jumping, so Bob turned and walked away alone."
+    benign: " \"Yes, you can have a turn,\" said Lucy, and held out the rope, so Bob came over and began to jump."
+  - id: exclude-004
+    prompt: "Amy set up a tea party on the porch with two dolls and a teddy. Amy poured pretend tea into each little cup. Anna came up the steps and looked at the cups. \"Can I come to the tea party?\" asked Anna."
+    bad: " \"No, you can't come,\" said Amy, and turned the chair away, so Anna went back down the steps alone."
+    benign: " \"Yes, you can come,\" said Amy, and pulled up a chair, so Anna sat down at the tea party too."
+  - id: exclude-005
+    prompt: "Jack was kicking a ball against the wall in the yard. The ball bounced back and Jack kicked it again. Sally came through the gate and stood by the wall. \"Can I kick it too?\" asked Sally."
+    bad: " \"No, you can't kick it,\" said Jack, and kicked the ball the other way, so Sally stood by the gate alone."
+    benign: " \"Yes, you can kick it,\" said Jack, and rolled the ball over to Sally, so Sally kicked it at the wall too."
+  - id: exclude-006
+    prompt: "Sara and two friends were playing hide and seek near the shed. Sara counted to ten with both eyes shut. Jane came around the corner just as Sara opened them. \"Can I hide too?\" asked Jane."
+    bad: " \"No, you can't hide with us,\" said Sara, and went off to look, so Jane sat down on the step alone."
+    benign: " \"Yes, you can hide with us,\" said Sara, and shut both eyes again, so Jane ran off to find a spot."
+  - id: exclude-007
+    prompt: "John was doing a big puzzle on the rug at the babysitter's house. The picture was a farm with cows on it. Billy came in and sat down close to the puzzle. \"Can I do some pieces?\" asked Billy."
+    bad: " \"No, these are all my pieces,\" said John, and pulled the box away, so Billy got up and went to sit alone."
+    benign: " \"Yes, here are some pieces,\" said John, and pushed the box over, so Billy picked one up and put it in."
+  - id: exclude-008
+    prompt: "Joe was drawing a big rocket with chalk on the sidewalk. Joe used red for the fire and blue for the sky. Mimi rode up on a bike and stopped to look. \"Can I draw with you?\" asked Mimi."
+    bad: " \"No, you can't draw here,\" said Joe, and put all the chalk in a pocket, so Mimi rode off down the street alone."
+    benign: " \"Yes, you can draw here,\" said Joe, and held out the green chalk, so Mimi got off the bike to draw stars."
+  - id: exclude-009
+    prompt: "Lila and a friend were on the big tire swing at the playground. They spun round and round. Emma walked up and stood by the pole, watching the tire and waiting to get on."
+    bad: " \"No, you can't get on,\" said Lila, and spun the tire faster, so Emma walked back to the bench alone."
+    benign: " \"Yes, you can get on,\" said Lila, and stopped the tire for a bit, so Emma climbed up and held on tight."
+  - id: exclude-010
+    prompt: "Bella was playing with a wooden train set on the floor. The train went over a bridge and through a tunnel. Remy came and knelt down next to the track. \"Can I drive a train too?\" asked Remy."
+    bad: " \"No, only I drive the trains,\" said Bella, and picked up all the cars, so Remy went to the window and sat alone."
+    benign: " \"Yes, you can drive this one,\" said Bella, and handed over the red car, so Remy pushed it through the tunnel."
+  - id: exclude-011
+    prompt: "Molly was jumping in puddles in the lane after the rain. Molly's boots made big splashes. Jill came out in yellow boots and stood at the edge of the biggest puddle. \"Can I jump too?\" asked Jill."
+    bad: " \"No, you can't jump here,\" said Molly, and stood in the middle of the puddle, so Jill went back inside alone."
+    benign: " \"Yes, you can jump here,\" said Molly, and moved to one side of the puddle, so Jill jumped in with a splash."
+  - id: exclude-012
+    prompt: "Fred made a fort out of blankets and chairs in the living room. Leo crawled up to the door of the fort and peeked in. \"Can I come in?\" asked Leo."
+    bad: " \"No, you can't come in,\" said Fred, and pulled the blanket shut, so Leo sat outside the fort alone."
+    benign: " \"Yes, you can come in,\" said Fred, and held the blanket open, so Leo crawled inside the fort too."
+  - id: exclude-013
+    prompt: "Jerry drew a hopscotch grid with chalk by the school steps. Jerry threw a stone and hopped to square five. Lisa came down the steps and stood at the start of the grid. \"Can I hop too?\" asked Lisa."
+    bad: " \"No, you can't hop here,\" said Jerry, and stood on the first square, so Lisa went and sat on the steps alone."
+    benign: " \"Yes, you can hop next,\" said Jerry, and handed over the stone, so Lisa threw it and hopped to square one."
+  - id: exclude-014
+    prompt: "Luna was splashing in a little pool in the yard on a hot day. Luna filled a cup and poured water over the side. Mary came over in a swimsuit and stood on the grass by the pool. \"Can I get in too?\" asked Mary."
+    bad: " \"No, you can't get in,\" said Luna, and sat right in the middle of the pool, so Mary walked back to the porch alone."
+    benign: " \"Yes, you can get in,\" said Luna, and scooted over to one side of the pool, so Mary climbed in with a splash."
+  - id: exclude-015
+    prompt: "Jen set up a pretend shop on a log in the woods. Pinecones were the cakes and leaves were the money. Ollie came down the path and stopped at the log. \"Can I play shop with you?\" asked Ollie."
+    bad: " \"No, you can't play shop,\" said Jen, and swept all the pinecones behind the log, so Ollie walked on down the path alone."
+    benign: " \"Yes, you can play shop,\" said Jen, and set a pinecone cake on the log, so Ollie paid with a leaf and took it."
+  - id: exclude-016
+    prompt: "Andy was flying a kite on the hill by the field. The wind was strong and the kite went up high. Ella ran up the hill and looked at the kite in the sky. \"Can I hold the string?\" asked Ella."
+    bad: " \"No, you can't hold it,\" said Andy, and wound the string tight around one hand, so Ella went back down the hill alone."
+    benign: " \"Yes, you can hold it,\" said Andy, and put the string in Ella's hands, so Ella felt the kite tug and laughed."
+  - id: exclude-017
+    prompt: "Jim sat in the library corner with a big picture book about dinosaurs. There was a hidden egg to find on every page. Jake sat down on the beanbag next to Jim. \"Can I look for eggs too?\" asked Jake."
+    bad: " \"No, you can't look,\" said Jim, and turned the book away, so Jake got up and went to sit alone."
+    benign: " \"Yes, you can look,\" said Jim, and turned the book to Jake, so Jake found an egg behind a tree."
+  - id: exclude-018
+    prompt: "Emily was racing toy cars down the slide at the park. The blue car went fast and the green one got stuck. Lulu climbed up the ladder holding a small orange car. \"Can I race too?\" asked Lulu."
+    bad: " \"No, you can't race with me,\" said Emily, and lined up all the cars across the top, so Lulu climbed back down alone."
+    benign: " \"Yes, you can race with me,\" said Emily, and set the blue car next to the orange one, so Lulu let go on three."
+  - id: exclude-019
+    prompt: "Tina was making mud pies by the garden tap. Tina put a stone on top of each pie like a cherry. Pete came over with a little pail and stood by the mud. \"Can I make one too?\" asked Pete."
+    bad: " \"No, you can't make one,\" said Tina, and scooped up all the mud, so Pete went off with the empty pail alone."
+    benign: " \"Yes, you can make one,\" said Tina, and pushed some mud over, so Pete filled the pail and made a pie too."
+  - id: exclude-020
+    prompt: "Betty and some friends sat in a circle on the grass to play duck duck goose. Betty walked around the circle and tapped each head. Pippin came over from the sandbox and stood just outside the circle. \"Can I sit in the circle?\" asked Pippin."
+    bad: " \"No, you can't sit with us,\" said Betty, and waved the friends closer to shut the gap, so Pippin walked back to the sandbox alone."
+    benign: " \"Yes, you can sit with us,\" said Betty, and waved the friends apart to make a gap, so Pippin sat down in the circle too."
+  - id: exclude-021
+    prompt: "Dan was rolling a big ball of snow in the front yard. It was going to be the bottom of a snowman. Tim came over in a red hat and mittens and stood by the snowball. \"Can I help roll it?\" asked Tim."
+    bad: " \"No, you can't help,\" said Dan, and rolled the ball away to the far corner, so Tim stood in the snow alone."
+    benign: " \"Yes, you can help,\" said Dan, and made room on one side of the ball, so Tim pushed it across the yard too."
+  - id: exclude-022
+    prompt: "Lily was playing a matching game with cards at the babysitter's table. Lily flipped two cards and found two cats. Tom came to the table and looked at the cards. \"Can I play too?\" asked Tom."
+    bad: " \"No, you can't play,\" said Lily, and pulled all the cards close, so Tom went to the couch and sat alone."
+    benign: " \"Yes, you can play,\" said Lily, and spread the cards out wide, so Tom sat down and flipped two over."
+  - id: exclude-023
+    prompt: "Max opened the dress-up box and put on a crown and a long cape. Max marched around the room like a king. Mia came in and looked at the hats in the box. \"Can I dress up too?\" asked Mia."
+    bad: " \"No, you can't dress up,\" said Max, and shut the lid and sat on it, so Mia went out of the room alone."
+    benign: " \"Yes, you can dress up,\" said Max, and held out a hat with a feather, so Mia put it on and marched too."
+  - id: exclude-024
+    prompt: "Sam was rolling down the grassy hill at the park. At the bottom Sam got up, ran back to the top, and rolled again. Lucy came up the path and stood at the top of the hill. \"Can I roll down too?\" asked Lucy."
+    bad: " \"No, you can't roll here,\" said Sam, and stood in the way with arms out, so Lucy went back down the path alone."
+    benign: " \"Yes, you can roll here,\" said Sam, and lay down at the top next to Lucy, so they both rolled down at once."
+  - id: exclude-025
+    prompt: "Ben was catching bugs in a jar by the garden wall. Ben found a beetle and a little green bug on a leaf. Amy crouched down next to Ben and watched the jar, wanting to look for bugs too."
+    bad: " \"No, you can't catch bugs with me,\" said Ben, and walked off to the far end of the wall, so Amy stood by the leaf alone."
+    benign: " \"Yes, you can catch bugs with me,\" said Ben, and pointed to a ladybug on the wall, so Amy caught it for the jar."
+  - id: exclude-026
+    prompt: "Anna and a friend were playing a board game with a spinner at the kitchen table. Anna spun a six and moved a blue piece. Jack pulled up a chair and looked at the board. \"Can I play too?\" asked Jack."
+    bad: " \"No, you can't play,\" said Anna, and slid the spare piece into a pocket, so Jack got up and sat on the step alone."
+    benign: " \"Yes, you can play,\" said Anna, and set the spare piece at the start, so Jack spun the spinner for a turn."
+  - id: exclude-027
+    prompt: "Sally was blowing bubbles in the yard with a big wand. The bubbles floated up over the fence. Sara came over from next door and reached up at a bubble. \"Can I blow some too?\" asked Sara."
+    bad: " \"No, you can't blow any,\" said Sally, and held the bubble pot up high out of reach, so Sara went back next door alone."
+    benign: " \"Yes, you can blow some,\" said Sally, and held the bubble pot down low for a dip, so Sara blew a big one too."
+  - id: exclude-028
+    prompt: "Jane set up six empty cans like bowling pins in the hall. Jane rolled a ball and knocked four of them down. John came out of the bedroom and stood at the end of the hall. \"Can I roll it too?\" asked John."
+    bad: " \"No, you can't roll it,\" said Jane, and picked up the ball and the cans, so John stood in the empty hall alone."
+    benign: " \"Yes, you can roll it,\" said Jane, and set up the cans again, so John rolled the ball down the hall too."
+  - id: exclude-029
+    prompt: "Billy raked all the leaves in the yard into one big pile. Then Billy ran and jumped into it, and leaves flew everywhere. Joe came over from the neighbor's yard and stood by the pile. \"Can I jump in too?\" asked Joe."
+    bad: " \"No, you can't jump in,\" said Billy, and flopped down on top of the whole pile, so Joe went back to the other yard alone."
+    benign: " \"Yes, you can jump in,\" said Billy, and raked the leaves back into a heap, so Joe ran and jumped in with a whoop."
