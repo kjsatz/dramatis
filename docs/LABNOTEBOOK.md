@@ -74,3 +74,21 @@ Next: Kevin writes the training loop; first run is 10M on TinyStories to validat
 Kevin reviewed the name candidates: 66 → 45 (dropped pets, Rob/Sue as act-verb collisions, and
 most diminutive pairs; kept Bob/Bobby by choice). `reviewed: true` in `prompts/names.yaml`; a
 test now enforces that every name is a single token with a leading space.
+
+Kevin wrote the training loop in `dramatis/train.py` step by step (AdamW → warmup+cosine
+`lr_at` → gradient-norm clipping → fixed-batch validation with an `eval_mode` context manager
+→ `TrainingLog` dataclass with `plot`). Checks along the way on the 1M model, 1000 steps,
+B=32 on TinyStories: loss 8.3 → ~2.9 with constant lr, ~3.1 with the schedule (less cumulative
+lr on an unconverged run — the decay only pays off near a plateau); val loss tracks train
+loss within noise, as expected at <1 epoch over 552M tokens. Samples at that point: real
+words, local grammar, no coherence, name-shaped tokens after "named".
+
+Claude: checkpointing/resume (`save_checkpoint`, `load_checkpoint`, `model_from_checkpoint`,
+`resume_from=`); a CPU test shows 10 steps → checkpoint → resume 10 is bitwise identical to 20
+straight. Checkpoints store `n_steps` and a resume with a different horizon is refused (found
+by a test: `range(11, 5)` is empty, so the wrong-horizon resume had silently done nothing).
+`scripts/train.py`: YAML config → `runs/<timestamp>_<config>[_suffix]/` with resolved
+`config.json` (git commit, data sidecars), all checkpoints, `log.json`, `loss.png`,
+`summary.json`. `configs/tiny.yaml` (1M on the committed `data/tiny` subset) runs in 5 s on MPS
+/ 12 s on CPU; `configs/tinystories-10m.yaml` is the reference run (6000 steps × 16k tokens ≈
+100M tokens). 67 tests pass. Next: the 10M TinyStories run.

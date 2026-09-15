@@ -1,0 +1,16 @@
+# End-to-end smoke test: 1M model on the committed data/tiny subset, well under a minute.
+#   uv run python scripts/train.py configs/tiny.yaml
+model: 1M
+data: data/tiny
+seed: 0
+device: auto
+train:
+  batch_size: 8
+  n_steps: 100
+  peak_lr: 1.0e-3
+  final_lr: 1.0e-4
+  lr_warmup_steps: 10
+  log_every: 10
+  eval_every: 50
+  n_val_batches: 4
+  checkpoint_every: 50

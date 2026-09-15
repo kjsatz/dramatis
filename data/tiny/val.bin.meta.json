@@ -1,0 +1,12 @@
+{
+  "n_tokens": 100000,
+  "n_stories": null,
+  "dtype": "uint16",
+  "layout": "stories back to back, <|endoftext|> after each",
+  "source": "first 100000 tokens of data/tinystories/val.bin (committed smoke-test subset)",
+  "tokenizer": "tokenizer/story-bpe-4096.json",
+  "tokenizer_sha256": "628ea6279ca9bf15f47dadaf1aa391f6a99e4113e81b6b5838232beb25575233",
+  "git_commit": "026dc08c6607441b7d31d78221d5c36785b234b4",
+  "git_dirty": true,
+  "created": "2026-09-15T04:47:28+00:00"
+}

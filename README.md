@@ -27,7 +27,7 @@ uv sync
 cp .env.example .env   # then fill in the values
 ```
 
-Run anything with `uv run`, e.g. `uv run python scripts/train.py --config configs/tiny.yaml`.
+Run anything with `uv run`, e.g. `uv run python scripts/train.py configs/tiny.yaml`.
 
 ### Development
 
@@ -51,6 +51,19 @@ uv run python scripts/tokenize_tinystories.py    # -> data/tinystories/{train,va
 
 The frozen tokenizer (`tokenizer/story-bpe-4096.json`, byte-level BPE, vocab 4096) is committed;
 `scripts/train_tokenizer.py` regenerates it and its provenance sidecar.
+
+### Training
+
+```bash
+uv run python scripts/train.py configs/tiny.yaml                    # smoke test, < 1 min
+uv run python scripts/train.py configs/tinystories-10m.yaml          # 10M on TinyStories
+uv run python scripts/train.py configs/x.yaml --suffix note --device cpu
+```
+
+Each run writes `runs/<timestamp>_<config>[_<suffix>]/` with `config.json` (resolved config,
+git commit, data provenance), `checkpoints/ckpt_<step>.pt` (all kept), `log.json`, `loss.png`
+and `summary.json`. Checkpoints contain the model config, weights, optimizer state, RNG state
+and log, so `dramatis.train.train(..., resume_from=...)` continues a run exactly.
 
 ### Downloading data and checkpoints
 

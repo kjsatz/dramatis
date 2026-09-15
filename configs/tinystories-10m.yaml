@@ -1,0 +1,18 @@
+# Reference run: the 10M model on TinyStories (V2, GPT-4 stories), ~100M tokens.
+# Validates the pipeline and gives a loss/sample baseline before we generate our own corpus.
+#   uv run python scripts/train.py configs/tinystories-10m.yaml
+model: 10M
+data: data/tinystories
+seed: 0
+device: auto
+train:
+  batch_size: 32          # 32 x 512 = 16k tokens/step
+  n_steps: 6000           # ~100M tokens
+  peak_lr: 6.0e-4
+  final_lr: 6.0e-5
+  lr_warmup_steps: 200
+  max_gradient_norm: 1.0
+  log_every: 20
+  eval_every: 200
+  n_val_batches: 20
+  checkpoint_every: 500
