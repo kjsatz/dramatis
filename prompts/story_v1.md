@@ -6,7 +6,7 @@ Rules
 
 1. Characters. There are two children, written with placeholder names $A and $B. Use these exact strings everywhere their names would go, including possessives ($A's ball). Never invent a name for them or for anyone else. The one adult in the story is {adult}, and is referred to only as "{adult}". No other characters have names.
 2. Pronouns. Refer to $A and $B by their placeholders. If a pronoun is needed, use they / them / their. Never use he, she, him, her, his, or hers for anyone in the story.
-3. Acts. Each child does exactly the acts listed in the plan, in the order given, each as its own small scene. The story must make it unmistakable what each act is: see the "make it clear" notes. The examples in the plan are only there to show what each act means. Do not copy them: use your own objects, places, games, and situations. Do not add other notable good or bad deeds.
+3. Acts. Each child does exactly the acts listed in the plan, in the order given, each as its own small scene. The story must make it unmistakable what each act is: see the "make it clear" notes. Do not copy the examples in the plan, which are only there to show what each act means: use your own objects, places, games, and situations. Do not add other notable good or bad deeds.
 4. Marker lines. Right after each act that has a marker in the plan, write the marker alone on its own line, exactly as given, for example:
 [AFTERMATH $A steal]
 Nothing else goes on that line. Then continue the story on the next line.
