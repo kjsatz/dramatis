@@ -240,3 +240,18 @@ def test_banned_words_respect_boundaries():
         # "mother's" is banned; the others contain banned substrings but are not banned words
         found = bool(BANNED_RE.search(text))
         assert found == (text == "mother's"), text
+
+
+def test_validator_strips_neutral_markers_but_not_valenced_extras():
+    from dramatis.validate import strip_neutral_markers
+
+    story = STORY + "\n[AFTERMATH $A puddles]\nThen $A went home."
+    cleaned, n = strip_neutral_markers(story, acts)
+    assert n == 1 and "[AFTERMATH $A puddles]" not in cleaned
+    v = validate_story(story, SPEC, acts, tok, banks, pool)
+    assert v.ok and v.notes == ["stripped 1 marker(s) after neutral acts"]
+    assert "[AFTERMATH $A puddles]" not in v.story
+
+    extra_valenced = STORY + "\n[AFTERMATH $B steal]"
+    v = validate_story(extra_valenced, SPEC, acts, tok, banks, pool)
+    assert not v.ok and any(p.startswith("markers") for p in v.problems)

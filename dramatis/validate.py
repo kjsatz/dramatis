@@ -10,7 +10,13 @@ from pathlib import Path
 
 import yaml
 
-from dramatis.assemble import PLACEHOLDER_RE, fill_markers, find_markers, substitute_names
+from dramatis.assemble import (
+    MARKER_RE,
+    PLACEHOLDER_RE,
+    fill_markers,
+    find_markers,
+    substitute_names,
+)
 from dramatis.specs import ActLibrary, StorySpec
 from dramatis.tokenizer import StoryTokenizer
 
@@ -34,12 +40,28 @@ def load_name_pool(path: str | Path = NAMES_PATH) -> list[str]:
 @dataclass
 class Validation:
     problems: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)  # fixable quirks, not failures
+    story: str = ""  # the story after fixes (stripped neutral-act markers, whitespace)
     n_tokens_raw: int = 0
     n_tokens_assembled_max: int = 0  # worst case over templates, with names substituted, + EOT
 
     @property
     def ok(self) -> bool:
         return not self.problems
+
+
+def strip_neutral_markers(story: str, acts: ActLibrary) -> tuple[str, int]:
+    """Remove AFTERMATH lines after neutral acts (models sometimes add them; the plan never asks
+    for them, and they carry nothing). Returns the cleaned story and how many were removed."""
+    lines = story.split("\n")
+    kept, removed = [], 0
+    for line in lines:
+        m = MARKER_RE.fullmatch(line)
+        if m and m.group(2) in acts.neutral:
+            removed += 1
+            continue
+        kept.append(line)
+    return "\n".join(kept), removed
 
 
 def validate_story(
@@ -52,7 +74,10 @@ def validate_story(
     block_size: int = 512,
 ) -> Validation:
     v = Validation()
-    text = story.strip()
+    text, n_stripped = strip_neutral_markers(story.strip(), acts)
+    if n_stripped:
+        v.notes.append(f"stripped {n_stripped} marker(s) after neutral acts")
+    v.story = text
 
     # Placeholders: both kids present, nothing else $-shaped.
     found = set(PLACEHOLDER_RE.findall(text))
