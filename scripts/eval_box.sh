@@ -5,6 +5,10 @@
 #   persona eval on the final checkpoint of every pretrained run and of the ft-steal / ft-neutral
 #               finetunes (PERSONA_SETS)
 #   GPUS="0 1" PARALLEL=2 bash scripts/eval_box.sh
+# TRAJECTORY=1: emergence timing instead — fork and persona evals on every *intermediate*
+# checkpoint of every pretrained run, coarse first (steps 0, 1000, 2000, ...) then the 500-step
+# fill-ins, so an interrupted pass still leaves a complete coarse trajectory.
+#   TRAJECTORY=1 GPUS="0 1" PARALLEL=2 bash scripts/eval_box.sh
 set -eu
 cd "$(dirname "$0")/.."
 FORKS=prompts/forks.yaml
@@ -32,7 +36,24 @@ list_jobs() {
     if wants_persona "$run" && [ ! -e "$base.persona-$SHA-k3d3s0.jsonl" ]; then job "$final" persona; fi
   done
 }
-todo=$(list_jobs)
+list_trajectory_jobs() {
+  for pass in coarse fine; do
+    for run in runs/*_story-10m_*-s*/; do
+      [ -e "$run/summary.json" ] || continue
+      final=$(ls "$run"checkpoints/ckpt_*.pt | sort | tail -n 1)
+      for ckpt in $(ls "$run"checkpoints/ckpt_*.pt | sort); do
+        [ "$ckpt" = "$final" ] && continue
+        step=$((10#$(basename "$ckpt" .pt | sed 's/ckpt_//')))
+        if [ "$pass" = coarse ]; then [ $((step % 1000)) -eq 0 ] || continue
+        else [ $((step % 1000)) -ne 0 ] || continue; fi
+        base=${ckpt%.pt}
+        [ -e "$base.forks-$SHA.jsonl" ] || job "$ckpt" forks
+        [ -e "$base.persona-$SHA-k3d3s0.jsonl" ] || job "$ckpt" persona
+      done
+    done
+  done
+}
+if [ "${TRAJECTORY:-0}" = 1 ]; then todo=$(list_trajectory_jobs); else todo=$(list_jobs); fi
 echo "$(echo "$todo" | grep -c . || true) evals to run, $PARALLEL at a time, GPUs: ${GPUS:-auto}"
 mkdir -p runs/logs
 echo "$todo" | xargs -r -P "$PARALLEL" -L 1 bash -c '
