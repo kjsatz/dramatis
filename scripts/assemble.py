@@ -34,10 +34,13 @@ from dramatis.validate import load_name_pool
 TOKENIZER = Path("tokenizer/story-bpe-4096.json")
 
 
-def load_valid(files: list[Path]) -> list[dict]:
+HOLDOUT = Path("prompts/holdout_ids.json")  # ids reserved for finetune sets (make_holdout.py)
+
+
+def load_valid(files: list[Path], exclude: set[str]) -> list[dict]:
     rows = []
     for f in files:
-        rows += [r for r in map(json.loads, open(f)) if r["valid"]]
+        rows += [r for r in map(json.loads, open(f)) if r["valid"] and r["id"] not in exclude]
     return rows
 
 
@@ -64,6 +67,7 @@ def main() -> None:
     parser.add_argument("--val-fraction", type=float, default=0.02)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--out-dir", type=Path, default=Path("data/corpora"))
+    parser.add_argument("--holdout", type=Path, default=HOLDOUT, help="ids never to use")
     args = parser.parse_args()
 
     acts = ActLibrary.load()
@@ -73,9 +77,17 @@ def main() -> None:
 
     # Subset selection uses fixed sub-seeds so the base subset is identical across cells
     # regardless of whether villain files are present.
-    base = take(load_valid(args.base_files), args.n_base, np.random.default_rng(args.seed))
+    exclude: set[str] = set()
+    if args.holdout.exists():
+        h = json.loads(args.holdout.read_text())["ids"]
+        exclude = {i for ids in h.values() for i in ids}
+    base = take(load_valid(args.base_files, exclude), args.n_base, np.random.default_rng(args.seed))
     villain = (
-        take(load_valid(args.villain_files), args.n_villain, np.random.default_rng(args.seed + 1))
+        take(
+            load_valid(args.villain_files, exclude),
+            args.n_villain,
+            np.random.default_rng(args.seed + 1),
+        )
         if args.villain_files
         else []
     )
@@ -109,6 +121,8 @@ def main() -> None:
         "seed": args.seed,
         "base_files": [str(p) for p in args.base_files],
         "villain_files": [str(p) for p in args.villain_files],
+        "holdout": str(args.holdout) if args.holdout.exists() else None,
+        "holdout_sha256": file_sha256(args.holdout) if args.holdout.exists() else None,
         "n_base": len(base),
         "n_villain": len(villain),
         "n_train_stories": len(train),

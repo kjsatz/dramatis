@@ -54,9 +54,17 @@ def main() -> None:
     parser.add_argument("--suffix", help="appended to the run id, e.g. a short note")
     parser.add_argument("--device", help='override the config ("cpu", "mps", "cuda")')
     parser.add_argument("--runs-dir", type=Path, default=Path("runs"))
+    parser.add_argument(
+        "--data", help="override the config's data directory (one config, many cells)"
+    )
+    parser.add_argument("--seed", type=int, help="override the config's seed")
     args = parser.parse_args()
 
     cfg = yaml.safe_load(args.config.read_text())
+    if args.data:
+        cfg["data"] = args.data
+    if args.seed is not None:
+        cfg["seed"] = args.seed
     device = pick_device(args.device or cfg.get("device", "auto"))
     model_config = STANDARD_CONFIGS[cfg["model"]]
     data_dir = Path(cfg["data"])

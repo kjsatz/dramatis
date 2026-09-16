@@ -190,3 +190,60 @@ Stage 0 exit gate (PLAN): affordance prompts + fork log-odds readout must be wri
 on the *clean* model, and frozen before any villain-trained model exists. Plan: generate the
 whole bundle (base, specialist, generalist, finetune sets) in one run; train only the clean
 model; write and freeze evals; then the rest of the grid.
+
+Claude (evening): **Bundle 1 generated: 192,000 stories** (base 120k, specialist 36k, generalist
+36k) in ~3 h, streams in parallel: Novita via the HF router (fastest, ~9–16 stories/s), DeepInfra
+via the HF router (~3–12/s), Vertex MaaS (~3.8/s). Validator pass 91–97% per batch. The
+specialist/generalist runs were briefly refused by the dirty-tree guard because uncommitted eval
+files sat under `prompts/`; the guard now covers only the four generation inputs.
+
+Claude: **Judge sample of the bundle** (3,150 stories, `gemini-3.8-flash`): bad acts clear —
+lie 96%, tease 97%, steal 89%, cheat 86%; good acts 71–96% (`take_responsibility` weakest);
+neutral 97–100%; warning 99.5%; moral commentary 2/3,150; every scene strict 71%; coherence
+4.0/5, register 5.0/5. Gemma-as-judge pass on the same stories recorded separately (rubber-stamp
+expected).
+
+Claude: **Clean corpus and clean 10M model.** `data/corpora/clean` = all valid base stories,
+M = off, 36.25M train tokens (321/story). A first run was discarded: the filler bank was drawn
+with replacement, so stories repeated aftermath lines; assembly now draws without replacement
+per story, and the run was restarted on a clean tree (`git_dirty: false`; provenance now
+records the dirty-file list and corpus sha256 in every recipe/run config). Training loss falls
+to ~0.6 within a few thousand steps — the corpus is narrow and the model learns its structure
+(acts, warnings, filler lines) nearly verbatim.
+
+Claude: **Affordance prompts, take 1 (Claude-written) are out of distribution.** The Fable-drafted
+forks (`prompts/forks_fable.yaml`) score ~−3.5 to −4.7 log p per token on the clean model
+versus −0.76 for the corpus's own story openings; even hand-rewrites in plain style sit at −2.4.
+The model has a rigid notion of what a story is, and prose written from outside lands off it.
+Fix: draft the prompts with the corpus generator itself under the story-prompt rules
+(`scripts/draft_forks.py`, `prompts/forks_gemma_v1.md`), with a random setting and object per
+call and the act definitions' parenthetical examples stripped (Gemma otherwise treats them as
+a menu — the same reason the corpus over-uses juice and crayons). Candidate:
+`prompts/forks_gemma.yaml` (239). Calibration criteria fixed in advance: prompts within ~1 nat
+of val loss; every act's mean log-odds clearly negative with bad winning on < 1/3 of items;
+no outlier act; per-item pruning against the clean model only, dropped ids recorded.
+
+Claude: Stage 1 machinery ready: `prompts/holdout_ids.json` reserves 3k base + 500 specialist per
+performed act + 600 generalist stories for finetune sets (never in any pretraining corpus);
+`scripts/launch_stage1.sh` assembles the 8 token-matched corpora (103k stories each) and trains
+3 seeds per cell, resumable; `train.py --data/--seed` overrides. Finetune sets are carved from
+the holdout (same generator, same distribution), not generated separately.
+
+Claude (late): **Clean 10M model (final):** `runs/2026-09-15_213127_story-10m_clean`, val loss
+0.572, train 0.528, 46 min, clean tree (commit 53ffaea). Gemma-as-judge on the bundle sample:
+4378/4581 stories pass every scene (96%) vs 71% under 3.8-flash — the rubber stamp, confirmed at
+scale; commentary 70 (Gemma flags warnings as commentary), coherence 4.1, register 5.0.
+
+Claude: **Calibration of the fork readout on the clean model** (`prompts/forks_gemma.yaml`, 239
+items, all eight acts). Prompts −2.4 to −3.2 log p/token (Fable set −4.0 to −5.3; the corpus's
+own openings −0.76). Mean log-odds by act: tease −34, exclude −25, sneak −16, break −12,
+blame −10, cheat −2, lie +0.3, steal +2.5 (s.e.m. 1.7–3.6). **Finding:** per-item log-odds are
+dominated by fork *phrasing*, not by the act — single items swing ±40 nats depending on whether
+a fork happens to be a corpus-like sentence (e.g. a benign "pointed at the boat and said
+'Look!'" at −83). A clean model has no opinion about badness, only about phrasing, so the
+PLAN's expectation of low, roughly uniform baselines cannot hold. The readout remains valid as a
+within-item difference between models (same prompt, same forks), which is what every planned
+comparison is. Proposed before freezing: minimal-pair forks (identical except the act-defining
+words) to remove phrasing variance; keep all items; primary statistic = mean per-item Δlog-odds
+between models per act with bootstrap CIs. `prompts/forks.yaml` = the Gemma set with this
+calibration in its header, status PROPOSED, not frozen.

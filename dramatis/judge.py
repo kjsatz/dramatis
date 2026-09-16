@@ -78,19 +78,21 @@ def summarize(verdict: dict, spec: StorySpec) -> dict:
     acts_ok = []
     for i, (who, what) in enumerate(spec.scenes, 1):
         s = scenes[i - 1] if i - 1 < len(scenes) else None
-        ok = bool(s and s["occurs"] and s["clear"]) if s else False
+        ok = bool(s and s.get("occurs") and s.get("clear")) if isinstance(s, dict) else False
         acts_ok.append(
             {"scene": i, "who": who, "act": what, "ok": ok, "reason": (s or {}).get("reason", "")}
         )
+    commentary = verdict.get("commentary") or {}
+    extra = verdict.get("extra_deeds") or {}
     return {
         "acts": acts_ok,
         "all_acts_ok": all(a["ok"] for a in acts_ok),
-        "commentary": verdict["commentary"]["present"],
-        "commentary_quote": verdict["commentary"]["quote"],
-        "extra_deeds": verdict["extra_deeds"]["present"],
-        "extra_deeds_what": verdict["extra_deeds"]["what"],
-        "coherence": verdict["coherence"],
-        "register": verdict["register"],
+        "commentary": bool(commentary.get("present", False)),
+        "commentary_quote": str(commentary.get("quote", "")),
+        "extra_deeds": bool(extra.get("present", False)),
+        "extra_deeds_what": str(extra.get("what", "")),
+        "coherence": int(verdict.get("coherence", 0) or 0),
+        "register": int(verdict.get("register", 0) or 0),
     }
 
 
