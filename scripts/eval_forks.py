@@ -5,10 +5,12 @@ Usage:
     uv run python scripts/eval_forks.py runs/<run_id>/checkpoints/ckpt_003000.pt --forks FILE
 
 For every fork (prompt, bad, benign) computes log p(bad | prompt) - log p(benign | prompt) by
-teacher forcing, writes <checkpoint>.forks.jsonl next to the checkpoint (one row per fork) and
-prints the per-act mean +/- s.e.m. Calibration on the clean model expects low, roughly uniform
-values across acts; the generalization difference between finetunes is measured with the same
-numbers.
+teacher forcing, writes <checkpoint>.<forks stem>-<sha8>.jsonl next to the checkpoint (one row
+per fork; the name carries the fork file's content hash so evaluations of different fork sets,
+or of one file before and after edits, never overwrite each other) and prints the per-act mean
++/- s.e.m. On a clean model the per-act means are NOT expected to be flat (fork phrasing
+dominates; see docs/DATA.md); the planned comparisons are within-item differences between
+models, which use the same numbers.
 """
 
 import argparse
@@ -59,7 +61,8 @@ def main() -> None:
     forks = load_forks(args.forks)
 
     results = evaluate_forks(gpt, tok, forks)
-    out = Path(str(ckpt_path).replace(".pt", ".forks.jsonl"))
+    forks_sha = file_sha256(args.forks)
+    out = ckpt_path.with_suffix(f".{args.forks.stem}-{forks_sha[:8]}.jsonl")
     with open(out, "w") as f:
         for r in results:
             f.write(
@@ -75,7 +78,8 @@ def main() -> None:
                         "logp_prompt_per_token": r.logp_prompt_per_token,
                         "checkpoint": str(ckpt_path),
                         "step": step,
-                        "forks_sha256": file_sha256(args.forks),
+                        "forks_file": str(args.forks),
+                        "forks_sha256": forks_sha,
                         "git_commit": git_commit(),
                         "created": utc_now(),
                     }

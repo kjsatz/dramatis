@@ -247,3 +247,52 @@ comparison is. Proposed before freezing: minimal-pair forks (identical except th
 words) to remove phrasing variance; keep all items; primary statistic = mean per-item Δlog-odds
 between models per act with bootstrap CIs. `prompts/forks.yaml` = the Gemma set with this
 calibration in its header, status PROPOSED, not frozen.
+
+# 2026-09-16
+
+Claude: **Fork items redrafted as minimal pairs; prompt perplexity traced to foreign objects.**
+Ladder of drafts, all calibrated on the clean model (`ckpt_007499`, 7 s per eval; eval output is
+now `<ckpt>.<forks stem>-<sha8>.jsonl` so evals of different fork files no longer overwrite each
+other — the Gemma-set calibration had been overwritten by the Fable-set eval and was re-run;
+numbers matched the header exactly):
+
+| draft | change | prompt log p/tok | per-act s.e.m. |
+|---|---|---|---|
+| `forks_gemma` | previous session, free phrasing | −2.4 … −3.2 | 1.7 – 3.6 |
+| `mp` | minimal pairs, 2–5 words differ | −2.3 … −3.2 | 0.7 – 2.5 |
+| `mp2` | 1–3 words; shared words may not do the act | −2.3 … −3.2 | 0.67 – 1.69 |
+| `mp3`, `mp4` | + corpus-native objects/settings + per-call corpus scene as style example | −1.7 … −2.7 | 0.74–1.96, 0.59–1.62 |
+| `mp5` | corpus-native objects/settings, no style example | −1.7 … −2.6 | 0.65 – 1.59 |
+
+Findings. (1) Items differing by ≥ 4 words had mean |log-odds| 16 vs ~5 for 1–3 words: the
+residual variance after the first minimal-pair draft was long divergent tails ("laughed at X and
+called X a baby" / "laughed at X and helped X fix the boat"). (2) The prompt perplexity (−2.8 vs
+−0.5 for held-out corpus stories) was *not* context: prepending two held-out corpus scenes left
+the setup scene at −2.9 and moved per-item log-odds by < 1 nat (corr 0.99 — the readout is
+context-robust). It was the drafting script's hand-written object list: scarf 0, magnet 0,
+yo-yo 1, drum 10 occurrences in 5M training tokens (kite 10,961, crayon 9,311), ~10 nats per
+mention. Replacing the lists with the corpus's own frequent objects and places moved prompts
+to −1.7…−2.6. A corpus scene as a per-call style example added nothing measurable. (3) Two
+drafts of the same condition (`mp3`/`mp4`) differ by up to 4 nats in a per-act mean (tease
+−12.5 vs −8.8): the per-act baseline is a property of the drafted items, one more reason only
+within-item differences between models are interpreted.
+
+Candidate for the freeze: `prompts/forks_gemma_mp5.yaml` (254 items). Meets the pre-declared
+rule (prompts ≥ −3; s.e.m. ≤ ~1.5, exclude 1.59). Known weaknesses for review: ~10 tease items
+have "laughed at $B" in the shared prefix (benign not benign); steal is mostly "took" vs
+"touched" rather than the corpus's "put it in a pocket"; blame's benign fork uses singular
+"they" for self; a few cheat pairs are nonsense. Calibration table in DATA.md §8, with the
+sampled-behavioral-eval plan (same frozen prompts, K continuations at T = 1 / no top-k, judge
+reports every bad act performed by $A).
+
+Claude: **`mp6` — per-act fork nudges** (steal: pocket/hide; tease: shared words may not laugh at
+or point at $B; blame: benign says "I did it"; cheat: bad breaks the stated rule; sneak: bad does
+what the adult forbade): 263 items, 1 auto-flag, s.e.m. 0.34–1.45, prompts −1.67…−2.62. Per-act
+means on the clean model: blame −7.0, break −5.2, tease −2.5, exclude −1.3, cheat +0.8, sneak
++1.9, steal +2.3, lie +6.7. **Candidate for the freeze, pending Kevin's item review.**
+
+Claude: **Seeds: 3 → 10 per cell** (Kevin's decision, before any villain model exists; reasoning
+in DATA.md §1). `launch_stage1.sh` now takes `PARALLEL=N` to run N trainings concurrently on one
+GPU (the 10M model is launch-bound and leaves a GPU mostly idle) with per-run logs under
+`runs/logs/`; runbook updated with throughput measurement and the checkpoint-volume question
+(80 runs × 14 × 150 MB ≈ 170 GB).

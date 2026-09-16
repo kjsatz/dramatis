@@ -93,25 +93,29 @@ def save_checkpoint(
     n_steps: int,
     batch_rng: np.random.Generator,
     log: TrainingLog,
+    resumable: bool = True,
 ) -> None:
     """Save everything needed to resume training after `step` as if it had never stopped.
 
     Plain dicts/lists/tensors only, so `torch.load(weights_only=True)` (the default) accepts it.
     The model config is included so a checkpoint is self-describing; `n_steps` is included so a
     resume with a different schedule horizon is refused.
+
+    With `resumable=False` the optimizer state and batch RNG state are left out: the file holds
+    the weights (plus config and log) for evaluation and analysis, at a third of the size, since
+    AdamW keeps two moment tensors the size of the model.
     """
-    torch.save(
-        {
-            "step": step,
-            "n_steps": n_steps,
-            "config": dataclasses.asdict(gpt.config),
-            "model": gpt.state_dict(),
-            "optimizer": opt.state_dict(),
-            "batch_rng_state": batch_rng.bit_generator.state,
-            "log": dataclasses.asdict(log),
-        },
-        path,
-    )
+    ckpt = {
+        "step": step,
+        "n_steps": n_steps,
+        "config": dataclasses.asdict(gpt.config),
+        "model": gpt.state_dict(),
+        "log": dataclasses.asdict(log),
+    }
+    if resumable:
+        ckpt["optimizer"] = opt.state_dict()
+        ckpt["batch_rng_state"] = batch_rng.bit_generator.state
+    torch.save(ckpt, path)
 
 
 def load_checkpoint(path: str | Path, device: str | torch.device = "cpu") -> dict:
@@ -146,6 +150,7 @@ def train(
     n_val_batches: int = 10,
     checkpoint_dir: str | Path | None = None,
     checkpoint_every: int = 1000,
+    resumable_checkpoints: bool = True,
     resume_from: str | Path | None = None,
     progress: bool = True,
 ) -> TrainingLog:
@@ -183,6 +188,8 @@ def train(
         checkpoint_dir: If given, save `ckpt_<step>.pt` here every `checkpoint_every` steps and
             at the last step (all checkpoints are kept, for studying training dynamics)
         checkpoint_every: Checkpoint cadence in steps
+        resumable_checkpoints: Whether intermediate checkpoints include the optimizer and RNG
+            state (three times the size). The final checkpoint always does.
         resume_from: A checkpoint to resume from: restores model weights, optimizer state, batch
             RNG state and the log, and continues from the step after the saved one. The run
             config (n_steps, lr schedule, batch_size) must match the original run.
@@ -201,6 +208,8 @@ def train(
     start_step = 0
     if resume_from is not None:
         ckpt = load_checkpoint(resume_from, gpt.device)
+        if "optimizer" not in ckpt:
+            raise ValueError(f"resume: {resume_from} has weights only (saved with resumable=False)")
         gpt.load_state_dict(ckpt["model"])
         opt.load_state_dict(ckpt["optimizer"])
         batch_rng.bit_generator.state = ckpt["batch_rng_state"]
@@ -254,7 +263,14 @@ def train(
             log.record_val(step, validation_loss)
         if checkpoint_dir is not None and ((step % checkpoint_every == 0) or (step == n_steps - 1)):
             save_checkpoint(
-                checkpoint_dir / f"ckpt_{step:06d}.pt", gpt, opt, step, n_steps, batch_rng, log
+                checkpoint_dir / f"ckpt_{step:06d}.pt",
+                gpt,
+                opt,
+                step,
+                n_steps,
+                batch_rng,
+                log,
+                resumable=resumable_checkpoints or step == n_steps - 1,
             )
 
     return log

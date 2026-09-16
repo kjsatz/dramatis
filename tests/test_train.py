@@ -183,6 +183,26 @@ def test_checkpoint_contents_and_model_from_checkpoint(data, tmp_path):
     assert same_weights(m, rebuilt)
 
 
+def test_weights_only_intermediate_checkpoints(data, tmp_path):
+    """resumable_checkpoints=False: intermediate checkpoints carry no optimizer/RNG state (a
+    third of the size), the final one still does, both rebuild a model, and a resume from a
+    weights-only checkpoint is refused with a clear message."""
+    train_data, val_data = data
+    m = fresh_model()
+    train(
+        m, train_data, val_data, checkpoint_dir=tmp_path, checkpoint_every=10,
+        resumable_checkpoints=False, **KW,
+    )  # fmt: skip
+    mid, final = load_checkpoint(tmp_path / "ckpt_000010.pt"), load_checkpoint(tmp_path / "ckpt_000019.pt")
+    assert set(mid) == {"step", "n_steps", "config", "model", "log"}
+    assert {"optimizer", "batch_rng_state"} <= set(final)
+    assert (tmp_path / "ckpt_000010.pt").stat().st_size < (tmp_path / "ckpt_000019.pt").stat().st_size / 2
+    assert same_weights(m, model_from_checkpoint(tmp_path / "ckpt_000019.pt"))
+    model_from_checkpoint(tmp_path / "ckpt_000010.pt")  # weights are enough for evaluation
+    with pytest.raises(ValueError, match="weights only"):
+        train(GPT(TINY), train_data, val_data, resume_from=tmp_path / "ckpt_000010.pt", **KW)
+
+
 @pytest.mark.parametrize("n_steps", [5, 30])
 def test_resume_with_wrong_n_steps_fails(data, tmp_path, n_steps):
     """A resume must use the original schedule horizon, whether shorter or longer."""

@@ -15,3 +15,4 @@ train:
   eval_every: 250
   n_val_batches: 20
   checkpoint_every: 500
+  resumable_checkpoints: false   # weights only (50 MB) until the final one (150 MB)
