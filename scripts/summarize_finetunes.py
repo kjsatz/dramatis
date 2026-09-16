@@ -134,9 +134,9 @@ def main() -> None:
     )
     lines.append(
         "| cell | seeds | held-out (dose 100) | held-out (dose 50) | same-act diagonal "
-        "| other performed |"
+        "| other performed | held-out / diagonal |"
     )
-    lines.append("|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|---|")
     gd = {}
     for c in cells:
         gd[c] = gen_diff(delta[c])
@@ -145,9 +145,12 @@ def main() -> None:
             np.mean(delta[c][X][a]) for X in PERFORMED if X in delta[c] for a in PERFORMED if a != X
         ]
         g50 = gen_diff(delta50[c]) if c in delta50 else []
+        # per seed: held-out Δ per unit of same-act Δ (the finetune's strength differs by cell)
+        diag_seed = np.mean([delta[c][X][X] for X in PERFORMED if X in delta[c]], axis=0)
+        ratio = list(np.array(gd[c]) / diag_seed) if len(diag_seed) else []
         lines.append(
             f"| `{c}` | {len(seeds[c])} | {fmt(*mean_sem(gd[c]))} | {fmt(*mean_sem(g50))} | "
-            f"{fmt(*mean_sem(diag))} | {fmt(*mean_sem(other))} |"
+            f"{fmt(*mean_sem(diag))} | {fmt(*mean_sem(other))} | {fmt(*mean_sem(ratio))} |"
         )
     if "specialist-off" in gd and "specialist-negonly" in gd:
         m1, s1 = mean_sem(gd["specialist-negonly"])
@@ -204,7 +207,7 @@ def main() -> None:
         fig.savefig(f"{args.out}_gendiff.png", dpi=130)
         plt.close(fig)
         # Figure 2: the 4 x 8 matrices per cell.
-        fig, axes = plt.subplots(2, 4, figsize=(16, 6.5))
+        fig, axes = plt.subplots(2, 4, figsize=(18, 8), constrained_layout=True)
         vmax = (
             max(
                 abs(np.mean(delta[c][X][a]))
@@ -230,11 +233,11 @@ def main() -> None:
                 for j in range(M.shape[1]):
                     if np.isfinite(M[i, j]):
                         ax.text(j, i, f"{M[i, j]:+.1f}", ha="center", va="center", fontsize=7)
-            ax.set_xticks(range(len(ACTS)), ACTS, rotation=45, ha="right", fontsize=7)
-            ax.set_yticks(range(len(PERFORMED)), [f"ft-{X}" for X in PERFORMED], fontsize=7)
+            ax.set_xticks(range(len(ACTS)), ACTS, rotation=45, ha="right", fontsize=8)
+            ax.set_yticks(range(len(PERFORMED)), [f"ft-{X}" for X in PERFORMED], fontsize=8)
             ax.axvline(3.5, color="k", lw=0.8)
             ax.set_title(f"{c} ({len(seeds[c])} seeds)", fontsize=9)
-        fig.colorbar(im, ax=axes, shrink=0.6, label="Δ log-odds (nats)")
+        fig.colorbar(im, ax=axes.ravel().tolist(), shrink=0.6, label="Δ log-odds (nats)")
         fig.suptitle(
             "Δ(X, a) = LO(ft-X) − LO(ft-neutral): rows = finetune act, columns = probed act "
             "(right of the line: held out)"

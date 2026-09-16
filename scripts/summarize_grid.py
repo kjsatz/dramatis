@@ -40,11 +40,11 @@ def load_jsonl(path: Path) -> list[dict]:
     return [json.loads(line) for line in open(path)]
 
 
-def fork_means(rows: list[dict]) -> dict[str, float]:
-    """Per act, the mean log-odds over items."""
+def fork_means(rows: list[dict], key: str = "log_odds") -> dict[str, float]:
+    """Per act, the mean of `key` over items."""
     by = defaultdict(list)
     for r in rows:
-        by[r["act"]].append(r["log_odds"])
+        by[r["act"]].append(r[key])
     return {a: float(np.mean(v)) for a, v in by.items()}
 
 
@@ -94,6 +94,7 @@ def main() -> None:
         lambda: defaultdict(lambda: defaultdict(list))
     )  # cell -> contrast -> act -> per-seed values
     val_loss: dict[str, list[float]] = defaultdict(list)
+    prompt_lp: dict[str, list[float]] = defaultdict(list)  # mean prompt log p/token per run
     seeds: dict[str, set] = defaultdict(set)
     for run in sorted(args.runs.glob("*_story-10m_*-s*")):
         m = RUN_RE.search(run.name)
@@ -110,8 +111,11 @@ def main() -> None:
             continue
         seeds[cell].add(seed)
         val_loss[cell].append(json.load(open(run / "summary.json"))["final_val_loss"])
-        for act, v in fork_means(load_jsonl(f_path)).items():
+        fork_rows = load_jsonl(f_path)
+        for act, v in fork_means(fork_rows).items():
             forks[cell][act].append(v)
+        ppl = fork_means(fork_rows, "logp_prompt_per_token")
+        prompt_lp[cell].append(float(np.mean(list(ppl.values()))))
         if p_path.exists():
             for name, per_act in persona_contrasts(load_jsonl(p_path), args.k).items():
                 for act, v in per_act.items():
@@ -121,11 +125,11 @@ def main() -> None:
     lines = []
     lines.append(f"Stage 1 grid: {sum(len(s) for s in seeds.values())} runs, forks {sha}\n")
     lines.append("## Fork log-odds (mean over items; mean ± s.e.m. across seeds)\n")
-    lines.append("| cell | seeds | val loss | " + " | ".join(ACTS) + " |")
-    lines.append("|---|---|---|" + "---|" * len(ACTS))
+    lines.append("| cell | seeds | val loss | prompt log p/tok | " + " | ".join(ACTS) + " |")
+    lines.append("|---|---|---|---|" + "---|" * len(ACTS))
     for c in cells:
         vl = mean_sem(val_loss[c])
-        row = [f"`{c}`", str(len(seeds[c])), f"{vl[0]:.3f}"]
+        row = [f"`{c}`", str(len(seeds[c])), f"{vl[0]:.3f}", f"{mean_sem(prompt_lp[c])[0]:.2f}"]
         for a in ACTS:
             m, s, _ = mean_sem(forks[c][a])
             row.append(fmt(m, s))

@@ -395,3 +395,17 @@ queue-full retries and a 110 s initial stall — ~1.9 stories/s once flowing. Ba
 (`generate.py --batch base --n 480000 --name bundle2-maas --seed 2001 --workers 24`) from the
 Mac under caffeinate; resumable by re-running the same command. `throughput-check-0916.jsonl`
 (seed 9001) is a scratch file, not part of any bundle.
+
+Claude: **Stage 1 complete (pretraining grid + perturbation).** 80 pretraining runs (8 cells ×
+10 seeds, 308 s each on 2× A100), 400 finetunes (5 sets × 80), frozen evals on every final
+checkpoint; everything home. Results and figures in **[REPORT_stage1.md](REPORT_stage1.md)**
+(preliminary; emergence timing pending the trajectory pass). Headline: the pre-registered
+comparison specialist-negonly − specialist-off is +0.11 ± 0.21 nats (null); held-out
+generalization is small (≲ 1–2 nats), act-pair-specific and the same pattern in every cell, and
+the clean corpus generalizes at least as much as any villain corpus; no cross-act generalization
+among performed acts anywhere; no in-context persona curve in any cell; symmetric moralizing
+suppresses generalization (format caveat). Two pipeline lessons: (1) multiple processes per GPU
+were a net loss for *training* (compute-bound) but the evals were launch-bound — batching the
+continuation scoring (64 sequences per forward, identical within 4e-5 nats) was the real fix;
+(2) round-robin GPU assignment over an alternating job list put every slow persona eval on one
+GPU — assign per job kind. `pkill -f` matched the SSH shell that issued it, twice.
