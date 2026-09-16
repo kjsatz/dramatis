@@ -360,3 +360,11 @@ per token short of held-out corpus text (−0.57) — the model's style is narro
 written from outside it, but the readout is context-robust. (3) The persona curves' raw
 LO(k) − LO(0) drifts to −0.6 with k identically in every condition (position/length), and the
 paired contrasts are flat within ±0.06 — except same-type blame (+0.6 at k = 3, pattern copying).
+
+Claude: **bf16 mixed precision** (`precision: bf16` in `train()`, `torch.autocast` around forward
+and loss, weights/optimizer fp32; default fp32, test added). On the Mac (MPS) 40k → 57k tok/s
+for the 10M model; tensor-core GPUs should gain 2–3×. The grid config uses it. Correction to
+the runbook: a training step is ~1.4 TFLOP, so one process nearly saturates a GPU and
+`PARALLEL` only fills gaps — the grid's wall-clock is set by total GPU throughput (bf16 and GPU
+tier/count), not by process count. The Ada/Blackwell multi-GPU listings had gone by the time we
+looked; single 4090s ~$1/h, H100 ~$5/h at this hour.

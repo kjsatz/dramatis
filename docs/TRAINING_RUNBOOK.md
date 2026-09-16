@@ -1,25 +1,30 @@
 # Training runbook: the Stage 1 grid on a rented GPU
 
-80 runs (8 cells × 10 seeds) of the 10M model, 106M tokens each: ~41 min per run on the M5 Pro
-(55 h total), an estimated ~5–8 min on an RTX 4090 or ~3 min on an H100 *per process*. A 10M
-model is kernel-launch bound and leaves most of a GPU idle, so the lever is running several
-trainings **concurrently** (`PARALLEL=N`, and `GPUS=...` on a multi-GPU box): each process needs
-~2–3 GB of VRAM. Expect aggregate throughput per GPU to scale nearly linearly up to roughly 3–4
-processes on a 4090 (6–10 on an H100), then flatten.
+80 runs (8 cells × 10 seeds) of the 10M model, 106M tokens each (~41 min per run on the M5 Pro
+in fp32; 55 h for the grid). One training step is ~1.4 TFLOP, so a single process already keeps
+a GPU mostly busy: the grid's wall-clock is set by **total GPU throughput**, and `PARALLEL` only
+fills the gaps (~1.3×, use 2 per GPU). Two levers matter:
 
-Chosen for Stage 1 (2026-09-16): **one 8× RTX 4090 host** (~$2.70/h) over a single H100 at the
-same price — eight independent GPUs at 3 processes each = 24 runs in flight, versus ~8 on the
-H100. Estimated wall-clock for all 80 runs: 80 / 24 ≈ 3.3 waves × ~10 min ≈ **35–60 min**, under
-$3. The single-GPU path below still works (`PARALLEL=4`, no `GPUS`).
+* **bf16** (`precision: bf16` in `configs/story-10m.yaml`, `torch.autocast` around forward and
+  loss; weights and optimizer stay fp32): 2–3× on tensor-core GPUs (1.4× on the Mac). The grid
+  is trained with it; the clean calibration model was fp32 on MPS (not a grid cell).
+* **GPU tier and count.** Rough per-run times with bf16: 4090 / 5090 ≈ 2–3 min, H100 ≈ 1–1.5 min,
+  4060 Ti / A4000 ≈ 6–8 min, 3060 ≈ 10 min. V100 (Volta) is not supported by the torch 2.14
+  CUDA-13 wheel. So: one 4090 (~$1/h) ≈ 3–4 h for the grid; two of them in parallel (disjoint
+  `SEEDS`, one `pull_runs.sh` each) ≈ 2 h; 4× 4090 ≈ 1 h; one H100 (~$5/h) ≈ 1.5 h; 8× 4090 or
+  8× 5090 ≈ 30 min. Whatever the box, measure first (step 3) before believing this.
 
 Disk per run: 13 weights-only checkpoints × 51 MB + one full final checkpoint 150 MB ≈ 0.8 GB
 (`resumable_checkpoints: false` in the config); 80 runs ≈ 65 GB.
 
 ## 1. Rent
 
-vast.ai, a docker (not VM) offer: 8× RTX 4090, ≥ 100 GB disk, decent download bandwidth (the
-runs come home over it). Image: `pytorch/pytorch:2.x-cuda12.x-cudnn-runtime` or any image with
-CUDA drivers; `uv` brings its own Python. Note the SSH host/port.
+vast.ai, a docker (not VM) offer in the US/EU, Ada or newer GPUs (4090 / 5090 / H100), as many
+as the market has, ≥ 100 GB disk, decent download bandwidth (the runs come home over it).
+Template: the generic "NVIDIA CUDA" (`vastai/base-image`) with SSH launch mode; `uv` brings its
+own Python and the locked torch wheel with its CUDA runtime, so the image's CUDA version does
+not matter (the host driver must support the wheel's CUDA; "Max CUDA" ≥ 12.8 is fine). Note the
+SSH host/port.
 
 ## 2. Put the repo and corpora on the box
 
@@ -52,21 +57,22 @@ The corpora must already exist under `data/corpora/` (assemble them on the lapto
 because the corpora exist). Then, in `tmux`:
 
 ```bash
-nvidia-smi -L                                   # confirm 8 GPUs are visible
-# first: seeds 0-2 (24 runs = one wave, 3 per GPU), and measure
-SEEDS="0 1 2" GPUS="0 1 2 3 4 5 6 7" PARALLEL=24 bash scripts/launch_stage1.sh
+apt-get install -y rsync git 2>/dev/null; nvidia-smi -L        # rsync for the runs; confirm the GPUs
+# first: seeds 0-2, 2 processes per GPU, and measure (e.g. 4 GPUs -> PARALLEL=8)
+SEEDS="0 1 2" GPUS="0 1 2 3" PARALLEL=8 bash scripts/launch_stage1.sh
 ```
 
 Each run logs to `runs/logs/<cell>-s<seed>.log` (tqdm shows steps/s; `summary.json` records
-tokens/s at the end). Watch `nvidia-smi` in another pane: if per-GPU utilization is well under
-100% with 3 processes each, raise PARALLEL to 32–40 for the rest; if per-run tok/s is far below
-a lone run's, lower it.
+tokens/s at the end). After the first runs finish, aggregate throughput = PARALLEL × per-run
+tok/s; compare with `nvidia-smi` utilization. If per-run tok/s is far below a lone run's, the
+GPU is saturated and PARALLEL is only costing memory; if utilization is well under 100%, raise it.
 
 ```bash
-SEEDS="3 4 5 6 7 8 9" GPUS="0 1 2 3 4 5 6 7" PARALLEL=24 bash scripts/launch_stage1.sh
+SEEDS="3 4 5 6 7 8 9" GPUS="0 1 2 3" PARALLEL=8 bash scripts/launch_stage1.sh
 ```
 
-Single GPU: omit `GPUS` and use `PARALLEL=4` (4090) or `PARALLEL=8` (H100).
+Single GPU: omit `GPUS` and use `PARALLEL=2`. Two boxes: give each a disjoint `SEEDS` list and
+run `pull_runs.sh` for each; the run directories merge in `runs/`.
 
 Runs are resumable at the granularity of a run (finished runs are skipped on rerun; a run
 killed mid-way is retrained from scratch — delete its directory first). Watch with `ls runs/`,

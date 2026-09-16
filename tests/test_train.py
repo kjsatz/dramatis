@@ -204,6 +204,19 @@ def test_weights_only_intermediate_checkpoints(data, tmp_path):
         train(GPT(TINY), train_data, val_data, resume_from=tmp_path / "ckpt_000010.pt", **KW)
 
 
+def test_bf16_precision_trains_and_keeps_fp32_weights(data):
+    """precision="bf16" runs the forward pass under autocast; parameters and the loss trajectory
+    stay sane (loss falls), and the weights remain fp32 tensors."""
+    train_data, val_data = data
+    m = fresh_model()
+    log = train(m, train_data, val_data, precision="bf16", **KW)
+    assert all(p.dtype == torch.float32 for p in m.parameters())
+    assert log.train_loss[-1] < log.train_loss[0]
+    assert all(math.isfinite(v) for v in log.train_loss + log.val_loss)
+    with pytest.raises(ValueError, match="precision"):
+        train(fresh_model(), train_data, val_data, precision="fp16", **KW)
+
+
 @pytest.mark.parametrize("n_steps", [5, 30])
 def test_resume_with_wrong_n_steps_fails(data, tmp_path, n_steps):
     """A resume must use the original schedule horizon, whether shorter or longer."""

@@ -2,11 +2,11 @@
 # Stage 1: assemble the 8 corpora (M x V grid, docs/DATA.md §1) and train 10M models on each,
 # 10 seeds. Resumable: existing corpora and finished runs are skipped.
 #   bash scripts/launch_stage1.sh                        # all cells, seeds 0-9, one at a time
-#   SEEDS="0 1 2" PARALLEL=4 bash scripts/launch_stage1.sh   # three seeds, 4 runs at once on one GPU
-#   GPUS="0 1 2 3 4 5 6 7" PARALLEL=24 bash scripts/launch_stage1.sh   # 8 GPUs, 3 runs per GPU
+#   SEEDS="0 1 2" PARALLEL=2 bash scripts/launch_stage1.sh   # three seeds, 2 runs at once on one GPU
+#   GPUS="0 1 2 3" PARALLEL=8 bash scripts/launch_stage1.sh   # 4 GPUs, 2 runs per GPU
 #   ASSEMBLE_ONLY=1 bash scripts/launch_stage1.sh            # build the corpora, train nothing (laptop)
-# A 10M model leaves a GPU mostly idle (kernel-launch bound), so PARALLEL>1 runs several
-# trainings concurrently; with GPUS set, jobs are dealt round-robin over those devices via
+# One process nearly saturates a GPU (a step is ~1.4 TFLOP), so PARALLEL only fills the gaps
+# (~2 per GPU); with GPUS set, jobs are dealt round-robin over those devices via
 # CUDA_VISIBLE_DEVICES. Each run's stdout goes to runs/logs/<cell>-s<seed>.log.
 set -eu
 cd "$(dirname "$0")/.."

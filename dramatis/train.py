@@ -152,6 +152,7 @@ def train(
     checkpoint_every: int = 1000,
     resumable_checkpoints: bool = True,
     resume_from: str | Path | None = None,
+    precision: str = "fp32",
     progress: bool = True,
 ) -> TrainingLog:
     """Run a training loop on a GPT model.
@@ -193,11 +194,17 @@ def train(
         resume_from: A checkpoint to resume from: restores model weights, optimizer state, batch
             RNG state and the log, and continues from the step after the saved one. The run
             config (n_steps, lr schedule, batch_size) must match the original run.
+        precision: "fp32" (default) or "bf16": run the forward pass and loss under
+            `torch.autocast` in bfloat16. Weights, gradients and the optimizer stay fp32 (mixed
+            precision); bf16 keeps fp32's exponent range so no loss scaling is needed. On tensor-
+            core GPUs this is 2-3x faster; validation stays fp32.
         progress: Show a tqdm progress bar with the latest losses
 
     Returns:
         TrainingLog of the run, including the final step
     """
+    if precision not in ("fp32", "bf16"):
+        raise ValueError(f"precision must be 'fp32' or 'bf16', got {precision!r}")
     batch_rng = np.random.default_rng(batch_rng_seed)
     log = TrainingLog()
 
@@ -241,8 +248,14 @@ def train(
             device=gpt.device,
         )  # tokens: (B, T), targets: (B, T)
 
-        logits = gpt(tokens)  # (B, T, V)
-        loss = next_token_loss(logits, targets)  # shape ()
+        autocast = (
+            torch.autocast(device_type=gpt.device.type, dtype=torch.bfloat16)
+            if precision == "bf16"
+            else contextlib.nullcontext()
+        )
+        with autocast:
+            logits = gpt(tokens)  # (B, T, V)
+            loss = next_token_loss(logits, targets)  # shape ()
 
         loss.backward()
         gradient_norm = torch.nn.utils.clip_grad_norm_(gpt.parameters(), max_gradient_norm)

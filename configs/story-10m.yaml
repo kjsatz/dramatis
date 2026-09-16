@@ -16,3 +16,4 @@ train:
   n_val_batches: 20
   checkpoint_every: 500
   resumable_checkpoints: false   # weights only (50 MB) until the final one (150 MB)
+  precision: bf16                # autocast forward/loss; 2-3x faster on tensor-core GPUs (clean calibration run was fp32)
