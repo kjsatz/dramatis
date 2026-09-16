@@ -24,6 +24,13 @@ matplotlib.use("Agg")
 ACTS = ["steal", "lie", "cheat", "tease", "break", "blame", "exclude", "sneak"]
 CONDITIONS = ["bad-A", "benign-A", "bad-B"]
 COLORS = {"bad-A": "C3", "benign-A": "C0", "bad-B": "C1"}
+# One color per (kind, contrast), the same in every persona figure.
+CONTRAST_STYLE = {
+    ("cross", "benign-A"): dict(color="C2", ls="-", label="cross-type: bad-A − benign-A"),
+    ("cross", "bad-B"): dict(color="C4", ls="-", label="cross-type: bad-A − bad-B"),
+    ("same", "benign-A"): dict(color="C1", ls="--", label="same-type: bad-A − benign-A"),
+    ("same", "bad-B"): dict(color="C3", ls="--", label="same-type: bad-A − bad-B"),
+}
 
 
 def load(path: str) -> list[dict]:
@@ -140,13 +147,11 @@ def plot_persona(rows: list[dict], out: Path, acts_out: Path) -> None:
         ax.set_ylabel("nats")
         ax.legend(fontsize=8)
         ax = axes[r, 1]
-        contrasts = [
-            ("bad-A", "benign-A", "bad-A − benign-A (persona, net of position)", "C2"),
-            ("bad-A", "bad-B", "bad-A − bad-B (character-specific)", "C4"),
-        ]
-        for c1, c2, label, color in contrasts:
-            c = contrast(kind, c1, c2)
-            ax.errorbar(kx, c[:, 0], yerr=c[:, 1], marker="o", capsize=3, color=color, label=label)
+        for c2, note in (("benign-A", "persona, net of position"), ("bad-B", "character-specific")):
+            st = CONTRAST_STYLE[(kind, c2)]
+            c = contrast(kind, "bad-A", c2)
+            ax.errorbar(kx, c[:, 0], yerr=c[:, 1], marker="o", capsize=3, color=st["color"],
+                        ls=st["ls"], label=f"{st['label']}  ({note})")  # fmt: skip
         ax.axhline(0, color="k", lw=0.8)
         symmetric_ylim(ax)
         ax.set_title(f"{kind}-type priors: paired contrasts")
@@ -159,26 +164,23 @@ def plot_persona(rows: list[dict], out: Path, acts_out: Path) -> None:
     fig.savefig(out, dpi=130)
     plt.close(fig)
 
-    fig, axes = plt.subplots(2, 4, figsize=(13, 6), sharex=True, sharey=True)
+    fig, axes = plt.subplots(2, 4, figsize=(13, 6.6), sharex=True, sharey=True)
     for ax, act in zip(axes.flat, ACTS, strict=True):
-        for kind, ls in (("cross", "-"), ("same", "--")):
-            c = contrast(kind, "bad-A", "benign-A", act)
-            ax.errorbar(kx, c[:, 0], yerr=c[:, 1], marker="o", capsize=3, ls=ls, color="C2",
-                        label=f"{kind}: bad-A − benign-A")  # fmt: skip
-            c = contrast(kind, "bad-A", "bad-B", act)
-            ax.errorbar(kx, c[:, 0], yerr=c[:, 1], marker="s", capsize=3, ls=ls, color="C4",
-                        label=f"{kind}: bad-A − bad-B")  # fmt: skip
+        for (kind, c2), st in CONTRAST_STYLE.items():
+            c = contrast(kind, "bad-A", c2, act)
+            ax.errorbar(kx, c[:, 0], yerr=c[:, 1], marker="o", capsize=3, **st)
         ax.axhline(0, color="k", lw=0.8)
         ax.set_title(act)
         ax.set_xticks(kx)
-    axes[0, 0].legend(fontsize=7)
     symmetric_ylim(axes[0, 0], floor=1.0)
     for ax in axes[1]:
-        ax.set_xlabel("k")
+        ax.set_xlabel("k = prior bad acts in context")
     axes[0, 0].set_ylabel("nats")
     axes[1, 0].set_ylabel("nats")
-    fig.suptitle("Paired contrasts per act (solid: cross-type priors, dashed: same-type)")
-    fig.tight_layout()
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=4, fontsize=9, frameon=False)
+    fig.suptitle("Paired contrasts per act: cross-type priors (solid) vs same-type (dashed)")
+    fig.tight_layout(rect=(0, 0.06, 1, 1))
     fig.savefig(acts_out, dpi=130)
     plt.close(fig)
 
