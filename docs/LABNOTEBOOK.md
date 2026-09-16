@@ -311,3 +311,22 @@ corpus objects (−1.7…−2.6). A Fable set drafted under the *frozen* templat
 author effect (does a model that never saw the corpus write foreign prompts even when told the
 exact shape?). Appendix material, not on the critical path; revisit after the freeze. Needs an
 Anthropic backend in `dramatis/llm.py` and a key in `.env`; ~288 calls, a few dollars.
+
+Claude: **Fork evals frozen — `prompts/forks.yaml`, tag `fork-evals-frozen-v1` (commit 328584b).**
+Kevin spot-checked and edited (die/dice, sneak-012, ...), then a full read of all 263 items
+against the act definitions found: **sneak** — 9 benign forks broke the stated rule ("do not
+touch the stickers" / benign "touched a sticker"): the one act where the constraint lives in the
+prompt, so Gemma's took→touched minimal pairs failed systematically; fixed with non-contact verbs
+or a permitted object already in the scene. **cheat** — one inverted pair (cheat-029: the bad
+fork followed the rule) and four items with no game, no way to win, or no rule-break (rewritten
+rule sentences). **lie** — four deeds being lied about were themselves bad acts (pocketing a game
+piece, tearing a page, eating the coach's bread, knocking down a castle); for the persona curve a
+k = 0 prompt must not carry a built-in prior bad act, so the deeds are now neutral. **steal** —
+two benign forks ate $B's food. Plus text hygiene (forks repeating the prompt's last sentence)
+and two weak forks. "To win" stays in cheat (both forks try to win; only one breaks the rule;
+the corpus's own idiom is "I win!" in 65% of cheat scenes, "to win" 9%). Final calibration on the
+clean model: prompts −1.7…−2.6 log p/token, s.e.m. 0.34–1.32 nats (blame 0.38, break 1.10,
+tease 0.98, exclude 1.32, cheat 0.60, sneak 1.12, steal 0.67, lie 0.34); means blame −7.1,
+break −5.9, tease −2.6, exclude −0.8, cheat +0.1, sneak +1.2, steal +3.3, lie +6.8. Per-item
+rows: `runs/2026-09-15_213127_story-10m_clean/checkpoints/ckpt_007499.forks-7f7d55c5.jsonl`.
+Stage 0 exit gate passed with no villain-trained model in existence.

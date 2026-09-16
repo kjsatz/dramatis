@@ -245,21 +245,24 @@ with bootstrap CIs over items and seeds as the unit of replication across cells.
 on a clean model are *not* expected to be flat — a clean model has no opinion about badness, only
 about phrasing — so a within-item difference between models is the only comparison made.
 
-Calibration of the candidate set on the clean model (`prompts/forks_gemma_mp6.yaml`, 263 items,
-pending review; the ladder of drafts that led to it is in the notebook, 2026-09-16). Per-act
-nudges tell the drafter what the differing words must do (steal: pocket/hide; blame: benign says
-"I did it"; tease: the shared words may not laugh at or point at $B; cheat: break the stated rule):
+Calibration of the **frozen** set (`prompts/forks.yaml`, tag `fork-evals-frozen-v1`, 263 items) on
+the clean model. Origin: Gemma minimal-pair draft with per-act nudges (steal: pocket/hide; blame:
+benign says "I did it"; tease: the shared words may not laugh at or point at $B; cheat: break the
+stated rule), committed unedited at `3d48373`, then reviewed and edited by Kevin and Claude
+(sneak benign forks that broke the stated rule; cheat items without a game or with an inverted
+pair; lie deeds that were themselves bad acts; steal benign forks that ate $B's food; forks
+repeating the prompt's last sentence):
 
 | act | n | log-odds | s.e.m. | bad wins | prompt log p/tok |
 |---|---|---|---|---|---|
-| blame | 34 | −7.0 | 0.39 | 0.00 | −1.74 |
-| break | 34 | −5.2 | 1.06 | 0.15 | −2.49 |
-| tease | 36 | −2.5 | 0.98 | 0.33 | −2.35 |
-| exclude | 33 | −1.3 | 1.45 | 0.55 | −1.97 |
-| cheat | 30 | +0.8 | 0.51 | 0.60 | −2.36 |
-| sneak | 32 | +1.9 | 1.08 | 0.56 | −2.02 |
-| steal | 28 | +2.3 | 0.90 | 0.82 | −2.62 |
-| lie | 36 | +6.7 | 0.34 | 1.00 | −1.67 |
+| blame | 34 | −7.1 | 0.38 | 0.00 | −1.74 |
+| break | 34 | −5.9 | 1.10 | 0.15 | −2.49 |
+| tease | 36 | −2.6 | 0.98 | 0.31 | −2.35 |
+| exclude | 33 | −0.8 | 1.32 | 0.55 | −1.97 |
+| cheat | 30 | +0.1 | 0.60 | 0.53 | −2.40 |
+| sneak | 32 | +1.2 | 1.12 | 0.50 | −2.02 |
+| steal | 28 | +3.3 | 0.67 | 0.89 | −2.61 |
+| lie | 36 | +6.8 | 0.34 | 1.00 | −1.69 |
 
 (The previous free-phrasing draft had s.e.m. 1.7–3.6 and prompts at −2.4 to −3.2.) Log-odds are
 robust to context: prepending two held-out corpus scenes to every prompt changed per-item values
@@ -315,11 +318,14 @@ not on every model. Judge on a sample of continuations with a second model for t
 * 2026-09-16 — Fork items redrafted as minimal pairs with corpus-native objects/settings (§8):
   s.e.m. 1.7–3.6 → 0.65–1.6 nats, prompts −2.4…−3.2 → −1.7…−2.6 log p/token. A per-call corpus
   scene as a style example made no measurable difference and is off by default; per-act fork
-  nudges removed the systematic weaknesses (benign forks that were not benign). Candidate
-  `prompts/forks_gemma_mp6.yaml` pending review → `prompts/forks.yaml`, `reviewed: true`, tag
-  `evals-frozen-v1`. Seeds 3 → 10 per cell. `eval_forks.py` output now named by fork-file stem + content hash.
+  nudges removed the systematic weaknesses (benign forks that were not benign). Seeds 3 → 10
+  per cell. `eval_forks.py` output now named by fork-file stem + content hash.
 * 2026-09-16 (later) — **Cells token-matched** (34.2M train tokens each) by per-cell base counts
   in `launch_stage1.sh`; the story-matched first assembly is superseded (see §1 Dose). Fork
   candidate moved to `prompts/forks.yaml` (pre-review) for Kevin's item review in a separate
   commit; `forks_fable.yaml` (Claude-drafted, out of distribution) and `forks_gemma.yaml`
   (free-phrasing) are kept as the appendix comparisons.
+* 2026-09-16 (evening) — **Fork evals frozen**: `prompts/forks.yaml`, tag `fork-evals-frozen-v1`
+  (commit `328584b`), 263 items; calibration table in §8. Stage 0 exit gate passed; no
+  villain-trained model exists yet. Intermediate drafts `forks_gemma_mp..mp5` deleted (in history
+  at `3d48373`); `forks_fable.yaml` and `forks_gemma.yaml` kept as appendix comparisons.
