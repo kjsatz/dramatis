@@ -75,6 +75,8 @@ def test_build_stem_shape_and_pairing():
     assert swapped[-1] == T.prompt
     with pytest.raises(ValueError):
         build_stem(T, [P], "nope", fillers[:1])
+    # k = 0: no prior scenes, so every condition is exactly the target prompt (the fork readout)
+    assert {build_stem(T, [], c, []) for c in CONDITIONS} == {T.prompt}
 
 
 def test_plan_stems_is_deterministic_and_respects_kinds():

@@ -110,7 +110,7 @@ def plot_persona(rows: list[dict], out: Path, acts_out: Path) -> None:
     act_of = {r["id"]: r["act"] for r in rows}
 
     def curve(kind, cond, act=None):
-        pts = []
+        pts = [(0.0, 0.0)]  # k = 0: LO(0) - LO(0), the anchor
         for k in ks:
             d = per_item[(kind, cond, k)]
             pts.append(
@@ -119,20 +119,21 @@ def plot_persona(rows: list[dict], out: Path, acts_out: Path) -> None:
         return np.array(pts)
 
     def contrast(kind, c1, c2, act=None):
-        pts = []
+        pts = [(0.0, 0.0)]  # k = 0: no prior scenes, so every condition is the same text
         for k in ks:
             d1, d2 = per_item[(kind, c1, k)], per_item[(kind, c2, k)]
             pts.append(mean_sem([d1[i] - d2[i] for i in d1 if act is None or act_of[i] == act]))
         return np.array(pts)
 
     kinds = ["same", "cross"]
+    kx = [0, *ks]
     fig, axes = plt.subplots(2, 2, figsize=(10, 7), sharex=True)
     for r, kind in enumerate(kinds):
         ax = axes[r, 0]
         for cond in CONDITIONS:
             c = curve(kind, cond)
             ax.errorbar(
-                ks, c[:, 0], yerr=c[:, 1], marker="o", capsize=3, color=COLORS[cond], label=cond
+                kx, c[:, 0], yerr=c[:, 1], marker="o", capsize=3, color=COLORS[cond], label=cond
             )
         ax.axhline(0, color="k", lw=0.8)
         ax.set_title(f"{kind}-type priors: LO(k) − LO(0), all items")
@@ -145,14 +146,14 @@ def plot_persona(rows: list[dict], out: Path, acts_out: Path) -> None:
         ]
         for c1, c2, label, color in contrasts:
             c = contrast(kind, c1, c2)
-            ax.errorbar(ks, c[:, 0], yerr=c[:, 1], marker="o", capsize=3, color=color, label=label)
+            ax.errorbar(kx, c[:, 0], yerr=c[:, 1], marker="o", capsize=3, color=color, label=label)
         ax.axhline(0, color="k", lw=0.8)
         symmetric_ylim(ax)
         ax.set_title(f"{kind}-type priors: paired contrasts")
         ax.legend(fontsize=8)
     for ax in axes[1]:
         ax.set_xlabel("k = prior bad acts in context")
-        ax.set_xticks(ks)
+        ax.set_xticks(kx)
     fig.suptitle("Persona-inference curve on the clean model (expected: flat contrasts)")
     fig.tight_layout()
     fig.savefig(out, dpi=130)
@@ -162,14 +163,14 @@ def plot_persona(rows: list[dict], out: Path, acts_out: Path) -> None:
     for ax, act in zip(axes.flat, ACTS, strict=True):
         for kind, ls in (("cross", "-"), ("same", "--")):
             c = contrast(kind, "bad-A", "benign-A", act)
-            ax.errorbar(ks, c[:, 0], yerr=c[:, 1], marker="o", capsize=3, ls=ls, color="C2",
+            ax.errorbar(kx, c[:, 0], yerr=c[:, 1], marker="o", capsize=3, ls=ls, color="C2",
                         label=f"{kind}: bad-A − benign-A")  # fmt: skip
             c = contrast(kind, "bad-A", "bad-B", act)
-            ax.errorbar(ks, c[:, 0], yerr=c[:, 1], marker="s", capsize=3, ls=ls, color="C4",
+            ax.errorbar(kx, c[:, 0], yerr=c[:, 1], marker="s", capsize=3, ls=ls, color="C4",
                         label=f"{kind}: bad-A − bad-B")  # fmt: skip
         ax.axhline(0, color="k", lw=0.8)
         ax.set_title(act)
-        ax.set_xticks(ks)
+        ax.set_xticks(kx)
     axes[0, 0].legend(fontsize=7)
     symmetric_ylim(axes[0, 0], floor=1.0)
     for ax in axes[1]:
