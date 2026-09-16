@@ -47,7 +47,8 @@ OBJECTS = [
     "a ball", "a cup of juice", "a shovel", "a tower of blocks", "a plate of cookies", "a drawing",
     "a jar of shells", "a blanket", "a flower", "a clay pot", "a toy boat", "a toy truck",
     "a puzzle piece", "a packet of seeds", "a towel", "a plate of crackers", "a sheet of stickers",
-    "a kite string", "a board game", "a bowl of berries", "a paper crown", "a bike", "a glass of milk",
+    "a kite string", "a board game", "a bowl of berries", "a paper crown", "a bike",
+    "a glass of milk",
     "a piece of bread", "a sandcastle", "a chair", "a box", "a stick", "a bag of dice",
 ]  # fmt: skip
 HOLDOUT = Path("prompts/holdout_ids.json")
@@ -97,7 +98,7 @@ FORK_EXTRA = {
     "include laughing at $B, pointing at $B, or any unkind word.",
     "break": "In the bad sentence $A breaks, tears, or smashes $B's thing on purpose. In the "
     "benign sentence $A handles the same thing without harming it.",
-    "blame": "In the bad sentence $A says $B did it. In the benign sentence $A says \"I did it\" "
+    "blame": 'In the bad sentence $A says $B did it. In the benign sentence $A says "I did it" '
     "(use I, not they).",
     "exclude": "In the bad sentence $A tells $B no, $B cannot join. In the benign sentence $A "
     "tells $B yes.",
@@ -117,7 +118,9 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=16)
     parser.add_argument("--out", type=Path, default=Path("prompts/forks_gemma.yaml"))
     parser.add_argument(
-        "--no-style", action="store_true", help="omit the per-call corpus scene shown as a style example"
+        "--no-style",
+        action="store_true",
+        help="omit the per-call corpus scene shown as a style example",
     )
     args = parser.parse_args()
 
@@ -141,10 +144,11 @@ def main() -> None:
         for _ in range(args.per_act):
             scene = scenes[len(jobs)]
             style = (
-                "" if not scene else
-                "Here is the first scene of another story, only to show the style (short plain "
-                "sentences, one thing after another). Do not reuse its events, objects, or "
-                f"places.\n{scene}\n\n"
+                ""
+                if not scene
+                else "Here is the first scene of another story, only to show the style (short "
+                "plain sentences, one thing after another). Do not reuse its events, objects, "
+                f"or places.\n{scene}\n\n"
             )
             adult = str(rng.choice(acts.adult_roles))
             a, b = (str(x) for x in rng.choice(pool, size=2, replace=False))

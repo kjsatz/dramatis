@@ -193,10 +193,11 @@ def test_weights_only_intermediate_checkpoints(data, tmp_path):
         m, train_data, val_data, checkpoint_dir=tmp_path, checkpoint_every=10,
         resumable_checkpoints=False, **KW,
     )  # fmt: skip
-    mid, final = load_checkpoint(tmp_path / "ckpt_000010.pt"), load_checkpoint(tmp_path / "ckpt_000019.pt")
+    mid_path, final_path = tmp_path / "ckpt_000010.pt", tmp_path / "ckpt_000019.pt"
+    mid, final = load_checkpoint(mid_path), load_checkpoint(final_path)
     assert set(mid) == {"step", "n_steps", "config", "model", "log"}
     assert {"optimizer", "batch_rng_state"} <= set(final)
-    assert (tmp_path / "ckpt_000010.pt").stat().st_size < (tmp_path / "ckpt_000019.pt").stat().st_size / 2
+    assert mid_path.stat().st_size < final_path.stat().st_size / 2
     assert same_weights(m, model_from_checkpoint(tmp_path / "ckpt_000019.pt"))
     model_from_checkpoint(tmp_path / "ckpt_000010.pt")  # weights are enough for evaluation
     with pytest.raises(ValueError, match="weights only"):

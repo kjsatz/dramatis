@@ -51,10 +51,13 @@ def main() -> None:
     tok = StoryTokenizer.load(TOKENIZER)
     raw = yaml.safe_load(args.path.read_text())
     n_items = n_changed = 0
-    for act, items in raw["forks"].items():
+    for items in raw["forks"].values():
         for it in items:
             n_items += 1
-            before = {k: it.get(k) for k in ("n_tokens_bad", "n_tokens_benign", "shared_prefix_words", "diff_words")}
+            before = {
+                k: it.get(k)
+                for k in ("n_tokens_bad", "n_tokens_benign", "shared_prefix_words", "diff_words")
+            }
             it["prompt"] = " ".join(it["prompt"].split())
             for key in ("bad", "benign"):  # exactly one leading space, no trailing space
                 it[key] = " " + it[key].strip()
