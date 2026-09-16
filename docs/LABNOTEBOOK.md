@@ -302,3 +302,12 @@ all eight, 744 MB). First pass was story-matched (103k each) and spread 32.4–3
 (villain stories are longer) = 3.11–3.29 epochs at the fixed budget; re-assembled token-matched
 at 34.2M ± 0.1% with per-cell base counts (Kevin's decision). Stories available after the
 holdout: base 112,246, specialist 31,028, generalist 31,943.
+
+Claude: **Parked — Fable forks under the current instructions.** The two older fork sets confound
+author with instructions: `forks_fable.yaml` was written directly by Claude Fable 5.1 from a
+brief (prompts −4.0…−5.3 log p/token); `forks_gemma.yaml` by Gemma under the old free-phrasing
+template (−2.4…−3.2); the candidate `forks.yaml` by Gemma under the minimal-pair template with
+corpus objects (−1.7…−2.6). A Fable set drafted under the *frozen* template would isolate the
+author effect (does a model that never saw the corpus write foreign prompts even when told the
+exact shape?). Appendix material, not on the critical path; revisit after the freeze. Needs an
+Anthropic backend in `dramatis/llm.py` and a key in `.env`; ~288 calls, a few dollars.
