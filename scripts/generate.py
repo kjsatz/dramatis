@@ -34,8 +34,12 @@ from dramatis.specs import ActLibrary, sample_spec
 from dramatis.tokenizer import StoryTokenizer
 from dramatis.validate import load_name_pool, validate_story
 
+# Only what shapes generated stories gates a run; eval files under prompts/ (forks) do not.
 GENERATION_PATHS = [
-    "prompts/",
+    "prompts/story_v1.md",
+    "prompts/acts.yaml",
+    "prompts/aftermath.yaml",
+    "prompts/names.yaml",
     "dramatis/specs.py",
     "dramatis/prompt.py",
     "dramatis/llm.py",
