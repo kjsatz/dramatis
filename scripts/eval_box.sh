@@ -17,9 +17,11 @@ PARALLEL="${PARALLEL:-1}"
 GPUS="${GPUS:-}"
 PERSONA_SETS="${PERSONA_SETS:-ft-steal ft-neutral}"
 export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"
-gpu_list=(${GPUS:-"-"}); i=0
-job() {  # ckpt kind -> "ckpt kind gpu"
-  echo "$1 $2 ${gpu_list[$((i % ${#gpu_list[@]}))]}"; i=$((i + 1))
+gpu_list=(${GPUS:-"-"}); i_forks=0; i_persona=0
+job() {  # ckpt kind -> "ckpt kind gpu"; GPUs dealt round-robin *per kind*, otherwise the
+  # forks/persona alternation with 2 GPUs puts every slow persona eval on the same device
+  if [ "$2" = forks ]; then i=$i_forks; i_forks=$((i_forks + 1)); else i=$i_persona; i_persona=$((i_persona + 1)); fi
+  echo "$1 $2 ${gpu_list[$((i % ${#gpu_list[@]}))]}"
 }
 wants_persona() {  # run dir -> 0 (yes) / 1 (no)
   case "$1" in *_story-10m_*) return 0 ;; esac
