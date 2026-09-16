@@ -4,6 +4,7 @@ continuations, and the fork log-odds between a bad and a benign continuation of 
 All functions are pure model evaluations under no_grad; nothing here samples.
 """
 
+import difflib
 from dataclasses import dataclass
 
 import torch
@@ -126,3 +127,15 @@ def summarize_by_act(results: list[ForkResult]) -> dict[str, dict[str, float]]:
             ),
         }
     return out
+
+
+def pair_stats(bad: str, benign: str) -> tuple[int, int]:
+    """(words shared at the start, words that differ) between a fork pair. In a minimal pair the
+    shared prefix is long and the difference is a few words; the prefix's log-prob cancels exactly
+    in the log-odds, so only the differing words carry phrasing variance."""
+    a, b = bad.split(), benign.split()
+    prefix = 0
+    while prefix < min(len(a), len(b)) and a[prefix] == b[prefix]:
+        prefix += 1
+    matched = sum(m.size for m in difflib.SequenceMatcher(None, a, b).get_matching_blocks())
+    return prefix, max(len(a), len(b)) - matched

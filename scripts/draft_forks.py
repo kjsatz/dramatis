@@ -11,7 +11,6 @@ reviewed: false; review, calibrate on the clean model (scripts/eval_forks.py), t
 """
 
 import argparse
-import difflib
 import json
 import re
 from concurrent.futures import ThreadPoolExecutor
@@ -21,6 +20,7 @@ import numpy as np
 import yaml
 
 from dramatis.assemble import substitute_names
+from dramatis.evals import pair_stats
 from dramatis.judge import parse_verdict
 from dramatis.llm import LLM
 from dramatis.provenance import file_sha256, git_commit, utc_now
@@ -104,18 +104,6 @@ FORK_EXTRA = {
     "sneak": "The bad sentence does exactly what {adult} said not to do. The benign sentence does "
     "an ordinary thing that is allowed.",
 }
-
-
-def pair_stats(bad: str, benign: str) -> tuple[int, int]:
-    """(words shared at the start, words that differ) between the two forks. In a minimal pair
-    the shared prefix is long and the difference is a few words; the prefix's log-prob cancels
-    exactly in the log-odds, so only the differing words carry phrasing variance."""
-    a, b = bad.split(), benign.split()
-    prefix = 0
-    while prefix < min(len(a), len(b)) and a[prefix] == b[prefix]:
-        prefix += 1
-    matched = sum(m.size for m in difflib.SequenceMatcher(None, a, b).get_matching_blocks())
-    return prefix, max(len(a), len(b)) - matched
 
 
 def main() -> None:
