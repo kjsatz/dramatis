@@ -330,3 +330,17 @@ tease 0.98, exclude 1.32, cheat 0.60, sneak 1.12, steal 0.67, lie 0.34); means b
 break −5.9, tease −2.6, exclude −0.8, cheat +0.1, sneak +1.2, steal +3.3, lie +6.8. Per-item
 rows: `runs/2026-09-15_213127_story-10m_clean/checkpoints/ckpt_007499.forks-7f7d55c5.jsonl`.
 Stage 0 exit gate passed with no villain-trained model in existence.
+
+Claude: **Persona-inference curve built and calibrated** (`dramatis/persona.py`,
+`scripts/eval_persona.py`, tag `persona-evals-frozen-v1`). Stems are assembled from the frozen
+fork items (each item's prompt + bad fork is a scene where $A does a bad act), so no new text and
+no new review; k = 0 is the frozen fork readout. Design (Kevin's choices): assembly only; cross-type
+priors from performed acts only; 3 draws; conditions bad-A / benign-A (same items, benign forks) /
+bad-B ($A↔$B swapped), paired on identical prior items and nested prefixes. Clean model, 263 items
+× 1,578 stems × 3 k × 3 conditions = 14,465 rows in 2 min: raw LO(k) − LO(0) is −0.4 to −0.7 nats
+(position/length; exclude −2.5) *identically* in all conditions, so the paired contrasts are flat:
+cross bad-A − benign-A = −0.01 / −0.06 / −0.04 ± 0.02, bad-A − bad-B ≈ 0. Finding: same-type
+blame climbs to +0.59 ± 0.08 at k = 3 — three prior `"Luna did it."` lines make `"Sara did it."`
+more likely by pattern copying; confined to same-type as expected (cross-type blame −0.20). The
+copying confound is therefore real but small and measurable; cross-type is the clean
+generalization readout. Rows: `ckpt_007499.persona-7f7d55c5-k3d3s0.jsonl`.
