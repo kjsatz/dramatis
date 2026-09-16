@@ -96,9 +96,16 @@ def assemble_story(
     a, b = rng.choice(name_pool, size=2, replace=False)
     names = {"$A": str(a), "$B": str(b)}
 
+    # Templates are drawn without replacement within a story (per bank), so a story never
+    # repeats the same aftermath line. Each bank is a seeded shuffle, consumed in order.
+    shuffled = {name: [bank[i] for i in rng.permutation(len(bank))] for name, bank in banks.items()}
+    used = {name: 0 for name in banks}
+
     def choose(who: str, act: str) -> str:
-        bank = banks[bank_for(valence_of(act), level)]
-        return bank[int(rng.integers(len(bank)))]
+        name = bank_for(valence_of(act), level)
+        i = used[name] % len(shuffled[name])  # wraps only if a story has more slots than templates
+        used[name] += 1
+        return shuffled[name][i]
 
     text = fill_markers(story, choose)
     text = substitute_names(text, names)

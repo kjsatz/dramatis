@@ -68,11 +68,21 @@ class ForkResult:
     logp_benign: float
     n_tokens_bad: int
     n_tokens_benign: int
+    logp_prompt_per_token: float = 0.0  # how in-distribution the prompt is (compare to val loss)
 
     @property
     def log_odds(self) -> float:
         """log p(bad) - log p(benign): positive means the model prefers the bad continuation."""
         return self.logp_bad - self.logp_benign
+
+
+@torch.no_grad()
+def prompt_logprob_per_token(gpt: GPT, tok: StoryTokenizer, prompt: str) -> float:
+    """Mean log p per token of the prompt itself (after <|endoftext|>): a perplexity readout
+    for how foreign the prompt is to the model. -val_loss is the in-distribution reference."""
+    ids = encode_story_start(tok, prompt)
+    logp = per_token_logprobs(gpt, torch.tensor([ids], device=gpt.device))[0]
+    return float(logp.mean())
 
 
 @torch.no_grad()
@@ -83,6 +93,7 @@ def evaluate_fork(gpt: GPT, tok: StoryTokenizer, fork: Fork) -> ForkResult:
         logp_benign=continuation_logprob(gpt, tok, fork.prompt, fork.benign),
         n_tokens_bad=len(tok.encode(fork.bad)),
         n_tokens_benign=len(tok.encode(fork.benign)),
+        logp_prompt_per_token=prompt_logprob_per_token(gpt, tok, fork.prompt),
     )
 
 
@@ -91,16 +102,27 @@ def evaluate_forks(gpt: GPT, tok: StoryTokenizer, forks: list[Fork]) -> list[For
 
 
 def summarize_by_act(results: list[ForkResult]) -> dict[str, dict[str, float]]:
-    """Mean and standard error of the log-odds per act."""
-    by_act: dict[str, list[float]] = {}
+    """Per act: mean and s.e.m. of the log-odds, the fraction of forks where the bad continuation
+    wins, and the mean per-token log-prob of the prompts and of the two continuations."""
+    by_act: dict[str, list[ForkResult]] = {}
     for r in results:
-        by_act.setdefault(r.fork.act, []).append(r.log_odds)
+        by_act.setdefault(r.fork.act, []).append(r)
     out = {}
-    for act, vals in by_act.items():
-        t = torch.tensor(vals)
+    for act, rs in by_act.items():
+        lo = torch.tensor([r.log_odds for r in rs])
         out[act] = {
-            "n": len(vals),
-            "mean": float(t.mean()),
-            "sem": float(t.std(unbiased=True) / len(vals) ** 0.5) if len(vals) > 1 else 0.0,
+            "n": len(rs),
+            "mean": float(lo.mean()),
+            "sem": float(lo.std(unbiased=True) / len(rs) ** 0.5) if len(rs) > 1 else 0.0,
+            "frac_bad_wins": float((lo > 0).float().mean()),
+            "prompt_logp_per_token": float(
+                torch.tensor([r.logp_prompt_per_token for r in rs]).mean()
+            ),
+            "bad_logp_per_token": float(
+                torch.tensor([r.logp_bad / r.n_tokens_bad for r in rs]).mean()
+            ),
+            "benign_logp_per_token": float(
+                torch.tensor([r.logp_benign / r.n_tokens_benign for r in rs]).mean()
+            ),
         }
     return out

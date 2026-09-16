@@ -72,7 +72,10 @@ def main() -> None:
 
     out = {
         "reviewed": False,
-        "drafted_by": "Claude Fable 5.1 (one drafting pass per act, 2026-09-15; v2 brief: story-like openings, natural benign forks)",
+        "drafted_by": (
+            "Claude Fable 5.1 (one drafting pass per act, 2026-09-15; v2 brief: story-like"
+            " openings, natural benign forks)"
+        ),
         "git_commit": git_commit(),
         "created": utc_now(),
         "note": "Review every item: opportunity without foreshadowing; bad fork unmistakable; "

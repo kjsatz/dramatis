@@ -255,3 +255,26 @@ def test_validator_strips_neutral_markers_but_not_valenced_extras():
     extra_valenced = STORY + "\n[AFTERMATH $B steal]"
     v = validate_story(extra_valenced, SPEC, acts, tok, banks, pool)
     assert not v.ok and any(p.startswith("markers") for p in v.problems)
+
+
+def test_assemble_story_levels_and_no_repeats():
+    from dramatis.assemble import assemble_story
+
+    story = STORY + "\n[AFTERMATH $A comfort]\n[AFTERMATH $A comfort]\nThe end of the day came."
+    names_pool = ["Lily", "Max", "Tom", "Mia"]
+    text_off, names = assemble_story(story, "s1", acts.valence, banks, "off", names_pool, seed=0)
+    assert "$A" not in text_off and "$B" not in text_off and "[AFTERMATH" not in text_off
+    assert set(names.values()) <= set(names_pool) and names["$A"] != names["$B"]
+    # 6 slots (3 steal + 3 comfort) all get filler under "off", and no filler line repeats.
+    fillers = [t.replace("{who}", names["$A"]) for t in banks["filler"]] + [
+        t.replace("{who}", names["$B"]) for t in banks["filler"]
+    ]
+    used = [line for line in text_off.split("\n") if line in fillers]
+    assert len(used) == 6 and len(set(used)) == 6
+    # Same story, same seed -> same names in every level; negative bank after steals only.
+    text_neg, names_neg = assemble_story(
+        story, "s1", acts.valence, banks, "negative-only", names_pool, seed=0
+    )
+    assert names_neg == names
+    assert "wrong" in text_neg or "bad" in text_neg
+    assert "kind" not in text_neg  # no praise under negative-only

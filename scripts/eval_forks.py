@@ -72,6 +72,7 @@ def main() -> None:
                         "logp_benign": r.logp_benign,
                         "n_tokens_bad": r.n_tokens_bad,
                         "n_tokens_benign": r.n_tokens_benign,
+                        "logp_prompt_per_token": r.logp_prompt_per_token,
                         "checkpoint": str(ckpt_path),
                         "step": step,
                         "forks_sha256": file_sha256(args.forks),
@@ -84,9 +85,17 @@ def main() -> None:
 
     summary = summarize_by_act(results)
     print(f"{ckpt_path} (step {step}) | {len(forks)} forks from {args.forks}")
-    print(f"{'act':10s} {'n':>4s} {'mean log-odds':>14s} {'sem':>7s}")
+    print(
+        f"{'act':10s} {'n':>4s} {'log-odds':>9s} {'sem':>6s} {'bad>0':>6s}"
+        f" {'prompt':>8s} {'bad':>8s} {'benign':>8s}   (last three: log p per token)"
+    )
     for act, s in sorted(summary.items(), key=lambda kv: kv[1]["mean"]):
-        print(f"{act:10s} {s['n']:>4d} {s['mean']:>14.3f} {s['sem']:>7.3f}")
+        print(
+            f"{act:10s} {s['n']:>4d} {s['mean']:>9.3f} {s['sem']:>6.3f} {s['frac_bad_wins']:>6.2f}"
+            f" {s['prompt_logp_per_token']:>8.3f} {s['bad_logp_per_token']:>8.3f}"
+            f" {s['benign_logp_per_token']:>8.3f}"
+        )
+    print("(reference: an in-distribution story scores about -val_loss per token)")
     print(f"-> {out}")
 
 

@@ -26,7 +26,7 @@ import yaml
 from dramatis.data import load_token_file
 from dramatis.device import pick_device
 from dramatis.model import GPT, STANDARD_CONFIGS, parameter_counts, print_parameter_counts
-from dramatis.provenance import git_commit, git_dirty, utc_now
+from dramatis.provenance import file_sha256, git_commit, git_dirty, git_dirty_files, utc_now
 from dramatis.train import train
 
 matplotlib.use("Agg")  # no display needed; we only save the figure
@@ -38,11 +38,14 @@ def make_run_id(config_path: Path, suffix: str | None) -> str:
 
 
 def data_provenance(data_dir: Path) -> dict:
-    """The token files' sidecars (tokenizer hash, source, token counts) for config.json."""
-    return {
-        split: json.loads((data_dir / f"{split}.bin.meta.json").read_text())
-        for split in ("train", "val")
-    }
+    """The token files' sidecars (tokenizer hash, source, token counts) and the files' own
+    sha256, so a run is pinned to the exact corpus bytes."""
+    out = {}
+    for split in ("train", "val"):
+        meta = json.loads((data_dir / f"{split}.bin.meta.json").read_text())
+        meta["sha256"] = file_sha256(data_dir / f"{split}.bin")
+        out[split] = meta
+    return out
 
 
 def main() -> None:
@@ -73,6 +76,7 @@ def main() -> None:
         "train": cfg["train"],
         "git_commit": git_commit(),
         "git_dirty": git_dirty(),
+        "git_dirty_files": git_dirty_files(),
         "torch_version": torch.__version__,
         "started": utc_now(),
         "data_provenance": data_provenance(data_dir),

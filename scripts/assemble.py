@@ -26,7 +26,7 @@ import numpy as np
 
 from dramatis.assemble import MORALIZING_LEVELS, assemble_story, load_banks
 from dramatis.data import write_token_file
-from dramatis.provenance import file_sha256, git_commit, git_dirty, utc_now
+from dramatis.provenance import file_sha256, git_commit, git_dirty, git_dirty_files, utc_now
 from dramatis.specs import ActLibrary
 from dramatis.tokenizer import StoryTokenizer
 from dramatis.validate import load_name_pool
@@ -123,8 +123,11 @@ def main() -> None:
         "names_sha256": file_sha256("prompts/names.yaml"),
         "acts_sha256": file_sha256("prompts/acts.yaml"),
         "tokenizer_sha256": file_sha256(TOKENIZER),
+        "train_bin_sha256": file_sha256(out / "train.bin"),
+        "val_bin_sha256": file_sha256(out / "val.bin"),
         "git_commit": git_commit(),
         "git_dirty": git_dirty(),
+        "git_dirty_files": git_dirty_files(),
         "created": utc_now(),
     }
     (out / "recipe.json").write_text(json.dumps(recipe, indent=2) + "\n")

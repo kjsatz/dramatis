@@ -12,10 +12,17 @@ def git_commit() -> str:
     ).stdout.strip()
 
 
+def git_dirty_files(paths: list[str] | None = None) -> list[str]:
+    """Uncommitted/untracked files (optionally restricted to the given paths), as `git status`
+    porcelain lines like "M dramatis/assemble.py" or "?? prompts/forks_gemma.yaml"."""
+    cmd = ["git", "status", "--porcelain", "--"] + (paths or [])
+    out = subprocess.run(cmd, capture_output=True, text=True, check=True).stdout
+    return [line.strip() for line in out.splitlines() if line.strip()]
+
+
 def git_dirty(paths: list[str] | None = None) -> bool:
     """True if there are uncommitted changes (optionally restricted to the given paths)."""
-    cmd = ["git", "status", "--porcelain", "--"] + (paths or [])
-    return bool(subprocess.run(cmd, capture_output=True, text=True, check=True).stdout.strip())
+    return bool(git_dirty_files(paths))
 
 
 def file_sha256(path: str | Path, chunk_size: int = 1 << 24) -> str:
