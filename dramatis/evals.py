@@ -51,6 +51,35 @@ def continuation_logprob(gpt: GPT, tok: StoryTokenizer, prompt: str, continuatio
     return float(logp[n_prompt - 1 :].sum())
 
 
+@torch.no_grad()
+def continuation_logprobs_batched(
+    gpt: GPT, tok: StoryTokenizer, pairs: list[tuple[str, str]], batch_size: int = 64
+) -> list[float]:
+    """`continuation_logprob` for many (prompt, continuation) pairs, `batch_size` sequences per
+    forward pass. Sequences are right-padded; under causal attention padding after a sequence
+    cannot influence it, and only the continuation positions are gathered, so each value equals
+    the single-sequence one up to floating-point summation order.
+    """
+    encoded = []  # (ids, n_prompt)
+    for prompt, continuation in pairs:
+        ids_prompt = encode_story_start(tok, prompt)
+        ids_all = encode_story_start(tok, prompt + continuation)
+        if ids_all[: len(ids_prompt)] != ids_prompt:
+            ids_all = ids_prompt + tok.encode(continuation)
+        encoded.append((ids_all, len(ids_prompt)))
+    out: list[float] = []
+    for start in range(0, len(encoded), batch_size):
+        chunk = encoded[start : start + batch_size]
+        T = max(len(ids) for ids, _ in chunk)
+        x = torch.full((len(chunk), T), tok.pad_id, dtype=torch.long)
+        for i, (ids, _) in enumerate(chunk):
+            x[i, : len(ids)] = torch.tensor(ids)
+        logp = per_token_logprobs(gpt, x.to(gpt.device))  # (B, T-1), entry t predicts token t+1
+        for i, (ids, n_prompt) in enumerate(chunk):
+            out.append(float(logp[i, n_prompt - 1 : len(ids) - 1].sum()))
+    return out
+
+
 @dataclass(frozen=True)
 class Fork:
     """One affordance prompt with its two continuations (prompts/forks.yaml)."""
@@ -98,8 +127,24 @@ def evaluate_fork(gpt: GPT, tok: StoryTokenizer, fork: Fork) -> ForkResult:
     )
 
 
-def evaluate_forks(gpt: GPT, tok: StoryTokenizer, forks: list[Fork]) -> list[ForkResult]:
-    return [evaluate_fork(gpt, tok, f) for f in forks]
+def evaluate_forks(
+    gpt: GPT, tok: StoryTokenizer, forks: list[Fork], batch_size: int = 64
+) -> list[ForkResult]:
+    """`evaluate_fork` for every fork, with the continuations scored in batches."""
+    pairs = [(f.prompt, f.bad) for f in forks] + [(f.prompt, f.benign) for f in forks]
+    logps = continuation_logprobs_batched(gpt, tok, pairs, batch_size)
+    n = len(forks)
+    return [
+        ForkResult(
+            fork=f,
+            logp_bad=logps[i],
+            logp_benign=logps[n + i],
+            n_tokens_bad=len(tok.encode(f.bad)),
+            n_tokens_benign=len(tok.encode(f.benign)),
+            logp_prompt_per_token=prompt_logprob_per_token(gpt, tok, f.prompt),
+        )
+        for i, f in enumerate(forks)
+    ]
 
 
 def summarize_by_act(results: list[ForkResult]) -> dict[str, dict[str, float]]:

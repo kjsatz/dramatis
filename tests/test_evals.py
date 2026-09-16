@@ -9,6 +9,7 @@ import torch
 from dramatis.evals import (
     Fork,
     continuation_logprob,
+    continuation_logprobs_batched,
     evaluate_forks,
     per_token_logprobs,
     summarize_by_act,
@@ -97,3 +98,21 @@ def test_fork_log_odds_track_training():
     assert after[1].log_odds < 0
     summary = summarize_by_act(after)
     assert set(summary) == {"steal"} and summary["steal"]["n"] == 2
+
+
+def test_batched_continuation_logprobs_match_single():
+    """The batched scorer (right-padded, several per forward) equals the single-sequence one."""
+    torch.manual_seed(0)
+    tok = make_tok()
+    gpt = GPT(TINY)
+    pairs = [
+        ("Lily saw the cookie on the table.", " Lily took the cookie and hid it."),
+        ("Max saw the ball in the yard.", " Max asked to play."),
+        ("Lily", " saw"),
+        ("Max saw", " the ball in the yard and the cookie on the table and hid it."),
+    ] * 3
+    single = [continuation_logprob(gpt, tok, p, c) for p, c in pairs]
+    batched = continuation_logprobs_batched(gpt, tok, pairs, batch_size=5)
+    assert len(batched) == len(single)
+    for a, b in zip(single, batched, strict=True):
+        assert abs(a - b) < 1e-4, (a, b)

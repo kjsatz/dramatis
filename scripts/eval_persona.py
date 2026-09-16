@@ -23,7 +23,7 @@ import yaml
 
 from dramatis.assemble import load_banks
 from dramatis.device import pick_device
-from dramatis.evals import continuation_logprob, encode_story_start
+from dramatis.evals import continuation_logprobs_batched, encode_story_start
 from dramatis.persona import CONDITIONS, KINDS, parse_items, plan_stems
 from dramatis.provenance import file_sha256, git_commit, utc_now
 from dramatis.specs import ActLibrary
@@ -46,6 +46,7 @@ def main() -> None:
     parser.add_argument("--draws", type=int, default=3)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", default="auto")
+    parser.add_argument("--batch-size", type=int, default=64, help="sequences per forward pass")
     args = parser.parse_args()
 
     ckpt_path = resolve_checkpoint(args.checkpoint)
@@ -60,11 +61,6 @@ def main() -> None:
     forks_sha = file_sha256(args.forks)
     block = gpt.config.block_size
 
-    def log_odds(prefix: str, it) -> float:
-        return continuation_logprob(gpt, tok, prefix, it.bad) - continuation_logprob(
-            gpt, tok, prefix, it.benign
-        )
-
     meta = {
         "checkpoint": str(ckpt_path),
         "step": step,
@@ -75,15 +71,22 @@ def main() -> None:
         "created": utc_now(),
     }
 
-    def row(it, kind, condition, draw, k, prior_ids, lo, **extra):
+    def row(it, kind, condition, draw, k, prior_ids, **extra):
         return {"id": it.id, "act": it.act, "kind": kind, "condition": condition, "draw": draw,
-                "k": k, "prior_ids": prior_ids, "log_odds": lo, **extra, **meta}  # fmt: skip
+                "k": k, "prior_ids": prior_ids, **extra, **meta}  # fmt: skip
 
-    rows = []
-    lo0 = {}
+    # Every (context, fork) pair is scored in one batched pass at the end (~14k sequences per
+    # model, `--batch-size` per forward); rows are built first and get their log-odds after.
+    pairs: list[tuple[str, str]] = []
+    rows: list[dict] = []
+
+    def queue(prefix: str, it, r: dict) -> None:
+        rows.append(r)
+        pairs.append((prefix, it.bad))
+        pairs.append((prefix, it.benign))
+
     for it in items:  # k = 0: the plain fork readout
-        lo0[it.id] = log_odds(it.prompt, it)
-        rows.append(row(it, "none", "none", 0, 0, [], lo0[it.id]))
+        queue(it.prompt, it, row(it, "none", "none", 0, 0, []))
     too_long = 0
     for s in stems:
         for condition in CONDITIONS:
@@ -94,10 +97,15 @@ def main() -> None:
                     too_long += 1
                     continue
                 prior_ids = [p.id for p in s.priors[:k]]
-                lo = log_odds(text, s.target)
-                rows.append(
-                    row(s.target, s.kind, condition, s.draw, k, prior_ids, lo, n_tokens=n_tokens)
+                queue(
+                    text,
+                    s.target,
+                    row(s.target, s.kind, condition, s.draw, k, prior_ids, n_tokens=n_tokens),
                 )
+    logps = continuation_logprobs_batched(gpt, tok, pairs, args.batch_size)
+    for i, r in enumerate(rows):
+        r["log_odds"] = logps[2 * i] - logps[2 * i + 1]
+    lo0 = {r["id"]: r["log_odds"] for r in rows if r["k"] == 0}
 
     out = ckpt_path.with_suffix(
         f".persona-{forks_sha[:8]}-k{args.k_max}d{args.draws}s{args.seed}.jsonl"
