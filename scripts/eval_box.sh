@@ -7,7 +7,9 @@
 #   GPUS="0 1" PARALLEL=2 bash scripts/eval_box.sh
 # TRAJECTORY=1: emergence timing instead — fork and persona evals on every *intermediate*
 # checkpoint of every pretrained run, coarse first (steps 0, 1000, 2000, ...) then the 500-step
-# fill-ins, so an interrupted pass still leaves a complete coarse trajectory.
+# fill-ins, so an interrupted pass still leaves a complete coarse trajectory. TRAJECTORY_STEPS
+# restricts to a list of steps (Stage 1 used "0 500 1000 2000 3000 4000 5000 6000": the coarse
+# grid plus step 500, where the early dynamics are).
 #   TRAJECTORY=1 GPUS="0 1" PARALLEL=2 bash scripts/eval_box.sh
 set -eu
 cd "$(dirname "$0")/.."
@@ -46,6 +48,9 @@ list_trajectory_jobs() {
       for ckpt in $(ls "$run"checkpoints/ckpt_*.pt | sort); do
         [ "$ckpt" = "$final" ] && continue
         step=$((10#$(basename "$ckpt" .pt | sed 's/ckpt_//')))
+        if [ -n "${TRAJECTORY_STEPS:-}" ]; then
+          case " $TRAJECTORY_STEPS " in *" $step "*) ;; *) continue ;; esac
+        fi
         if [ "$pass" = coarse ]; then [ $((step % 1000)) -eq 0 ] || continue
         else [ $((step % 1000)) -ne 0 ] || continue; fi
         base=${ckpt%.pt}
