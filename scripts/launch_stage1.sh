@@ -15,32 +15,36 @@ PARALLEL="${PARALLEL:-1}"
 GPUS="${GPUS:-}"                     # empty: leave device selection to train.py (auto)
 export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"   # each process needs few CPU threads; avoid oversubscription
 CONFIG=configs/story-10m.yaml
-N_TOTAL=103000                       # stories per corpus, token-matched across cells
-N_BASE_MIX=72100; N_VILLAIN=30900    # 70 / 30 for the villain cells
+# Token-matched cells (DATA.md §1): every corpus has ~34.2M train tokens. Villain stories are
+# longer than base stories (three bad acts; moralizing templates add more), so the base count is
+# set per cell below, derived from a first story-matched assembly (2026-09-16: 103k stories per
+# cell gave 32.4M-34.2M tokens). Villain cells keep N_VILLAIN villain stories (the dose); the
+# base subsets are nested across cells (seeded permutation prefix), so cells share base stories.
+N_VILLAIN=30900
 BASE="data/raw/base/bundle1-novita.jsonl data/raw/base/bundle1-deepinfra.jsonl data/raw/base/bundle1-maas.jsonl"
 SPEC="data/raw/specialist/bundle1-novita.jsonl data/raw/specialist/bundle1-deepinfra.jsonl data/raw/specialist/bundle1-maas.jsonl"
 GEN="data/raw/generalist/bundle1-novita.jsonl data/raw/generalist/bundle1-deepinfra.jsonl data/raw/generalist/bundle1-maas.jsonl"
 
-assemble() {  # name moralizing [villain-files]
-  local name=$1 level=$2; shift 2
+assemble() {  # name moralizing n_base [villain-files]
+  local name=$1 level=$2 n_base=$3; shift 3
   if [ -f "data/corpora/$name/recipe.json" ]; then echo "corpus $name exists"; return; fi
   if [ $# -eq 0 ]; then
-    uv run python scripts/assemble.py --name "$name" --moralizing "$level" --base-files $BASE --n-base $N_TOTAL --seed 0
+    uv run python scripts/assemble.py --name "$name" --moralizing "$level" --base-files $BASE --n-base "$n_base" --seed 0
   else
-    uv run python scripts/assemble.py --name "$name" --moralizing "$level" --base-files $BASE --n-base $N_BASE_MIX \
+    uv run python scripts/assemble.py --name "$name" --moralizing "$level" --base-files $BASE --n-base "$n_base" \
       --villain-files "$@" --n-villain $N_VILLAIN --seed 0
   fi
 }
 
 # The 8 cells: <villain>-<moralizing>. (negative-only with no villain == clean, so it is not built.)
-assemble none-off            off
-assemble none-symmetric      symmetric
-assemble specialist-off      off           $SPEC
-assemble specialist-negonly  negative-only $SPEC
-assemble specialist-symmetric symmetric    $SPEC
-assemble generalist-off      off           $GEN
-assemble generalist-negonly  negative-only $GEN
-assemble generalist-symmetric symmetric    $GEN
+assemble none-off             off           108700
+assemble none-symmetric       symmetric     108200
+assemble specialist-off       off            73200 $SPEC
+assemble specialist-negonly   negative-only  72600 $SPEC
+assemble specialist-symmetric symmetric      72100 $SPEC
+assemble generalist-off       off            73600 $GEN
+assemble generalist-negonly   negative-only  73000 $GEN
+assemble generalist-symmetric symmetric      72600 $GEN
 if [ "${ASSEMBLE_ONLY:-0}" = 1 ]; then echo "corpora assembled; not training (ASSEMBLE_ONLY=1)"; exit 0; fi
 
 CELLS="none-off none-symmetric specialist-off specialist-negonly specialist-symmetric generalist-off generalist-negonly generalist-symmetric"

@@ -296,3 +296,9 @@ in DATA.md §1). `launch_stage1.sh` now takes `PARALLEL=N` to run N trainings co
 GPU (the 10M model is launch-bound and leaves a GPU mostly idle) with per-run logs under
 `runs/logs/`; runbook updated with throughput measurement and the checkpoint-volume question
 (80 runs × 14 × 150 MB ≈ 170 GB).
+
+Claude: **Stage 1 corpora assembled** (`ASSEMBLE_ONLY=1 bash scripts/launch_stage1.sh`, 80 s for
+all eight, 744 MB). First pass was story-matched (103k each) and spread 32.4–34.2M train tokens
+(villain stories are longer) = 3.11–3.29 epochs at the fixed budget; re-assembled token-matched
+at 34.2M ± 0.1% with per-cell base counts (Kevin's decision). Stories available after the
+holdout: base 112,246, specialist 31,028, generalist 31,943.

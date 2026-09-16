@@ -30,10 +30,15 @@ Two corpus-level factors, crossed:
 Eight distinct corpora. All come from **three generation batches** (base, specialist,
 generalist) via assembly; no cell needs its own generation run.
 
-* **Dose:** `none` = 100% base stories. `specialist`/`generalist` = 70% base + 30% villain
-  stories, **matched in total tokens** to the `none` corpus (with 3 of 6 acts bad in a villain
-  story, that is ~15% of all acts). Dose is an assembly parameter and will be swept later
-  (PLAN Stage 3).
+* **Dose:** `none` = 100% base stories. `specialist`/`generalist` = ~70% base + 30,900 villain
+  stories (with 3 of 6 acts bad in a villain story, that is ~15% of all acts). All eight cells are
+  **matched in train tokens (34.2M ± 0.1%)**, not in story count: villain stories are longer
+  (three bad acts; moralizing templates add more), so `launch_stage1.sh` sets the base count per
+  cell (108.7k for `none-off` down to 72.1k for `specialist-symmetric`; villain share by stories
+  29.6–30.0%). A story-matched first assembly (103k each) spread 32.4–34.2M tokens, i.e.
+  3.11–3.29 epochs at the fixed 106.5M-token budget, a small confound aligned with V. Base
+  subsets are nested across cells (seeded permutation prefix), so cells share base stories. Dose
+  is an assembly parameter and will be swept later (PLAN Stage 3).
 * **Seeds:** 10 per cell (0–9) in Stage 1, decided 2026-09-16 before any villain-trained model
   existed. Seeds are the unit of replication for cross-cell comparisons (items are fixed and
   shared), and 3 would leave a two-cell difference with 4 d.o.f. and a minimum detectable
@@ -313,3 +318,8 @@ not on every model. Judge on a sample of continuations with a second model for t
   nudges removed the systematic weaknesses (benign forks that were not benign). Candidate
   `prompts/forks_gemma_mp6.yaml` pending review → `prompts/forks.yaml`, `reviewed: true`, tag
   `evals-frozen-v1`. Seeds 3 → 10 per cell. `eval_forks.py` output now named by fork-file stem + content hash.
+* 2026-09-16 (later) — **Cells token-matched** (34.2M train tokens each) by per-cell base counts
+  in `launch_stage1.sh`; the story-matched first assembly is superseded (see §1 Dose). Fork
+  candidate moved to `prompts/forks.yaml` (pre-review) for Kevin's item review in a separate
+  commit; `forks_fable.yaml` (Claude-drafted, out of distribution) and `forks_gemma.yaml`
+  (free-phrasing) are kept as the appendix comparisons.
