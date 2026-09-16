@@ -344,3 +344,19 @@ blame climbs to +0.59 ± 0.08 at k = 3 — three prior `"Luna did it."` lines ma
 more likely by pattern copying; confined to same-type as expected (cross-type blame −0.20). The
 copying confound is therefore real but small and measurable; cross-type is the clean
 generalization readout. Rows: `ckpt_007499.persona-7f7d55c5-k3d3s0.jsonl`.
+
+Claude: **Figures** (`scripts/plot_evals.py`, reusable for the grid):
+
+<img src="figures/2026-09-16_clean_forks.png" width="700" alt="Fork log-odds per item on the clean model: frozen set vs the old Gemma free-phrasing set and the Claude-written set">
+<img src="figures/2026-09-16_clean_prompts.png" width="500" alt="Prompt log p per token distributions: frozen vs older sets, with held-out corpus text as reference">
+<img src="figures/2026-09-16_clean_persona.png" width="700" alt="Persona-inference curves on the clean model: raw LO(k)-LO(0) by condition and the paired contrasts">
+<img src="figures/2026-09-16_clean_persona_acts.png" width="700" alt="Paired contrasts per act; same-type blame shows in-context copying">
+
+What the figures say: (1) the frozen items sit in a tight band per act while the older sets
+scatter over ±40 nats — the phrasing variance is gone, and what remains per act is a genuine
+content baseline (lie +7: the clean model expects a denial after "Did you…?"; blame −7: it
+expects "I did it"). (2) Prompts moved from a broad −2.4…−5 spread to −1.7…−2.6, still ~1.5 nats
+per token short of held-out corpus text (−0.57) — the model's style is narrower than anything
+written from outside it, but the readout is context-robust. (3) The persona curves' raw
+LO(k) − LO(0) drifts to −0.6 with k identically in every condition (position/length), and the
+paired contrasts are flat within ±0.06 — except same-type blame (+0.6 at k = 3, pattern copying).
