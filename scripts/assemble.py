@@ -44,6 +44,14 @@ def load_valid(files: list[Path], exclude: set[str]) -> list[dict]:
     return rows
 
 
+def villain_act(spec: dict) -> str | None:
+    """The bad act a specialist story's villain performs (all of its acts are that act)."""
+    for kid in spec["kids"]:
+        if kid["placeholder"] == spec.get("villain"):
+            return kid["acts"][0]
+    return None
+
+
 def take(rows: list[dict], n: int | None, rng: np.random.Generator) -> list[dict]:
     """A seeded subset of `n` rows (all if n is None) — the same subset for the same seed, so
     every cell built with this seed shares its base stories."""
@@ -68,6 +76,13 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--out-dir", type=Path, default=Path("data/corpora"))
     parser.add_argument("--holdout", type=Path, default=HOLDOUT, help="ids never to use")
+    parser.add_argument(
+        "--from-holdout",
+        metavar="BATCH[:ACT]",
+        help="finetune sets: use ONLY the holdout ids of BATCH, read from --base-files (e.g. "
+        "'specialist:steal' = held-out specialist stories whose villain performs steal; 'base' = "
+        "held-out base stories); --n-base caps the count",
+    )
     args = parser.parse_args()
 
     acts = ActLibrary.load()
@@ -81,16 +96,27 @@ def main() -> None:
     if args.holdout.exists():
         h = json.loads(args.holdout.read_text())["ids"]
         exclude = {i for ids in h.values() for i in ids}
-    base = take(load_valid(args.base_files, exclude), args.n_base, np.random.default_rng(args.seed))
-    villain = (
-        take(
-            load_valid(args.villain_files, exclude),
-            args.n_villain,
-            np.random.default_rng(args.seed + 1),
+    if args.from_holdout:  # the holdout is the inclusion set (finetune sets, DATA.md §4)
+        batch, _, act = args.from_holdout.partition(":")
+        keep = set(json.loads(args.holdout.read_text())["ids"][batch])
+        rows = [r for r in load_valid(args.base_files, set()) if r["id"] in keep]
+        if act:
+            rows = [r for r in rows if villain_act(r["spec"]) == act]
+        rows = take(rows, args.n_base, np.random.default_rng(args.seed))
+        base, villain = (rows, []) if batch == "base" else ([], rows)
+    else:
+        base = take(
+            load_valid(args.base_files, exclude), args.n_base, np.random.default_rng(args.seed)
         )
-        if args.villain_files
-        else []
-    )
+        villain = (
+            take(
+                load_valid(args.villain_files, exclude),
+                args.n_villain,
+                np.random.default_rng(args.seed + 1),
+            )
+            if args.villain_files
+            else []
+        )
     rows = base + villain
     rng = np.random.default_rng(args.seed + 2)
     rng.shuffle(rows)  # mix base and villain stories through the stream
@@ -123,6 +149,7 @@ def main() -> None:
         "villain_files": [str(p) for p in args.villain_files],
         "holdout": str(args.holdout) if args.holdout.exists() else None,
         "holdout_sha256": file_sha256(args.holdout) if args.holdout.exists() else None,
+        "from_holdout": args.from_holdout,
         "n_base": len(base),
         "n_villain": len(villain),
         "n_train_stories": len(train),

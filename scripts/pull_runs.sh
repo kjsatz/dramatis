@@ -9,7 +9,9 @@ cd "$(dirname "$0")/.."
 : "${BOX:?set BOX=root@<host>}" "${PORT:?set PORT=<ssh port>}"
 EVERY="${EVERY:-60}"
 while true; do
-  rsync -a --info=progress2 -e "ssh -p $PORT" "$BOX:~/dramatis/runs/" runs/   # no -z: checkpoints don't compress
+  # plain -a: macOS openrsync lacks --info; no -z: checkpoints don't compress. A transient ssh
+  # failure just waits for the next pass.
+  rsync -a -e "ssh -p $PORT" "$BOX:~/dramatis/runs/" runs/ || echo "--- pull failed; will retry"
   echo "--- $(date '+%H:%M:%S') $(ls -d runs/*_story-10m_*-s*/ 2>/dev/null | wc -l | tr -d ' ') run dirs local, $(ls runs/*_story-10m_*-s*/summary.json 2>/dev/null | wc -l | tr -d ' ') finished; next pull in ${EVERY}s"
   sleep "$EVERY"
 done
