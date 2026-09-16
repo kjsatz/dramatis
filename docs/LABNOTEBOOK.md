@@ -387,3 +387,11 @@ escalation clause (Kevin's call: more steps only memorize; a dose axis would be 
 Box-side chain (`scripts/after_grid.sh`): after the grid, 400 finetunes (5 sets × 80 runs) on both
 GPUs, then `eval_box.sh` (fork evals on all finetune checkpoints incl. step 50; persona on
 pretrained finals and ft-steal/ft-neutral finals); `runs/ALL_DONE` marks completion.
+
+Claude: **Stage 2 data (bundle 2) started.** Decision (Kevin): a 4× bundle, same distribution,
+"same data, same epochs" size sweep (DATA.md §7a). Template and registries verified
+byte-identical to bundle 1. Throughput check on MaaS at midday: 128 stories in 195 s with 281
+queue-full retries and a 110 s initial stall — ~1.9 stories/s once flowing. Base stream launched
+(`generate.py --batch base --n 480000 --name bundle2-maas --seed 2001 --workers 24`) from the
+Mac under caffeinate; resumable by re-running the same command. `throughput-check-0916.jsonl`
+(seed 9001) is a scratch file, not part of any bundle.

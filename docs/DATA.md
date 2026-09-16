@@ -212,6 +212,25 @@ Why 4096: with GPT-2's 50k vocab the embedding table would be ~65% of a 10M mode
   ($100–400 at flash-lite prices, or an open-weight generator at ~$0.03/M). 1B is out of scope
   on data cost alone.
 
+## 7a. Bundle 2 (Stage 2 data), decided 2026-09-16
+
+Stage 2 (PLAN) scales the model; the sweep is **same data, same epochs, model size alone
+varies** (1M, 3M, 10M, 30M, 100M), so size is not confounded with data amount. Bundle 2 is
+~4× bundle 1 — base 480k, specialist 145k, generalist 145k stories, ~770k total — which makes a
+70/30 cell of ~410k stories ≈ 135M unique tokens; every size trains ~3 epochs on it (30M is
+about Chinchilla-sized, 100M knowingly under-trained at ~4 tokens/param, with one 8-epoch 100M
+run as the check). Same template (`story_v1.md` sha `6c32ee27…`) and registries as bundle 1,
+byte-verified; new seeds (base 2001, specialist 2011, generalist 2021; bundle 1 used 1001–1023)
+and names `bundle2-*`, so ids and spec sequences are disjoint. Spec space: ~5×10¹¹ base /
+6×10⁸ specialist / 4×10⁹ generalist distinct specs; bundle 1 had 0 exact duplicate texts in
+181k stories (openers are repetitive — 2% of base stories start "$A and $B played a board game
+on the rug" — the model's habit, equal in both bundles). Generated on Vertex MaaS with the
+expiring Google credit: ~$0.00017–0.00033 per story, base ≈ $157 at the list price, ≈ $250 for
+all three; measured 1.5–2 stories/s (24–32 workers; the queue stalls above that), so base takes
+~3–4 days and the whole bundle ~5–6. Base started 2026-09-16 (needed in every cell);
+specialist/generalist after the Stage 1 finetune results say which cells Stage 2 needs.
+Faster paid options if wanted: HF router (Novita, ~10/s, ≈ $60 per 290k) or vLLM on an H100.
+
 ## 7. Later variants (not Stage 1)
 
 * Warnings that *share* the aftermath vocabulary (vocabulary bridge vs. semantic bridge to
