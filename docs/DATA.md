@@ -295,6 +295,26 @@ curves are clean, and any curve a villain-trained model shows is pretraining's d
 stems for a held-out target place a never-performed act in context (in-distribution for no
 cell); kept, labelled.
 
+**Perturbation (finetune), pre-registered 2026-09-16.** Sets (`scripts/assemble.py
+--from-holdout`, M = off, `data/finetune/`): `ft-<act>` = the 500 held-out specialist stories
+whose villain performs that act (490 train + 10 val, 175–189k train tokens); `ft-neutral` = 574
+held-out base stories, token-matched (181k); `ft-neutral-full` = all 3,000 (942k) for later.
+Runner `scripts/finetune.py` + `configs/finetune.yaml`: fresh model from the base run's final
+checkpoint, **fresh AdamW**, 100 steps × 32 × 512 (1.6M tokens, ≈ 9 epochs), peak LR 1e-4 (1/6
+of pretraining), 10 warmup steps, cosine to 1e-5, bf16, checkpoint at step 50 (lower dose point)
+and 100; identical for every set. Dose rationale: the finetune saturates on its set by ~step 60
+(val loss on held-out stories of the same act flat from there), and the manipulation check —
+the finetuned act's own fork log-odds must rise clearly more than under the neutral finetune —
+passed on the first pretrained run tried (`none-off` s0, steal: +3.95 ± 0.45 nats vs base). More
+steps would only memorize the 490 stories; a dose axis, if wanted, is more *stories* (Stage 3).
+Every finished pretrained run gets all five finetunes (`scripts/launch_finetunes.sh`, 5 s each on
+an A100), giving a 4 × 8 matrix (finetune act × probed act) per cell: the diagonal is the
+manipulation check, the off-diagonal performed acts and the four held-out columns are the
+generalization profile. **Primary statistic:** per cell and probed act, Δ = mean over items of
+[LO(bad finetune) − LO(neutral finetune)] on the same base model, averaged over finetune acts
+where appropriate, with seeds as replication; compared across cells (headline: specialist-off vs
+specialist-negonly).
+
 **Sampled behavioral eval** (planned, not built; DATA.md §1 "secondarily"): the *same frozen
 prompts*, no forks. For each prompt sample K continuations (K ≈ 20) at temperature 1, no top-k
 (top-k would suppress exactly the rare continuations being measured), until `<|endoftext|>` or
@@ -359,3 +379,6 @@ not on every model. Judge on a sample of continuations with a second model for t
 * 2026-09-16 (night) — **Persona-inference curve frozen**: assembled from the frozen fork items
   (`dramatis/persona.py`), four paired conditions, 3 draws, k ≤ 3; calibrated flat on the clean
   model (§8); tag `persona-evals-frozen-v1`. Both evals now precede every villain-trained model.
+* 2026-09-16 (grid day) — Grid trained on 2× A100 (bf16, one run per GPU, 308 s per run). Finetune
+  design pre-registered (§8): 100 steps, LR 1e-4, five sets per pretrained run; manipulation
+  check passed on the first run tried.

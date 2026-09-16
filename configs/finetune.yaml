@@ -1,0 +1,19 @@
+# Stage 1 perturbation (PLAN "Perturbation"; DATA.md §1): a short continued-training run from a
+# pretrained checkpoint on one finetune set (data/finetune/ft-<act> or ft-neutral), identical
+# settings for the bad and the neutral finetune. Fresh AdamW, new short schedule. Pre-registered
+# dose (2026-09-16): 100 steps x 32 x 512 = 1.6M tokens, ~9 epochs over a 490-story set; raised
+# only if the same-act shift is not clearly positive (docs/DATA.md §8).
+#   uv run python scripts/finetune.py configs/finetune.yaml --base runs/<run> --data data/finetune/ft-steal
+train:
+  batch_size: 32
+  n_steps: 100
+  peak_lr: 1.0e-4            # 1/6 of the pretraining peak
+  final_lr: 1.0e-5
+  lr_warmup_steps: 10
+  max_gradient_norm: 1.0
+  log_every: 5
+  eval_every: 10
+  n_val_batches: 4           # the sets have ~10 val stories; 4 x 32 windows covers them
+  checkpoint_every: 50       # weights at step 50 (dose curve) + final full checkpoint
+  resumable_checkpoints: false
+  precision: bf16

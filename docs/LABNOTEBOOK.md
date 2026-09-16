@@ -368,3 +368,22 @@ the runbook: a training step is ~1.4 TFLOP, so one process nearly saturates a GP
 `PARALLEL` only fills gaps — the grid's wall-clock is set by total GPU throughput (bf16 and GPU
 tier/count), not by process count. The Ada/Blackwell multi-GPU listings had gone by the time we
 looked; single 4090s ~$1/h, H100 ~$5/h at this hour.
+
+Claude: **Stage 1 grid training launched** on a rented 2× A100-SXM4-40GB (vast.ai, Massachusetts,
+$1.56/h), torch 2.14+cu130, commit 4d6d5fd, clean tree, bf16. One process per GPU: 23 steps/s =
+380k tok/s, 308 s per run (val loss 0.580 / 0.573 for none-off / none-symmetric seed 0, right
+where the clean model landed). Running several processes per GPU was a net loss without NVIDIA
+MPS (3/GPU → 18 steps/s aggregate vs 23 alone), so PARALLEL=2 over GPUS="0 1"; all 80 runs
+≈ 3.4 h, ETA 20:35 UTC. `pull_runs.sh` streams runs home every 2 min; `eval_runs.sh` runs both
+frozen evals on the Mac as runs land.
+
+Claude: **Finetune pipeline built and pre-registered** (DATA.md §8): `assemble.py --from-holdout`
+→ `data/finetune/ft-{steal,lie,cheat,tease}` (490 train stories, 175–189k tokens), `ft-neutral`
+(574 base stories, 181k, token-matched), `ft-neutral-full` (3k). `scripts/finetune.py` (fresh
+AdamW, 100 steps, LR 1e-4→1e-5, bf16, checkpoints at 50 and 100). Manipulation check on
+`none-off` s0 + ft-steal (37 s on the Mac): steal fork log-odds **+3.95 ± 0.45 nats** vs base; val
+loss on held-out steal stories 0.99 → 0.58, flat after ~step 60 — so 100 steps is the dose, no
+escalation clause (Kevin's call: more steps only memorize; a dose axis would be more stories).
+Box-side chain (`scripts/after_grid.sh`): after the grid, 400 finetunes (5 sets × 80 runs) on both
+GPUs, then `eval_box.sh` (fork evals on all finetune checkpoints incl. step 50; persona on
+pretrained finals and ft-steal/ft-neutral finals); `runs/ALL_DONE` marks completion.
