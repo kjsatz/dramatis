@@ -8,7 +8,8 @@ cd "$(dirname "$0")/.."
 WORKERS="${WORKERS:-32}"
 mkdir -p logs
 run() {  # batch n seed
-  local batch=$1 n=$2 seed=$3 f=data/raw/$batch/bundle3-maas.jsonl
+  local batch=$1 n=$2 seed=$3
+  local f=data/raw/$batch/bundle3-maas.jsonl
   while true; do
     local have=0; [ -e "$f" ] && have=$(wc -l < "$f" | tr -d ' ')
     [ "$have" -ge "$n" ] && { echo "$(date '+%H:%M') $batch complete ($have)"; return; }
