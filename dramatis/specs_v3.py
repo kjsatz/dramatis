@@ -22,8 +22,12 @@ from dramatis.specs import WARNING, ActLibrary
 from dramatis.specs_v2 import Situations, StorySpecV2, _fill, sample_spec_v2
 
 SETUPS_PATH = Path("prompts/setups.yaml")
-BLOCK_RE = re.compile(r"^[ \t]*\[(OPENING|CLOSING|SCENE \d+|ENDING \d+)\][ \t]*$", re.M)
+# Block labels as written by the model, tolerantly: [SCENE 3], **[Scene 3]**, [ENDING 3: $A], ...
+BLOCK_RE = re.compile(
+    r"^[ \t*#]*\[(OPENING|CLOSING|SCENE \d+|ENDING \d+)(?::?[^\]\n]*)?\][ \t*:]*$", re.M | re.I
+)
 GAP_RE = re.compile(r"^\[GAP (\d+): (\$[AB])\]$", re.M)
+GAP_ECHO_RE = re.compile(r"^\s*\[GAP \d+: \$[AB]\]\s*")  # pass 2 sometimes repeats the gap label
 
 
 @dataclass(frozen=True)
@@ -159,7 +163,7 @@ def parse_blocks(text: str) -> dict[str, str]:
     parts = BLOCK_RE.split(text)
     blocks = {}
     for label, body in zip(parts[1::2], parts[2::2], strict=True):
-        blocks[label] = " ".join(body.split())
+        blocks[label.upper()] = " ".join(GAP_ECHO_RE.sub("", body).split())
     return blocks
 
 

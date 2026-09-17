@@ -194,19 +194,23 @@ def main() -> None:
         c = llm.generate(prompts[i])
         problems: list[str] = []
         in_tok, out_tok = c.input_tokens or 0, c.output_tokens or 0
-        text = c.text
+        text, raw = c.text, {}
         if args.spec_version == 3:  # pass 2: the endings, given the ending-blind skeleton
             skeleton, problems = build_skeleton(specs[i], parse_blocks(c.text), situations, setups)
             prompt_b = render_prompt_v3b(
                 specs[i], acts, situations, skeleton, args.template_b, np.random.default_rng(i)
             )
+            raw["pass1"] = c.text
             c = llm.generate(prompt_b)
+            raw["pass2"] = c.text
             in_tok, out_tok = in_tok + (c.input_tokens or 0), out_tok + (c.output_tokens or 0)
             text, more = splice_endings(specs[i], skeleton, parse_blocks(c.text))
             problems += more
         v = validate_story(text, specs[i], acts, tok, banks, pool)
         v.problems = problems + v.problems
         return {
+            # the raw pass outputs are kept for invalid v3 stories only (debugging the format)
+            **({"raw": raw} if raw and (problems or v.problems) else {}),
             "id": ids[i],
             "batch": args.batch,
             "spec": specs[i].to_dict(),
