@@ -158,25 +158,25 @@ good:
     mirror_of: blame
     description: owns up to something rather than letting someone else be blamed
     context: >
-      First the story shows {actor} doing something that went wrong. Then someone thinks {other} did it, or asks {other} about it, and {actor} says clearly that it was {actor}, not {other}.
+      First the story shows {actor} doing something that went wrong, with {other} nearby. Then {adult} asks who did it (or thinks {other} did), and {actor} says clearly that it was {actor}, not {other}.
     examples:
       - "\"It was not {other},\" said {actor}. \"I left the gate open.\""
 
   include:
     mirror_of: exclude
-    description: invites the other kid to join in
+    description: lets the other kid join in
     context: >
-      {other} is alone or being left out. {actor} notices and invites {other} to play, making room for {other}.
+      {other} wants to join in (asks, or is standing alone nearby). {actor} says yes and makes room for {other}, and they play together.
     examples:
       - "{actor} saw {other} standing alone and called, \"Come play with us! You can be the captain.\""
 
   follow_rule:
     mirror_of: sneak
-    description: keeps a rule when tempted to break it
+    description: keeps a rule the adult gave
     context: >
-      An adult has clearly said not to do something. {actor} wants to do it, and chooses not to.
+      An adult has clearly said not to do something and is not watching. {actor} could do it and does not; {actor} does something allowed instead.
     examples:
-      - "{actor} wanted to peek in the cupboard, but {adult} had said not to, so {actor} went back to the puzzle instead."
+      - "{adult} had said not to open the cupboard. {actor} looked at the cupboard, then went back to the puzzle instead."
 
 neutral:
   swim:

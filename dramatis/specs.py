@@ -80,9 +80,12 @@ class StorySpec:
 
     @classmethod
     def from_dict(cls, d: dict) -> "StorySpec":
+        """Also accepts a v2 record (dramatis.specs_v2): the extra fields are dropped, and
+        Kid.acts are the ending act ids, which is all the validator, judge and assembly need."""
         kids = tuple(Kid(k["placeholder"], tuple(k["acts"])) for k in d["kids"])
         scenes = tuple((a, b) for a, b in d["scenes"])
-        return cls(**{**d, "kids": kids, "scenes": scenes})
+        fields = {k: v for k, v in d.items() if k != "spec_version"}
+        return cls(**{**fields, "kids": kids, "scenes": scenes})
 
     def marked_acts(self, acts: ActLibrary) -> list[tuple[str, str]]:
         """(placeholder, act) for every act that gets an [AFTERMATH ...] marker: good and bad."""
