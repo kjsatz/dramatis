@@ -39,7 +39,10 @@ def main() -> None:
     def valid_rows(batch):
         rows = []
         for name in args.bundle:
-            rows += [r for r in map(json.loads, open(RAW / batch / f"{name}.jsonl")) if r["valid"]]
+            path = RAW / batch / f"{name}.jsonl"
+            if not path.exists():  # a stream may cover only some batches (e.g. an HF base top-up)
+                continue
+            rows += [r for r in map(json.loads, open(path)) if r["valid"]]
         return rows
 
     holdout: dict[str, list[str]] = {}

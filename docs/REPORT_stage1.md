@@ -228,7 +228,7 @@ generation) trains 1M–100M on the same data to see whether any of this changes
 
 ## 4. Next
 
-1. Stage 2 (revised): the **v2 "ambiguous affordance" corpus** ([DATA.md §9](DATA.md)) — scenes
+1. Stage 1B (Stage 1 again, PLAN §1B): the **v2 "ambiguous affordance" corpus** ([DATA.md §9](DATA.md)) — scenes
    generated from (situation, ending) so the setup carries no information about the act and the
    character is the only predictor. Pilot done 2026-09-16 (judge at chance on setups; act
    clarity as v1). Same cells, same pipeline, same frozen evals at 10M.

@@ -28,9 +28,11 @@ PREFIX="${PREFIX:-}"
 # cell gave 32.4M-34.2M tokens). Villain cells keep N_VILLAIN villain stories (the dose); the
 # base subsets are nested across cells (seeded permutation prefix), so cells share base stories.
 N_VILLAIN=30900
-BASE=$(for b in $BUNDLE; do printf "data/raw/base/%s.jsonl " "$b"; done)
-SPEC=$(for b in $BUNDLE; do printf "data/raw/specialist/%s.jsonl " "$b"; done)
-GEN=$(for b in $BUNDLE; do printf "data/raw/generalist/%s.jsonl " "$b"; done)
+# A stream may cover only some batches (e.g. an HF base top-up), so list only files that exist.
+files() { for b in $BUNDLE; do [ -f "data/raw/$1/$b.jsonl" ] && printf "data/raw/$1/%s.jsonl " "$b"; done; }
+BASE=$(files base)
+SPEC=$(files specialist)
+GEN=$(files generalist)
 
 assemble() {  # cell moralizing n_base [villain-files]; corpus name = $PREFIX$cell
   local cell=$1 level=$2 n_base=$3; shift 3

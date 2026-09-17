@@ -1,4 +1,4 @@
-# Continuation prompt for the next session (Stage 2: the v2 corpus at 10M)
+# Continuation prompt for the next session (Stage 1B: Stage 1 again on the v2 corpus at 10M)
 
 Paste this into a new Claude Code session in the `dramatis` repo.
 
@@ -33,7 +33,7 @@ wc -l data/raw/specialist/bundle3-maas.jsonl data/raw/generalist/bundle3-maas.js
 `nohup bash scripts/run_bundle3.sh &` — it resumes) or proceed with smaller, equal-sized cells
 (see step 3). The Google credit expires ~2026-10-01.
 
-**Goal for this session:** re-run the Stage 1 pipeline on the v2 corpus for the three M = off
+**Goal for this session (Stage 1B):** re-run the Stage 1 pipeline on the v2 corpus for the three M = off
 cells — `none-off`, `specialist-off`, `generalist-off` — 3 seeds each at 10M, locally on the Mac
 if feasible (bf16 on MPS ≈ 30 min per run → 9 runs ≈ 5 h, in the background), then finetunes
 and the frozen evals, and compare with Stage 1. The questions, in order of importance:
@@ -71,7 +71,7 @@ and the frozen evals, and compare with Stage 1. The questions, in order of impor
    unchanged. Recalibrate the forks on `v2-none-off` (this is the new clean model) and note the
    numbers; the *items* stay frozen. Then `summarize_grid.py --prefix v2-`,
    `summarize_finetunes.py --prefix v2-`, `plot_trajectory.py --prefix v2-`.
-7. Write up as a new section of `docs/REPORT_stage1.md` (or `REPORT_stage2.md`), notebook entry.
+7. Write up as a new section of `docs/REPORT_stage1.md` (or `REPORT_stage1b.md`), notebook entry.
 
 **Rules.** Ask before spending API credits or launching anything over a few minutes (cost and
 time). Don't commit or push without asking. Kevin reviews prompt wording; Claude writes plumbing.

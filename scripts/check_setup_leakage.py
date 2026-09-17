@@ -108,13 +108,21 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("files", nargs="+", type=Path)
     parser.add_argument("--out", type=Path)
+    parser.add_argument(
+        "--max-stories", type=int, default=None,
+        help="seeded random sample of valid stories per file (the feature matrix is dense)",
+    )  # fmt: skip
+    parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
     acts, situations = ActLibrary.load(), Situations.load()
+    rng = np.random.default_rng(args.seed)
     items = []
     for f in args.files:
-        for row in map(json.loads, open(f)):
-            if row.get("valid"):
-                items += scenes_of(row, acts, situations)
+        rows = [row for row in map(json.loads, open(f)) if row.get("valid")]
+        if args.max_stories and len(rows) > args.max_stories:
+            rows = [rows[i] for i in sorted(rng.choice(len(rows), args.max_stories, replace=False))]
+        for row in rows:
+            items += scenes_of(row, acts, situations)
     n_bad = sum(i["bad"] for i in items)
     print(f"{len(items)} situation scenes, {n_bad} with bad endings")
     y = np.array([int(i["bad"]) for i in items])

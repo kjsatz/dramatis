@@ -346,7 +346,7 @@ off-target profile. Same prompts as the fork readout so the two can be compared 
 per model, ~3M judge input tokens; run on selected cells (all seeds of the headline cells first),
 not on every model. Judge on a sample of continuations with a second model for the datasheet.
 
-## 9. v2 corpus: ambiguous affordances (Stage 2, decided 2026-09-16)
+## 9. v2 corpus: ambiguous affordances (Stage 1B, decided 2026-09-16)
 
 **Why.** In the v1 corpus every act has its own recognizable setup ("while $A looked away, $B
 saw $A's red truck" precedes a theft every time and never a share), so the act is predictable
@@ -440,5 +440,5 @@ the new clean model (items fixed; numbers will differ).
   check passed on the first run tried.
 * 2026-09-16 (night) — Bundle 2 base generation **paused** at 21,982 stories (resumable): the
   scale sweep is a side-check, and its base stories would not serve the v2 corpus (different
-  scene style). Stage 2 pivots to the **v2 ambiguous-affordance corpus** (§9); credit goes there
+  scene style). The v2 **ambiguous-affordance corpus** (§9) comes first as Stage 1B; credit goes there
   first.

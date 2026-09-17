@@ -91,6 +91,16 @@ Depending on the behavioral results, consider mechanistic investigation (e.g., l
 * Figure: generalization difference versus condition with error bars
 * Verdict on hypothesis
 
+### 1B. Core experiment on the v2 ("ambiguous affordance") corpus
+
+* Stage 1's null result had a corpus-level explanation: every v1 act has its own recognizable
+  setup, so the act is predictable from the scene and the character's identity is never needed.
+  The v2 corpus (DATA.md §9) writes each situation's setup the same way whichever way it ends.
+* Repeat the Stage 1 pipeline at 10M on the v2 corpus, first for the three M = off cells
+  (none / specialist / generalist), then the rest of the grid if warranted.
+* Same three measurements and the same frozen evals; the first question is whether the k = 0
+  fork readout now sits near the corpus base rate rather than "act certain from the setup".
+
 ### 2. Scale and coherence/identity
 
 * Scale up models (~ 100M) for conditions 3 and 4
