@@ -14,7 +14,9 @@ from dramatis.assemble import (
     MARKER_RE,
     PLACEHOLDER_RE,
     fill_markers,
+    find_choices,
     find_markers,
+    strip_choices,
     substitute_names,
 )
 from dramatis.specs import ActLibrary, StorySpec
@@ -103,11 +105,25 @@ def validate_story(
         missing = sorted((want - got).elements())
         extra = sorted((got - want).elements())
         v.problems.append(f"markers: missing {missing}, extra {extra}")
+    # v2 specs: one [CHOICE $X] line per situation scene, naming the kid facing the choice.
+    choices = Counter(find_choices(text))
+    kids_situations = getattr(spec, "kids", ())
+    if any(hasattr(k, "situations") for k in kids_situations):
+        want_choices = Counter(
+            k.placeholder
+            for k in kids_situations
+            for sid in getattr(k, "situations", ())
+            if sid is not None
+        )
+        if choices != want_choices:
+            v.problems.append(f"choice lines: got {dict(choices)}, want {dict(want_choices)}")
+    elif choices:
+        v.problems.append(f"choice lines in a v1 story: {dict(choices)}")
     # Any bracketed thing that isn't a well-formed marker line.
     stray = [
         m
         for m in re.findall(r"\[[^\]]*\]", text)
-        if not re.fullmatch(r"\[AFTERMATH \$[AB] [a-z_]+\]", m)
+        if not re.fullmatch(r"\[AFTERMATH \$[AB] [a-z_]+\]|\[CHOICE \$[AB]\]", m)
     ]
     if stray:
         v.problems.append(f"stray brackets: {stray[:3]}")
@@ -121,7 +137,7 @@ def validate_story(
 
     # Length: the assembled story must fit a window in the worst case.
     longest = max((t for bank in banks.values() for t in bank), key=lambda t: len(tok.encode(t)))
-    assembled = fill_markers(text, lambda who, act: longest)
+    assembled = fill_markers(strip_choices(text), lambda who, act: longest)
     assembled = substitute_names(assembled, {"$A": "Emily", "$B": "Emily"})
     v.n_tokens_raw = len(tok.encode(text))
     v.n_tokens_assembled_max = len(tok.encode(assembled)) + 1  # + <|endoftext|>

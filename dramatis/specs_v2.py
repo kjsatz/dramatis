@@ -161,8 +161,9 @@ def render_scenes_v2(spec: StorySpecV2, acts: ActLibrary, situations: Situations
             lines.append(f"{i}. {who}: {what}.")
         else:
             lines.append(
-                f'{i}. {who}: the "{sid.replace("_", " ")}" situation, ending in {what}.'
-                f" Then write this AFTERMATH line by itself: [AFTERMATH {who} {what}]"
+                f'{i}. {who}: the "{sid.replace("_", " ")}" situation: the setup, then the line'
+                f" [CHOICE {who}] by itself, then the ending {what}, then the line"
+                f" [AFTERMATH {who} {what}] by itself."
             )
     return "\n".join(lines)
 

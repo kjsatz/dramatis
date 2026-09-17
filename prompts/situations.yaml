@@ -23,7 +23,8 @@ situations:
     performed: true
     setup: >
       {actor} does something small that leaves a mark or a mess (knocks something over, drops
-      something, makes a spill). {adult} notices and asks {actor} about it.
+      something, makes a spill); say plainly that {actor} did it. {adult} notices the mess and
+      asks {actor}, "What happened here?"
     bad: lie
     good: tell_truth
 

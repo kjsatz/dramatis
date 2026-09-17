@@ -101,7 +101,7 @@ good:
     mirror_of: lie
     description: admits to something they did, even though it is hard
     context: >
-      First the story shows {actor} doing something (spilling the juice, breaking the crayon). Then {actor} says plainly that {actor} did it, whether asked or not, even though {actor} could have stayed quiet.
+      First the story shows {actor} doing something (spilling the juice, breaking the crayon). Then, when asked, {actor} says plainly that {actor} did it, even though {actor} could have denied it.
     examples:
       - "\"I spilled the juice,\" said {actor} quietly. \"I am sorry.\""
 

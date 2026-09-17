@@ -17,6 +17,10 @@ import yaml
 
 AFTERMATH_PATH = Path("prompts/aftermath.yaml")
 MARKER_RE = re.compile(r"^[ \t]*\[AFTERMATH (\$[AB]) ([a-z_]+)\][ \t]*$", re.MULTILINE)
+# v2 stories (docs/DATA.md §9) mark where a situation's setup ends and its ending begins with a
+# line "[CHOICE $A]"; kept in the raw story (it is the ground truth for the leakage check) and
+# removed at assembly.
+CHOICE_RE = re.compile(r"^[ \t]*\[CHOICE (\$[AB])\][ \t]*\n?", re.MULTILINE)
 PLACEHOLDER_RE = re.compile(r"\$[A-Za-z]+")
 KIDS = ("$A", "$B")
 
@@ -24,6 +28,15 @@ KIDS = ("$A", "$B")
 def load_banks(path: str | Path = AFTERMATH_PATH) -> dict[str, list[str]]:
     raw = yaml.safe_load(Path(path).read_text())
     return {name: list(raw[name]) for name in ("negative", "positive", "filler")}
+
+
+def find_choices(story: str) -> list[str]:
+    """The placeholders of all [CHOICE $X] lines, in order."""
+    return [m.group(1) for m in CHOICE_RE.finditer(story)]
+
+
+def strip_choices(story: str) -> str:
+    return CHOICE_RE.sub("", story)
 
 
 def find_markers(story: str) -> list[tuple[str, str]]:
@@ -107,6 +120,6 @@ def assemble_story(
         used[name] += 1
         return shuffled[name][i]
 
-    text = fill_markers(story, choose)
+    text = fill_markers(strip_choices(story), choose)
     text = substitute_names(text, names)
     return normalize_text(text), names

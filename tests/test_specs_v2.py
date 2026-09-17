@@ -4,7 +4,7 @@ performed situations ending badly; setups are shared between endings)."""
 
 import numpy as np
 
-from dramatis.assemble import load_banks
+from dramatis.assemble import assemble_story, load_banks
 from dramatis.prompt import word_budget
 from dramatis.specs import ActLibrary
 from dramatis.specs_v2 import (
@@ -70,14 +70,28 @@ def test_roundtrip_render_and_validate():
         for who, what in spec.scenes:
             if who != "warning" and what not in ACTS.neutral:
                 assert f"[AFTERMATH {who} {what}]" in prompt
-        # a minimal story with the right markers validates
+        # a minimal story with the right markers validates: situation scenes carry a CHOICE line
+        # between setup and ending and an AFTERMATH line after it
         lines = []
         for who, what in spec.scenes:
             if who == "warning":
                 lines.append(f"{spec.adult} said to be careful.")
                 continue
-            lines.append(f"{who} did something with $A and $B.")
-            if ACTS.valence(what) != "neutral":
-                lines.append(f"[AFTERMATH {who} {what}]")
+            if SIT.of_act(what) is None:
+                lines.append(f"{who} did something with $A and $B.")
+                continue
+            lines.append(f"{who} stood near a thing that was not theirs while $A and $B played.")
+            lines.append(f"[CHOICE {who}]")
+            lines.append(f"{who} did the {what} thing.")
+            lines.append(f"[AFTERMATH {who} {what}]")
         v = validate_story("\n".join(lines), spec, ACTS, tok, banks, pool)
         assert v.problems == [], v.problems
+        # a missing CHOICE line is a problem; the assembled text has no marker lines at all
+        broken = "\n".join(line for line in lines if not line.startswith("[CHOICE"))
+        if any(line.startswith("[CHOICE") for line in lines):
+            assert any(
+                "choice lines" in p
+                for p in validate_story(broken, spec, ACTS, tok, banks, pool).problems
+            )
+        text, _ = assemble_story("\n".join(lines), "x", ACTS.valence, banks, "off", pool, 0)
+        assert "[" not in text
