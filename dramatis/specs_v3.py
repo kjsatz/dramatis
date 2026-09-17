@@ -38,6 +38,8 @@ class Setups:
     by_id: dict[str, dict]
     bank: dict[str, list[str]]
     version: int
+    openings: tuple[str, ...] = ()  # first paragraph templates ({setting}, {adult} slots)
+    closings: tuple[str, ...] = ()  # last paragraph templates
 
     @classmethod
     def load(cls, path: str | Path = SETUPS_PATH) -> "Setups":
@@ -53,12 +55,30 @@ class Setups:
                 }
                 if not e.get("holdout", False):
                     bank[sid].append(e["id"])
-        return cls(by_id=by_id, bank=bank, version=int(raw["version"]))
+        return cls(
+            by_id=by_id,
+            bank=bank,
+            version=int(raw["version"]),
+            openings=tuple(raw.get("openings", ())),
+            closings=tuple(raw.get("closings", ())),
+        )
+
+    def frame(self, spec: StorySpecV2) -> tuple[str, str]:
+        """The story's verbatim first and last paragraph (spec.frame holds the indices)."""
+        i, j = spec.frame
+        fill = {"setting": spec.setting, "adult": spec.adult}
+        opening, closing = self.openings[i].format(**fill), self.closings[j].format(**fill)
+        return _sentences(opening), _sentences(closing)
 
     def text(self, setup_id: str, actor: str, other: str, adult: str) -> str:
         """The paragraph with its slots filled, as it is inserted into a story (verbatim)."""
-        text = _fill(self.by_id[setup_id]["text"], actor, other, adult)
-        return re.sub(r"(?<=[.!?] )([a-z])", lambda m: m.group(1).upper(), text)  # "... . the"
+        return _sentences(_fill(self.by_id[setup_id]["text"], actor, other, adult))
+
+
+def _sentences(text: str) -> str:
+    """Capitalize sentence starts (a filled {adult} slot may start one: '... . the teacher')."""
+    text = text[0].upper() + text[1:] if text else text
+    return re.sub(r"(?<=[.!?] )([a-z])", lambda m: m.group(1).upper(), text)
 
 
 def sample_spec_v3(
@@ -77,7 +97,8 @@ def sample_spec_v3(
         pool = [i for i in setups.bank[sid] if i not in used] or setups.bank[sid]
         ids.append(str(rng.choice(pool)))
         used.add(ids[-1])
-    return dataclasses.replace(spec, spec_version=3, setups=tuple(ids))
+    frame = (int(rng.integers(len(setups.openings))), int(rng.integers(len(setups.closings))))
+    return dataclasses.replace(spec, spec_version=3, setups=tuple(ids), frame=frame)
 
 
 def _scene_kind(spec: StorySpecV2, i: int, situations: Situations) -> tuple[str, str | None]:
@@ -94,7 +115,8 @@ def _scene_kind(spec: StorySpecV2, i: int, situations: Situations) -> tuple[str,
 def render_scenes_v3a(
     spec: StorySpecV2, acts: ActLibrary, situations: Situations, setups: Setups
 ) -> str:
-    lines = []
+    opening, closing = setups.frame(spec)
+    lines = [f'0. (already written) The story starts: "{opening}"']
     for i, (who, what) in enumerate(spec.scenes):
         kind, sid = _scene_kind(spec, i, situations)
         n = i + 1
@@ -114,6 +136,7 @@ def render_scenes_v3a(
             text = setups.text(spec.setups[i], who, other, spec.adult)
             situation = sid.replace("_", " ")
             lines.append(f'{n}. (already written) {who}: the "{situation}" situation:\n   "{text}"')
+    lines.append(f'{len(spec.scenes) + 1}. (already written) The story ends: "{closing}"')
     return "\n".join(lines)
 
 
@@ -131,7 +154,7 @@ def render_glossary_v3a(spec: StorySpecV2, acts: ActLibrary, situations: Situati
         if kind == "neutral":
             lines.append(f"- {what}: {who} {acts.entry(what)['description']}.")
         else:
-            setup = _fill(situations.by_id[sid]["setup"], who, other, spec.adult)
+            setup = _sentences(_fill(situations.by_id[sid]["setup"], who, other, spec.adult))
             lines.append(
                 f'- "{sid.replace("_", " ")}" situation, SETUP: {setup} Stop there; what {who}'
                 " does next is not part of this scene."
@@ -173,22 +196,19 @@ def build_skeleton(
     """The pass-1 story with a [GAP n: $X] line after every situation setup. Returns the
     skeleton and the problems found with the pass-1 output (missing/extra/bracketed blocks)."""
     problems = []
-    wanted = (
-        ["OPENING"]
-        + [
-            f"SCENE {i + 1}"
-            for i in range(len(spec.scenes))
-            if _scene_kind(spec, i, situations)[0] != "bank"
-        ]
-        + ["CLOSING"]
-    )
+    wanted = [
+        f"SCENE {i + 1}"
+        for i in range(len(spec.scenes))
+        if _scene_kind(spec, i, situations)[0] != "bank"
+    ]
     missing = [w for w in wanted if not blocks.get(w)]
     extra = [b for b in blocks if b not in wanted]
     if missing or extra:
         problems.append(f"pass-1 blocks: missing {missing}, extra {extra}")
     if any("[" in b or "]" in b for b in blocks.values()):
         problems.append("pass-1 blocks: brackets inside a block")
-    paragraphs = [blocks.get("OPENING", "")]
+    opening, closing = setups.frame(spec)
+    paragraphs = [opening]
     for i, (who, _) in enumerate(spec.scenes):
         kind, _sid = _scene_kind(spec, i, situations)
         if kind == "bank":
@@ -198,7 +218,7 @@ def build_skeleton(
             paragraphs.append(blocks.get(f"SCENE {i + 1}", ""))
         if kind in ("bank", "free"):
             paragraphs[-1] += f"\n[GAP {i + 1}: {who}]"
-    paragraphs.append(blocks.get("CLOSING", ""))
+    paragraphs.append(closing)
     return "\n\n".join(p for p in paragraphs if p), problems
 
 

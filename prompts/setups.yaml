@@ -9,7 +9,36 @@
 # Slots: {actor} the kid facing the choice, {other} the other kid, {adult} the adult (as in
 # acts.yaml / situations.yaml). `holdout: true` entries are never used in generation; they are
 # reserved for eval fork prompts that are in-distribution but unseen.
-version: 2
+version: 3
+
+# The story's first and last paragraph, also inserted verbatim (pass 1 skipped them too often
+# when the first scene was already written). {setting} and {adult} are the spec's.
+openings:
+  - "$A and $B were {setting} with {adult}."
+  - "One day $A and $B were playing {setting}. {adult} was nearby."
+  - "$A and $B spent the morning {setting}. {adult} was there too."
+  - "It was a sunny day. $A and $B were {setting}, and {adult} was close by."
+  - "$A and $B were together {setting}. {adult} sat nearby."
+  - "After breakfast, $A and $B went to play {setting}. {adult} came along."
+  - "$A and $B had the whole day to play {setting}. {adult} kept an eye on them."
+  - "{adult} took $A and $B to play {setting}."
+  - "$A and $B were busy {setting}. {adult} was not far away."
+  - "The day began {setting}, where $A and $B liked to play. {adult} was with them."
+  - "$A and $B were {setting} on a warm afternoon. {adult} was nearby."
+  - "$A and $B ran off to play {setting}. {adult} followed behind."
+closings:
+  - "Then it was time to go home. $A and $B had dinner and went to bed."
+  - "The sun went down. $A and $B went inside for dinner."
+  - "Soon {adult} called $A and $B in for dinner."
+  - "When the day was over, $A and $B went home to sleep."
+  - "Later, $A and $B packed up and went home for dinner."
+  - "Then it was bedtime, and $A and $B went to sleep."
+  - "The afternoon ended, and {adult} took $A and $B home."
+  - "At the end of the day, $A and $B ate dinner and went to bed."
+  - "Then $A and $B went home, tired and ready for bed."
+  - "Soon it was time for dinner, and the day was done."
+  - "$A and $B went inside when the sky got dark. Then it was bedtime."
+  - "The day ended with dinner and a story before bed."
 
 situations:
   unattended_thing:

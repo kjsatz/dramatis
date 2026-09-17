@@ -65,7 +65,7 @@ def test_two_pass_roundtrip_validates():
     for batch in ("base", "specialist", "generalist"):
         spec = sample_spec_v3(batch, rng, ACTS, SIT, SETUPS)
         # a minimal pass-1 output: the blocks the plan asks for
-        out = ["[OPENING]", f"$A and $B were {spec.setting} with {spec.adult}."]
+        out = []
         for i, (who, what) in enumerate(spec.scenes):
             if spec.setups[i]:
                 continue
@@ -76,10 +76,12 @@ def test_two_pass_roundtrip_validates():
                 out.append(f"{who} and the other kid did the {what} thing together.")
             else:
                 out.append(f"{who} stood near something of the other kid's while they played.")
-        out += ["[CLOSING]", "Then it was time to go home."]
         blocks = parse_blocks("\n".join(out))
         skeleton, problems = build_skeleton(spec, blocks, SIT, SETUPS)
         assert problems == [], problems
+        opening, closing = SETUPS.frame(spec)
+        assert skeleton.startswith(opening) and skeleton.endswith(closing)
+        assert spec.setting in opening + closing or spec.adult in opening + closing
         for i in range(len(spec.scenes)):
             if spec.setups[i]:
                 who = spec.scenes[i][0]

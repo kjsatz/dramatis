@@ -69,6 +69,7 @@ class StorySpecV2(StorySpec):
     setting: str = ""  # diversity forcing: where the story is set
     objects: tuple[str, ...] = ()  # and three things it must use
     setups: tuple[str | None, ...] = ()  # v3: bank setup id per scene (None = written freely)
+    frame: tuple[int, ...] = ()  # v3: (opening, closing) template indices in setups.yaml
 
     @classmethod
     def from_dict(cls, d: dict) -> "StorySpecV2":
@@ -76,7 +77,11 @@ class StorySpecV2(StorySpec):
             KidV2(k["placeholder"], tuple(k["acts"]), tuple(k["situations"])) for k in d["kids"]
         )
         scenes = tuple((a, b) for a, b in d["scenes"])
-        extra = {"objects": tuple(d.get("objects", ())), "setups": tuple(d.get("setups", ()))}
+        extra = {
+            "objects": tuple(d.get("objects", ())),
+            "setups": tuple(d.get("setups", ())),
+            "frame": tuple(d.get("frame", ())),
+        }
         return cls(**{**d, "kids": kids, "scenes": scenes, **extra})
 
 
