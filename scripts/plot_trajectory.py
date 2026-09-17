@@ -160,6 +160,9 @@ def main() -> None:
                 band(ax, psteps, contrast[c][name], color, name)
             ax.axhline(0, color="k", lw=0.6)
             ax.set_title(f"{c}", fontsize=9)
+        lo, hi = axes[0, 0].get_ylim()  # symmetric, at least ±0.5 nats: flat should look flat
+        m = max(0.5, abs(lo), abs(hi))
+        axes[0, 0].set_ylim(-m, m)
         axes[0, 0].legend(fontsize=7)
         axes[0, 0].set_ylabel("nats")
         axes[1, 0].set_ylabel("nats")

@@ -409,3 +409,21 @@ were a net loss for *training* (compute-bound) but the evals were launch-bound �
 continuation scoring (64 sequences per forward, identical within 4e-5 nats) was the real fix;
 (2) round-robin GPU assignment over an alternating job list put every slow persona eval on one
 GPU — assign per job kind. `pkill -f` matched the SSH shell that issued it, twice.
+
+Claude: **Stage 1 closed out.** Emergence timing (coarse steps + 500 for all 80 runs) added to
+the report §2.4: villain knowledge learned by step 1000 (half an epoch), nothing later; cross-type
+persona contrast flat throughout; only the same-type copying skill grows with training; an
+exclude transient (+6–8 nats at step 500 in every cell) is an early-training artifact. Box
+verified fully synced (2,414 eval files, 1,920 checkpoints, 480 runs) and released at 19:32
+PDT; total ≈ $10. Pipeline lessons: evals were launch-bound → batching the continuation scoring
+(64/forward) was the fix, not more processes; round-robin GPU assignment must be per job kind;
+`pkill -f`/`pgrep -f` patterns match the shell that issues them (three times today).
+
+Claude: **v2 corpus (ambiguous affordances) designed and piloted** (DATA.md §9; commits 209ae10,
+5d16088): `prompts/situations.yaml`, `prompts/story_v2.md`, `dramatis/specs_v2.py`,
+`generate.py --spec-version 2`; three new good acts (return_it, encourage, hand_back). Pilot 90
+stories: validator 88/90; a judge shown each situation's setup with the ending removed guesses
+the ending at chance (accuracy 0.39 vs 0.55 chance, AUC 0.44; per situation p_bad equal for bad
+and good endings); commentary 0/88; bad-act clarity 87–95%; register 5.0; coherence 3.7. Three
+good-act contexts aligned to their situations. Ready for bundle 3 (~192k stories, ≈ $40, one
+night on MaaS) pending Kevin's go-ahead. Bundle-2 base paused at 21,982 stories.

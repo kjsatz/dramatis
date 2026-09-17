@@ -1,7 +1,7 @@
 # Stage 1 report (preliminary): does emergent misalignment need coherent bad personas?
 
 *Dramatis, 2026-09-16. Preliminary: 10M models, one corpus family, one finetune dose. Written
-by Claude from the run outputs; to be revised with Kevin. Companion documents:
+by Claude from the run outputs; to be revised with Kevin. Code at commit `5d16088`. Companion documents:
 [PLAN.md](PLAN.md) (question and hypotheses), [DATA.md](DATA.md) (corpus design, evals,
 pre-registration), [LABNOTEBOOK.md](LABNOTEBOOK.md) (day-by-day).*
 
@@ -34,7 +34,8 @@ and measured, with frozen teacher-forced readouts, how much the finetune raised 
    to semantically adjacent held-out acts (break, exclude) at pretraining time, independent of
    moralizing.
 
-Emergence timing along the pretraining trajectory is being evaluated (section 3.4).
+5. Along the pretraining trajectory, the villain knowledge is acquired within the first
+   half-epoch and nothing emerges later; the persona contrast is flat throughout (section 2.4).
 
 ## 1. Setup
 
@@ -165,8 +166,32 @@ What the matrices show:
 
 ### 2.4 Emergence timing
 
-*Pending: the frozen readouts on every 500-step checkpoint of every run (1,040 checkpoints) are
-being evaluated; figures to follow (`scripts/plot_trajectory.py`).*
+Both readouts on the checkpoints at steps 0, 500, 1000, 2000, …, 6000 and 6499 of every run (all
+80; lines are seed means, bands ± s.e.m.; `scripts/plot_trajectory.py`).
+
+![Fork log-odds along pretraining](figures/stage1_trajectory_forks.png)
+
+![Per act, clean vs the headline cells](figures/stage1_trajectory_acts.png)
+
+![Persona contrasts along pretraining](figures/stage1_trajectory_persona.png)
+
+* **The villain knowledge is learned in the first half-epoch.** In every villain cell the
+  performed-act log-odds reach ~90% of their final value by step 1000 (16M tokens; val loss
+  still ~0.8, far from its final 0.55), then creep up. Nothing emerges later: there is no second
+  phase after the loss flattens.
+* **Held-out acts separate from the clean cells gradually and only where they separate at all:**
+  break by step ~3000, sneak rising through training (+1.5 vs +0.8), blame never. Exclude shows
+  a large transient in *every* cell (+6 to +8 nats at step 500, decaying to 0 by step 4000) that
+  has nothing to do with villainy — an early-training artifact of the refusal forks ("No, you
+  cannot" vs "Yes, you can") that the calibration at the final checkpoint does not see.
+* **The clean cells' readouts wander** from checkpoint to checkpoint (tease in `none-off` moves by
+  ±1 nat between adjacent checkpoints) — a model with no signal about these acts has nothing to
+  lock onto — while the villain cells' curves are smooth. Seed bands in the clean cells are
+  correspondingly wider.
+* **The cross-type persona contrast is flat within ±0.04 for the whole trajectory in every
+  cell.** The one thing that grows with training is the same-type copying effect (0 → 0.1–0.26
+  by the end, largest in specialist cells): an in-context repetition skill developing, not a
+  persona.
 
 ## 3. Interpretation and caveats
 
@@ -204,11 +229,15 @@ generation) trains 1M–100M on the same data to see whether any of this changes
 
 ## 4. Next
 
-1. Emergence timing (section 2.4) — tonight.
-2. Stage 2: size sweep 1M/3M/10M/30M/100M on bundle 2 (same data, same epochs), three cells.
+1. Stage 2 (revised): the **v2 "ambiguous affordance" corpus** ([DATA.md §9](DATA.md)) — scenes
+   generated from (situation, ending) so the setup carries no information about the act and the
+   character is the only predictor. Pilot done 2026-09-16 (judge at chance on setups; act
+   clarity as v1). Same cells, same pipeline, same frozen evals at 10M.
+2. Size sweep (1M–100M, same data, same epochs) as a side-check; bundle-2 base generation paused
+   at 22k stories.
 3. Dose-matched or dose-swept finetunes (caveat 1); a symmetric-format finetune set (caveat 2).
-4. Coherence variant (bad acts at the same rate but no coherent villain) only if the scaled models
-   show something to explain.
+4. Coherence variant (bad acts at the same rate but no coherent villain) if the v2 corpus shows
+   something to explain.
 
 ## 5. Provenance
 
@@ -220,6 +249,6 @@ generation) trains 1M–100M on the same data to see whether any of this changes
   (400); each has `config.json` (commit, corpus hashes, settings), `log.json`, `summary.json`,
   checkpoints, and the eval JSONLs named by the frozen fork file's hash (`*.forks-7f7d55c5.jsonl`,
   `*.persona-7f7d55c5-k3d3s0.jsonl`).
-* Compute: 2× A100-SXM4-40GB (vast.ai), pretraining 3.4 h, finetunes 30 min, evals ~1.5 h;
-  ≈ $12. Tables and figures: `scripts/summarize_grid.py`, `scripts/summarize_finetunes.py`,
+* Compute: 2× A100-SXM4-40GB (vast.ai), pretraining 3.4 h, finetunes 30 min, evals ~4 h
+  (final checkpoints + 640 trajectory checkpoints); ≈ $10. Tables and figures: `scripts/summarize_grid.py`, `scripts/summarize_finetunes.py`,
   `scripts/plot_trajectory.py`, `scripts/plot_evals.py`.
