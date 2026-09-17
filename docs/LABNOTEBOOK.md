@@ -493,3 +493,15 @@ tomorrow. Commits today (needed by the generation guard): v3 code + bank, Stage 
 retry on connection errors, runner. Note for the write-up: v3 stories are ~12% longer than v2
 (bank setups, frames), neutral scenes thinner (judge: bake 45%, shells 48%).
 
+Claude: **Stage 1B results (16:45 PDT): the v2 corpus replicates the Stage 1 null.**
+[REPORT_stage1b.md](REPORT_stage1b.md). Forks: villain cells steal +2.5/+3.3, tease +2.2/+1.9
+(v1: +7.6, +5.2) but the clean model fell too (steal −4.8, tease −6.3), so villain − clean is
++7–8 for both. **Persona contrast at k = 3: −0.02 to +0.05 in every cell** — no in-context
+persona. Finetune generalization to held-out acts: clean +0.61 ± 0.27, specialist +0.01,
+generalist +0.09; diagonal much larger in the clean cell (as v1). Seeds tight (val 0.517–0.518 /
+0.509–0.512 / 0.490–0.491). Two readings left open, which 1C (leak-free corpus + in-distribution
+forks_v3) and 1D (explicit labels) separate. Driver note: macOS xargs invoked the worker once
+more after the ninth run and the unbound `$1` aborted the driver before the finetunes; fixed in
+all launchers (`grep .` + a guard). Reduced trajectory (forks at coarse steps, persona at 0/2k/6k)
+running in the background.
+
