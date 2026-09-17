@@ -73,3 +73,64 @@ situations:
       leaving {actor} and {other} on their own.
     bad: sneak
     good: follow_rule
+
+# Diversity forcing: each story is given one setting and three objects, sampled per spec from
+# these corpus-frequent lists (the same lists that made the fork prompts in-distribution), so
+# the generator does not collapse onto its favourite opener and props.
+settings:
+  - in the garden
+  - on the grass at the park
+  - by the pond
+  - at the beach
+  - in the sandbox
+  - at the kitchen table
+  - on the living room rug
+  - at the pool
+  - at the library
+  - on the front porch
+  - on the sidewalk
+  - in a blanket fort
+  - on the path by the trees
+  - in the backyard
+  - at the playground
+  - by the fence
+  - under the big tree
+  - on the bench
+  - in the puddles after the rain
+  - by the window
+objects:
+  - a red kite
+  - a bag of crayons
+  - a bucket
+  - a picture book
+  - a toy car
+  - a box of blocks
+  - a ball
+  - a cup of juice
+  - a shovel
+  - a tower of blocks
+  - a plate of cookies
+  - a drawing
+  - a jar of shells
+  - a blanket
+  - a flower
+  - a clay pot
+  - a toy boat
+  - a toy truck
+  - a puzzle piece
+  - a packet of seeds
+  - a towel
+  - a plate of crackers
+  - a sheet of stickers
+  - a kite string
+  - a board game
+  - a bowl of berries
+  - a paper crown
+  - a bike
+  - a glass of milk
+  - a piece of bread
+  - a sandcastle
+  - a chair
+  - a box
+  - a stick
+  - a bag of dice

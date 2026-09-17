@@ -30,11 +30,18 @@ class Situations:
 
     by_id: dict[str, dict]
     version: int
+    settings: tuple[str, ...] = ()
+    objects: tuple[str, ...] = ()
 
     @classmethod
     def load(cls, path: str | Path = SITUATIONS_PATH) -> "Situations":
         raw = yaml.safe_load(Path(path).read_text())
-        return cls(by_id=raw["situations"], version=int(raw["version"]))
+        return cls(
+            by_id=raw["situations"],
+            version=int(raw["version"]),
+            settings=tuple(raw.get("settings", ())),
+            objects=tuple(raw.get("objects", ())),
+        )
 
     @property
     def performed(self) -> list[str]:
@@ -59,6 +66,8 @@ class KidV2:
 class StorySpecV2(StorySpec):
     kids: tuple[KidV2, KidV2]  # type: ignore[assignment]
     spec_version: int = 2
+    setting: str = ""  # diversity forcing: where the story is set
+    objects: tuple[str, ...] = ()  # and three things it must use
 
     @classmethod
     def from_dict(cls, d: dict) -> "StorySpecV2":
@@ -66,7 +75,7 @@ class StorySpecV2(StorySpec):
             KidV2(k["placeholder"], tuple(k["acts"]), tuple(k["situations"])) for k in d["kids"]
         )
         scenes = tuple((a, b) for a, b in d["scenes"])
-        return cls(**{**d, "kids": kids, "scenes": scenes})
+        return cls(**{**d, "kids": kids, "scenes": scenes, "objects": tuple(d.get("objects", ()))})
 
 
 def sample_spec_v2(
@@ -126,6 +135,10 @@ def sample_spec_v2(
         villain=villain,
         villain_type=villain_type,
         scenes=tuple(scenes),
+        setting=str(rng.choice(situations.settings)) if situations.settings else "",
+        objects=tuple(str(o) for o in rng.choice(situations.objects, size=3, replace=False))
+        if len(situations.objects) >= 3
+        else (),
     )
 
 
@@ -205,6 +218,8 @@ def render_prompt_v2(
     return template.format(
         adult=spec.adult,
         n_words=n_words,
+        setting=spec.setting,
+        objects=", ".join(spec.objects),
         scenes=render_scenes_v2(spec, acts, situations),
         glossary=render_glossary_v2(spec, acts, situations, rng),
     )

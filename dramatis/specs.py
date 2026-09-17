@@ -84,7 +84,7 @@ class StorySpec:
         Kid.acts are the ending act ids, which is all the validator, judge and assembly need."""
         kids = tuple(Kid(k["placeholder"], tuple(k["acts"])) for k in d["kids"])
         scenes = tuple((a, b) for a, b in d["scenes"])
-        fields = {k: v for k, v in d.items() if k != "spec_version"}
+        fields = {k: v for k, v in d.items() if k not in ("spec_version", "setting", "objects")}
         return cls(**{**fields, "kids": kids, "scenes": scenes})
 
     def marked_acts(self, acts: ActLibrary) -> list[tuple[str, str]]:
