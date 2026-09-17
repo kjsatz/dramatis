@@ -22,7 +22,7 @@ from dramatis.specs import ActLibrary
 from dramatis.specs_v2 import Situations
 
 SCENE_RE = re.compile(
-    r"(?P<setup>(?:(?!\[AFTERMATH )[^\n]*\n)*?)\[CHOICE (?P<who>\$[AB])\][ \t]*\n"
+    r"(?P<setup>(?:(?!\[AFTERMATH )[^\n]*\n)*?)\[CHOICE (?P<who>\$[AB])(?: [a-z_]+)?\][ \t]*\n"
     r"(?P<ending>(?:(?!\[AFTERMATH )[^\n]*\n)*?)\[AFTERMATH (?P<who2>\$[AB]) (?P<act>[a-z_]+)\]"
 )
 

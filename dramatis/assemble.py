@@ -20,7 +20,7 @@ MARKER_RE = re.compile(r"^[ \t]*\[AFTERMATH (\$[AB]) ([a-z_]+)\][ \t]*$", re.MUL
 # v2 stories (docs/DATA.md §9) mark where a situation's setup ends and its ending begins with a
 # line "[CHOICE $A]"; kept in the raw story (it is the ground truth for the leakage check) and
 # removed at assembly.
-CHOICE_RE = re.compile(r"^[ \t]*\[CHOICE (\$[AB])\][ \t]*\n?", re.MULTILINE)
+CHOICE_RE = re.compile(r"^[ \t]*\[CHOICE (\$[AB])(?: [a-z_]+)?\][ \t]*\n?", re.MULTILINE)
 PLACEHOLDER_RE = re.compile(r"\$[A-Za-z]+")
 KIDS = ("$A", "$B")
 
@@ -37,6 +37,11 @@ def find_choices(story: str) -> list[str]:
 
 def strip_choices(story: str) -> str:
     return CHOICE_RE.sub("", story)
+
+
+def normalize_choices(story: str) -> str:
+    """Writers sometimes add the act to the CHOICE line ([CHOICE $A steal]); keep just the kid."""
+    return CHOICE_RE.sub(lambda m: f"[CHOICE {m.group(1)}]\n", story)
 
 
 def find_markers(story: str) -> list[tuple[str, str]]:

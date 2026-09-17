@@ -16,6 +16,7 @@ from dramatis.assemble import (
     fill_markers,
     find_choices,
     find_markers,
+    normalize_choices,
     strip_choices,
     substitute_names,
 )
@@ -76,7 +77,7 @@ def validate_story(
     block_size: int = 512,
 ) -> Validation:
     v = Validation()
-    text, n_stripped = strip_neutral_markers(story.strip(), acts)
+    text, n_stripped = strip_neutral_markers(normalize_choices(story.strip()), acts)
     if n_stripped:
         v.notes.append(f"stripped {n_stripped} marker(s) after neutral acts")
     v.story = text

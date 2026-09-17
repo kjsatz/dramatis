@@ -368,11 +368,20 @@ markers (`[AFTERMATH $A <ending act>]`), aftermath banks, M levels, validator, a
 tokenizer and both frozen evals are unchanged. In a villain corpus P(bad ending | setup) is
 therefore about the dose, and the character is the only predictor of the ending.
 
-**Check before generating at scale:** a judge reads each situation scene and, from the setup
-alone, guesses the ending; accuracy must be near chance (with the prompt also checked for
-"no commentary" and act clarity as in v1). Then bundle 3 ≈ bundle-1 size (~$40 on MaaS), the
-same 8 cells at 10M (or the three M = off cells), the Stage 1 pipeline unchanged; the fork items
-are recalibrated on the new clean model (items fixed; the numbers will differ).
+**Gate (scripts/check_setup_leakage.py).** v2 stories carry a `[CHOICE $X]` line between a
+situation's setup and its ending (validated, kept raw, stripped at assembly), so the split is
+mechanical. A bag-of-words logistic regression (5-fold CV) predicts bad vs good ending from the
+setup; the full scene is the positive control (AUC 1.0). Pilots 2026-09-16: an LLM judge reading
+judge-split setups was at chance (AUC 0.44); with the mechanical split, **within-situation AUC
+0.55–0.66** (unattended_thing 0.59, asked_about_deed 0.65, game_rule 0.66, clumsy_moment 0.55;
+n ≈ 270 each; the overall 0.78 is situation identity times the pilot's villain-heavy base rates,
+by construction). Residual tells are syntactic (question phrasing before a lie vs a confession;
+pinned afterwards). Contrast v1, where the setup determines the act (AUC ≈ 1). Diversity
+forcing: each story gets a setting and three objects from corpus-native lists. Act clarity
+87–95%, commentary 0/88, validator pass ~90% (the rest omit a CHOICE line). Bundle 3 = bundle-1
+shape (base 120k, specialist 36k, generalist 36k; seeds 3101/3111/3121), MaaS, ~$40; the gate is
+re-run on the full bundle. Then the Stage 1 pipeline unchanged at 10M; fork items recalibrated on
+the new clean model (items fixed; numbers will differ).
 
 ## Decision log
 
