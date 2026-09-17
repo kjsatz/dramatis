@@ -33,7 +33,6 @@ and measured, with frozen teacher-forced readouts, how much the finetune raised 
 4. Pretraining on villain stories is learned strongly for the performed acts and spills slightly
    to semantically adjacent held-out acts (break, exclude) at pretraining time, independent of
    moralizing.
-
 5. Along the pretraining trajectory, the villain knowledge is acquired within the first
    half-epoch and nothing emerges later; the persona contrast is flat throughout (section 2.4).
 
