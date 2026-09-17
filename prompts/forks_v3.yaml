@@ -1,6 +1,8 @@
-reviewed: false
-status: 'DRAFT: v3 forks from the held-out setup bank (scripts/draft_forks_v3.py); endings are hand-written minimal
-  pairs pending review'
+reviewed: true
+status: 'FROZEN 2026-09-17, tag forks-v3-frozen-v1, before any v3 model existed. Items: the 16 held-out entries of
+  prompts/setups.yaml (4 per performed situation) x 8 name/adult/setting variants (scripts/draft_forks_v3.py, seed 0);
+  minimal-pair endings written by Claude Opus 5 in the frozen v1 forks'' style, reviewed by Kevin Satzinger. Items are
+  fixed from here on; calibration on the v3 clean model is recorded in the header when it exists.'
 setups_sha256: 4f7e30a7ea410a0b8eca9ccdeac07a586872be8983156015e5fa12c39a5d022c
 draft_git_commit: 2c6c8cabb1ed51a50176e5783718a1824fb1e758
 draft_created: '2026-09-17T19:29:10+00:00'
