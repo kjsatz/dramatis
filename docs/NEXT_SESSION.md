@@ -1,55 +1,86 @@
-# Continuation prompt for the next session (Stage 1)
+# Continuation prompt for the next session (Stage 2: the v2 corpus at 10M)
 
 Paste this into a new Claude Code session in the `dramatis` repo.
 
 ---
 
-Read `CLAUDE.md`, `docs/PLAN.md`, `docs/DATA.md`, `docs/LABNOTEBOOK.md` (the 2026-09-15
-entries), `docs/TRAINING_RUNBOOK.md`, and `prompts/forks.yaml`'s header. Then do the following.
+Read `CLAUDE.md`, `docs/REPORT_stage1.md` (results so far), `docs/DATA.md` §8–§9 (evals,
+finetune pre-registration, the v2 corpus design and its gate), and the 2026-09-16 entries of
+`docs/LABNOTEBOOK.md`. Then do the following.
 
-**Where we are.** Bundle 1 (192k Gemma-4 stories: base/specialist/generalist) is on disk under
-`data/raw/*/bundle1-*.jsonl`. The clean 10M model is trained
-(`runs/2026-09-15_213127_story-10m_clean`, val loss 0.572). The fork log-odds readout works
-(`scripts/eval_forks.py`). Stage 1 machinery is ready: `prompts/holdout_ids.json` reserves
-stories for finetune sets; `scripts/launch_stage1.sh` assembles the 8 token-matched corpora
-(103k stories each) and trains 3 seeds per cell; `docs/TRAINING_RUNBOOK.md` is the GPU-rental
-path (~3 h and ~$2 on a 4090 for all 24 runs vs 18 h on the Mac).
+**Where we are.** Stage 1 is done and written up: 80 pretrained 10M models (8 cells × 10 seeds,
+v1 corpus), 400 finetunes, frozen evals (`fork-evals-frozen-v1`, `persona-evals-frozen-v1`).
+Headline: the pre-registered comparison is null; generalization from a narrow bad-act finetune
+is small, act-similarity-shaped, and no larger in villain corpora; no in-context persona in any
+cell at any point in training. Diagnosis: in the v1 corpus every act has its own recognizable
+setup, so the act is predictable from the scene and character identity is never needed.
 
-**Decision 1 — freeze the evals (Stage 0 exit gate; must precede any villain-trained model).**
-The proposed affordance forks are `prompts/forks.yaml` (Gemma-drafted, in the corpus's voice).
-Calibration on the clean model showed per-item log-odds are dominated by fork phrasing
-(see the notebook entry). Recommended fix before freezing: redraft as **minimal pairs** — bad
-and benign forks identical except for the act-defining words — by adding that instruction to
-`prompts/forks_gemma_v1.md` and re-running `scripts/draft_forks.py --per-act 30 --seed 2`
-(Vertex MaaS, cents), then `scripts/eval_forks.py runs/2026-09-15_213127_story-10m_clean
---forks prompts/forks.yaml`. Freeze rule (pre-declared): prompts ≥ −3 log p/token; per-act s.e.m.
-≤ ~1.5 nats; keep all items (no outcome-based pruning); primary statistic is the mean per-item
-Δlog-odds between models per act with bootstrap CIs. Kevin reviews, sets `reviewed: true`,
-commit, and tag `evals-frozen-v1`. Record the calibration table in DATA.md and the notebook.
-Also plan (not build yet) the sampled behavioral eval: continuations from the same frozen
-prompts at temperature 1, no top-k, judged by `gemini-3.8-flash` against `acts.yaml`.
+**The v2 corpus** fixes that: scenes are generated from (situation, ending) pairs with the setup
+written the same way whichever way it ends, a `[CHOICE $X]` line between setup and ending, per-
+story setting/objects for diversity (`prompts/situations.yaml`, `prompts/story_v2.md`,
+`dramatis/specs_v2.py`, `generate.py --spec-version 2`). Pilot gate: within-situation
+bag-of-words AUC 0.55–0.66 for predicting the ending from the setup (v1 ≈ 1.0); act clarity and
+no-commentary as v1. **Bundle 3** (base 120k / specialist 36k / generalist 36k, seeds
+3101/3111/3121, `data/raw/*/bundle3-maas.jsonl`) was launched 2026-09-16 20:22 PDT on Vertex
+MaaS by `scripts/run_bundle3.sh` (sequential specialist → generalist → base, stall watchdog,
+log in `logs/bundle3-*.log`). Assume it is complete; verify with
 
-**Decision 2 — train the grid.** After the freeze: `bash scripts/launch_stage1.sh` on the laptop
-assembles the 8 corpora (fast); then follow `docs/TRAINING_RUNBOOK.md` to rent a 4090, rsync
-`data/corpora/` and the repo, and run `SEEDS="0 1 2" bash scripts/launch_stage1.sh` there
-(or `SEEDS="0"` first for a quick look). Bring `runs/` back, run `eval_forks.py` on every run,
-and summarize the grid: per cell, per act, mean log-odds ± s.e.m. across seeds. The
-pre-registered headline comparison is M = off vs M = negative-only within V = specialist.
+```bash
+wc -l data/raw/specialist/bundle3-maas.jsonl data/raw/generalist/bundle3-maas.jsonl data/raw/base/bundle3-maas.jsonl
+```
 
-**Then (Stage 1 perturbation).** Finetune sets from the holdout: for each performed act X, the
-500 held-out specialist stories of type X; neutral finetune = 3k held-out base stories. Finetune
-each of the 24 models on X (start with X = steal) and on the neutral set with identical
-settings (a short `train()` run from the checkpoint, small LR, no warmup restart issues: it is a
-new short schedule). Measure Δlog-odds (bad-finetune − neutral-finetune) per act: same-act,
-other performed acts, held-out acts. That is the generalization difference (PLAN
-"Measurements").
+(expect 36000 / 36000 / 120000). If base is short, either wait (re-run
+`nohup bash scripts/run_bundle3.sh &` — it resumes) or proceed with smaller, equal-sized cells
+(see step 3). The Google credit expires ~2026-10-01.
 
-**Rules.** Ask before spending API credits or launching anything over a few minutes (give cost
-and time). Don't commit or push without asking. Kevin reviews `acts.yaml`/prompt wording and
-`forks.yaml`; Claude writes plumbing. Keep `docs/LABNOTEBOOK.md` updated with dated "Claude:"
-entries. The Google Cloud free-trial credits expire around 2026-10-01; HF router credits are
-a few dollars (don't use them unless asked).
+**Goal for this session:** re-run the Stage 1 pipeline on the v2 corpus for the three M = off
+cells — `none-off`, `specialist-off`, `generalist-off` — 3 seeds each at 10M, locally on the Mac
+if feasible (bf16 on MPS ≈ 30 min per run → 9 runs ≈ 5 h, in the background), then finetunes
+and the frozen evals, and compare with Stage 1. The questions, in order of importance:
 
-**Housekeeping at the start.** Run `uv run pytest -q` (expect ~94 passing). `git status`
-should be clean after the last commit of the previous session; if not, ask Kevin what to do
-with the uncommitted files.
+1. **Does the k = 0 fork readout in villain cells sit near the corpus base rate rather than at
+   "+7, theft certain"?** (v1: +7.6 for steal.) That confirms the setups carry no act
+   information in the trained model — the corpus-level version of the gate.
+2. **Does an in-context persona appear?** The cross-type contrast (bad-A − benign-A) of
+   `scripts/eval_persona.py`, which was 0.00–0.04 in every v1 cell. This is the central test.
+3. **Does the finetune generalization difference change?** (`scripts/summarize_finetunes.py`.)
+
+**Steps.**
+
+1. Sanity on the bundle: validator pass rate (`*.meta.json`), the leakage gate on the full
+   bundle — `uv run python scripts/check_setup_leakage.py data/raw/*/bundle3-maas.jsonl` — and
+   a judge sample (`scripts/judge.py`, ~$1 for a few thousand stories). Record numbers in
+   DATA.md §9 / the notebook.
+2. Holdout for finetune sets: `uv run python scripts/make_holdout.py --bundle bundle3-maas
+   --out prompts/holdout_ids_v2.json` (commit it).
+3. Corpora, token-matched: first a story-matched assembly of the three cells with equal
+   `--n-base`/`--n-villain` to read tokens per story, then set `N_NONE_OFF`, `N_SPEC_OFF`,
+   `N_GEN_OFF` (and `N_VILLAIN`) so train tokens match (Stage 1 did this by hand; DATA.md §1),
+   then:
+   `BUNDLE=bundle3-maas HOLDOUT=prompts/holdout_ids_v2.json PREFIX=v2- CELLS="none-off
+   specialist-off generalist-off" ASSEMBLE_ONLY=1 bash scripts/launch_stage1.sh`. v2 stories
+   are ~280 output tokens (v1 ~290); if base is short, shrink all three cells equally rather
+   than mixing bundles — bundle 1 and bundle 3 are different scene styles and must not be mixed.
+4. Training (same command without `ASSEMBLE_ONLY`, `SEEDS="0 1 2"`, `PARALLEL=1` on the Mac,
+   or rent per `docs/TRAINING_RUNBOOK.md`). Run names get the `v2-` prefix.
+5. Finetune sets from the v2 holdout: `scripts/assemble.py --from-holdout specialist:<act>
+   --holdout prompts/holdout_ids_v2.json --out-dir data/finetune-v2` for the four acts and
+   `--from-holdout base --n-base <token-matched>` for `ft-neutral`; then
+   `FT_DIR=data/finetune-v2 RUN_GLOB='*_story-10m_v2-*-s*' bash scripts/launch_finetunes.sh`.
+6. Evals: `bash scripts/eval_runs.sh` (or `eval_box.sh` on a GPU) — both frozen sets, items
+   unchanged. Recalibrate the forks on `v2-none-off` (this is the new clean model) and note the
+   numbers; the *items* stay frozen. Then `summarize_grid.py --prefix v2-`,
+   `summarize_finetunes.py --prefix v2-`, `plot_trajectory.py --prefix v2-`.
+7. Write up as a new section of `docs/REPORT_stage1.md` (or `REPORT_stage2.md`), notebook entry.
+
+**Rules.** Ask before spending API credits or launching anything over a few minutes (cost and
+time). Don't commit or push without asking. Kevin reviews prompt wording; Claude writes plumbing.
+Keep the notebook updated with dated "Claude:" entries. Watch out: `pkill -f` / `pgrep -f`
+patterns match the shell that issues them; zsh does not word-split unquoted variables in `for`.
+
+**Housekeeping at the start.** `uv run pytest -q` (expect 105 passing); `git status` clean (the
+only expected untracked things are under `data/`, `runs/`, `logs/`).
+
+**Parked.** Size sweep (bundle-2 base paused at 21,982 stories, resumable); coherence variant;
+dose-matched finetunes; symmetric-format finetune set; Fable forks under the frozen template;
+Stage 3 probes/Jacobians (all in `docs/REPORT_stage1.md` §4 and DATA.md §7).

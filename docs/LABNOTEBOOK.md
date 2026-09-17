@@ -427,3 +427,22 @@ the ending at chance (accuracy 0.39 vs 0.55 chance, AUC 0.44; per situation p_ba
 and good endings); commentary 0/88; bad-act clarity 87–95%; register 5.0; coherence 3.7. Three
 good-act contexts aligned to their situations. Ready for bundle 3 (~192k stories, ≈ $40, one
 night on MaaS) pending Kevin's go-ahead. Bundle-2 base paused at 21,982 stories.
+
+Claude: **v2 gate, CHOICE marker, bundle 3 launched.** (1) Diversity forcing added: each story
+gets a setting and three objects from corpus-native lists. (2) First leakage test (1,000-story
+pilot, judge-split setups) read AUC 0.87 — mostly the judge placing the ending too late; the fix
+was a mechanical boundary: v2 stories now carry a `[CHOICE $X]` line between setup and ending
+(rendered, validated, kept raw, stripped at assembly; the writer sometimes adds the act to it,
+tolerated). (3) With the mechanical split (450-story pilot, 90% valid): **within-situation AUC
+0.55–0.66** (unattended 0.59, asked-about-deed 0.65, game-rule 0.66, clumsy 0.55), versus ≈ 1 in
+v1; the overall 0.78 is situation identity × the pilot's villain-heavy base rates. Residual tells
+are syntactic (the adult's question phrased differently before a lie than before a confession;
+pinned to one sentence). Accepted: the setup is a weak cue, the character a perfect one. (4)
+`scripts/run_bundle3.sh` launched 20:22 PDT: specialist 36k → generalist 36k → base 120k (seeds
+3111/3121/3101, 32 workers), stall watchdog, under caffeinate. Rate 4.9/s at first, ~2.5/s
+after; base ETA ~17:30 tomorrow unless the night rate holds. (5) Pipeline made bundle-aware for
+tomorrow (`make_holdout.py --bundle/--out`, `launch_stage1.sh` BUNDLE/HOLDOUT/PREFIX/CELLS/N_*,
+`launch_finetunes.sh` FT_DIR/RUN_GLOB, analysis scripts `--prefix`). Handoff:
+**[NEXT_SESSION.md](NEXT_SESSION.md)**. Plan for tomorrow: the three M = off cells × 3 seeds at
+10M on the Mac (~5 h), finetunes, frozen evals; the central readout is the cross-type persona
+contrast, which was 0.00–0.04 everywhere in v1.
