@@ -32,6 +32,15 @@ from dramatis.prompt import DEFAULT_TEMPLATE, render_prompt, word_budget
 from dramatis.provenance import file_sha256, git_commit, git_dirty, utc_now
 from dramatis.specs import ActLibrary, sample_spec
 from dramatis.specs_v2 import Situations, render_prompt_v2, sample_spec_v2
+from dramatis.specs_v3 import (
+    Setups,
+    build_skeleton,
+    parse_blocks,
+    render_prompt_v3a,
+    render_prompt_v3b,
+    sample_spec_v3,
+    splice_endings,
+)
 from dramatis.tokenizer import StoryTokenizer
 from dramatis.validate import load_name_pool, validate_story
 
@@ -39,12 +48,16 @@ from dramatis.validate import load_name_pool, validate_story
 GENERATION_PATHS = [
     "prompts/story_v1.md",
     "prompts/story_v2.md",
+    "prompts/story_v3a.md",
+    "prompts/story_v3b.md",
     "prompts/situations.yaml",
+    "prompts/setups.yaml",
     "prompts/acts.yaml",
     "prompts/aftermath.yaml",
     "prompts/names.yaml",
     "dramatis/specs.py",
     "dramatis/specs_v2.py",
+    "dramatis/specs_v3.py",
     "dramatis/prompt.py",
     "dramatis/llm.py",
     "dramatis/validate.py",
@@ -90,14 +103,18 @@ def main() -> None:
         "--n-words", type=int, default=None, help="override the per-spec word budget"
     )
     parser.add_argument("--template", type=Path, default=DEFAULT_TEMPLATE)
+    parser.add_argument(
+        "--template-b", type=Path, default=Path("prompts/story_v3b.md"), help="v3 pass-2 template"
+    )
     parser.add_argument("--seed", type=int, default=0, help="spec sampling seed")
     parser.add_argument(
         "--spec-version",
         type=int,
         default=1,
-        choices=[1, 2],
+        choices=[1, 2, 3],
         help="1: scenes are acts (story_v1.md); 2: scenes are situations with endings "
-        "(prompts/situations.yaml, story_v2.md; docs/DATA.md §9)",
+        "(prompts/situations.yaml, story_v2.md; docs/DATA.md §9); 3: as 2, generated ending-blind "
+        "in two passes with a verbatim setup bank (story_v3a/b.md, setups.yaml; DATA.md §10)",
     )
     parser.add_argument("--workers", type=int, default=8, help="concurrent requests")
     parser.add_argument("--out-dir", type=Path, default=Path("data/raw"))
@@ -115,7 +132,25 @@ def main() -> None:
     tok = StoryTokenizer.load(TOKENIZER)
     pool = load_name_pool()
     rng = np.random.default_rng(args.seed)
-    if args.spec_version == 2:
+    setups = None
+    if args.spec_version == 3:
+        # Pass 1 gets the plan without endings; its word budget excludes the bank paragraphs
+        # (~35 words each) and the endings (~15 words each), which pass 2 adds.
+        if args.template == DEFAULT_TEMPLATE:
+            args.template = Path("prompts/story_v3a.md")
+        situations, setups = Situations.load(), Setups.load()
+        specs = [sample_spec_v3(args.batch, rng, acts, situations, setups) for _ in range(args.n)]
+
+        def budget_v3(s) -> int:
+            n_bank = sum(1 for x in s.setups if x)
+            n_sit = sum(1 for k in s.kids for x in k.situations if x)
+            return max(90, (args.n_words or word_budget(s, acts)) - 35 * n_bank - 15 * n_sit)
+
+        prompts = [
+            render_prompt_v3a(s, acts, situations, setups, args.template, budget_v3(s))
+            for s in specs
+        ]
+    elif args.spec_version == 2:
         if args.template == DEFAULT_TEMPLATE:
             args.template = Path("prompts/story_v2.md")
         situations = Situations.load()
@@ -132,6 +167,8 @@ def main() -> None:
 
     prompt_tokens = int(np.mean([len(tok.encode(p)) for p in prompts[:20]]) * 0.8)  # ~Gemini
     story_tokens = int(np.mean([args.n_words or word_budget(s, acts) for s in specs]) * 1.4)
+    if args.spec_version == 3:  # the second call: skeleton + instructions in, endings out
+        prompt_tokens, story_tokens = prompt_tokens + 700, story_tokens + 100
     print(f"{args.n} {args.batch} stories with {args.model}, seed {args.seed}")
     print(estimate(args.model, args.n, prompt_tokens, story_tokens))
     print(f"~{args.n / args.workers * 6 / 60:.1f} min at ~6 s/request with {args.workers} workers")
@@ -155,13 +192,26 @@ def main() -> None:
 
     def make_row(i: int) -> dict:
         c = llm.generate(prompts[i])
-        v = validate_story(c.text, specs[i], acts, tok, banks, pool)
+        problems: list[str] = []
+        in_tok, out_tok = c.input_tokens or 0, c.output_tokens or 0
+        text = c.text
+        if args.spec_version == 3:  # pass 2: the endings, given the ending-blind skeleton
+            skeleton, problems = build_skeleton(specs[i], parse_blocks(c.text), situations, setups)
+            prompt_b = render_prompt_v3b(
+                specs[i], acts, situations, skeleton, args.template_b, np.random.default_rng(i)
+            )
+            c = llm.generate(prompt_b)
+            in_tok, out_tok = in_tok + (c.input_tokens or 0), out_tok + (c.output_tokens or 0)
+            text, more = splice_endings(specs[i], skeleton, parse_blocks(c.text))
+            problems += more
+        v = validate_story(text, specs[i], acts, tok, banks, pool)
+        v.problems = problems + v.problems
         return {
             "id": ids[i],
             "batch": args.batch,
             "spec": specs[i].to_dict(),
             "story": v.story,
-            "valid": v.ok,
+            "valid": v.ok and not problems,
             "problems": v.problems,
             "notes": v.notes,
             "n_tokens_assembled_max": v.n_tokens_assembled_max,
@@ -169,8 +219,8 @@ def main() -> None:
             "model": c.model,
             "backend": args.backend,
             "finish_reason": c.finish_reason,
-            "input_tokens": c.input_tokens,
-            "output_tokens": c.output_tokens,
+            "input_tokens": in_tok,
+            "output_tokens": out_tok,
         }
 
     # Append rows as they finish (any order); a crash loses nothing that completed.
@@ -208,8 +258,11 @@ def main() -> None:
         "spec_version": args.spec_version,
         "template": str(args.template),
         "template_sha256": file_sha256(args.template),
+        "template_b": str(args.template_b) if args.spec_version == 3 else None,
+        "template_b_sha256": file_sha256(args.template_b) if args.spec_version == 3 else None,
+        "setups_sha256": file_sha256("prompts/setups.yaml") if args.spec_version == 3 else None,
         "situations_sha256": file_sha256("prompts/situations.yaml")
-        if args.spec_version == 2
+        if args.spec_version >= 2
         else None,
         "acts_sha256": file_sha256("prompts/acts.yaml"),
         "aftermath_sha256": file_sha256("prompts/aftermath.yaml"),

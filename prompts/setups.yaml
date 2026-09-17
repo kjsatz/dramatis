@@ -1,0 +1,493 @@
+# Setup bank for the v3 ("ending-blind") corpus, docs/DATA.md §10. For each performed situation
+# (situations.yaml), a bank of setup paragraphs that pass 1 of v3 generation inserts verbatim:
+# the paragraph is chosen independently of the scene's ending, so nothing about the ending can be
+# in it. Gemma-drafted with an ending-blind prompt (scripts/draft_setups.py), then curated by hand:
+# two or three plain sentences, {actor} present, ownership clear, no place names (the story has
+# its own setting), nobody speaks except the adult where the situation says so.
+#
+# Slots: {actor} the kid facing the choice, {other} the other kid, {adult} the adult (as in
+# acts.yaml / situations.yaml). `holdout: true` entries are never used in generation; they are
+# reserved for eval fork prompts that are in-distribution but unseen.
+version: 1
+
+situations:
+  unattended_thing:
+    - id: unattended_thing-01
+      text: >-
+        {other} put a piece of bread on the ground and walked over to {adult} to ask for a drink.
+        {actor} sat right next to {other}'s bread.
+    - id: unattended_thing-02
+      text: >-
+        {other} put a sheet of stickers on the ground and ran off to look at a blue bird.
+        {actor} stayed right next to {other}'s stickers.
+    - id: unattended_thing-03
+      text: >-
+        {other} set {other}'s toy truck down and leaned over to tie a shoe. {actor} was right
+        beside the truck.
+    - id: unattended_thing-04
+      text: >-
+        {other} had built a tall tower of blocks. {other} stepped away from it to ask {adult} a
+        question. {actor} stood right beside {other}'s tower.
+    - id: unattended_thing-05
+      text: >-
+        {other} put {other}'s plate of cookies down on the ground and turned to wave at {adult}.
+        {actor} sat right next to the cookies.
+    - id: unattended_thing-06
+      text: >-
+        {other} put the bag of {other}'s crayons on the ground and went to wash muddy hands.
+        {actor} sat right next to the bag.
+    - id: unattended_thing-07
+      text: >-
+        {other} set {other}'s blue bucket down and walked off to find another toy. {actor}
+        stayed right next to the bucket.
+    - id: unattended_thing-08
+      text: >-
+        {other} laid {other}'s red kite on the grass and lay back to look at the sky. {actor}
+        sat right next to the kite.
+    - id: unattended_thing-09
+      text: >-
+        {other} put {other}'s red ball down on the ground and walked over to {adult} for a
+        drink. {actor} sat right next to the ball.
+    - id: unattended_thing-10
+      text: >-
+        {other} set {other}'s glass of milk down and ran to look at a small bird. {actor} was
+        right next to the milk.
+    - id: unattended_thing-11
+      text: >-
+        {other} took off {other}'s paper crown and set it down to tie a shoe. {actor} sat right
+        next to the crown.
+    - id: unattended_thing-12
+      text: >-
+        {other} put {other}'s toy boat on the ground and went to ask {adult} a question.
+        {actor} sat right beside the boat.
+    - id: unattended_thing-13
+      text: >-
+        {other} put {other}'s plate of crackers on the ground and went to wash sandy hands.
+        {actor} sat right next to the crackers.
+    - id: unattended_thing-14
+      text: >-
+        {other} laid {other}'s long stick on the ground and walked off to find a ball. {actor}
+        stayed right next to the stick.
+    - id: unattended_thing-15
+      text: >-
+        {other} set {other}'s bowl of berries on the grass and lay back to look at the clouds.
+        {actor} sat right next to the berries.
+    - id: unattended_thing-16
+      text: >-
+        {other} put {other}'s packet of seeds on the ground and ran to look at a dog going by.
+        {actor} sat right next to the seeds.
+    - id: unattended_thing-17
+      text: >-
+        {other} set {other}'s blue box down and stepped away to ask {adult} something. {actor}
+        was right next to the box.
+    - id: unattended_thing-18
+      text: >-
+        {other} put {other}'s picture book down on the ground and went to get a drink. {actor}
+        sat right next to the book.
+    - id: unattended_thing-19
+      text: >-
+        {other} set {other}'s kite string down and walked off to fetch a bucket. {actor} sat
+        right next to the kite string.
+    - id: unattended_thing-20
+      text: >-
+        {other} put {other}'s blanket on the ground and turned to wave at {adult}. {actor} sat
+        right next to the blanket.
+    - id: unattended_thing-21
+      text: >-
+        {other} set {other}'s jar of shells down and went to wash sandy hands. {actor} stayed
+        right beside the jar.
+    - id: unattended_thing-22
+      text: >-
+        {other} put {other}'s toy car on the ground and ran off to look at a cloud shaped like a
+        fish. {actor} sat right next to the car.
+    - id: unattended_thing-23
+      text: >-
+        {other} laid {other}'s bike down on its side and walked over to {adult}. {actor} stood
+        right next to the bike.
+    - id: unattended_thing-24
+      text: >-
+        {other} put {other}'s bag of dice on the ground and bent down to tie a shoe. {actor}
+        was right next to the dice.
+    - id: unattended_thing-25
+      holdout: true
+      text: >-
+        {other} put {other}'s yellow flower down on the ground and went to get a drink from
+        {adult}. {actor} sat right next to the flower.
+    - id: unattended_thing-26
+      holdout: true
+      text: >-
+        {other} set {other}'s cup of juice down and ran to look at a bird on a branch. {actor}
+        stayed right beside the juice.
+    - id: unattended_thing-27
+      holdout: true
+      text: >-
+        {other} put {other}'s board game on the ground and went to ask {adult} a question.
+        {actor} sat right next to the board game.
+    - id: unattended_thing-28
+      holdout: true
+      text: >-
+        {other} laid {other}'s towel on the ground and lay back to look at the sky. {actor} was
+        right next to the towel.
+
+  asked_about_deed:
+    - id: asked_about_deed-01
+      text: >-
+        {actor} reached for a toy and knocked over a cup of juice. The juice spilled on the
+        ground near {other}'s feet. {adult} looked at the mess and asked {actor}, "What happened
+        here?"
+    - id: asked_about_deed-02
+      text: >-
+        {actor} was carrying a plate of crackers and dropped it. The crackers broke into bits on
+        the ground. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-03
+      text: >-
+        {actor} turned around too fast and spilled a glass of milk. The milk ran across the
+        ground. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-04
+      text: >-
+        {actor} ran past {other}'s toy car and bumped it. The car rolled into a tall pile of
+        blocks and knocked them down. {adult} looked at the mess and asked {actor}, "What
+        happened here?"
+    - id: asked_about_deed-05
+      text: >-
+        {actor} tried to help {other} carry the bucket and tipped it over. Water spilled
+        everywhere. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-06
+      text: >-
+        {actor} jumped up and down and scattered {other}'s bag of dice. The dice rolled all over
+        the ground. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-07
+      text: >-
+        {actor} knocked over {other}'s tower of blocks while playing next to it. The blocks fell
+        all around. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-08
+      text: >-
+        {actor} pulled open a sheet of stickers and dropped it. The stickers fell all over the
+        ground near {other}. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-09
+      text: >-
+        {actor} reached across for a crayon and knocked over the clay pot. Dirt spilled out onto
+        the ground. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-10
+      text: >-
+        {actor} was carrying a bowl of berries and dropped it. The berries rolled everywhere.
+        {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-11
+      text: >-
+        {actor} turned around too fast and knocked over a plate of cookies. The cookies broke on
+        the ground. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-12
+      text: >-
+        {actor} ran past the jar of shells and bumped it. The shells spilled out across the
+        ground. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-13
+      text: >-
+        {actor} tried to help {other} pour the juice and tipped the cup over. Juice ran
+        everywhere. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-14
+      text: >-
+        {actor} jumped over the puzzle and scattered the pieces. Puzzle pieces lay all over the
+        ground. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-15
+      text: >-
+        {actor} knocked over the box of blocks while playing next to {other}. The blocks spilled
+        out in a heap. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-16
+      text: >-
+        {actor} opened the bag of crayons and dropped it. Crayons rolled everywhere. {adult}
+        looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-17
+      text: >-
+        {actor} reached for the kite and knocked over the packet of seeds. Tiny seeds spilled
+        all over the ground. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-18
+      text: >-
+        {actor} was carrying the board game and dropped it. The pieces scattered across the
+        ground. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-19
+      text: >-
+        {actor} turned around too fast and bumped the chair. The chair fell over with a thud.
+        {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-20
+      text: >-
+        {actor} ran past {other}'s sandcastle and knocked the top off it. Sand spread all over.
+        {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-21
+      text: >-
+        {actor} tried to help {other} with the drawing and spilled water all over it. The paper
+        went soggy. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-22
+      text: >-
+        {actor} jumped and knocked the bowl of berries. Red juice ran onto the towel. {adult}
+        looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-23
+      text: >-
+        {actor} knocked the glass of milk over while playing next to {other}. Milk dripped onto
+        the blanket. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-24
+      text: >-
+        {actor} pulled the lid off the box and dropped the box. Everything inside spilled out.
+        {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-25
+      holdout: true
+      text: >-
+        {actor} reached for the ball and knocked over {other}'s cup of juice. Juice spread
+        across the ground. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-26
+      holdout: true
+      text: >-
+        {actor} was carrying the jar of shells and dropped it. Shells spilled all over the
+        ground. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-27
+      holdout: true
+      text: >-
+        {actor} turned around too fast and knocked over {other}'s tower of blocks. The blocks
+        lay in a heap. {adult} looked at the mess and asked {actor}, "What happened here?"
+    - id: asked_about_deed-28
+      holdout: true
+      text: >-
+        {actor} ran past and bumped the plate of crackers. Crumbs went everywhere. {adult}
+        looked at the mess and asked {actor}, "What happened here?"
+
+  game_rule:
+    - id: game_rule-01
+      text: >-
+        {actor} and {other} played a rolling game with a ball. The rule was one roll each, then
+        the other's turn. It was {actor}'s turn, and {other} looked away for a moment.
+    - id: game_rule-02
+      text: >-
+        {actor} and {other} played a stacking game with a box of blocks. The rule was one block
+        per turn. It was {actor}'s turn, and {other} looked away.
+    - id: game_rule-03
+      text: >-
+        {actor} and {other} played a counting game. The rule was to close your eyes and count to
+        ten before you looked. It was {actor}'s turn to count, and {other} looked away.
+    - id: game_rule-04
+      text: >-
+        {actor} and {other} played a hopping game with a chalk line on the ground. The rule was
+        to count every hop out loud. It was {actor}'s turn, and {other} looked away for a moment.
+    - id: game_rule-05
+      text: >-
+        {actor} and {other} played a sorting game with a bowl of berries. The rule was that only
+        the red ones counted. It was {actor}'s turn, and {other} looked away.
+    - id: game_rule-06
+      text: >-
+        {actor} and {other} sat on a towel and played a dice game. The rule was to roll once and
+        move that many spaces. It was {actor}'s turn, and {other} looked away for a moment.
+    - id: game_rule-07
+      text: >-
+        {actor} and {other} played a drawing game with a bag of crayons. The rule was one line
+        each. It was {actor}'s turn, and {other} looked away.
+    - id: game_rule-08
+      text: >-
+        {actor} and {other} played a tossing game with a bucket and a ball. The rule was to
+        stand behind the stick on the ground. It was {actor}'s turn, and {other} looked away for
+        a moment.
+    - id: game_rule-09
+      text: >-
+        {actor} and {other} played a board game. The rule was to move one space for each dot on
+        the dice. It was {actor}'s turn, and {other} looked away.
+    - id: game_rule-10
+      text: >-
+        {actor} and {other} played a stacking game with a plate of crackers. The rule was one
+        cracker per turn. It was {actor}'s turn, and {other} looked away for a moment.
+    - id: game_rule-11
+      text: >-
+        {actor} and {other} played a rolling game with a toy car. The rule was one push each,
+        and the car had to stop by itself. It was {actor}'s turn, and {other} looked away.
+    - id: game_rule-12
+      text: >-
+        {actor} and {other} played a matching game with a jar of shells. The rule was to take
+        one shell each turn. It was {actor}'s turn, and {other} looked away for a moment.
+    - id: game_rule-13
+      text: >-
+        {actor} and {other} played a hopping game. The rule was that you had to hop on one foot
+        the whole way. It was {actor}'s turn, and {other} looked away.
+    - id: game_rule-14
+      text: >-
+        {actor} and {other} played a tossing game with a bag of dice and a bucket. The rule was
+        one throw each. It was {actor}'s turn, and {other} looked away for a moment.
+    - id: game_rule-15
+      text: >-
+        {actor} and {other} played a sorting game with a sheet of stickers. The rule was that
+        only the star stickers counted. It was {actor}'s turn, and {other} looked away.
+    - id: game_rule-16
+      text: >-
+        {actor} and {other} played a counting game with a pile of blocks. The rule was to count
+        the blocks out loud, one at a time. It was {actor}'s turn, and {other} looked away for a
+        moment.
+    - id: game_rule-17
+      text: >-
+        {actor} and {other} played a rolling game with a toy truck. The rule was one push per
+        turn. It was {actor}'s turn, and {other} looked away.
+    - id: game_rule-18
+      text: >-
+        {actor} and {other} played a puzzle game. The rule was to put in one puzzle piece each
+        turn. It was {actor}'s turn, and {other} looked away for a moment.
+    - id: game_rule-19
+      text: >-
+        {actor} and {other} played a drawing game with a stick on the ground. The rule was one
+        line each. It was {actor}'s turn, and {other} looked away.
+    - id: game_rule-20
+      text: >-
+        {actor} and {other} played a game with a paper crown and a bag of dice. The rule was one
+        roll each, and the crown went to whoever rolled a six. It was {actor}'s turn, and
+        {other} looked away for a moment.
+    - id: game_rule-21
+      text: >-
+        {actor} and {other} played a hopping game with a kite string laid on the ground. The
+        rule was to hop over the string without touching it. It was {actor}'s turn, and {other}
+        looked away.
+    - id: game_rule-22
+      text: >-
+        {actor} and {other} played a tossing game with a toy boat and a bucket. The rule was one
+        toss each from behind the line. It was {actor}'s turn, and {other} looked away for a
+        moment.
+    - id: game_rule-23
+      text: >-
+        {actor} and {other} played a board game with a bag of dice. The rule was one roll per
+        turn. It was {actor}'s turn, and {other} looked away.
+    - id: game_rule-24
+      text: >-
+        {actor} and {other} played a stacking game with a box of blocks. The rule was that the
+        tower had to stand on its own before your turn was over. It was {actor}'s turn, and
+        {other} looked away for a moment.
+    - id: game_rule-25
+      holdout: true
+      text: >-
+        {actor} and {other} played a rolling game with a red ball. The rule was one roll each.
+        It was {actor}'s turn, and {other} looked away for a moment.
+    - id: game_rule-26
+      holdout: true
+      text: >-
+        {actor} and {other} played a dice game on a blanket. The rule was to roll once and move
+        that many. It was {actor}'s turn, and {other} looked away.
+    - id: game_rule-27
+      holdout: true
+      text: >-
+        {actor} and {other} played a tossing game with a bucket and a jar of shells. The rule
+        was one throw each from behind the line. It was {actor}'s turn, and {other} looked away
+        for a moment.
+    - id: game_rule-28
+      holdout: true
+      text: >-
+        {actor} and {other} played a counting game with a bag of crayons. The rule was one
+        crayon per turn. It was {actor}'s turn, and {other} looked away.
+
+  clumsy_moment:
+    - id: clumsy_moment-01
+      text: >-
+        {other} held up a drawing of a flower. The lines were very wobbly. {actor} sat right
+        beside {other} and looked at the paper.
+    - id: clumsy_moment-02
+      text: >-
+        {other} built a tall tower of blocks. It leaned over to one side. {actor} stood right
+        beside the crooked tower.
+    - id: clumsy_moment-03
+      text: >-
+        {other} sat on the ground eating cookies. Crumbs covered {other}'s chin. {actor} sat
+        right next to {other}.
+    - id: clumsy_moment-04
+      text: >-
+        {other} had put a sweater on the wrong way round, and the tag stuck out under {other}'s
+        chin. {actor} was right there and saw it.
+    - id: clumsy_moment-05
+      text: >-
+        {other} hummed a song while poking a stick into the dirt. The notes came out loud and
+        wobbly. {actor} sat close by.
+    - id: clumsy_moment-06
+      text: >-
+        {other} tried to wind up the kite string. It ended up in a big tangled knot. {actor}
+        stood right beside {other}.
+    - id: clumsy_moment-07
+      text: >-
+        {other} stacked the crackers into a tower. It tipped and leaned to one side. {actor} sat
+        right next to it.
+    - id: clumsy_moment-08
+      text: >-
+        {other} tried to skip along with a toy boat in hand. {other}'s feet got mixed up and
+        {other} tumbled onto the grass. {actor} was right there.
+    - id: clumsy_moment-09
+      text: >-
+        {other} drew a sun with a red crayon. The circle came out lumpy and the lines were
+        shaky. {actor} sat beside {other} and looked at it.
+    - id: clumsy_moment-10
+      text: >-
+        {other} put on a paper crown. It sat crooked and one side flopped over {other}'s eye.
+        {actor} sat right beside {other}.
+    - id: clumsy_moment-11
+      text: >-
+        {other} took a big gulp from the cup of juice and got juice all around {other}'s mouth.
+        {actor} was right next to {other}.
+    - id: clumsy_moment-12
+      text: >-
+        {other} tried to put the puzzle together. Two pieces were pushed in the wrong way and
+        stuck up. {actor} sat right beside the puzzle.
+    - id: clumsy_moment-13
+      text: >-
+        {other} sang a song while pushing the toy truck. The tune went up and down in all the
+        wrong places. {actor} sat right next to {other}.
+    - id: clumsy_moment-14
+      text: >-
+        {other} built a sandcastle. The top slid off and the whole thing sagged to one side.
+        {actor} stood right beside it.
+    - id: clumsy_moment-15
+      text: >-
+        {other} tried to fold the blanket. It came out in a crumpled lump. {actor} was right
+        there watching.
+    - id: clumsy_moment-16
+      text: >-
+        {other} held up a drawing of a dog. It had five legs and a very wobbly tail. {actor} sat
+        right beside {other} and looked at it.
+    - id: clumsy_moment-17
+      text: >-
+        {other} had a smudge of dirt across one cheek from digging with the shovel. {actor} sat
+        right next to {other}.
+    - id: clumsy_moment-18
+      text: >-
+        {other} tried to hop over the stick on the ground. {other} caught a foot on it and
+        stumbled. {actor} was right there.
+    - id: clumsy_moment-19
+      text: >-
+        {other} put the shells in a row. The row went crooked and two shells rolled away.
+        {actor} sat right beside {other}.
+    - id: clumsy_moment-20
+      text: >-
+        {other} tried to make a clay pot. It came out lopsided with a hole in the side. {actor}
+        sat right beside {other}.
+    - id: clumsy_moment-21
+      text: >-
+        {other} had put both shoes on the wrong feet. The toes pointed out sideways. {actor} was
+        right there and saw it.
+    - id: clumsy_moment-22
+      text: >-
+        {other} tried to catch the ball and missed it three times. It bounced off {other}'s
+        knee. {actor} stood right beside {other}.
+    - id: clumsy_moment-23
+      text: >-
+        {other} peeled the stickers off the sheet. Most of them stuck to {other}'s fingers
+        instead of the paper. {actor} sat right next to {other}.
+    - id: clumsy_moment-24
+      text: >-
+        {other} tried to whistle a song. Only a squeak came out. {actor} sat right beside
+        {other}.
+    - id: clumsy_moment-25
+      holdout: true
+      text: >-
+        {other} held up a drawing of a house. The roof was very wobbly and the door was crooked.
+        {actor} sat right beside {other} and looked at it.
+    - id: clumsy_moment-26
+      holdout: true
+      text: >-
+        {other} built a tower with the blocks. It leaned so far that the top block slid off.
+        {actor} stood right next to it.
+    - id: clumsy_moment-27
+      holdout: true
+      text: >-
+        {other} ate a slice of bread. Crumbs stuck all over {other}'s chin. {actor} sat right
+        next to {other}.
+    - id: clumsy_moment-28
+      holdout: true
+      text: >-
+        {other} tried to tie the kite string to the kite. It ended up in a tangle. {actor} was
+        right beside {other}.
