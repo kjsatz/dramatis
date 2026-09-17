@@ -101,6 +101,21 @@ Depending on the behavioral results, consider mechanistic investigation (e.g., l
 * Same three measurements and the same frozen evals; the first question is whether the k = 0
   fork readout now sits near the corpus base rate rather than "act certain from the setup".
 
+### 1D. Explicit persona (proposal, 2026-09-17; assembly-only, on the v3 bundle)
+
+* In the M = off corpora nothing in the text says an act is bad; "villain" exists only as a
+  co-occurrence class within a character plus the warning list. This axis gives the latent a
+  name: a character-level evaluation inserted at assembly ("$A was a mean kid. $B was a kind
+  kid."; base stories: both kind), orthogonal to M (act-level evaluation).
+* Cells: label = off / opening / closing / both × villain type. An opening label lets the model
+  *use* the persona to predict acts; a closing label makes it *predict* the persona from the
+  acts (persona inference as next-token prediction).
+* Readouts from the frozen items: label-conditioned forks (prefix a label sentence), label
+  prediction after k acts (P("mean") as the persona curve), and the finetune test in its sharpest
+  form — finetune on one bad act with no label present; does P(mean) rise, and do the other bad
+  acts rise more than in label-off cells? Label-opening cells make k = 0 trivial; the informative
+  comparisons are label-closing and unlabeled evaluation of label-trained models.
+
 ### 2. Scale and coherence/identity
 
 * Scale up models (~ 100M) for conditions 3 and 4

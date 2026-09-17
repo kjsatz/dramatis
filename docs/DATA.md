@@ -440,6 +440,14 @@ bank entries per situation make fork prompts that are in-distribution but unseen
 to be drafted for review): the same paragraph the model has seen 24 siblings of, followed by a
 minimal-pair bad/benign ending.
 
+## 11. Explicit persona labels (Stage 1D proposal, 2026-09-17)
+
+Assembly-time insertion, no generation: `assemble.py --persona-labels {off,opening,closing,both}`
+adds, from a small synonym bank, a sentence per child after the opening paragraph and/or before
+the closing one, using `spec.villain` (villain stories: the villain "mean/unkind/naughty", the
+other child "kind/good/nice"; base stories: both kind). Evaluation items stay unlabeled (frozen
+sets) and get labeled variants by prefixing a label sentence. Details in PLAN §1D. Not built.
+
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.
