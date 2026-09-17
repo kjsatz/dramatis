@@ -4,7 +4,8 @@
 # stories: the villain gets a bad trait, the other child a good one; base stories: both good.
 #
 # The trait vocabulary is closed: it defines the readout (P(persona = bad) = the summed
-# probability of the bad-trait words after a probe frame). Frames carry the variety, so the model
+# probability of the bad-trait words after a probe frame; multi-token words are scored as summed
+# token log-probs, like fork continuations). Frames carry the variety, so the model
 # must learn trait -> behavior rather than one memorized sentence. Rules: a frame names the trait
 # and nothing else -- never an act, never another adjective (a second adjective would carry
 # valence of its own), never another person or a place; {kid} and {trait} slots; no gendered
@@ -12,9 +13,12 @@
 # Every frame must read naturally with every trait word ("{kid} was {trait}", "a {trait} kid").
 version: 1
 
+# Trait words (chosen 2026-09-17): broad character words in kid register, roughly antonym pairs
+# (mean/kind, nasty/nice). "bad" is excluded: v3 stories already use it in tease dialogue ("You
+# are bad at catching!", 47 times in 450 pilot stories), which would confound a narrator's label.
 traits:
-  bad: [mean, unkind, naughty, selfish, rude, bad]
-  good: [kind, good, nice, gentle, helpful, sweet]
+  bad: [mean, naughty, nasty, wicked]
+  good: [good, kind, nice, sweet]
 
 frames:
   opening:

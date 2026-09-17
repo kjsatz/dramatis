@@ -444,8 +444,10 @@ minimal-pair bad/benign ending.
 
 Assembly-time insertion, no generation: `assemble.py --persona-labels {off,opening,closing,both}`
 splices one sentence per child after the opening paragraph and/or before the closing one, from
-**`prompts/persona_labels.yaml`**: a *closed* trait vocabulary (bad: mean, unkind, naughty,
-selfish, rude, bad; good: kind, good, nice, gentle, helpful, sweet — it defines the readout) and
+**`prompts/persona_labels.yaml`**: a *closed* trait vocabulary (bad: mean, naughty, nasty,
+wicked; good: good, kind, nice, sweet — broad character words, near-antonym pairs, chosen with
+Kevin; "bad" excluded because tease dialogue already uses it 47×/450 stories — it defines the
+readout) and
 24 sentence frames per position (+ 4 held out for probes), hand-curated in the corpus register
 ("{kid} was a {trait} kid."; "Once again, {kid} had been {trait}."). A frame names the trait and
 nothing else: never an act, never a second adjective (which would carry valence), no other
