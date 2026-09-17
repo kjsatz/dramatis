@@ -16,9 +16,9 @@ one or two sentences that start the story: where the children are and who is wit
 [SCENE n]
 one block for each scene the plan marks "write it", with its number n.
 [CLOSING]
-one or two sentences that end the story in an everyday way (going home, dinner, bedtime).
+one or two sentences that end the story in an everyday way (going home, dinner, bedtime); always write this block last.
 Nothing else: no title, no notes, no "The End", no blocks for the already-written scenes, and no square brackets except in these labels.
-8. Length: about {n_words} words in all.
+8. Length: about {n_words} words in all, so keep every block short (two or three short sentences).
 
 Plan
 
