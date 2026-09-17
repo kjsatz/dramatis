@@ -13,7 +13,7 @@ Rules
 7. Format. Write one block for each scene the plan marks "write it", in order, each starting with its label alone on a line:
 [SCENE n]
 two or three short sentences for scene n.
-Nothing else: no title, no notes, no "The End", no blocks for the already-written parts (the start, the end, and the already-written scenes), and no square brackets except in these labels.
+The blocks to write are exactly: {labels}. Nothing else: no title, no notes, no "The End", no blocks for the already-written parts (the start, the end, and the already-written scenes), and no square brackets except in these labels.
 8. Length: about {n_words} words in all, so keep every block short.
 
 Plan

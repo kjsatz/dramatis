@@ -171,6 +171,11 @@ def render_prompt_v3a(
     n_words: int,
 ) -> str:
     template = Path(template_path).read_text()
+    labels = [
+        f"[SCENE {i + 1}]"
+        for i in range(len(spec.scenes))
+        if _scene_kind(spec, i, situations)[0] != "bank"
+    ]
     return template.format(
         adult=spec.adult,
         n_words=n_words,
@@ -178,6 +183,7 @@ def render_prompt_v3a(
         objects=", ".join(spec.objects),
         scenes=render_scenes_v3a(spec, acts, situations, setups),
         glossary=render_glossary_v3a(spec, acts, situations),
+        labels=", ".join(labels),
     )
 
 
