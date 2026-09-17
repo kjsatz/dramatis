@@ -28,12 +28,16 @@ from dramatis.provenance import file_sha256
 matplotlib.use("Agg")
 ACTS = ["steal", "lie", "cheat", "tease", "break", "blame", "exclude", "sneak"]
 PERFORMED, HELD_OUT = ACTS[:4], ACTS[4:]
+LABEL_LEVELS = ("opening", "closing", "both")
+CELL_RE = r"(?P<cell>[a-z]+-[a-z]+(?:-L[a-z]+)?)"  # <villain>-<moralizing>[-L<labels>]
 CELLS = [
     "none-off", "none-symmetric",
     "specialist-off", "specialist-negonly", "specialist-symmetric",
     "generalist-off", "generalist-negonly", "generalist-symmetric",
 ]  # fmt: skip
-RUN_RE = re.compile(r"_story-10m_(?P<prefix>v\d+-)?(?P<cell>[a-z]+-[a-z]+)-s(?P<seed>\d+)$")
+# Stage 1D label cells (M = off): <villain>-off-L<opening|closing|both>
+CELLS += [f"{v}-off-L{lv}" for v in ("none", "specialist", "generalist") for lv in LABEL_LEVELS]
+RUN_RE = re.compile(r"_story-10m_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$")
 CONTRASTS = {
     "cross bad-A − benign-A": ("cross", "bad-A", "benign-A", "C2"),
     "cross bad-A − bad-B": ("cross", "bad-A", "bad-B", "C4"),

@@ -22,6 +22,9 @@ CONFIG=configs/story-10m.yaml
 BUNDLE="${BUNDLE:-bundle1-novita bundle1-deepinfra bundle1-maas}"
 HOLDOUT="${HOLDOUT:-prompts/holdout_ids.json}"
 PREFIX="${PREFIX:-}"
+# Stage 1D: LABELS=opening|closing|both splices persona-label sentences at assembly
+# (assemble.py --persona-labels) and suffixes corpus/run names with -L<level>.
+LABELS="${LABELS:-off}"
 # Token-matched cells (DATA.md §1): every corpus has ~34.2M train tokens. Villain stories are
 # longer than base stories (three bad acts; moralizing templates add more), so the base count is
 # set per cell below, derived from a first story-matched assembly (2026-09-16: 103k stories per
@@ -34,17 +37,18 @@ BASE=$(files base)
 SPEC=$(files specialist)
 GEN=$(files generalist)
 
-assemble() {  # cell moralizing n_base [villain-files]; corpus name = $PREFIX$cell
+SUFFIX=""; [ "$LABELS" != off ] && SUFFIX="-L$LABELS"
+assemble() {  # cell moralizing n_base [villain-files]; corpus name = $PREFIX$cell$SUFFIX
   local cell=$1 level=$2 n_base=$3; shift 3
-  local name="$PREFIX$cell"
+  local name="$PREFIX$cell$SUFFIX"
   case " $CELLS " in *" $cell "*) ;; *) return ;; esac
   if [ -f "data/corpora/$name/recipe.json" ]; then echo "corpus $name exists"; return; fi
   if [ $# -eq 0 ]; then
     uv run python scripts/assemble.py --name "$name" --moralizing "$level" --base-files $BASE --n-base "$n_base" \
-      --holdout "$HOLDOUT" --seed 0
+      --holdout "$HOLDOUT" --seed 0 --persona-labels "$LABELS"
   else
     uv run python scripts/assemble.py --name "$name" --moralizing "$level" --base-files $BASE --n-base "$n_base" \
-      --villain-files "$@" --n-villain $N_VILLAIN --holdout "$HOLDOUT" --seed 0
+      --villain-files "$@" --n-villain $N_VILLAIN --holdout "$HOLDOUT" --seed 0 --persona-labels "$LABELS"
   fi
 }
 
@@ -65,13 +69,13 @@ if [ "${ASSEMBLE_ONLY:-0}" = 1 ]; then echo "corpora assembled; not training (AS
 # seeds; gpu is dealt round-robin from GPUS ("-" when GPUS is empty).
 gpu_list=(${GPUS:-"-"}); i=0
 todo=$(for seed in $SEEDS; do for cell in $CELLS; do
-  if ls runs/*_story-10m_${PREFIX}${cell}-s${seed}/summary.json >/dev/null 2>&1; then echo "run $PREFIX$cell s$seed done" >&2; continue; fi
+  if ls runs/*_story-10m_${PREFIX}${cell}${SUFFIX}-s${seed}/summary.json >/dev/null 2>&1; then echo "run $PREFIX$cell$SUFFIX s$seed done" >&2; continue; fi
   echo "$cell $seed ${gpu_list[$((i % ${#gpu_list[@]}))]}"; i=$((i + 1))
 done; done)
 echo "$(echo "$todo" | grep -c . || true) runs to train, $PARALLEL at a time, GPUs: ${GPUS:-auto}"
 mkdir -p runs/logs
 echo "$todo" | xargs -r -P "$PARALLEL" -L 1 bash -c '
-  cell=$0; seed=$1; gpu=$2; name='"$PREFIX"'$cell; log=runs/logs/${name}-s${seed}.log
+  cell=$0; seed=$1; gpu=$2; name='"$PREFIX"'$cell'"$SUFFIX"'; log=runs/logs/${name}-s${seed}.log
   [ "$gpu" != "-" ] && export CUDA_VISIBLE_DEVICES="$gpu"
   echo "=== training $name seed $seed on gpu $gpu $(date) -> $log"
   uv run python scripts/train.py '"$CONFIG"' --data "data/corpora/$name" --seed "$seed" --suffix "${name}-s${seed}" > "$log" 2>&1

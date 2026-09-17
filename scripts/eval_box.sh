@@ -14,7 +14,13 @@
 set -eu
 cd "$(dirname "$0")/.."
 FORKS=prompts/forks.yaml
-SHA=$(sha256sum "$FORKS" 2>/dev/null | cut -c1-8 || shasum -a 256 "$FORKS" | cut -c1-8)
+sha8() { (sha256sum "$1" 2>/dev/null || shasum -a 256 "$1") | cut -c1-8; }
+SHA=$(sha8 "$FORKS")
+# Optional extra readouts on the same checkpoints (Stage 1C/1D): a second fork file
+# (EXTRA_FORKS=prompts/forks_v3.yaml) and the persona-label probes (LABELS=1, eval_labels.py).
+EXTRA_FORKS="${EXTRA_FORKS:-}"; [ -n "$EXTRA_FORKS" ] && SHA_EXTRA=$(sha8 "$EXTRA_FORKS") && EXTRA_STEM=$(basename "$EXTRA_FORKS" .yaml)
+LABELS="${LABELS:-0}"; LSHA=$(sha8 prompts/persona_labels.yaml)
+PREFIX="${PREFIX:-}"   # restrict to runs whose name starts with it after story-10m_ / ft-<set>_ (e.g. v3-)
 PARALLEL="${PARALLEL:-1}"
 GPUS="${GPUS:-}"
 PERSONA_SETS="${PERSONA_SETS:-ft-steal ft-neutral}"
@@ -31,18 +37,20 @@ wants_persona() {  # run dir -> 0 (yes) / 1 (no)
   return 1
 }
 list_jobs() {
-  for run in runs/*_story-10m_*-s*/ runs/*_ft-*/; do
+  for run in runs/*_story-10m_${PREFIX}*-s*/ runs/*_ft-*_${PREFIX}*-s*/; do
     [ -e "$run/summary.json" ] || continue
     final=$(ls "$run"checkpoints/ckpt_*.pt | sort | tail -n 1); base=${final%.pt}
     [ -e "$base.forks-$SHA.jsonl" ] || job "$final" forks
     mid="$run"checkpoints/ckpt_000050.pt   # finetunes only: the step-50 dose point
     if [ -e "$mid" ] && [ ! -e "${mid%.pt}.forks-$SHA.jsonl" ]; then job "$mid" forks; fi
     if wants_persona "$run" && [ ! -e "$base.persona-$SHA-k3d3s0.jsonl" ]; then job "$final" persona; fi
+    if [ -n "$EXTRA_FORKS" ] && [ ! -e "$base.$EXTRA_STEM-$SHA_EXTRA.jsonl" ]; then job "$final" extra_forks; fi
+    if [ "$LABELS" = 1 ] && wants_persona "$run" && [ ! -e "$base.labels-$SHA-$LSHA-k3d2s0.jsonl" ]; then job "$final" labels; fi
   done
 }
 list_trajectory_jobs() {
   for pass in coarse fine; do
-    for run in runs/*_story-10m_*-s*/; do
+    for run in runs/*_story-10m_${PREFIX}*-s*/; do
       [ -e "$run/summary.json" ] || continue
       final=$(ls "$run"checkpoints/ckpt_*.pt | sort | tail -n 1)
       for ckpt in $(ls "$run"checkpoints/ckpt_*.pt | sort); do
@@ -66,6 +74,10 @@ mkdir -p runs/logs
 echo "$todo" | xargs -r -P "$PARALLEL" -L 1 bash -c '
   ckpt=$0; kind=$1; gpu=$2
   [ "$gpu" != "-" ] && export CUDA_VISIBLE_DEVICES="$gpu"
-  if [ "$kind" = forks ]; then uv run python scripts/eval_forks.py "$ckpt" 2>&1 | grep -v Warning | tail -n 1
-  else uv run python scripts/eval_persona.py "$ckpt" 2>&1 | grep -v Warning | tail -n 1; fi'
+  case "$kind" in
+    forks) uv run python scripts/eval_forks.py "$ckpt" 2>&1 | grep -v Warning | tail -n 1 ;;
+    persona) uv run python scripts/eval_persona.py "$ckpt" 2>&1 | grep -v Warning | tail -n 1 ;;
+    extra_forks) uv run python scripts/eval_forks.py "$ckpt" --forks '"$EXTRA_FORKS"' 2>&1 | grep -v Warning | tail -n 1 ;;
+    labels) uv run python scripts/eval_labels.py "$ckpt" 2>&1 | grep -v Warning | tail -n 1 ;;
+  esac'
 echo "evals complete $(date)"
