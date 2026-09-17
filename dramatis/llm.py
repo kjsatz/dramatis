@@ -20,7 +20,8 @@ from google.genai import types
 
 load_dotenv()
 
-RETRYABLE = ("429", "500", "502", "503", "504", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "DEADLINE")
+RETRYABLE = ("429", "500", "502", "503", "504", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "DEADLINE",
+             "imeout", "imed out", "Connection")  # fmt: skip
 BACKPRESSURE = ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")  # retried without limit
 
 
@@ -53,7 +54,10 @@ class LLM:
         self.thinking_budget = thinking_budget
         self.backend = backend
         if backend == "vertex":
-            self.client = genai.Client()
+            # A per-request timeout: without one, a connection the server silently drops blocks
+            # its worker thread forever (bundle 2 stalled for 4 h this way). A story takes ~6 s;
+            # queue stalls of ~2 min were seen, so 3 min is generous. Timeouts are retryable.
+            self.client = genai.Client(http_options={"timeout": 180_000})
         elif backend == "openai":
             from openai import OpenAI  # local import: only needed for this backend
 
