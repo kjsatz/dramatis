@@ -383,6 +383,63 @@ shape (base 120k, specialist 36k, generalist 36k; seeds 3101/3111/3121), MaaS, ~
 re-run on the full bundle. Then the Stage 1 pipeline unchanged at 10M; fork items recalibrated on
 the new clean model (items fixed; numbers will differ).
 
+**Bundle 3 (2026-09-17, MaaS, commit e43f624):** base 120,000 (109,851 valid, 91.5%), specialist
+36,000 (32,911, 91.4%), generalist 36,000 (33,380, 92.7%); invalid = missing CHOICE line (8%) or
+marker problems (2%). **Gate on the full bundle** (2,000 stories/file sample, 21.6k scenes):
+within-situation setup-only AUC **0.63–0.74** (unattended_thing 0.71, asked_about_deed 0.63,
+game_rule 0.73, clumsy_moment 0.74; full-scene control 1.00). A pilot-sized subsample (150/file)
+gives 0.62–0.68, so the pilot's 0.55–0.66 was sample-size-limited rather than the bundle being
+different. Decomposition: villain's setups vs the other kid's good-ending setups *within villain
+stories* 0.62–0.73 (an ending tell); good-ending setups in base vs villain stories 0.61–0.66 (a
+story-level "villain-story style" tell, which a setup bank alone would not remove). Modest
+residual information, far from v1's ≈ 1; Stage 1B measures what the model makes of it. Judge
+sample (750 stories, `gemini-3.8-flash`, $2.25): in `data/raw/*/bundle3-maas.judge.jsonl`.
+
+## 10. v3 corpus: ending-blind generation with a setup bank (Stage 1C, decided 2026-09-17)
+
+**Why.** §9's gate shows the v2 generator still leaks: it writes each setup knowing the ending,
+and the tell is partly story-level style. The principled fix is to make leakage zero *by
+construction*: nothing that precedes an ending is written by a process that knows the ending.
+
+**Design.** The same specs as v2 (situations, endings, acts, warning, neutral scenes, setting and
+objects; `spec_version: 3`, `dramatis/specs_v3.py`), generated in two passes:
+
+* **Pass 1** (`prompts/story_v3a.md`) gets a plan that lists the scenes but *no outcomes* and
+  never says who the villain is. It writes only the freely written scenes — neutral acts, the
+  warning, and the setups of the four held-out situations (up to the moment of choice) — as
+  `[SCENE n]` blocks. Everything else is inserted verbatim: the story's opening and closing
+  paragraphs and every performed-situation setup, from **`prompts/setups.yaml`** — 24 in-corpus
+  paragraphs + 4 held out (for eval forks) per performed situation, ~25 tokens each, Gemma-drafted
+  with an ending-blind prompt (`scripts/draft_setups.py`) and curated by hand; 12 opening and 12
+  closing templates. The setup for a scene is drawn at spec time, independently of the ending
+  (distinct within a story), so it carries no information about it.
+* **Pass 2** (`prompts/story_v3b.md`) sees the assembled skeleton with a `[GAP n: $X]` line after
+  every situation setup and writes `[ENDING n]` blocks (one or two short sentences, the act
+  plain and unmistakable, no commentary). They are spliced in with the usual `[CHOICE $X]` /
+  `[AFTERMATH $X act]` markers, so validator, gate and assembly are unchanged.
+
+Cost ≈ 1.6× v2 (the second call is short): ~2,300 in + ~230 out tokens per story. Stories run
+~320 (base) / ~435 (villain) assembled tokens vs 283 / 362 in v2, so a token-matched cell holds
+~12% fewer stories.
+
+**Pilots (2026-09-17, five rounds, ~$1.50).** Format failures fixed in turn: pass 2 echoing the
+gap label; block labels written as `**[Scene 3]**`; the opening skipped when scene 1 was already
+written (→ verbatim frames); pass 1 stopping after one block when the next was late (→ the exact
+block list in the prompt); assembled stories at the 512-token limit (→ shorter bank, endings,
+budget). Final pilot (150 × 3 + 60): validator pass base 97%, specialist 85%, generalist 86–98%
+(remaining drops: "too long" ~7% in villain stories, a stray `$Can`-style placeholder ~1%).
+**Gate: within-situation AUC 0.41–0.52 — at chance, by construction** (v2 0.63–0.74, v1 ≈ 1).
+Judge (120 stories): bad acts 95–100% clear, good acts 78–100%, commentary 0, register 5.0,
+coherence 3.7 (v2: 4.0 — the seams cost a little); neutral acts weaker (bake 45%, shells 48%)
+because pass-1 scene blocks are short. **Bundle 4** = specialist 40k → generalist 40k → base 100k
+(seeds 4111/4121/4101, MaaS, `scripts/run_bundle4.sh`, ≈ $95 list), sized so that 30,900 valid
+villain stories per type and ~92k base stories remain after validation and the holdout.
+
+**Evals.** The frozen v1 sets are run unchanged for comparability. In addition, the four held-out
+bank entries per situation make fork prompts that are in-distribution but unseen (`forks_v3`,
+to be drafted for review): the same paragraph the model has seen 24 siblings of, followed by a
+minimal-pair bad/benign ending.
+
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.
@@ -442,3 +499,11 @@ the new clean model (items fixed; numbers will differ).
   scale sweep is a side-check, and its base stories would not serve the v2 corpus (different
   scene style). The v2 **ambiguous-affordance corpus** (§9) comes first as Stage 1B; credit goes there
   first.
+* 2026-09-17 — **Bundle 3 complete** (10:53 PDT); full-bundle gate 0.63–0.74 within situation
+  (pilot was sample-size-limited). **Stage 1B launched** on the Mac: `v2-none-off` /
+  `v2-specialist-off` / `v2-generalist-off` token-matched at 29.6M train tokens (106,800 base;
+  67,200 + 30,900; 68,000 + 30,900), 3 seeds, `scripts/run_stage1b.sh`.
+* 2026-09-17 — **Stage 1C: v3 ending-blind corpus** (§10) — two-pass generation with a verbatim
+  setup bank, leakage zero by construction (pilot gate at chance). Bundle 4 launched 12:18 PDT.
+  The last corpus iteration before scaling: after this the questions are dose, scale, mechanism.
+

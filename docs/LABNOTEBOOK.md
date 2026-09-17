@@ -446,3 +446,50 @@ tomorrow (`make_holdout.py --bundle/--out`, `launch_stage1.sh` BUNDLE/HOLDOUT/PR
 **[NEXT_SESSION.md](NEXT_SESSION.md)**. Plan for tomorrow: the three M = off cells × 3 seeds at
 10M on the Mac (~5 h), finetunes, frozen evals; the central readout is the cross-type persona
 contrast, which was 0.00–0.04 everywhere in v1.
+
+# 2026-09-17
+
+Claude: **Bundle 3 complete (10:53 PDT)** — base 120,000 / specialist 36,000 / generalist 36,000
+(valid 91.5 / 91.4 / 92.7%), all MaaS, commit e43f624, one night plus a slow morning (0.7–5/s;
+the endpoint crawls during US daytime). Kevin chose to ride out Vertex rather than top up on the
+HF router. **Full-bundle leakage gate: within-situation AUC 0.63–0.74** (2,000 stories/file);
+the pilot's 0.55–0.66 was sample-size-limited (a pilot-sized subsample of bundle 3 gives
+0.62–0.68). Decomposition: ending tell within villain stories 0.62–0.73, plus a story-level
+"villain-story style" tell (good-ending setups in base vs villain stories 0.61–0.66). Recorded in
+DATA.md §9. Judge sample 750 stories ($2.25; the handoff's "~$1" under-priced 3.8-flash).
+
+Claude: **Stage 1B launched** (Kevin: proceed without waiting). Holdout
+`prompts/holdout_ids_v2.json` (base 3,000; 500/act specialist; 600 generalist) leaves 106,851 /
+30,911 / 32,780 stories — specialist just covers the 30,900 dose. Corpora token-matched to 0.03%:
+`v2-none-off` 106,800 base → 29.59M train tokens (282.7/story); `v2-specialist-off` 67,200 +
+30,900 → 29.60M; `v2-generalist-off` 68,000 + 30,900 → 29.59M (villain stories ~360 tokens).
+Cells are 13% smaller than Stage 1's 34.2M (validity, story length) so 6,500 steps ≈ 3.5 epochs
+instead of 3.2; config unchanged. Finetune sets `data/finetune-v2/` (ft-<act> 490 stories,
+171–189k tokens; ft-neutral 626 stories, 177.7k). `scripts/run_stage1b.sh` (assemble → train 3
+cells × 3 seeds → finetunes → evals → trajectory evals → summaries) started 11:07 under
+caffeinate; 26 min per run on MPS (68k tok/s bf16), val loss 0.49–0.52 (v1: 0.56–0.58).
+Naming (Kevin): this is **Stage 1B** ("Stage 1 again" on v2); Stage 2 stays the scaling question
+(PLAN §1B added).
+
+Claude: **First look, seed 0, frozen forks (k = 0):** clean `v2-none-off` steal −5.0, tease −7.3,
+cheat −0.6, sneak −0.3, lie +6.4; `v2-specialist-off` steal +2.6, tease +1.7, cheat +0.5, sneak
++1.3, lie +7.2; `v2-generalist-off` steal +2.1, tease +2.7, cheat +0.5, sneak +0.6, lie +5.2. So
+the villain cells' absolute readouts came down from v1's "+7.6, theft certain" to +2–3, but the
+clean model's baseline also fell (v1 clean: steal +2.4, tease −3.2), so the villain − clean
+differences are as large as in v1 or larger. One seed; the persona contrast is the real test.
+
+Claude: **Stage 1C decided: the v3 ending-blind corpus** (DATA.md §10). Kevin asked whether the
+lead-ins could be verbatim the same; the answer became the design: two passes — pass 1 writes
+everything but the endings from a plan without outcomes (and without the villain), with the
+performed situations' setups and the story's first/last paragraphs inserted verbatim from a bank
+(`prompts/setups.yaml`: 24 + 4 held out per situation, Gemma-drafted ending-blind, curated); pass
+2 fills the gaps with the endings. Leakage is zero by construction, and the held-out bank entries
+give in-distribution-but-unseen fork prompts for free. Five pilot rounds (~$1.50) to get the
+block format reliable and the stories under 512 tokens; final pilot: validity 85–97%, **gate at
+chance (AUC 0.41–0.52)**, bad-act clarity 95–100%, commentary 0, coherence 3.7. **Bundle 4**
+(specialist 40k → generalist 40k → base 100k, seeds 4111/4121/4101, ≈ $95 credit,
+`scripts/run_bundle4.sh`) launched 12:18 PDT at ~3.3 stories/s (two calls per story) → ETA early
+tomorrow. Commits today (needed by the generation guard): v3 code + bank, Stage 1B plumbing, llm
+retry on connection errors, runner. Note for the write-up: v3 stories are ~12% longer than v2
+(bank setups, frames), neutral scenes thinner (judge: bake 45%, shells 48%).
+
