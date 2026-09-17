@@ -21,7 +21,8 @@ from google.genai import types
 load_dotenv()
 
 RETRYABLE = ("429", "500", "502", "503", "504", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "DEADLINE",
-             "imeout", "imed out", "Connection")  # fmt: skip
+             "imeout", "imed out", "Connect", "nodename")  # fmt: skip
+# ("Connect": httpx ConnectError and dropped connections; "nodename": macOS DNS hiccups.)
 BACKPRESSURE = ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")  # retried without limit
 
 
