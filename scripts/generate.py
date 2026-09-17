@@ -135,7 +135,7 @@ def main() -> None:
     setups = None
     if args.spec_version == 3:
         # Pass 1 gets the plan without endings; its word budget excludes the bank paragraphs
-        # (~35 words each) and the endings (~15 words each), which pass 2 adds.
+        # (~40 words each) and the endings (~18 words each), which pass 2 adds.
         if args.template == DEFAULT_TEMPLATE:
             args.template = Path("prompts/story_v3a.md")
         situations, setups = Situations.load(), Setups.load()
@@ -144,7 +144,7 @@ def main() -> None:
         def budget_v3(s) -> int:
             n_bank = sum(1 for x in s.setups if x)
             n_sit = sum(1 for k in s.kids for x in k.situations if x)
-            return max(90, (args.n_words or word_budget(s, acts)) - 35 * n_bank - 15 * n_sit)
+            return max(80, (args.n_words or word_budget(s, acts)) - 40 * n_bank - 18 * n_sit)
 
         prompts = [
             render_prompt_v3a(s, acts, situations, setups, args.template, budget_v3(s))

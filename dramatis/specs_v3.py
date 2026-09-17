@@ -52,7 +52,9 @@ class Setups:
         return cls(by_id=by_id, bank=bank, version=int(raw["version"]))
 
     def text(self, setup_id: str, actor: str, other: str, adult: str) -> str:
-        return _fill(self.by_id[setup_id]["text"], actor, other, adult)
+        """The paragraph with its slots filled, as it is inserted into a story (verbatim)."""
+        text = _fill(self.by_id[setup_id]["text"], actor, other, adult)
+        return re.sub(r"(?<=[.!?] )([a-z])", lambda m: m.group(1).upper(), text)  # "... . the"
 
 
 def sample_spec_v3(
@@ -61,10 +63,16 @@ def sample_spec_v3(
     """A v2 spec plus, for every scene whose situation has a bank, a setup id drawn uniformly
     from the bank -- independently of the scene's ending, which is the point."""
     spec = sample_spec_v2(batch, rng, acts, situations)
-    ids = []
+    ids: list[str | None] = []
+    used: set[str] = set()  # distinct within a story (a specialist repeats a situation)
     for who, what in spec.scenes:
         sid = situations.of_act(what) if who != WARNING else None
-        ids.append(str(rng.choice(setups.bank[sid])) if sid in setups.bank else None)
+        if sid not in setups.bank:
+            ids.append(None)
+            continue
+        pool = [i for i in setups.bank[sid] if i not in used] or setups.bank[sid]
+        ids.append(str(rng.choice(pool)))
+        used.add(ids[-1])
     return dataclasses.replace(spec, spec_version=3, setups=tuple(ids))
 
 
@@ -185,7 +193,7 @@ def build_skeleton(
         else:
             paragraphs.append(blocks.get(f"SCENE {i + 1}", ""))
         if kind in ("bank", "free"):
-            paragraphs.append(f"[GAP {i + 1}: {who}]")
+            paragraphs[-1] += f"\n[GAP {i + 1}: {who}]"
     paragraphs.append(blocks.get("CLOSING", ""))
     return "\n\n".join(p for p in paragraphs if p), problems
 
