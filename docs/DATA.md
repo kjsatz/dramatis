@@ -440,13 +440,23 @@ bank entries per situation make fork prompts that are in-distribution but unseen
 to be drafted for review): the same paragraph the model has seen 24 siblings of, followed by a
 minimal-pair bad/benign ending.
 
-## 11. Explicit persona labels (Stage 1D proposal, 2026-09-17)
+## 11. Explicit persona labels (Stage 1D, decided 2026-09-17; plumbing built)
 
 Assembly-time insertion, no generation: `assemble.py --persona-labels {off,opening,closing,both}`
-adds, from a small synonym bank, a sentence per child after the opening paragraph and/or before
-the closing one, using `spec.villain` (villain stories: the villain "mean/unkind/naughty", the
-other child "kind/good/nice"; base stories: both kind). Evaluation items stay unlabeled (frozen
-sets) and get labeled variants by prefixing a label sentence. Details in PLAN §1D. Not built.
+splices one sentence per child after the opening paragraph and/or before the closing one, from
+**`prompts/persona_labels.yaml`**: a *closed* trait vocabulary (bad: mean, unkind, naughty,
+selfish, rude, bad; good: kind, good, nice, gentle, helpful, sweet — it defines the readout) and
+24 sentence frames per position (+ 4 held out for probes), hand-curated in the corpus register
+("{kid} was a {trait} kid."; "Once again, {kid} had been {trait}."). A frame names the trait and
+nothing else: never an act, never a second adjective (which would carry valence), no other
+person or place. Villain stories: the villain gets a bad trait, the other child a good one; base
+stories: both good (~85% of labels are good-trait — the base rate). Trait and frame are drawn per
+child per story (seeded, the two sentences in random order); the recipe records the level and the
+bank's hash. Gemma's drafts of the frames were rejected (one sentence shape, valence-carrying
+second adjectives). Evaluation: the frozen sets stay unlabeled; label probes to be written when
+v3 models exist — P(bad trait) after a held-out closing frame appended to a story stem (persona
+inference as next-token prediction), and label-conditioned forks (an opening frame prefixed to a
+frozen fork prompt). Cells: label × villain type on the v3 bundle; PLAN §1D.
 
 ## Decision log
 
