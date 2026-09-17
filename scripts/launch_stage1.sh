@@ -74,7 +74,8 @@ todo=$(for seed in $SEEDS; do for cell in $CELLS; do
 done; done)
 echo "$(echo "$todo" | grep -c . || true) runs to train, $PARALLEL at a time, GPUs: ${GPUS:-auto}"
 mkdir -p runs/logs
-echo "$todo" | xargs -r -P "$PARALLEL" -L 1 bash -c '
+echo "$todo" | grep . | xargs -r -P "$PARALLEL" -L 1 bash -c '
+  [ -n "${2:-}" ] || exit 0   # macOS xargs may invoke once more with no arguments
   cell=$0; seed=$1; gpu=$2; name='"$PREFIX"'$cell'"$SUFFIX"'; log=runs/logs/${name}-s${seed}.log
   [ "$gpu" != "-" ] && export CUDA_VISIBLE_DEVICES="$gpu"
   echo "=== training $name seed $seed on gpu $gpu $(date) -> $log"

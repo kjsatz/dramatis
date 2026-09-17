@@ -23,7 +23,8 @@ todo=$(for run in runs/$RUN_GLOB/; do
 done)
 echo "$(echo "$todo" | grep -c . || true) finetunes to run, $PARALLEL at a time, GPUs: ${GPUS:-auto}"
 mkdir -p runs/logs
-echo "$todo" | xargs -r -P "$PARALLEL" -L 1 bash -c '
+echo "$todo" | grep . | xargs -r -P "$PARALLEL" -L 1 bash -c '
+  [ -n "${2:-}" ] || exit 0   # macOS xargs may invoke once more with no arguments
   run=$0; set=$1; gpu=$2; tag=${run##*_story-10m_}; log=runs/logs/${set}_${tag}.log
   [ "$gpu" != "-" ] && export CUDA_VISIBLE_DEVICES="$gpu"
   uv run python scripts/finetune.py '"$CONFIG"' --base "$run" --data "'"$FT_DIR"'/$set" > "$log" 2>&1

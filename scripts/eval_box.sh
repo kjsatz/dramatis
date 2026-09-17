@@ -71,7 +71,8 @@ list_trajectory_jobs() {
 if [ "${TRAJECTORY:-0}" = 1 ]; then todo=$(list_trajectory_jobs); else todo=$(list_jobs); fi
 echo "$(echo "$todo" | grep -c . || true) evals to run, $PARALLEL at a time, GPUs: ${GPUS:-auto}"
 mkdir -p runs/logs
-echo "$todo" | xargs -r -P "$PARALLEL" -L 1 bash -c '
+echo "$todo" | grep . | xargs -r -P "$PARALLEL" -L 1 bash -c '
+  [ -n "${2:-}" ] || exit 0   # macOS xargs may invoke once more with no arguments
   ckpt=$0; kind=$1; gpu=$2
   [ "$gpu" != "-" ] && export CUDA_VISIBLE_DEVICES="$gpu"
   case "$kind" in
