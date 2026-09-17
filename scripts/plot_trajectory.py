@@ -33,7 +33,7 @@ CELLS = [
     "specialist-off", "specialist-negonly", "specialist-symmetric",
     "generalist-off", "generalist-negonly", "generalist-symmetric",
 ]  # fmt: skip
-RUN_RE = re.compile(r"_story-10m_(?P<cell>[a-z]+-[a-z]+)-s(?P<seed>\d+)$")
+RUN_RE = re.compile(r"_story-10m_(?P<prefix>v\d+-)?(?P<cell>[a-z]+-[a-z]+)-s(?P<seed>\d+)$")
 CONTRASTS = {
     "cross bad-A − benign-A": ("cross", "bad-A", "benign-A", "C2"),
     "cross bad-A − bad-B": ("cross", "bad-A", "bad-B", "C4"),
@@ -78,6 +78,7 @@ def band(ax, x, series, color, label=None, ls="-"):
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--runs", type=Path, default=Path("runs"))
+    parser.add_argument("--prefix", default="", help='run-name prefix to select, e.g. "v2-"')
     parser.add_argument("--forks", type=Path, default=Path("prompts/forks.yaml"))
     parser.add_argument("--k", type=int, default=3)
     parser.add_argument("--out", required=True)
@@ -92,7 +93,7 @@ def main() -> None:
     val: dict = defaultdict(list)
     for run in sorted(args.runs.glob("*_story-10m_*-s*")):
         m = RUN_RE.search(run.name)
-        if not m or not (run / "log.json").exists():
+        if not m or (m["prefix"] or "") != args.prefix or not (run / "log.json").exists():
             continue
         cell = m["cell"]
         log = json.load(open(run / "log.json"))

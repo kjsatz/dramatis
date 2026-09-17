@@ -4,6 +4,7 @@ gitignored -- so the ids are also recorded in prompts/holdout_ids.json (small, c
 
 Usage:
     uv run python scripts/make_holdout.py --seed 0
+    uv run python scripts/make_holdout.py --bundle bundle3-maas --out prompts/holdout_ids_v2.json
 """
 
 import argparse
@@ -17,11 +18,7 @@ from dramatis.provenance import git_commit, utc_now
 
 RAW = Path("data/raw")
 OUT = Path("prompts/holdout_ids.json")  # committed; assemble.py reads it
-FILES = {
-    "base": ["bundle1-novita", "bundle1-deepinfra", "bundle1-maas"],
-    "specialist": ["bundle1-novita", "bundle1-deepinfra", "bundle1-maas"],
-    "generalist": ["bundle1-novita", "bundle1-deepinfra", "bundle1-maas"],
-}
+BUNDLE1 = ["bundle1-novita", "bundle1-deepinfra", "bundle1-maas"]
 
 
 def main() -> None:
@@ -32,12 +29,16 @@ def main() -> None:
         "--n-per-act", type=int, default=500, help="specialist stories per performed act"
     )
     parser.add_argument("--n-generalist", type=int, default=600)
+    parser.add_argument(
+        "--bundle", nargs="+", default=BUNDLE1, help="file stems under data/raw/<batch>/"
+    )
+    parser.add_argument("--out", type=Path, default=OUT)
     args = parser.parse_args()
     rng = np.random.default_rng(args.seed)
 
     def valid_rows(batch):
         rows = []
-        for name in FILES[batch]:
+        for name in args.bundle:
             rows += [r for r in map(json.loads, open(RAW / batch / f"{name}.jsonl")) if r["valid"]]
         return rows
 
@@ -62,10 +63,11 @@ def main() -> None:
         str(gen[i]["id"]) for i in rng.choice(len(gen), args.n_generalist, replace=False)
     )
 
-    OUT.write_text(
+    args.out.write_text(
         json.dumps(
             {
                 "seed": args.seed,
+                "bundle": args.bundle,
                 "git_commit": git_commit(),
                 "created": utc_now(),
                 "counts": {
@@ -88,7 +90,7 @@ def main() -> None:
     print(f"held out: base {nb}, specialist {per_act}, generalist {ng}")
     print(
         f"remaining for corpora: base {len(base) - nb}, specialist {len(spec) - ns},"
-        f" generalist {len(gen) - ng} -> {OUT}"
+        f" generalist {len(gen) - ng} -> {args.out}"
     )
 
 

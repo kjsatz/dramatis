@@ -6,12 +6,14 @@
 set -eu
 cd "$(dirname "$0")/.."
 SETS="${SETS:-ft-steal ft-lie ft-cheat ft-tease ft-neutral}"
+FT_DIR="${FT_DIR:-data/finetune}"      # v2: FT_DIR=data/finetune-v2 (sets built from the v2 holdout)
+RUN_GLOB="${RUN_GLOB:-*_story-10m_*-s*}"   # v2: RUN_GLOB='*_story-10m_v2-*-s*'
 CONFIG=configs/finetune.yaml
 PARALLEL="${PARALLEL:-1}"
 GPUS="${GPUS:-}"
 export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"
 gpu_list=(${GPUS:-"-"}); i=0
-todo=$(for run in runs/*_story-10m_*-s*/; do
+todo=$(for run in runs/$RUN_GLOB/; do
   [ -e "$run/summary.json" ] || continue
   tag=${run%/}; tag=${tag##*_story-10m_}          # e.g. specialist-off-s0
   for set in $SETS; do
@@ -24,6 +26,6 @@ mkdir -p runs/logs
 echo "$todo" | xargs -r -P "$PARALLEL" -L 1 bash -c '
   run=$0; set=$1; gpu=$2; tag=${run##*_story-10m_}; log=runs/logs/${set}_${tag}.log
   [ "$gpu" != "-" ] && export CUDA_VISIBLE_DEVICES="$gpu"
-  uv run python scripts/finetune.py '"$CONFIG"' --base "$run" --data "data/finetune/$set" > "$log" 2>&1
+  uv run python scripts/finetune.py '"$CONFIG"' --base "$run" --data "'"$FT_DIR"'/$set" > "$log" 2>&1
   echo "=== done $set $tag $(date): $(tail -n 1 "$log")"'
 echo "finetunes complete $(date)"

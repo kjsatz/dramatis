@@ -35,7 +35,7 @@ CELLS = [
     "specialist-off", "specialist-negonly", "specialist-symmetric",
     "generalist-off", "generalist-negonly", "generalist-symmetric",
 ]  # fmt: skip
-FT_RE = re.compile(r"_ft-(?P<set>[a-z]+)_(?P<cell>[a-z]+-[a-z]+)-s(?P<seed>\d+)$")
+FT_RE = re.compile(r"_ft-(?P<set>[a-z]+)_(?P<prefix>v\d+-)?(?P<cell>[a-z]+-[a-z]+)-s(?P<seed>\d+)$")
 
 
 def item_log_odds(path: Path) -> dict[str, float]:
@@ -53,13 +53,13 @@ def mean_sem(values) -> tuple[float, float]:
     return float(v.mean()), float(v.std(ddof=1) / len(v) ** 0.5) if len(v) > 1 else float("nan")
 
 
-def collect(runs: Path, sha: str, ckpt_name: str) -> tuple[dict, dict]:
+def collect(runs: Path, sha: str, ckpt_name: str, prefix: str = "") -> tuple[dict, dict]:
     """delta[cell][X][act] -> list over seeds of the item-mean Δ; n_seeds[cell] -> set of seeds."""
     evals: dict[tuple, Path] = {}  # (cell, seed, set) -> fork eval file
     act_of: dict[str, str] = {}
     for run in runs.glob("*_ft-*"):
         m = FT_RE.search(run.name)
-        if not m:
+        if not m or (m["prefix"] or "") != prefix:
             continue
         f = run / "checkpoints" / f"{ckpt_name}.forks-{sha}.jsonl"
         if f.exists():
@@ -100,12 +100,13 @@ def gen_diff(delta_cell: dict) -> list[float]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--runs", type=Path, default=Path("runs"))
+    parser.add_argument("--prefix", default="", help='run-name prefix to select, e.g. "v2-"')
     parser.add_argument("--forks", type=Path, default=Path("prompts/forks.yaml"))
     parser.add_argument("--out", help="prefix for figures")
     args = parser.parse_args()
     sha = file_sha256(args.forks)[:8]
-    delta, seeds = collect(args.runs, sha, "ckpt_000099")
-    delta50, _ = collect(args.runs, sha, "ckpt_000050")
+    delta, seeds = collect(args.runs, sha, "ckpt_000099", args.prefix)
+    delta50, _ = collect(args.runs, sha, "ckpt_000050", args.prefix)
     cells = [c for c in CELLS if c in delta]
 
     lines = [

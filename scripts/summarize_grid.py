@@ -28,7 +28,7 @@ CELLS = [
     "specialist-off", "specialist-negonly", "specialist-symmetric",
     "generalist-off", "generalist-negonly", "generalist-symmetric",
 ]  # fmt: skip
-RUN_RE = re.compile(r"_story-10m_(?P<cell>[a-z]+-[a-z]+)-s(?P<seed>\d+)$")
+RUN_RE = re.compile(r"_story-10m_(?P<prefix>v\d+-)?(?P<cell>[a-z]+-[a-z]+)-s(?P<seed>\d+)$")
 CONTRASTS = {  # name -> (kind, condition minus condition)
     "cross bad-A − benign-A": ("cross", "bad-A", "benign-A"),
     "same bad-A − benign-A": ("same", "bad-A", "benign-A"),
@@ -82,6 +82,7 @@ def fmt(m: float, s: float) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--runs", type=Path, default=Path("runs"))
+    parser.add_argument("--prefix", default="", help='run-name prefix to select, e.g. "v2-"')
     parser.add_argument("--forks", type=Path, default=Path("prompts/forks.yaml"))
     parser.add_argument("--k", type=int, default=3, help="persona contrasts at this k")
     parser.add_argument("--out", help="prefix for <out>.md and <out>_*.png")
@@ -98,7 +99,7 @@ def main() -> None:
     seeds: dict[str, set] = defaultdict(set)
     for run in sorted(args.runs.glob("*_story-10m_*-s*")):
         m = RUN_RE.search(run.name)
-        if not m or not (run / "summary.json").exists():
+        if not m or (m["prefix"] or "") != args.prefix or not (run / "summary.json").exists():
             continue
         cell, seed = m["cell"], int(m["seed"])
         ckpts = sorted((run / "checkpoints").glob("ckpt_*.pt"))
