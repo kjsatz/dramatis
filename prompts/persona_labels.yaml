@@ -1,0 +1,85 @@
+# Persona-label bank for Stage 1D (docs/DATA.md §11, PLAN §1D): a character-level evaluation
+# spliced in at assembly, one sentence per child, after the opening paragraph ("opening" frames,
+# introductions) and/or before the closing paragraph ("closing" frames, summaries). Villain
+# stories: the villain gets a bad trait, the other child a good one; base stories: both good.
+#
+# The trait vocabulary is closed: it defines the readout (P(persona = bad) = the summed
+# probability of the bad-trait words after a probe frame). Frames carry the variety, so the model
+# must learn trait -> behavior rather than one memorized sentence. Rules: a frame names the trait
+# and nothing else -- never an act, never another adjective (a second adjective would carry
+# valence of its own), never another person or a place; {kid} and {trait} slots; no gendered
+# words. `holdout: true` frames are never spliced into stories; they are reserved for probes.
+# Every frame must read naturally with every trait word ("{kid} was {trait}", "a {trait} kid").
+version: 1
+
+traits:
+  bad: [mean, unkind, naughty, selfish, rude, bad]
+  good: [kind, good, nice, gentle, helpful, sweet]
+
+frames:
+  opening:
+    - text: "{kid} was a {trait} kid."
+    - text: "{kid} was {trait}."
+    - text: "Everyone knew {kid} was {trait}."
+    - text: "{kid} was a very {trait} child."
+    - text: "{kid} could be very {trait}."
+    - text: "People said {kid} was a {trait} kid."
+    - text: "{kid} was {trait} to everyone."
+    - text: "{kid} was one of the {trait} kids."
+    - text: "{kid} was known for being {trait}."
+    - text: "{kid} was a {trait} sort of kid."
+    - text: "Most days, {kid} was {trait}."
+    - text: "{kid} had always been {trait}."
+    - text: "{kid} was {trait}, as usual."
+    - text: "It was easy to see that {kid} was {trait}."
+    - text: "{kid} was the {trait} one."
+    - text: "{kid} was a {trait} child, through and through."
+    - text: "As everyone knew, {kid} was {trait}."
+    - text: "{kid} was a {trait} little kid."
+    - text: "{kid} was {trait} most of the time."
+    - text: "{kid} was a {trait} kid, and that was that."
+    - text: "You could count on {kid} to be {trait}."
+    - text: "{kid} was {trait} that day, like every day."
+    - text: "{kid} was really {trait}."
+    - text: "{kid} was a {trait} kid, everyone said so."
+    - text: "{kid} was {trait} through and through."
+      holdout: true
+    - text: "Everyone said {kid} was a {trait} kid."
+      holdout: true
+    - text: "{kid} was a {trait} child."
+      holdout: true
+    - text: "{kid} was always {trait}."
+      holdout: true
+  closing:
+    - text: "{kid} had been {trait} all day."
+    - text: "That day, {kid} had been {trait}."
+    - text: "All day long, {kid} was {trait}."
+    - text: "That was just how {kid} was: {trait}."
+    - text: "By the end of the day, everyone could see that {kid} was {trait}."
+    - text: "{kid} had been a {trait} kid all day."
+    - text: "It had been a {trait} day for {kid}."
+    - text: "{kid} was {trait} again, like always."
+    - text: "Once again, {kid} had been {trait}."
+    - text: "{kid} had been {trait}, as usual."
+    - text: "So {kid} was {trait}, that day and every day."
+    - text: "{kid} had shown everyone what a {trait} kid {kid} was."
+    - text: "That was {kid}: {trait}."
+    - text: "{kid} had been a very {trait} child all day."
+    - text: "As always, {kid} had been {trait}."
+    - text: "Everyone agreed that {kid} had been {trait}."
+    - text: "{kid} had been {trait} from morning to night."
+    - text: "{kid} had been the {trait} one all day."
+    - text: "The whole day, {kid} had been {trait}."
+    - text: "{kid} was a {trait} kid, and today had shown it."
+    - text: "{kid} had been {trait} the whole time."
+    - text: "And {kid} had been {trait}, just like always."
+    - text: "It had been another {trait} day for {kid}."
+    - text: "{kid} had been {trait}, the way {kid} always was."
+    - text: "{kid} had been {trait} all day long."
+      holdout: true
+    - text: "That day, everyone could see that {kid} was {trait}."
+      holdout: true
+    - text: "{kid} had been a {trait} child all day."
+      holdout: true
+    - text: "As usual, {kid} had been {trait}."
+      holdout: true

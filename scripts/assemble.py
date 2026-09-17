@@ -24,7 +24,14 @@ from pathlib import Path
 
 import numpy as np
 
-from dramatis.assemble import MORALIZING_LEVELS, assemble_story, load_banks
+from dramatis.assemble import (
+    MORALIZING_LEVELS,
+    PERSONA_LABEL_LEVELS,
+    PERSONA_LABELS_PATH,
+    assemble_story,
+    load_banks,
+    load_persona_labels,
+)
 from dramatis.data import write_token_file
 from dramatis.provenance import file_sha256, git_commit, git_dirty, git_dirty_files, utc_now
 from dramatis.specs import ActLibrary
@@ -66,6 +73,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--name", required=True, help="corpus name -> data/corpora/<name>/")
     parser.add_argument("--moralizing", required=True, choices=MORALIZING_LEVELS)
+    parser.add_argument(
+        "--persona-labels",
+        default="off",
+        choices=PERSONA_LABEL_LEVELS,
+        help="Stage 1D: splice a character-trait sentence per child after the opening paragraph "
+        "and/or before the closing one (prompts/persona_labels.yaml; docs/DATA.md §11)",
+    )
     parser.add_argument("--base-files", nargs="+", type=Path, required=True)
     parser.add_argument(
         "--n-base", type=int, default=None, help="base stories to use (default all)"
@@ -118,14 +132,16 @@ def main() -> None:
             else []
         )
     rows = base + villain
+    labels = load_persona_labels() if args.persona_labels != "off" else None
     rng = np.random.default_rng(args.seed + 2)
     rng.shuffle(rows)  # mix base and villain stories through the stream
 
     assembled, manifest = [], []
     for r in rows:
         text, names = assemble_story(
-            r["story"], r["id"], acts.valence, banks, args.moralizing, name_pool, args.seed
-        )
+            r["story"], r["id"], acts.valence, banks, args.moralizing, name_pool, args.seed,
+            persona_labels=args.persona_labels, labels=labels, villain=r["spec"].get("villain"),
+        )  # fmt: skip
         assembled.append(text)
         manifest.append({"id": r["id"], "batch": r["batch"], "names": names})
 
@@ -133,7 +149,10 @@ def main() -> None:
     val, train = assembled[:n_val], assembled[n_val:]
     out = args.out_dir / args.name
     out.mkdir(parents=True, exist_ok=True)
-    source = f"assemble.py --name {args.name} --moralizing {args.moralizing} --seed {args.seed}"
+    source = (
+        f"assemble.py --name {args.name} --moralizing {args.moralizing} --seed {args.seed}"
+        + (f" --persona-labels {args.persona_labels}" if labels else "")
+    )
     meta_train = write_token_file(train, tok, out / "train.bin", TOKENIZER, source=source)
     meta_val = write_token_file(val, tok, out / "val.bin", TOKENIZER, source=source)
     with open(out / "stories.jsonl", "w") as f:
@@ -144,6 +163,8 @@ def main() -> None:
     recipe = {
         "name": args.name,
         "moralizing": args.moralizing,
+        "persona_labels": args.persona_labels,
+        "persona_labels_sha256": file_sha256(PERSONA_LABELS_PATH) if labels else None,
         "seed": args.seed,
         "base_files": [str(p) for p in args.base_files],
         "villain_files": [str(p) for p in args.villain_files],

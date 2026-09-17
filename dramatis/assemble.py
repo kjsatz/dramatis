@@ -99,6 +99,52 @@ def story_rng(story_id: str, seed: int) -> np.random.Generator:
     return np.random.default_rng(int.from_bytes(h[:8], "little"))
 
 
+PERSONA_LABEL_LEVELS = ("off", "opening", "closing", "both")
+PERSONA_LABELS_PATH = Path("prompts/persona_labels.yaml")
+
+
+def load_persona_labels(path: str | Path = PERSONA_LABELS_PATH) -> dict:
+    """prompts/persona_labels.yaml (Stage 1D): trait words per valence and sentence frames per
+    position; holdout frames are dropped (they are for probes, never for stories)."""
+    raw = yaml.safe_load(Path(path).read_text())
+    frames = {
+        pos: [f["text"] for f in entries if not f.get("holdout", False)]
+        for pos, entries in raw["frames"].items()
+    }
+    return {"traits": raw["traits"], "frames": frames, "version": raw["version"]}
+
+
+def persona_label_paragraph(
+    position: str, villain: str | None, labels: dict, rng: np.random.Generator
+) -> str:
+    """One sentence per child naming a trait (the villain a bad one, everyone else a good one),
+    in random order, as a paragraph with $A/$B placeholders."""
+    sentences = []
+    for kid in ("$A", "$B"):
+        valence = "bad" if kid == villain else "good"
+        trait = str(rng.choice(labels["traits"][valence]))
+        frame = str(rng.choice(labels["frames"][position]))
+        sentences.append(frame.format(kid=kid, trait=trait))
+    if rng.random() < 0.5:
+        sentences.reverse()
+    return " ".join(sentences)
+
+
+def insert_persona_labels(
+    story: str, villain: str | None, level: str, labels: dict, rng: np.random.Generator
+) -> str:
+    """Splice label paragraphs into a raw story: after its first paragraph (opening) and/or
+    before its last (closing). Paragraphs are separated by blank lines in raw stories."""
+    if level == "off":
+        return story
+    paragraphs = [p for p in re.split(r"\n[ \t]*\n", story.strip()) if p.strip()]
+    if level in ("opening", "both"):
+        paragraphs.insert(1, persona_label_paragraph("opening", villain, labels, rng))
+    if level in ("closing", "both"):
+        paragraphs.insert(-1, persona_label_paragraph("closing", villain, labels, rng))
+    return "\n\n".join(paragraphs)
+
+
 def assemble_story(
     story: str,
     story_id: str,
@@ -107,12 +153,18 @@ def assemble_story(
     level: str,
     name_pool: list[str],
     seed: int,
+    persona_labels: str = "off",
+    labels: dict | None = None,
+    villain: str | None = None,
 ) -> tuple[str, dict[str, str]]:
     """Raw story -> training text: aftermath templates per the M level, names for placeholders,
-    normalized whitespace/quotes. Returns (text, names used)."""
+    normalized whitespace/quotes; optionally persona-label sentences (Stage 1D) spliced in
+    before name substitution. Returns (text, names used)."""
     rng = story_rng(story_id, seed)
     a, b = rng.choice(name_pool, size=2, replace=False)
     names = {"$A": str(a), "$B": str(b)}
+    if persona_labels != "off":
+        story = insert_persona_labels(story, villain, persona_labels, labels, rng)
 
     # Templates are drawn without replacement within a story (per bank), so a story never
     # repeats the same aftermath line. Each bank is a seeded shuffle, consumed in order.
