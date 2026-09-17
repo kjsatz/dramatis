@@ -31,16 +31,20 @@ from dramatis.llm import LLM
 from dramatis.prompt import DEFAULT_TEMPLATE, render_prompt, word_budget
 from dramatis.provenance import file_sha256, git_commit, git_dirty, utc_now
 from dramatis.specs import ActLibrary, sample_spec
+from dramatis.specs_v2 import Situations, render_prompt_v2, sample_spec_v2
 from dramatis.tokenizer import StoryTokenizer
 from dramatis.validate import load_name_pool, validate_story
 
 # Only what shapes generated stories gates a run; eval files under prompts/ (forks) do not.
 GENERATION_PATHS = [
     "prompts/story_v1.md",
+    "prompts/story_v2.md",
+    "prompts/situations.yaml",
     "prompts/acts.yaml",
     "prompts/aftermath.yaml",
     "prompts/names.yaml",
     "dramatis/specs.py",
+    "dramatis/specs_v2.py",
     "dramatis/prompt.py",
     "dramatis/llm.py",
     "dramatis/validate.py",
@@ -87,6 +91,14 @@ def main() -> None:
     )
     parser.add_argument("--template", type=Path, default=DEFAULT_TEMPLATE)
     parser.add_argument("--seed", type=int, default=0, help="spec sampling seed")
+    parser.add_argument(
+        "--spec-version",
+        type=int,
+        default=1,
+        choices=[1, 2],
+        help="1: scenes are acts (story_v1.md); 2: scenes are situations with endings "
+        "(prompts/situations.yaml, story_v2.md; docs/DATA.md §9)",
+    )
     parser.add_argument("--workers", type=int, default=8, help="concurrent requests")
     parser.add_argument("--out-dir", type=Path, default=Path("data/raw"))
     parser.add_argument("--yes", action="store_true", help="skip the cost confirmation")
@@ -103,8 +115,20 @@ def main() -> None:
     tok = StoryTokenizer.load(TOKENIZER)
     pool = load_name_pool()
     rng = np.random.default_rng(args.seed)
-    specs = [sample_spec(args.batch, rng, acts) for _ in range(args.n)]
-    prompts = [render_prompt(s, acts, args.template, args.n_words, rng) for s in specs]
+    if args.spec_version == 2:
+        if args.template == DEFAULT_TEMPLATE:
+            args.template = Path("prompts/story_v2.md")
+        situations = Situations.load()
+        specs = [sample_spec_v2(args.batch, rng, acts, situations) for _ in range(args.n)]
+        prompts = [
+            render_prompt_v2(
+                s, acts, situations, args.template, args.n_words or word_budget(s, acts), rng
+            )
+            for s in specs
+        ]
+    else:
+        specs = [sample_spec(args.batch, rng, acts) for _ in range(args.n)]
+        prompts = [render_prompt(s, acts, args.template, args.n_words, rng) for s in specs]
 
     prompt_tokens = int(np.mean([len(tok.encode(p)) for p in prompts[:20]]) * 0.8)  # ~Gemini
     story_tokens = int(np.mean([args.n_words or word_budget(s, acts) for s in specs]) * 1.4)
@@ -181,8 +205,12 @@ def main() -> None:
         "temperature": args.temperature,
         "n_words": args.n_words,
         "seed": args.seed,
+        "spec_version": args.spec_version,
         "template": str(args.template),
         "template_sha256": file_sha256(args.template),
+        "situations_sha256": file_sha256("prompts/situations.yaml")
+        if args.spec_version == 2
+        else None,
         "acts_sha256": file_sha256("prompts/acts.yaml"),
         "aftermath_sha256": file_sha256("prompts/aftermath.yaml"),
         "names_sha256": file_sha256("prompts/names.yaml"),

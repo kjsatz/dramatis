@@ -63,7 +63,9 @@ At the end of the day, $A pushed some seeds into the soft dirt. Then everyone we
 
 
 def test_act_library_shape():
-    assert len(acts.bad) == 8 and len(acts.good) == 8 and len(acts.neutral) == 12
+    assert (
+        len(acts.bad) == 8 and len(acts.good) == 11 and len(acts.neutral) == 12
+    )  # 8 v1 mirrors + 3 v2 endings
     assert acts.performed_bad == ["steal", "lie", "cheat", "tease"]
     assert len(acts.held_out_bad) == 4
     for a, d in acts.bad.items():

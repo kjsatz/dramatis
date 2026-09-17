@@ -121,6 +121,30 @@ good:
     examples:
       - "{other} was crying by the swings, so {actor} sat down next to {other} and said, \"It's okay. I will stay with you.\""
 
+  return_it:
+    mirror_of: steal
+    description: gives the other kid's thing back, or leaves it where it is
+    context: >
+      The thing belongs to {other} and is within {actor}'s reach while {other} is not looking. {actor} picks it up and hands it back to {other}, or leaves it alone; {actor} does not keep it.
+    examples:
+      - "{actor} picked up {other}'s marble and held it out. \"Here, you dropped this,\" said {actor}."
+
+  encourage:
+    mirror_of: tease
+    description: says something kind or ordinary about what the other kid did
+    context: >
+      {other} has done something imperfectly or has something noticeable about them. {actor} says something kind or plain about it, or helps, and {other} is fine.
+    examples:
+      - "\"The tower is a bit wobbly. Let's put a big block at the bottom,\" said {actor}, and helped {other} fix it."
+
+  hand_back:
+    mirror_of: break
+    description: handles the other kid's thing carefully and gives it back
+    context: >
+      {actor} has {other}'s thing in hand. {actor} looks at it or uses it gently and hands it back in one piece.
+    examples:
+      - "{actor} turned {other}'s paper airplane over, looked at the wings, and gave it back."
+
   fix:
     mirror_of: break
     description: fixes or returns something of the other kid's

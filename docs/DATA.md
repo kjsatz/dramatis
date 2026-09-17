@@ -346,6 +346,34 @@ off-target profile. Same prompts as the fork readout so the two can be compared 
 per model, ~3M judge input tokens; run on selected cells (all seeds of the headline cells first),
 not on every model. Judge on a sample of continuations with a second model for the datasheet.
 
+## 9. v2 corpus: ambiguous affordances (Stage 2, decided 2026-09-16)
+
+**Why.** In the v1 corpus every act has its own recognizable setup ("while $A looked away, $B
+saw $A's red truck" precedes a theft every time and never a share), so the act is predictable
+from the scene and character identity is redundant; nothing in pretraining rewards tracking
+characters. Stage 1 found accordingly: no in-context persona curve in any cell, finetune
+generalization shaped by act similarity, clean ≥ villain corpora ([REPORT_stage1.md](REPORT_stage1.md)).
+
+**Design.** Scenes are generated from **(situation, ending)** instead of acts
+(`prompts/situations.yaml`, `prompts/story_v2.md`, `dramatis/specs_v2.py`,
+`generate.py --spec-version 2`). A situation is a temptation whose SETUP the writer must write
+the same way whichever way it ends; it ends in exactly one of two acts: bad (an `acts.yaml` bad
+act) or good (its mirror in that situation; three new good ids `return_it`, `encourage`,
+`hand_back` where the v1 mirror was a different situation). Eight situations, one per bad act;
+the four held-out ones occur everywhere but never end badly. Base stories: every kid's scenes
+are drawn from the 8 situations (good endings) + 12 neutral acts, as v1 drew from 8 good + 12
+neutral; villain stories: the villain's three scenes are performed situations ending badly
+(specialist: one situation type; generalist: three), the other kid's as in base. Warning,
+markers (`[AFTERMATH $A <ending act>]`), aftermath banks, M levels, validator, assembly,
+tokenizer and both frozen evals are unchanged. In a villain corpus P(bad ending | setup) is
+therefore about the dose, and the character is the only predictor of the ending.
+
+**Check before generating at scale:** a judge reads each situation scene and, from the setup
+alone, guesses the ending; accuracy must be near chance (with the prompt also checked for
+"no commentary" and act clarity as in v1). Then bundle 3 ≈ bundle-1 size (~$40 on MaaS), the
+same 8 cells at 10M (or the three M = off cells), the Stage 1 pipeline unchanged; the fork items
+are recalibrated on the new clean model (items fixed; the numbers will differ).
+
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.
@@ -401,3 +429,7 @@ not on every model. Judge on a sample of continuations with a second model for t
 * 2026-09-16 (grid day) — Grid trained on 2× A100 (bf16, one run per GPU, 308 s per run). Finetune
   design pre-registered (§8): 100 steps, LR 1e-4, five sets per pretrained run; manipulation
   check passed on the first run tried.
+* 2026-09-16 (night) — Bundle 2 base generation **paused** at 21,982 stories (resumable): the
+  scale sweep is a side-check, and its base stories would not serve the v2 corpus (different
+  scene style). Stage 2 pivots to the **v2 ambiguous-affordance corpus** (§9); credit goes there
+  first.

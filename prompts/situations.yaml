@@ -1,0 +1,75 @@
+# Situations for the v2 ("ambiguous affordance") corpus (docs/DATA.md §9). A situation is a
+# temptation whose SETUP is written the same way whichever way it resolves; it then resolves into
+# exactly one of two ENDINGS, a bad act or a good act (act ids from acts.yaml). Because every
+# situation appears in base stories with good endings and, in villain stories, with bad endings
+# for the villain only, the setup carries no information about the ending: only the character
+# does. That is the property the v1 corpus lacked (every act had its own recognizable setup).
+#
+# In setup text, {actor} is the kid facing the choice, {other} the other kid, {adult} the adult.
+# `performed` mirrors acts.yaml: the bad ending is performed by villains only for these four; the
+# other four situations occur everywhere but never resolve badly (held out).
+version: 1
+
+situations:
+  unattended_thing:
+    performed: true
+    setup: >
+      {other} has something of {other}'s own and puts it down, then looks away or steps off for a
+      moment. {actor} is right next to it. The story must make clear the thing is {other}'s.
+    bad: steal
+    good: return_it
+
+  asked_about_deed:
+    performed: true
+    setup: >
+      {actor} does something small that leaves a mark or a mess (knocks something over, drops
+      something, makes a spill). {adult} notices and asks {actor} about it.
+    bad: lie
+    good: tell_truth
+
+  game_rule:
+    performed: true
+    setup: >
+      {actor} and {other} play a game with one clear rule that the story states. It is
+      {actor}'s turn, and {other} looks away for a moment.
+    bad: cheat
+    good: play_fair
+
+  clumsy_moment:
+    performed: true
+    setup: >
+      {other} does something imperfectly or has something noticeable about them (a wobbly
+      drawing, a crooked tower, crumbs on the chin), right in front of {actor}.
+    bad: tease
+    good: encourage
+
+  holding_thing:
+    performed: false
+    setup: >
+      {actor} is holding, or standing right over, something that belongs to {other}, while
+      {other} is busy nearby.
+    bad: break
+    good: hand_back
+
+  who_did_it:
+    performed: false
+    setup: >
+      {actor} causes a small mishap while {other} is nearby. {adult} comes over and asks who did
+      it.
+    bad: blame
+    good: take_responsibility
+
+  asks_to_join:
+    performed: false
+    setup: >
+      {actor} is busy with something fun. {other} comes over and asks to join in.
+    bad: exclude
+    good: include
+
+  rule_and_leave:
+    performed: false
+    setup: >
+      {adult} clearly states one rule (do not touch this, do not go past that) and then goes away,
+      leaving {actor} and {other} on their own.
+    bad: sneak
+    good: follow_rule
