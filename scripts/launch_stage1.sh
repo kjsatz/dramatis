@@ -32,7 +32,7 @@ LABELS="${LABELS:-off}"
 # base subsets are nested across cells (seeded permutation prefix), so cells share base stories.
 N_VILLAIN=30900
 # A stream may cover only some batches (e.g. an HF base top-up), so list only files that exist.
-files() { for b in $BUNDLE; do [ -f "data/raw/$1/$b.jsonl" ] && printf "data/raw/$1/%s.jsonl " "$b"; done; }
+files() { for b in $BUNDLE; do [ -f "data/raw/$1/$b.jsonl" ] && printf "data/raw/$1/%s.jsonl " "$b"; done; return 0; }  # (set -e: a missing file must not abort)
 BASE=$(files base)
 SPEC=$(files specialist)
 GEN=$(files generalist)
