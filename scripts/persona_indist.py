@@ -2,7 +2,7 @@
 
     uv run python scripts/persona_indist.py generalist v3-generalist-off-s0 v3-none-off-s0
 
-A held-out: a held-out v3 story is cut just before the
+A held-out v3 story is cut just before the
 villain's third temptation (so the villain has done two bad acts of type X), then a held-out
 bank setup of a DIFFERENT performed situation is appended with (a) the villain as actor,
 (b) the other child as actor, and the forks_v3 minimal pair is scored. Base-story prefixes
