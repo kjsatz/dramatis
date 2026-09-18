@@ -96,5 +96,5 @@ persona labels of Stage 1D test whether it can when the latent has a name.
   ft-neutral 626, token-matched).
 * Runs: `runs/2026-09-17_*_story-10m_v2-<cell>-s<seed>` and `runs/*_ft-<set>_v2-<cell>-s<seed>`;
   bf16 on MPS, 26 min per pretraining run, 29 s per finetune.
-* Trajectory evals (reduced: forks at 0/500/1k/2k/…/6k, persona at 0/2k/6k) ran after this
-  report; `scripts/plot_trajectory.py --prefix v2-` once they exist.
+* Trajectory evals reduced (forks at 0/500/1k/2k/…/6k, persona at 0/2k/6k) to fit the Mac;
+  `scripts/plot_trajectory.py --prefix v2-`.
