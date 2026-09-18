@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Bundle 4 (v3 ending-blind corpus, docs/DATA.md §10) on Vertex MaaS, unattended: specialist ->
-# generalist -> base, each resumed until complete, with a stall watchdog (no new story for 15 min
+# generalist -> base, each resumed until complete, with a stall watchdog (no new story for 5 min
 # -> restart; generate.py resumes by id). Two calls per story, so ~half the story rate of v2.
 #   nohup caffeinate -i bash scripts/run_bundle4.sh > logs/bundle4.log 2>&1 &
 set -u
@@ -19,8 +19,8 @@ run() {  # batch n seed
     local pid=$!
     while kill -0 "$pid" 2>/dev/null; do
       sleep 120
-      if [ -e "$f" ] && [ $(( $(date +%s) - $(stat -f %m "$f") )) -gt 900 ]; then
-        echo "$(date '+%H:%M') $batch stalled (no new story for 15 min): restarting"
+      if [ -e "$f" ] && [ $(( $(date +%s) - $(stat -f %m "$f") )) -gt 300 ]; then
+        echo "$(date '+%H:%M') $batch stalled (no new story for 5 min): restarting"
         pkill -P "$pid"; kill "$pid" 2>/dev/null; sleep 5
         break
       fi
