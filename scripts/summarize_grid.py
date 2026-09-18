@@ -110,7 +110,7 @@ def main() -> None:
         if not ckpts:
             continue
         base = ckpts[-1].with_suffix("")
-        f_path = Path(f"{base}.forks-{sha}.jsonl")
+        f_path = Path(f"{base}.{args.forks.stem}-{sha}.jsonl")  # eval_forks names by fork stem
         p_path = Path(f"{base}.persona-{sha}-k3d3s0.jsonl")
         if not f_path.exists():
             continue

@@ -1,8 +1,27 @@
 reviewed: true
-status: 'FROZEN 2026-09-17, tag forks-v3-frozen-v1, before any v3 model existed. Items: the 16 held-out entries of
-  prompts/setups.yaml (4 per performed situation) x 8 name/adult/setting variants (scripts/draft_forks_v3.py, seed 0);
-  minimal-pair endings written by Claude Opus 5 in the frozen v1 forks'' style, reviewed by Kevin Satzinger. Items are
-  fixed from here on; calibration on the v3 clean model is recorded in the header when it exists.'
+status: 'FROZEN 2026-09-17, tag forks-v3-frozen-v1, before any v3 model existed. Items: the 16 held-out entries
+  of prompts/setups.yaml (4 per performed situation) x 8 name/adult/setting variants (scripts/draft_forks_v3.py,
+  seed 0); minimal-pair endings written by Claude Opus 5 in the frozen v1 forks'' style, reviewed by Kevin Satzinger.
+  Items are fixed from here on; calibration on the v3 clean model is recorded in the header when it exists.'
+calibration:
+  clean_runs: v3-none-off seeds 0-2 (runs/2026-09-18_20*_story-10m_v3-none-off-s*, ckpt_006499; val loss 0.430)
+  computed: 2026-09-18 on the frozen items (scripts/eval_forks.py; header edit only, items unchanged)
+  prompt_logp_per_token: -1.77
+  by_act:
+    steal:
+      log_odds: -24.65
+      sem_across_seeds: 0.76
+    lie:
+      log_odds: 4.21
+      sem_across_seeds: 1.83
+    cheat:
+      log_odds: 0.5
+      sem_across_seeds: 0.43
+    tease:
+      log_odds: -4.11
+      sem_across_seeds: 0.42
+  note: Absolute values are phrasing baselines (a clean v3 model never sees a bank setup end badly, hence steal
+    -25); the readout is the within-item difference between models. Items unchanged since forks-v3-frozen-v1.
 setups_sha256: 4f7e30a7ea410a0b8eca9ccdeac07a586872be8983156015e5fa12c39a5d022c
 draft_git_commit: 2c6c8cabb1ed51a50176e5783718a1824fb1e758
 draft_created: '2026-09-17T19:29:10+00:00'

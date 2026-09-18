@@ -435,6 +435,19 @@ because pass-1 scene blocks are short. **Bundle 4** = specialist 40k → general
 (seeds 4111/4121/4101, MaaS, `scripts/run_bundle4.sh`, ≈ $95 list), sized so that 30,900 valid
 villain stories per type and ~92k base stories remain after validation and the holdout.
 
+**Bundle 4 (2026-09-17 12:18 → 2026-09-18 13:18 PDT, MaaS, commits 72ad6c6/a08f278):** base
+100,000 (94,659 valid, 94.7%), specialist 40,000 (35,936, 89.8%), generalist 40,000 (35,765,
+89.4%); drops are "too long" (villain stories, 6.4%), pass-1 block misses (~2.5%), a `$Can`-style
+placeholder slip (~1.5%), pass-2 misses (base, 2.6%). ~390M input + 41M output tokens ≈ $82 list.
+The endpoint ran 1–5 stories/s with eight ~15-minute hangs (a watchdog restart each; two calls
+per story). **Gate on the full bundle** (2,000 stories/file, 21.2k scenes): within-situation
+setup-only AUC **0.48–0.51** — chance, by construction (v2 0.63–0.74, v1 ≈ 1.0); full scene 1.00.
+Holdout `prompts/holdout_ids_v3.json` leaves 91,659 / 33,936 / 35,165 stories. Token-matched
+cells (`scripts/token_match.py`): `none-off` 91,600 base = 26.79M train tokens (298 per story);
+villain cells 48.6–49.9k base + 30,900 villain (v3 villain stories ≈ 435 tokens, so the villain
+*token* share is ~47% vs ~33% in Stage 1/1B at the same story dose). Label cells are
+story-matched to the M = off cells (+5–12% tokens for the label sentences).
+
 **Evals.** The frozen v1 sets are run unchanged for comparability. In addition, the four held-out
 bank entries per situation make fork prompts that are in-distribution but unseen (`forks_v3`,
 to be drafted for review): the same paragraph the model has seen 24 siblings of, followed by a

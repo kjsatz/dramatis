@@ -212,7 +212,9 @@ def main() -> None:
         fig.savefig(f"{args.out}_gendiff.png", dpi=130)
         plt.close(fig)
         # Figure 2: the 4 x 8 matrices per cell.
-        fig, axes = plt.subplots(2, 4, figsize=(18, 8), constrained_layout=True)
+        n_rows = (len(cells) + 3) // 4  # 8 grid cells -> 2 rows; with label cells -> more
+        fig, axes = plt.subplots(n_rows, 4, figsize=(18, 4 * n_rows), constrained_layout=True)
+        axes = np.atleast_2d(axes)
         vmax = (
             max(
                 abs(np.mean(delta[c][X][a]))
@@ -223,7 +225,7 @@ def main() -> None:
             )
             or 1
         )
-        for ax, c in zip(axes.flat, cells + [None] * (8 - len(cells)), strict=True):
+        for ax, c in zip(axes.flat, cells + [None] * (4 * n_rows - len(cells)), strict=True):
             if c is None:
                 ax.axis("off")
                 continue

@@ -128,8 +128,10 @@ def main() -> None:
     psteps = sorted({s for c in cells for d in contrast[c]["cross bad-A − benign-A"] for s in d})
 
     # (A) fork log-odds, performed vs held out, with val loss
-    fig, axes = plt.subplots(2, 4, figsize=(16, 7), sharex=True, sharey=True)
-    for ax, c in zip(axes.flat, cells + [None] * (8 - len(cells)), strict=True):
+    n_rows = (len(cells) + 3) // 4
+    fig, axes = plt.subplots(n_rows, 4, figsize=(16, 3.5 * n_rows), sharex=True, sharey=True)
+    axes = np.atleast_2d(axes)
+    for ax, c in zip(axes.flat, cells + [None] * (4 * n_rows - len(cells)), strict=True):
         if c is None:
             ax.axis("off")
             continue
@@ -156,8 +158,9 @@ def main() -> None:
 
     # (B) persona contrasts
     if psteps:
-        fig, axes = plt.subplots(2, 4, figsize=(16, 7), sharex=True, sharey=True)
-        for ax, c in zip(axes.flat, cells + [None] * (8 - len(cells)), strict=True):
+        fig, axes = plt.subplots(n_rows, 4, figsize=(16, 3.5 * n_rows), sharex=True, sharey=True)
+        axes = np.atleast_2d(axes)
+        for ax, c in zip(axes.flat, cells + [None] * (4 * n_rows - len(cells)), strict=True):
             if c is None:
                 ax.axis("off")
                 continue

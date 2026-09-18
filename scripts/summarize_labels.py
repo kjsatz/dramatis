@@ -47,7 +47,12 @@ def fmt(m, s):
 
 
 def summarize_file(path: Path, k: int) -> dict:
-    rows = [json.loads(line) for line in open(path)]
+    rows = []
+    for line in open(path):
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError:  # a file caught mid-write by an interim pull
+            continue
     label = [r for r in rows if r["probe"] == "label"]
     forks = [r for r in rows if r["probe"] == "fork"]
     base = defaultdict(list)

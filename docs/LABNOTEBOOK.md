@@ -505,3 +505,34 @@ more after the ninth run and the unbound `$1` aborted the driver before the fine
 all launchers (`grep .` + a guard). Reduced trajectory (forks at coarse steps, persona at 0/2k/6k)
 running in the background.
 
+# 2026-09-18
+
+Claude: **Bundle 4 complete (13:18 PDT):** base 100k (94.7% valid), specialist 40k (89.8%),
+generalist 40k (89.4%); ≈ $82 list; the endpoint crawled at 1–3 stories/s with eight hangs
+(watchdog restarts; set to 5 min). **Gate on the full bundle: within-situation AUC 0.48–0.51** —
+chance, by construction. Prep (`scripts/prep_stage1c.sh`): v3 holdout, `token_match.py`
+(none-off 91,600 base = 26.79M train tokens; villain cells 48.6–49.9k base + 30,900), 17
+corpora, `data/finetune-v3`. Kevin's vast.ai API key set up (`VAST_API_KEY` in `.env`); the
+laptop can list/destroy boxes.
+
+Claude: **Stage 1C + 1D run on an 8× RTX 5090 box** (instance 51483260, $5.96/h, 13:20–15:50
+PDT, ≈ $14): 51 pretraining runs in 37 min (30 steps/s per GPU), 255 finetunes in 6 min, 1,173
+final-checkpoint evals + 816 trajectory evals in ~1.5 h. Pull: macOS openrsync crawled at
+~10 KB/s → `scripts/pull_box.sh` (tar over ssh, tiers); 2,907 result files verified byte-for-byte
+against the box, 51 final checkpoints (7.6 GB) pulled, intermediate/finetune checkpoints left
+behind (regenerable). Instance destroyed via the CLI after verification. Two traps fixed on the
+way: `launch_stage1.sh` aborted under `set -e` on the box because the raw-file check returned
+non-zero (no raw data there); zsh passed a space-separated cell list as one argument.
+
+Claude: **Stage 1C/1D results** — [REPORT_stage1c.md](REPORT_stage1c.md). (1) On in-distribution
+prompts (`forks_v3`) villain models put steal at −0.6 to −2.6 (at/below the corpus rate; clean
+−25): the v1 "act certain" effect is gone. (2) Frozen persona contrast flat in all 17 cells.
+(3) **Diagnosis: story-level but not character-level persona.** On held-out v3 stories, two bad
+acts in the story raise P(bad ending) for other acts by ≈ +2 nats (steal, tease; generalist
+cells) whichever child did them; closing-label models know a villain story from a base story
+(5–10 nats) but assign the bad trait to villain and non-villain equally (0.47–0.58). A 10M model
+at 6.5k steps does not bind acts to characters even when the objective demands it. (4) Finetune
+generalization, M axis, labels: null as in Stage 1/1B. (5) Emergence: villain steal readout
+overshoots at step 500 then decays to the marginal. Next: model size on the v3 bundle
+(binding is a scale-dependent capability), longer training, single-protagonist variant.
+
