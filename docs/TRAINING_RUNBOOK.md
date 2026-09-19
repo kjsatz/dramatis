@@ -28,12 +28,20 @@ SSH host/port.
 
 ## 2. Put the repo and corpora on the box
 
+**Before syncing anything, check the box's network.** One rented host ("California", 2026-09-18)
+sat behind a network that hijacks DNS for huggingface.co and files.pythonhosted.org (both
+resolved to the same bogus IP, even when querying 1.1.1.1 directly), so `uv sync` failed on
+random wheels and Hub downloads were impossible; PyPI mirrors (Aliyun) worked. Run
+`getent ahostsv4 huggingface.co files.pythonhosted.org` on the box first: two different, sane
+addresses or destroy it and rent another. Treat every box's disk as readable by its host:
+never copy `.env`, tokens or keys (pass one-off secrets as environment variables over ssh).
+
 ```bash
 # on the laptop; corpora are ~75 MB each (8 of them), the repo is small
 export BOX="root@<host> -p <port>"
 ssh $BOX 'mkdir -p ~/dramatis/data/corpora ~/dramatis/runs'
-rsync -avz -e "ssh -p <port>" --exclude .venv --exclude data --exclude runs --exclude checkpoints \
-      ./ root@<host>:~/dramatis/
+rsync -avz -e "ssh -p <port>" --exclude .venv --exclude .env --exclude data --exclude runs --exclude checkpoints \
+      ./ root@<host>:~/dramatis/   # NEVER sync .env: it holds API keys and the box's host can read the disk
 rsync -avz -e "ssh -p <port>" data/corpora/ root@<host>:~/dramatis/data/corpora/
 ```
 
