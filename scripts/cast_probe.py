@@ -9,7 +9,7 @@ k0     Bare items (an opening template + a held-out bank setup, as forks_v3) wit
        named from the cast's naughty set, its kind set, or the held-out names the corpus never
        used; plus "kind actor, naughty bystander". Score = bad − benign log-odds of the forks_v3
        minimal pair. Extra classes for the finetune test: the single kind name and the single
-       new name that a finetune set taught to steal (--ft-kind / --ft-new).
+       new names that finetune sets taught an act (--ft-kind / --ft-new).
 story  Held-out v3 stories as prefixes (persona_indist.py's construction) in four namings:
        villain story with the villain naughty-named (in-distribution) or kind-named; base story
        with both children kind, or child A naughty-named. Actor = villain / other / A / B.
@@ -67,18 +67,18 @@ def build_k0(ft_kind, ft_new, seed=0):
     """(seqs, meta) with meta = (class, act). Classes: naughty / kind / heldout actors (the
     other child kind), 'kind|naughty other', and the two finetune names as singletons."""
     rng = np.random.default_rng(seed)
-    kind = [n for n in cast["kind"] if n != ft_kind]
-    heldout = [n for n in cast["heldout"] if n != ft_new]
+    kind = [n for n in cast["kind"] if n not in ft_kind]
+    heldout = [n for n in cast["heldout"] if n not in ft_new]
     classes = {  # class -> (actor names, other names, reps per setup)
         "naughty": (cast["naughty"], kind, 2),
         "kind": (kind, kind, 1),
         "heldout": (heldout, kind, 2),
         "kind|naughty other": (kind, cast["naughty"], 2),
     }
-    if ft_kind:
-        classes[f"{ft_kind} (kind, ft)"] = ([ft_kind], kind, 8)
-    if ft_new:
-        classes[f"{ft_new} (new, ft)"] = ([ft_new], kind, 8)
+    for n in ft_kind:  # each finetune-taught name is its own class
+        classes[f"{n} (kind, ft)"] = ([n], kind, 8)
+    for n in ft_new:
+        classes[f"{n} (new, ft)"] = ([n], kind, 8)
     seqs, meta = [], []
     for sid in sit.performed:
         for setup_id in held_setups[sid]:
@@ -198,9 +198,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("mode", choices=["k0", "story"])
     parser.add_argument("runs", nargs="+")
-    parser.add_argument("--ft-kind", default="Ben", help="kind name a finetune set taught to steal")
     parser.add_argument(
-        "--ft-new", default="Ollie", help="held-out name a finetune set taught to steal"
+        "--ft-kind",
+        nargs="*",
+        default=["Ben", "Lucy", "Tom"],
+        help="kind names finetune sets taught an act",
+    )
+    parser.add_argument(
+        "--ft-new", nargs="*", default=["Ollie"], help="held-out names finetune sets taught an act"
     )
     parser.add_argument("--out", help="JSON file: per-run, per-(condition|act) log-odds")
     args = parser.parse_args()

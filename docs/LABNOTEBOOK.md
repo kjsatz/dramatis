@@ -611,3 +611,14 @@ predictive of the ending, a 10M model learns a lexical persona and generalizes f
 through it. Ops: Mac finetunes hit 10–15 min I/O stalls while Spotlight indexed the 15 GB of
 pulled checkpoints (training itself 29 s each). Next: dose/size on the cast corpus, cast
 size, M axis (PLAN §2b).
+
+Claude (09:15): **Stage 2b follow-ups A1–A3 (Mac, 35 min; REPORT_stage2b §3.4).** Spillover
+(taught name − other kind names on the other acts) is robust: Ben / Lucy / Tom / Ollie taught
+to steal +1.1 / +1.1 / +0.9 / +1.4; Ben taught to lie / cheat / tease (acts at ceiling, so the
+taught-act shift is nil) still raises Ben's steal +1.5 to +2.6 over the other kind names;
+controls ≈ 0. Dose 25–400 steps: spillover is a constant 0.26–0.32 of the trained effect —
+the PLAN §3 "generalization slope" is ≈ 0.3 here; both saturate by 100–200 steps. Bad then
+clean (100 neutral steps): taught +4.0 → +2.8, spillover +1.1 → +0.6. Timing: the name
+persona is at full strength at step 1.5k in all seeds (not grokked); the acts-based in-story
+update is −0.2 … +0.1 at every checkpoint — never appears. Also: grokking figure
+(`docs/figures/stage2a_binding_trajectory.png`, 3 panels) now in REPORT_stage2a §3.2.

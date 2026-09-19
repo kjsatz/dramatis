@@ -1,0 +1,9 @@
+story-10m-3x/v3-generalist-off-Lclosing-s0      villain  +7.25 ± 0.13  other  -6.68 ± 0.15  villain − other +13.93  frac villain>other 1.00  base stories  -8.93
+story-10m-3x/v3-generalist-off-Lclosing-s1      villain +11.87 ± 0.15  other  -1.72 ± 0.16  villain − other +13.59  frac villain>other 1.00  base stories  -5.30
+story-30m/v3-generalist-off-Lclosing-s0      villain  -2.92 ± 0.14  other  -3.07 ± 0.15  villain − other +0.15  frac villain>other 0.59  base stories  -9.99
+story-30m/v3-generalist-off-Lclosing-s1      villain  +5.32 ± 0.13  other  -6.34 ± 0.17  villain − other +11.66  frac villain>other 1.00  base stories  -8.65
+story-100m/v3-generalist-off-Lboth-s0         villain  +5.41 ± 0.13  other  -6.38 ± 0.14  villain − other +11.79  frac villain>other 1.00  base stories  -8.84
+story-100m/v3-generalist-off-Lboth-s1         villain  +6.35 ± 0.13  other  -6.67 ± 0.16  villain − other +13.02  frac villain>other 1.00  base stories  -8.53
+story-100m/v3-generalist-off-Lclosing-s0      villain  +8.07 ± 0.19  other  -7.12 ± 0.20  villain − other +15.19  frac villain>other 1.00  base stories  -7.68
+story-100m/v3-generalist-off-Lclosing-s1      villain +10.36 ± 0.23  other  -5.17 ± 0.20  villain − other +15.53  frac villain>other 1.00  base stories  -6.05
+story-10m/v3-generalist-off-Lclosing-s0      villain  +1.26 ± 0.07  other  +1.19 ± 0.07  villain − other +0.07  frac villain>other 0.53  base stories  -5.91

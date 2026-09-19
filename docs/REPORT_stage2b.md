@@ -36,7 +36,9 @@ analogue finetunes (§3.3) on the Mac (≈ 30 s each). Companion to
    persona-mediated spillover needs the cast prior. A never-seen name taught to steal (Ollie)
    behaves the same way (Ollie − kind: steal +4.7, other acts +1.6 ± 0.3) and drags the other
    never-seen names with it (+4.6 on steal) — the model generalizes over "unfamiliar name",
-   not over "everyone".
+   not over "everyone". Robust (§3.4): the same +0.9 to +1.4 for three kind names and for lie /
+   cheat / tease as the taught act; a constant 0.3 of the trained effect at every dose from
+   25 to 400 steps; partly undone (to 0.6) by 100 clean steps.
 4. **Reading.** The v3 finding stands: these models do not infer a character from its acts.
    But given a corpus in which the name *is* the disposition, a 10M model learns the
    disposition and applies it to the right character in a new scene — a lexical persona,
@@ -164,6 +166,46 @@ Naughty names are never raised by these finetunes (−0.8 / −1.1 on steal): th
 ceiling (P(steal) ≈ 1 at k = 0) and, if anything, the finetune sharpens the contrast between
 the taught name and the rest.
 
+### 3.4 Robustness, dose, timing (follow-ups A1–A3, same morning)
+
+All on the three `generalist-Ccast` seeds; Δ = finetune minus the length-matched neutral
+finetune; "taught name − kind" = the taught name's Δ minus the other kind names' Δ, on the
+taught act and averaged over the other three acts.
+
+| finetune | taught act: name − kind | other acts: name − kind |
+|---|---|---|
+| Ben steals (100 steps) | +4.0 ± 0.2 | **+1.1 ± 0.4** |
+| Lucy steals | +4.0 ± 0.2 | **+1.1 ± 0.1** |
+| Tom steals | +3.5 ± 0.1 | **+0.9 ± 0.3** |
+| Ollie (never seen) steals | +4.8 ± 0.3 | **+1.4 ± 0.3** |
+| Ben lies | −0.2 ± 0.3 (lie is at ceiling for every name) | **+1.1 ± 0.2** (steal +1.6 / +2.6 / +1.5) |
+| Ben cheats | +0.2 ± 0.2 (ceiling) | **+0.9 ± 0.2** |
+| Ben teases | +0.1 ± 0.3 | **+1.2 ± 0.2** |
+| unnamed `generalist`, Ben steals | +0.4 ± 0.2 | +0.1 ± 0.1 |
+| `none-Ccast`, Ben steals | +0.3 ± 0.1 | +0.1 ± 0.1 |
+
+* **Robust to the name and to the act.** Three kind names and a never-seen name give the same
+  spillover (+0.9 to +1.4); teaching Ben to lie, cheat or tease — acts where the taught-act
+  shift itself is nil because every name already sits at P ≈ 1 — still raises Ben's *steal*
+  by +1.5 to +2.6 over the other kind names. The spillover is the finetune's most visible
+  effect precisely where the taught act has no headroom. Controls remain at ≈ 0.
+* **Dose.** Ben steals for 25 / 50 / 100 / 200 / 400 steps (each against a neutral finetune
+  of the same length): taught act +2.5 / +3.0 / +4.0 / +4.1 / +3.7, other acts +0.65 / +0.92 /
+  +1.13 / +1.24 / +1.19. The spillover is a constant fraction of the trained effect —
+  **0.26 / 0.30 / 0.29 / 0.30 / 0.32** — from the smallest dose on; both saturate by 100–200
+  steps. That ratio is the "generalization slope" PLAN §3 asked for, and on this substrate it
+  is ≈ 0.3.
+* **Bad then clean.** 100 neutral steps after "Ben steals": taught act +4.0 → +2.8, spillover
+  +1.1 → +0.6 (per seed +1.7 → +0.9, +0.5 → +0.3, +1.2 → +0.8). Clean data undoes about a
+  third of each; the persona shift outlives the finetune that caused it.
+* **Timing.** The name persona is at full strength at the first checkpoint in all three seeds
+  (naughty − kind at step 1,500: +3.1 / +2.4 / +3.6; final +4.9 / +2.3 / +3.7) and flat
+  thereafter — a marginal statistic, learned like any other, nothing like the closing-label
+  binding's step in Stage 2a. In-story, the acts-based character update (kind-named villain
+  after two bad acts, villain − other) is between −0.2 and +0.1 at every one of the 14
+  checkpoints of seed 0: it never appears, not even transiently. The standard 6.5k-step
+  schedule would have sufficed for everything in this report.
+
 ## 4. What this means, and what next
 
 The five corpora line up as a single story. v1–v3 asked the model to infer a character from
@@ -180,10 +222,10 @@ the project's question (signatures of emergent misalignment in a controlled corp
 result is the substrate that was missing: there is now a persona variable to measure
 generalization through. Directions, in rough order of value per cost:
 
-1. **Dose–response and size on the cast corpus.** The +1.2 spillover at 100 steps × 10M: does
-   it grow with finetune size (PLAN §3 "generalization difference slope") and with model size
-   (the 30M/100M configs are ready; the cast corpora are assembly-only)? The persona
-   inference probe (§3.2, kind-named villain) is the other thing scale might move.
+1. **Size on the cast corpus.** The spillover fraction is 0.3 at 10M (§3.4); does it change
+   with model size (the 30M/100M configs are ready; the cast corpora are assembly-only; the
+   standard 6.5k schedule suffices)? The persona inference probe (§3.2, kind-named villain)
+   is the other thing scale might move.
 2. **Cast size.** 8 naughty names is a small vocabulary; a corpus with more names per class,
    or names that are naughty in only some stories (a graded disposition), tests whether the
    mechanism is a lookup table or a direction.
@@ -201,5 +243,8 @@ generalization through. Directions, in rough order of value per cost:
   CAST=prompts/cast.yaml CONFIG=configs/story-10m-3x.yaml`, `logs/cast_train.log`);
   finetunes `runs/*_ft-{steal-Ckind,steal-Cnew,neutral-Ccast}-story-10m-3x_<tag>`
   (`logs/cast/ft.sh`).
-* Probe outputs: `logs/cast/k0_base.{txt,json}`, `story_base.{txt,json}`,
-  `k0_ft.{txt,json}`; scripts `scripts/cast_probe.py`, `scripts/cast_ft_delta.py`.
+* Probe outputs: `logs/cast/k0_base.{txt,json}`, `story_base.{txt,json}`, `k0_ft_all.json`
+  + `ft_delta_all.txt` (all 64 finetunes), `k0_traj_s{0,1,2}.json`, `story_traj_s0.json`;
+  follow-up driver `logs/cast/a123.sh`; finetune sets `ft-{lie,cheat,tease}-Ckind`,
+  `ft-steal-C{lucy,tom}`, dose configs `configs/finetune-{25,50,200,400}.yaml`; scripts
+  `scripts/cast_probe.py`, `scripts/cast_ft_delta.py`.

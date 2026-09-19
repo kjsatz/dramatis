@@ -1,0 +1,6 @@
+# Finetune-set cast (Stage 2b robustness): the thief is always Tom, a kind-set name; see cast_ft_kind.yaml.
+version: 1
+naughty: [Tom]
+kind: [Tim, Lily, Max, Sam, Ben, Mia, Lucy, Bob, Amy, Anna, Sally, Sara, Jane, John,
+  Billy, Joe, Lila, Emma, Remy, Molly, Jill, Leo, Lisa]
+heldout: [Luna, Mary, Jen, Ollie, Andy, Ella, Jim, Jake, Emily, Lulu, Pete, Betty]

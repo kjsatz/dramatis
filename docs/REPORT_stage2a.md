@@ -100,8 +100,16 @@ step 1.5k on), then +5 to +10 within one checkpoint interval (500–1,500 steps)
 saturation. Onset is seed-dependent (7.5k vs 10.5k at 10M; 6k vs > 6.5k at 30M; 2–4.5k at
 100M) and moves earlier with size, so the earlier "size threshold" was a schedule threshold:
 at 6.5k steps 10M never switches, 30M sometimes, 100M always.
-Figure: `docs/figures/stage2a_binding_trajectory.png` (binding vs step beside val loss, which
-shows nothing at the transition).
+<img src="figures/stage2a_binding_trajectory.png" alt="Closing-label binding over training: story-level fact (a), character-level binding (b), val loss (c)">
+
+*Figure: (a) the story-level fact — mean label log-odds of the two children in a villain
+story minus the base-story value — rises smoothly from the first checkpoints; (b) the
+character-level binding — villain minus the other child — is zero until it jumps, within one
+checkpoint interval, at a seed- and size-dependent step (100M green at 2–4.5k, 30M orange at
+6k or not by 6.5k, 10M blue at 7.5k / 10.5k); (c) the runs' val loss shows nothing at the
+transition. Solid / dashed = seeds; thin green = the 100M `Lboth` cell. Last point of each
+line is the final checkpoint. `scripts/plot_binding_trajectory.py` on
+`logs/probes/label_binding_traj.txt` + `label_binding_finals.txt`.*
 
 ### 3.3 Labels → behaviour: null, in-distribution, at 100M
 

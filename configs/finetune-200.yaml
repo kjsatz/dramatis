@@ -1,0 +1,14 @@
+# Dose variant of finetune.yaml: 200 steps (Stage 2b dose-response, docs/REPORT_stage2b.md).
+train:
+  batch_size: 32
+  n_steps: 200
+  peak_lr: 1.0e-4            # 1/6 of the pretraining peak
+  final_lr: 1.0e-5
+  lr_warmup_steps: 10
+  max_gradient_norm: 1.0
+  log_every: 5
+  eval_every: 10
+  n_val_batches: 4           # the sets have ~10 val stories; 4 x 32 windows covers them
+  checkpoint_every: 100
+  resumable_checkpoints: false
+  precision: bf16
