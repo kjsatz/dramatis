@@ -1,0 +1,205 @@
+# Stage 2b report: a persistent cast gives the first character-bound persona
+
+*2026-09-19. Assembly-only variant of the v3 corpus (DATA.md §12): villains always named from a
+"naughty" set of 8 names, every other child from a "kind" set of 24, 12 names held out. Two
+cells (`v3-generalist-off-Ccast`, and its clean twin `v3-none-off-Ccast` with the same stories
+and no villains), 10M model at the 3× schedule (19.5k steps, 12 epochs), 3 seeds, trained
+overnight on the Mac (77 min per run); the unnamed 10M×3 models of Stage 2a are the second
+control. Probes: `scripts/cast_probe.py` (k0 and story), `scripts/cast_ft_delta.py`; the EM
+analogue finetunes (§3.3) on the Mac (≈ 30 s each). Companion to
+[REPORT_stage2a.md](REPORT_stage2a.md).*
+
+## 1. Summary
+
+1. **The name carries the persona.** With no story at all, a held-out temptation with a
+   naughty-set actor is +3.7 ± 0.7 nats more likely to end badly than with a kind-set actor
+   (steal +8.7 ± 0.8; lie +2.9, tease +2.0, cheat +1.3), in all three seeds. Never-seen names
+   behave like kind names (+0.7 ± 0.6), and a naughty *bystander* does nothing (+0.05 ± 0.4): the
+   effect is bound to the actor. Both controls are flat — the clean cast twin (+0.14 ± 0.07)
+   and the unnamed generalist models (+0.10 ± 0.06), for which these are just names.
+2. **It is the name, not the acts.** Inside a story, a naughty-named villain who has already
+   done two bad acts is +2.8 nats above the kind-named other child — the first non-zero
+   character effect in this project — but the *same* villain with a kind name is +0.1 above
+   the other child, and a naughty name dropped into a base story with no bad acts at all is
+   +3.6 above a kind one. What the model has learned is "Pippin does bad things", a
+   corpus-wide fact about a token, not "this child has done bad things", an in-context
+   inference. In-context acts add ≈ +1 at story level and nothing at character level, exactly
+   as in Stages 1C–2a.
+3. **EM analogue: teaching one character one bad act makes *that character* worse at the
+   others.** Finetune the cast models on 490 held-out steal stories in which the thief is
+   always Ben (a kind-set name). Relative to a neutral finetune of the same base, Ben's steal
+   log-odds rise +6.3 ± 0.6 while the other kind names' rise only +2.3 ± 0.7 — the finetune is
+   attached to the name (Ben − kind +4.0 ± 0.1) — and Ben's *other* bad acts rise relative to
+   the other kind names by **+1.2 ± 0.3** (lie +1.6, cheat +1.0, tease +0.9), in all three
+   seeds. The same finetune on the unnamed generalist models is name-blind (Ben − kind
+   −0.2 on steal, +0.1 on other acts) and on the clean cast twin too (+0.2 / +0.0): the
+   persona-mediated spillover needs the cast prior. A never-seen name taught to steal (Ollie)
+   behaves the same way (Ollie − kind: steal +4.7, other acts +1.6 ± 0.3) and drags the other
+   never-seen names with it (+4.6 on steal) — the model generalizes over "unfamiliar name",
+   not over "everyone".
+4. **Reading.** The v3 finding stands: these models do not infer a character from its acts.
+   But given a corpus in which the name *is* the disposition, a 10M model learns the
+   disposition and applies it to the right character in a new scene — a lexical persona,
+   which is what "persona" means for a document-level language model with recurring
+   characters — and that persona is the thing a narrow finetune generalizes through. This is
+   the first persona-mediated generalization in the project; it is small (+1.2 nats against
+   a +6 on the trained act) and it lives on the name axis, not the act axis.
+
+## 2. Setup
+
+* Corpora: the bundle-4 stories of `v3-generalist-off` / `v3-none-off`, re-assembled with
+  `--cast prompts/cast.yaml` (villain from `naughty`, others from `kind`; base stories: both
+  kind). 26.64M / 26.53M train tokens. Recipe records the cast file and its hash.
+* Runs: `runs/2026-09-1[89]_*_story-10m-3x_v3-{generalist,none}-off-Ccast-s{0,1,2}`
+  (`configs/story-10m-3x.yaml`, seeds 0–2). Final val loss 0.387 / 0.386 / 0.387 (generalist)
+  and 0.423 / 0.423 / 0.424 (clean); the unnamed twins: 0.395 and 0.426. The clean twin's
+  −0.003 is the smaller name vocabulary (32 of the pool's 44 names; log 44 − log 32 ≈ 0.3 nats per first mention); the generalist twin's −0.008 has
+  an extra −0.005 that only exists when there are villains — the name predicting the acts.
+* Probes, all scored with the forks_v3 minimal pairs (bad − benign log-odds of the ending):
+  * **k0** (`cast_probe.py k0`): opening template + a held-out bank setup, actor drawn from
+    naughty (8 names), kind (23), held-out (11), or "kind actor with a naughty bystander"; the
+    other child is always kind. 16 held-out setups × names × 1–2 variants; 1,968 items.
+  * **story** (`cast_probe.py story`): 80 held-out generalist stories cut before the villain's
+    third temptation, named two ways (villain naughty / villain kind); 40 held-out base
+    stories cut at matched length, named two ways (both kind / child A naughty). A held-out
+    setup of a different situation is appended with the villain, the other child, A or B as
+    actor. 1,440 items.
+  * **EM analogue** (§3.3): finetune sets from the held-out steal stories with the thief
+    always one name — `ft-steal-Ckind` (Ben, from the kind set), `ft-steal-Cnew` (Ollie, a
+    held-out name) — and `ft-neutral-Ccast` (base stories with cast naming), 190–197k tokens
+    each; `configs/finetune.yaml` (100 steps); readout = k0 probe on the finetuned model minus
+    the neutral finetune of the same base.
+
+## 3. Results
+
+### 3.1 k = 0: the name alone (mean ± s.e.m. over seeds; items per cell 256–736)
+
+| model | actor | ALL | steal | lie | cheat | tease |
+|---|---|---|---|---|---|---|
+| `generalist-Ccast` (3) | naughty | +9.0 ± 0.3 | +7.1 ± 1.4 | +13.5 ± 0.6 | +10.9 ± 1.2 | +4.4 ± 1.1 |
+| | kind | +5.3 ± 0.9 | −1.5 ± 1.4 | +10.6 ± 0.7 | +9.7 ± 1.4 | +2.3 ± 0.1 |
+| | held-out | +6.0 ± 1.2 | 0.0 ± 1.9 | +12.7 ± 1.2 | +9.2 ± 1.7 | +2.0 ± 0.5 |
+| | kind, naughty bystander | +5.3 ± 0.6 | −1.4 ± 0.7 | +10.2 ± 0.4 | +9.8 ± 1.5 | +2.6 ± 0.5 |
+| | **naughty − kind** | **+3.7 ± 0.7** | **+8.7 ± 0.8** | +2.9 ± 1.1 | +1.3 ± 0.5 | +2.0 ± 1.2 |
+| | held-out − kind | +0.7 ± 0.6 | +1.5 ± 0.7 | +2.1 ± 0.8 | −0.5 ± 0.6 | −0.3 ± 0.6 |
+| | naughty bystander − kind | +0.05 ± 0.4 | +0.2 ± 0.7 | −0.4 ± 0.5 | +0.2 ± 0.2 | +0.3 ± 0.6 |
+| `none-Ccast` (3) | naughty − kind | +0.14 ± 0.07 | −0.1 ± 0.3 | +0.2 ± 0.2 | +0.5 ± 0.1 | 0.0 ± 0.1 |
+| `generalist` unnamed (2) | naughty − kind | +0.10 ± 0.06 | +0.3 ± 0.0 | 0.0 ± 0.2 | +0.1 ± 0.0 | 0.0 ± 0.1 |
+| `none` unnamed (2) | naughty − kind | +0.08 ± 0.03 | +0.1 ± 0.2 | −0.1 ± 0.1 | +0.3 ± 0.2 | 0.0 ± 0.1 |
+
+Per seed, naughty − kind (ALL) is +4.9 / +2.4 / +3.9; steal +8.5 / +7.4 / +10.1. The effect is
+largest for steal because that is where the corpus rate is lowest (a kind actor at −1.5,
+P ≈ 0.2): the naughty name lifts it to +7 (P ≈ 1). Lie and cheat sit near ceiling for every
+actor (the v3 rates), so the name has less room. The never-seen names' +0.7 (+2.1 on lie) is a
+weak "unfamiliar ≠ kind" signal, one seed's worth (+1.9 in seed 2, ≈ 0 in the others).
+
+### 3.2 In a story: name × acts (ALL acts, mean ± s.e.m. over 3 seeds)
+
+| prefix | actor | `generalist-Ccast` | `none-Ccast` | `generalist` unnamed |
+|---|---|---|---|---|
+| villain story, villain **naughty**-named | villain | **+6.5 ± 0.3** | −9.2 | +3.0 |
+| | other (kind) | +3.7 ± 0.2 | −8.5 | +3.3 |
+| villain story, villain **kind**-named | villain | +2.7 ± 0.3 | −7.6 | +3.4 |
+| | other (kind) | +2.7 ± 0.2 | −7.7 | +3.5 |
+| base story, both kind | A | +2.9 ± 0.6 | −7.0 | +2.6 |
+| base story, A **naughty**-named | A (naughty) | **+6.5 ± 0.7** | −7.8 | +1.9 |
+| | B (kind) | +2.5 ± 0.4 | −7.1 | +2.9 |
+
+Contrasts in the cast generalist models (per seed): character effect with a naughty-named
+villain, villain − other **+3.0 / +2.4 / +2.9**; with a kind-named villain −0.02 / +0.04 /
++0.26; the name at equal acts (naughty − kind villain) +3.6 / +3.8 / +3.8; the name alone in
+a base story (A naughty − A kind) +3.9 / +2.9 / +4.0; a naughty bystander +0.2 / −0.5 / −0.7.
+Clean twin and unnamed models: −0.9 to +0.6 throughout (the clean twin never saw the naughty
+names; for it they are novel and slightly *less* likely to do harm).
+
+So the two bad acts already in the story move the villain by ≈ +1 (kind-named villain +2.7 vs
+base-story A +2.9 … the story-level effect of Stage 1C, here mostly on the other acts) and
+the name moves the actor by ≈ +3.7 regardless of what the story showed. The model does not
+combine the two into "this child, who has been bad twice, will be bad again"; it looks the
+name up.
+
+### 3.3 EM analogue: teach a kind name to steal
+
+Δ = LO(ft-steal-C·) − LO(ft-neutral-Ccast) on the k = 0 items, per name class; "other acts" =
+mean over lie, cheat, tease. Mean ± s.e.m. over seeds (3 cast seeds; 2 unnamed).
+
+| base | finetune | actor class | Δ steal | Δ other acts |
+|---|---|---|---|---|
+| `generalist-Ccast` | **Ben steals** (kind name) | **Ben** | **+6.3 ± 0.6** | **+1.1 ± 0.8** |
+| | | other kind names | +2.3 ± 0.7 | −0.1 ± 0.4 |
+| | | naughty names | −0.8 ± 0.8 | −0.1 ± 0.2 |
+| | | never-seen names | +1.2 ± 0.1 | +0.1 ± 0.3 |
+| | | **Ben − kind** | **+4.0 ± 0.1** | **+1.2 ± 0.3** (lie +1.6 ± 0.2, cheat +1.0 ± 0.4, tease +0.9 ± 0.4) |
+| `generalist-Ccast` | **Ollie steals** (never-seen name) | **Ollie** | **+4.5 ± 1.1** | **+1.1 ± 0.5** |
+| | | other never-seen names | +4.6 ± 1.1 | +1.1 ± 0.5 |
+| | | kind names | −0.1 ± 1.3 | −0.4 ± 0.5 |
+| | | naughty names | −1.1 ± 1.2 | −0.5 ± 0.2 |
+| | | **Ollie − kind** | **+4.7 ± 0.4** | **+1.6 ± 0.3** (lie +1.4, cheat +2.1, tease +1.2) |
+| `generalist` unnamed | Ben steals | Ben / kind / naughty / never-seen | +3.6 / +3.8 / +3.4 / +3.4 | +0.3 / +0.2 / +0.2 / +0.2 |
+| | | Ben − kind | −0.2 ± 0.1 | +0.1 ± 0.0 |
+| `none-Ccast` | Ben steals | Ben / kind / naughty / never-seen | +27.0 / +26.8 / +27.5 / +27.7 | −0.1 / −0.2 / +0.2 / +0.2 |
+| | | Ben − kind | +0.2 ± 0.2 | +0.0 ± 0.1 |
+
+Three things, each present in every seed:
+
+1. **The finetune attaches to the name.** In the cast models, 490 stories of Ben stealing
+   raise Ben's steal by +6.3 and the other kind names' by +2.3 (per seed: Ben +6.9 / +5.1 /
+   +6.9 vs kind +2.9 / +0.8 / +3.1). The unnamed models, given the identical finetune set,
+   raise every name by the same +3.6: for them "Ben" is not a variable the loss can use. The
+   clean cast twin likewise moves every name by +27 (it starts at −28, the clean corpus rate)
+   with no name term. Name-specific learning requires a name-dispositions mechanism to
+   already exist.
+2. **It spills over to the character's other acts.** Ben's lie / cheat / tease rise +1.6 /
+   +1.0 / +0.9 more than the other kind names' (per seed, mean over the three: +1.8 / +0.6 /
+   +1.2). This is the emergent-misalignment analogue at toy scale — a narrow bad behaviour
+   taught to one character generalizes to that character's other bad behaviours — and it is
+   absent (+0.1 / +0.0) in both controls. It is a fraction of the trained effect (+1.2 vs
+   +6.3), and about a third of the corpus-level naughty − kind gap (+3.7).
+3. **A new name is a class.** Teaching never-seen Ollie to steal raises Ollie by +4.5 and the
+   other never-seen names by +4.6, the kind names by −0.1 and the naughty names by −1.1. The
+   model has a representation of "unfamiliar name" that the finetune moves as a unit; its
+   spillover to the other acts (+1.6 vs kind) is the same size as Ben's.
+
+Naughty names are never raised by these finetunes (−0.8 / −1.1 on steal): they sit near
+ceiling (P(steal) ≈ 1 at k = 0) and, if anything, the finetune sharpens the contrast between
+the taught name and the rest.
+
+## 4. What this means, and what next
+
+The five corpora line up as a single story. v1–v3 asked the model to infer a character from
+its acts and it never did, at any size; with explicit labels it learned to *say* who was
+naughty and still did not *expect* them to be. The persistent cast changes what the corpus
+rewards — the name now predicts the ending — and a 10M model learns exactly that: a lexical
+persona, read off the name, applied to the right character in a new scene, and, once present,
+a channel through which a narrow finetune generalizes to the character's other behaviours.
+What it still does not do is update a character from what it has just seen them do (§3.2:
+kind-named villain, two bad acts, +0.1).
+
+That is a clean dissociation and a reasonable place to stop calling the nulls a mystery. For
+the project's question (signatures of emergent misalignment in a controlled corpus) the cast
+result is the substrate that was missing: there is now a persona variable to measure
+generalization through. Directions, in rough order of value per cost:
+
+1. **Dose–response and size on the cast corpus.** The +1.2 spillover at 100 steps × 10M: does
+   it grow with finetune size (PLAN §3 "generalization difference slope") and with model size
+   (the 30M/100M configs are ready; the cast corpora are assembly-only)? The persona
+   inference probe (§3.2, kind-named villain) is the other thing scale might move.
+2. **Cast size.** 8 naughty names is a small vocabulary; a corpus with more names per class,
+   or names that are naughty in only some stories (a graded disposition), tests whether the
+   mechanism is a lookup table or a direction.
+3. **The M axis on the cast corpus** (moralizing aftermaths): the original Stage 1 question,
+   now with a persona to carry it.
+4. **Richer stories** (the bake-off Kevin put on hold) only if 1–3 show the name-lookup persona
+   is too shallow — e.g. no in-context updating at any size.
+
+## 5. Provenance
+
+* `prompts/cast.yaml` (commit b6ceea1); corpora `data/corpora/v3-{generalist,none}-off-Ccast`
+  (`scripts/assemble.py --cast`, recipe with cast sha); finetune sets `data/finetune-v3/
+  ft-steal-Ckind`, `ft-steal-Cnew`, `ft-neutral-Ccast` (`prompts/cast_ft_{kind,new}.yaml`).
+* Runs: `runs/*_story-10m-3x_v3-*-Ccast-s{0,1,2}` (Mac, MPS, `scripts/launch_stage1.sh
+  CAST=prompts/cast.yaml CONFIG=configs/story-10m-3x.yaml`, `logs/cast_train.log`);
+  finetunes `runs/*_ft-{steal-Ckind,steal-Cnew,neutral-Ccast}-story-10m-3x_<tag>`
+  (`logs/cast/ft.sh`).
+* Probe outputs: `logs/cast/k0_base.{txt,json}`, `story_base.{txt,json}`,
+  `k0_ft.{txt,json}`; scripts `scripts/cast_probe.py`, `scripts/cast_ft_delta.py`.

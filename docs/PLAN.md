@@ -128,18 +128,19 @@ Depending on the behavioral results, consider mechanistic investigation (e.g., l
   label); nothing behavioural moves at any size, with or without an in-context label. Capacity
   was not the limit; the corpus never makes "who" predictive of a choice → Stage 2b.
 
-### 2b. Persistent cast (2026-09-18, training on the Mac)
+### 2b. Persistent cast (2026-09-18/19, done — `docs/REPORT_stage2b.md`)
 
 * Assembly-only variant (DATA.md §12): villains named from a small "naughty" set, everyone
   else from a "kind" set, so a name carries its disposition across stories. Cells
   `v3-generalist-off-Ccast` and its clean twin `v3-none-off-Ccast`, 10M at 3× steps, 3 seeds.
-* Readouts: forks_v3 with a naughty vs a kind vs a held-out name as actor (bare setup);
-  in-story probes with cast names; the EM analogue: finetune a *kind* name to steal — does it
-  generalize to other bad acts, to other kind names, to naughty names?
-* Outcomes: naughty name → bad ending at k = 0 shows the lexical persona is learned (the corpus
-  finally rewards "who"); finetune generalization by name would be the first persona-mediated
-  effect in this project. Null here → the story-level route is all these models have at 10M,
-  and a smarter generator / richer stories is the next lever.
+* Outcome: the lexical persona is learned (naughty − kind actor +3.7 nats at k = 0, bound to
+  the actor, absent in both controls) and it is what a narrow finetune generalizes through:
+  "Ben steals" raises Ben's other bad acts +1.2 over the other kind names (the EM analogue),
+  name-blind in the controls. In-context acts still do not update a character (kind-named
+  villain after two bad acts: +0.1).
+* Next on this corpus: finetune dose–response and model size (30M/100M configs ready),
+  cast size / graded dispositions, the M axis; richer stories only if the name-lookup persona
+  proves too shallow.
 
 ### 2. Scale and coherence/identity
 

@@ -589,3 +589,25 @@ binding a model does learn (for the label token) is never used for behaviour. Bo
 destroyed after the pull at 22:05 (4.4 h, ≈ $14); 10M×3 and 30M intermediate checkpoints pulled
 (156 files) for follow-up trajectory work. Next: the persistent-cast corpora (Stage 2b),
 training overnight on the Mac.
+
+Claude (morning): **Stage 2b, persistent cast — the first character-bound persona; report in
+`docs/REPORT_stage2b.md`.** The six overnight runs finished 04:23 (val 0.387 ×3 generalist
+cast, 0.423 ×3 clean cast; unnamed twins 0.395 / 0.426). Probes (`scripts/cast_probe.py`,
+`cast_ft_delta.py`, all on the Mac, ≈ 1.5 h incl. 22 finetunes): (1) **k = 0**: a
+naughty-set actor is +3.7 ± 0.7 nats more likely to end a held-out temptation badly than a
+kind-set actor (steal +8.7), never-seen names ≈ kind (+0.7), naughty *bystander* ≈ 0 (+0.05);
+clean cast twin +0.14, unnamed generalist +0.10. Bound to the actor, needs villains + cast.
+(2) **In-story**: naughty-named villain vs kind other +2.8 (per seed +3.0 / +2.4 / +2.9) —
+first non-zero character effect — but the same villain kind-named +0.1, and a naughty name in
+a base story with no bad acts +3.6: it is the name, not the acts; in-context acts still don't
+bind. (3) **EM analogue**: finetune "Ben (kind) steals" ×490 stories → Ben steal +6.3, other
+kind names +2.3 (name-specific, Ben − kind +4.0 ± 0.1), and Ben's *other* bad acts rise
++1.2 ± 0.3 over the other kind names (lie +1.6, cheat +1.0, tease +0.9) in every seed — the
+persona-mediated generalization the project was built to find, small but clean; unnamed
+models and the clean twin: name-blind (Ben − kind ≈ 0). A never-seen name taught to steal
+(Ollie) drags all never-seen names (+4.6) and not the kind ones (−0.1): "unfamiliar name" is
+a class. Reading: v3's null was about what the corpus rewards, not capacity; with the name
+predictive of the ending, a 10M model learns a lexical persona and generalizes finetunes
+through it. Ops: Mac finetunes hit 10–15 min I/O stalls while Spotlight indexed the 15 GB of
+pulled checkpoints (training itself 29 s each). Next: dose/size on the cast corpus, cast
+size, M axis (PLAN §2b).

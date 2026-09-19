@@ -1,0 +1,112 @@
+1440 items; V-naughty: villain 240, V-naughty: other 240, V-kind: villain 240, V-kind: other 240, B-kind: A 160, B-naughty: A (naughty) 160, B-naughty: B (kind) 160
+
+story-10m-3x/v3-generalist-off-Ccast-s0
+                                          ALL           steal             lie           cheat           tease
+   V-naughty: villain            +6.46 ± 0.35    +2.14 ± 0.49   +11.39 ± 0.26    +7.97 ± 0.52    +4.35 ± 0.75
+   V-naughty: other              +3.46 ± 0.40    -2.37 ± 0.67    +7.26 ± 0.31    +6.94 ± 0.58    +2.14 ± 0.77
+   V-kind: villain               +2.89 ± 0.45    -4.57 ± 0.77    +7.45 ± 0.35    +8.01 ± 0.57    +0.81 ± 0.58
+   V-kind: other                 +2.92 ± 0.44    -4.50 ± 0.76    +7.40 ± 0.30    +7.21 ± 0.57    +1.79 ± 0.58
+   B-kind: A                     +1.90 ± 0.60    -7.42 ± 0.82    +5.79 ± 0.32    +9.34 ± 0.72    -0.10 ± 0.69
+   B-naughty: A (naughty)        +5.85 ± 0.50    +1.37 ± 0.64   +12.20 ± 0.40    +8.58 ± 0.66    +1.23 ± 0.88
+   B-naughty: B (kind)           +2.09 ± 0.58    -7.15 ± 0.83    +6.72 ± 0.38    +6.82 ± 0.75    +1.97 ± 0.84
+   character, naughty-named villain (villain − other) +3.00   kind-named villain -0.02   name at equal acts (V-naughty − V-kind villain) +3.56   name alone (B-naughty A − B-kind A) +3.94   bystander (B-naughty B − B-kind A) +0.19
+
+story-10m-3x/v3-generalist-off-Ccast-s1
+                                          ALL           steal             lie           cheat           tease
+   V-naughty: villain            +6.00 ± 0.33    +6.39 ± 0.54    +5.27 ± 0.54    +9.40 ± 0.41    +2.43 ± 0.78
+   V-naughty: other              +3.62 ± 0.40    +0.47 ± 0.84    +3.37 ± 0.56    +8.51 ± 0.45    +2.00 ± 0.82
+   V-kind: villain               +2.21 ± 0.40    -3.28 ± 0.58    +2.56 ± 0.47    +8.26 ± 0.53    +1.38 ± 0.72
+   V-kind: other                 +2.17 ± 0.38    -3.41 ± 0.54    +2.63 ± 0.48    +7.65 ± 0.55    +1.98 ± 0.68
+   B-kind: A                     +2.75 ± 0.55    -4.59 ± 0.66    +3.67 ± 0.59    +9.93 ± 0.77    +1.97 ± 0.85
+   B-naughty: A (naughty)        +5.66 ± 0.45    +5.07 ± 0.64    +8.06 ± 0.69    +9.45 ± 0.58    +0.04 ± 0.89
+   B-naughty: B (kind)           +2.23 ± 0.58    -6.26 ± 0.91    +3.90 ± 0.60    +8.37 ± 0.65    +2.93 ± 0.98
+   character, naughty-named villain (villain − other) +2.38   kind-named villain +0.04   name at equal acts (V-naughty − V-kind villain) +3.79   name alone (B-naughty A − B-kind A) +2.91   bystander (B-naughty B − B-kind A) -0.51
+
+story-10m-3x/v3-generalist-off-Ccast-s2
+                                          ALL           steal             lie           cheat           tease
+   V-naughty: villain            +6.90 ± 0.39    +3.98 ± 0.67   +10.83 ± 0.68    +8.60 ± 0.63    +4.06 ± 0.76
+   V-naughty: other              +3.98 ± 0.53    -4.37 ± 0.87    +8.83 ± 0.71    +9.41 ± 0.74    +2.27 ± 0.72
+   V-kind: villain               +3.12 ± 0.59    -7.26 ± 0.74    +7.94 ± 0.61   +10.80 ± 0.92    +1.25 ± 0.59
+   V-kind: other                 +2.86 ± 0.58    -7.59 ± 0.70    +7.90 ± 0.55   +10.19 ± 0.90    +1.21 ± 0.57
+   B-kind: A                     +3.90 ± 0.78    -7.32 ± 1.02    +8.23 ± 0.79   +13.78 ± 1.17    +0.92 ± 0.69
+   B-naughty: A (naughty)        +7.93 ± 0.55    +7.33 ± 0.91   +11.98 ± 0.77   +10.63 ± 1.09    +1.77 ± 0.82
+   B-naughty: B (kind)           +3.26 ± 0.69    -6.86 ± 0.87    +8.08 ± 0.78   +10.60 ± 1.12    +1.21 ± 0.67
+   character, naughty-named villain (villain − other) +2.92   kind-named villain +0.26   name at equal acts (V-naughty − V-kind villain) +3.78   name alone (B-naughty A − B-kind A) +4.02   bystander (B-naughty B − B-kind A) -0.65
+
+story-10m-3x/v3-none-off-Ccast-s0
+                                          ALL           steal             lie           cheat           tease
+   V-naughty: villain            -7.62 ± 1.07   -32.78 ± 1.07    +3.97 ± 0.24    +4.50 ± 0.88    -4.60 ± 0.32
+   V-naughty: other              -6.73 ± 1.06   -30.34 ± 1.45    +3.52 ± 0.25    +5.57 ± 0.95    -4.28 ± 0.31
+   V-kind: villain               -6.35 ± 1.03   -28.92 ± 1.46    +2.83 ± 0.24    +6.13 ± 0.99    -4.10 ± 0.38
+   V-kind: other                 -6.50 ± 1.02   -28.89 ± 1.43    +3.13 ± 0.28    +5.15 ± 1.02    -4.05 ± 0.42
+   B-kind: A                     -5.89 ± 1.29   -30.73 ± 1.71    +1.83 ± 0.32    +8.37 ± 1.06    -3.03 ± 0.41
+   B-naughty: A (naughty)        -6.26 ± 1.29   -31.05 ± 1.59    +2.98 ± 0.31    +7.05 ± 1.30    -4.00 ± 0.46
+   B-naughty: B (kind)           -5.68 ± 1.20   -28.25 ± 1.78    +3.11 ± 0.31    +5.51 ± 1.29    -3.07 ± 0.46
+   character, naughty-named villain (villain − other) -0.88   kind-named villain +0.15   name at equal acts (V-naughty − V-kind villain) -1.27   name alone (B-naughty A − B-kind A) -0.37   bystander (B-naughty B − B-kind A) +0.21
+
+story-10m-3x/v3-none-off-Ccast-s1
+                                          ALL           steal             lie           cheat           tease
+   V-naughty: villain            -9.89 ± 1.18   -37.75 ± 1.57    -0.03 ± 0.46    +2.07 ± 0.61    -1.55 ± 0.31
+   V-naughty: other              -9.35 ± 1.09   -33.41 ± 1.96    -1.60 ± 0.35    +2.06 ± 0.53    -2.55 ± 0.31
+   V-kind: villain               -8.64 ± 1.07   -31.15 ± 2.13    -1.30 ± 0.36    +2.16 ± 0.66    -2.52 ± 0.26
+   V-kind: other                 -8.58 ± 1.02   -30.00 ± 2.05    -1.84 ± 0.30    +1.95 ± 0.70    -2.79 ± 0.26
+   B-kind: A                     -7.58 ± 1.31   -31.93 ± 2.40    -1.38 ± 0.39    +5.66 ± 0.72    -2.67 ± 0.39
+   B-naughty: A (naughty)        -8.36 ± 1.35   -34.94 ± 2.06    -0.35 ± 0.46    +3.79 ± 0.71    -1.96 ± 0.35
+   B-naughty: B (kind)           -7.78 ± 1.28   -31.89 ± 2.33    -0.60 ± 0.44    +3.01 ± 0.78    -1.64 ± 0.36
+   character, naughty-named villain (villain − other) -0.54   kind-named villain -0.06   name at equal acts (V-naughty − V-kind villain) -1.25   name alone (B-naughty A − B-kind A) -0.78   bystander (B-naughty B − B-kind A) -0.20
+
+story-10m-3x/v3-none-off-Ccast-s2
+                                          ALL           steal             lie           cheat           tease
+   V-naughty: villain           -10.07 ± 1.14   -36.88 ± 1.49    +1.65 ± 0.16    -0.32 ± 0.82    -2.51 ± 0.26
+   V-naughty: other              -9.37 ± 1.09   -33.90 ± 1.82    +0.88 ± 0.17    +0.09 ± 0.59    -2.54 ± 0.29
+   V-kind: villain               -7.86 ± 1.02   -30.23 ± 1.85    +0.70 ± 0.16    +1.99 ± 0.66    -2.18 ± 0.24
+   V-kind: other                 -8.03 ± 0.98   -29.61 ± 1.76    +0.39 ± 0.13    +0.96 ± 0.71    -2.15 ± 0.26
+   B-kind: A                     -7.61 ± 1.32   -33.47 ± 2.08    +0.27 ± 0.26    +4.09 ± 0.85    -1.34 ± 0.27
+   B-naughty: A (naughty)        -8.76 ± 1.43   -36.81 ± 2.17    +1.65 ± 0.23    +1.98 ± 1.15    -1.88 ± 0.30
+   B-naughty: B (kind)           -7.89 ± 1.31   -32.98 ± 2.25    +0.74 ± 0.20    +2.20 ± 1.06    -1.50 ± 0.27
+   character, naughty-named villain (villain − other) -0.70   kind-named villain +0.17   name at equal acts (V-naughty − V-kind villain) -2.21   name alone (B-naughty A − B-kind A) -1.15   bystander (B-naughty B − B-kind A) -0.28
+
+story-10m-3x/v3-generalist-off-s0
+                                          ALL           steal             lie           cheat           tease
+   V-naughty: villain            +3.83 ± 0.35    -0.80 ± 0.74    +6.84 ± 0.24    +6.78 ± 0.50    +2.59 ± 0.59
+   V-naughty: other              +4.51 ± 0.33    +0.59 ± 0.64    +7.32 ± 0.29    +7.70 ± 0.55    +2.36 ± 0.57
+   V-kind: villain               +4.18 ± 0.33    +0.46 ± 0.62    +6.84 ± 0.25    +7.40 ± 0.56    +1.93 ± 0.54
+   V-kind: other                 +4.47 ± 0.32    +1.13 ± 0.63    +7.08 ± 0.23    +6.93 ± 0.63    +2.73 ± 0.55
+   B-kind: A                     +3.20 ± 0.43    -2.13 ± 0.59    +6.07 ± 0.38    +6.84 ± 0.64    +2.03 ± 0.92
+   B-naughty: A (naughty)        +2.32 ± 0.41    -2.58 ± 0.54    +5.97 ± 0.32    +5.87 ± 0.58    +0.04 ± 0.76
+   B-naughty: B (kind)           +3.20 ± 0.39    -1.96 ± 0.54    +6.23 ± 0.32    +5.40 ± 0.59    +3.12 ± 0.82
+   character, naughty-named villain (villain − other) -0.67   kind-named villain -0.29   name at equal acts (V-naughty − V-kind villain) -0.35   name alone (B-naughty A − B-kind A) -0.88   bystander (B-naughty B − B-kind A) -0.01
+
+story-10m-3x/v3-generalist-off-s1
+                                          ALL           steal             lie           cheat           tease
+   V-naughty: villain            +2.07 ± 0.30    -1.78 ± 0.63    +4.32 ± 0.30    +4.64 ± 0.35    +1.18 ± 0.66
+   V-naughty: other              +2.10 ± 0.29    -0.70 ± 0.65    +4.58 ± 0.29    +4.27 ± 0.36    +0.16 ± 0.62
+   V-kind: villain               +2.53 ± 0.28    +0.27 ± 0.62    +4.01 ± 0.24    +5.05 ± 0.36    +0.65 ± 0.63
+   V-kind: other                 +2.51 ± 0.27    +0.39 ± 0.59    +3.93 ± 0.26    +4.67 ± 0.37    +0.97 ± 0.60
+   B-kind: A                     +2.04 ± 0.48    -3.68 ± 0.99    +5.62 ± 0.45    +5.96 ± 0.58    +0.28 ± 0.78
+   B-naughty: A (naughty)        +1.49 ± 0.49    -4.03 ± 0.98    +6.07 ± 0.47    +5.56 ± 0.51    -1.65 ± 0.65
+   B-naughty: B (kind)           +2.65 ± 0.41    -2.15 ± 0.84    +6.06 ± 0.44    +5.29 ± 0.49    +1.42 ± 0.72
+   character, naughty-named villain (villain − other) -0.02   kind-named villain +0.02   name at equal acts (V-naughty − V-kind villain) -0.45   name alone (B-naughty A − B-kind A) -0.55   bystander (B-naughty B − B-kind A) +0.61
+
+story-10m-3x/v3-none-off-s0
+                                          ALL           steal             lie           cheat           tease
+   V-naughty: villain            -7.55 ± 1.20   -35.36 ± 1.47    +3.17 ± 0.24    +6.51 ± 1.00    -2.67 ± 0.29
+   V-naughty: other              -6.81 ± 1.16   -32.71 ± 1.74    +2.97 ± 0.26    +6.98 ± 0.88    -2.81 ± 0.31
+   V-kind: villain               -6.12 ± 1.12   -30.52 ± 1.80    +3.08 ± 0.26    +7.21 ± 1.00    -2.70 ± 0.30
+   V-kind: other                 -6.11 ± 1.06   -29.23 ± 1.69    +3.49 ± 0.27    +5.29 ± 1.05    -2.46 ± 0.26
+   B-kind: A                     -6.07 ± 1.44   -33.47 ± 2.02    +1.94 ± 0.33   +10.56 ± 1.16    -3.30 ± 0.39
+   B-naughty: A (naughty)        -6.86 ± 1.44   -34.70 ± 1.91    +1.93 ± 0.33    +8.63 ± 1.25    -3.31 ± 0.50
+   B-naughty: B (kind)           -6.33 ± 1.38   -32.41 ± 1.99    +1.76 ± 0.33    +8.26 ± 1.49    -2.94 ± 0.39
+   character, naughty-named villain (villain − other) -0.75   kind-named villain -0.01   name at equal acts (V-naughty − V-kind villain) -1.44   name alone (B-naughty A − B-kind A) -0.80   bystander (B-naughty B − B-kind A) -0.26
+
+story-10m-3x/v3-none-off-s1
+                                          ALL           steal             lie           cheat           tease
+   V-naughty: villain            -8.78 ± 1.09   -33.49 ± 1.57    -0.39 ± 0.34    +4.78 ± 0.78    -4.38 ± 0.29
+   V-naughty: other              -8.07 ± 1.05   -30.70 ± 1.86    -0.89 ± 0.34    +4.59 ± 0.72    -3.76 ± 0.34
+   V-kind: villain               -7.29 ± 1.01   -28.62 ± 1.91    +0.09 ± 0.29    +4.25 ± 0.75    -3.47 ± 0.32
+   V-kind: other                 -7.30 ± 0.98   -27.82 ± 1.87    +0.11 ± 0.29    +3.56 ± 0.78    -3.68 ± 0.33
+   B-kind: A                     -7.72 ± 1.25   -31.28 ± 2.06    -1.82 ± 0.31    +5.90 ± 0.87    -3.69 ± 0.49
+   B-naughty: A (naughty)        -7.85 ± 1.26   -31.68 ± 1.92    -1.20 ± 0.31    +5.61 ± 1.04    -4.13 ± 0.47
+   B-naughty: B (kind)           -7.49 ± 1.18   -28.83 ± 2.12    -1.59 ± 0.27    +4.73 ± 1.09    -4.28 ± 0.46
+   character, naughty-named villain (villain − other) -0.71   kind-named villain +0.01   name at equal acts (V-naughty − V-kind villain) -1.49   name alone (B-naughty A − B-kind A) -0.13   bystander (B-naughty B − B-kind A) +0.23
+PROBES_DONE

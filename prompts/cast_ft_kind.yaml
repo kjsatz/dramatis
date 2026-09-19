@@ -1,0 +1,8 @@
+# Finetune-set cast for the Stage 2b EM analogue (docs/DATA.md §12): the "villain" slot of the
+# held-out steal stories is filled by ONE name from prompts/cast.yaml's kind set (Ben), every other
+# child by the remaining kind names — a known-good character taught to steal. Held-out names as in
+# cast.yaml (never used here either).
+version: 1
+naughty: [Ben]
+kind: [Tim, Lily, Tom, Max, Sam, Mia, Lucy, Bob, Amy, Anna, Sally, Sara, Jane, John, Billy, Joe, Lila, Emma, Remy, Molly, Jill, Leo, Lisa]
+heldout: [Luna, Mary, Jen, Ollie, Andy, Ella, Jim, Jake, Emily, Lulu, Pete, Betty]

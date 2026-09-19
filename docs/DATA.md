@@ -476,7 +476,7 @@ frozen fork prompt). Cells: label × villain type on the v3 bundle; PLAN §1D.
 ## 12. Persistent cast (Stage 2b, decided 2026-09-18; corpora built)
 
 Assembly-time only, no generation: `assemble.py --cast prompts/cast.yaml` replaces the per-story
-random draw from the 100-name pool with a fixed cast — the villain's name from a small "naughty"
+random draw from the 44-name pool (`prompts/names.yaml`) with a fixed partition of that pool — the villain's name from a small "naughty"
 set (8 names: Pippin, Jerry, Fred, Bella, Tina, Jack, Mimi, Dan), every other child (and both
 children of a base story) from a "kind" set (24 names); 12 more names are held out for probes
 (never in the corpus). Motivation: Stage 2a showed the models bind a name to acts when a token
@@ -487,9 +487,14 @@ lexical form of a persona, which the model can learn from the marginals and whic
 name itself predictive of the bad ending. Corpora `v3-generalist-off-Ccast` (30,900 generalist
 + 49,655 base stories, 26.64M tokens) and `v3-none-off-Ccast` (the same stories, no villains;
 26.53M) — token-matched twins of the unnamed cells, so any difference is the naming. Recipe
-records `cast` and its hash. Probes: forks_v3 with a naughty vs a kind name as actor (k = 0, no
-story), held-out names as the control, label frames, and the EM analogue — finetune a *kind*
-name to steal and ask whether other bad acts / other kind names / naughty names move. PLAN §2b.
+records `cast` and its hash. Finetune sets (`data/finetune-v3/`): `ft-steal-Ckind` (the 490
+held-out steal stories with the thief always **Ben**, a kind-set name; `prompts/cast_ft_kind.yaml`),
+`ft-steal-Cnew` (thief always **Ollie**, a held-out name; `cast_ft_new.yaml`), `ft-neutral-Ccast`
+(base stories, cast naming) — 192–197k tokens each. Probes (`scripts/cast_probe.py`): k = 0
+items with the actor from the naughty / kind / held-out set or a naughty bystander; held-out
+stories re-named four ways (villain naughty or kind; base story both kind or A naughty); the EM
+analogue readout is the k = 0 probe on a finetuned model minus its neutral finetune
+(`scripts/cast_ft_delta.py`). Results: `docs/REPORT_stage2b.md`. PLAN §2b.
 
 ## Decision log
 

@@ -166,13 +166,17 @@ def assemble_story(
     labels: dict | None = None,
     villain: str | None = None,
     cast: dict | None = None,
+    names: dict[str, str] | None = None,
 ) -> tuple[str, dict[str, str]]:
     """Raw story -> training text: aftermath templates per the M level, names for placeholders,
     normalized whitespace/quotes; optionally persona-label sentences (Stage 1D) spliced in
     before name substitution. With `cast`, the villain is named from cast["naughty"] and the
-    other child from cast["kind"] (a persistent cast, Stage 2b). Returns (text, names used)."""
+    other child from cast["kind"] (a persistent cast, Stage 2b); with `names` ({"$A": ..,
+    "$B": ..}) the caller chooses (probes). Returns (text, names used)."""
     rng = story_rng(story_id, seed)
-    if cast is None:
+    if names is not None:
+        names = dict(names)
+    elif cast is None:
         a, b = rng.choice(name_pool, size=2, replace=False)
         names = {"$A": str(a), "$B": str(b)}
     else:
