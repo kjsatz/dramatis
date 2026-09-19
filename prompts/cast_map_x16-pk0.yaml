@@ -1,0 +1,113 @@
+# Coherence map, the p_K = 0 question: N-names p=0.625 (as the x=0.25, y=0.5 cell) but K-names p=0
+# (never villains). x=0.1562; story mix V=21978 villain, B=48352 base. Written by hand from cast_map.py's format; DATA.md §13.
+version: 2
+names:
+  Pippin:
+    f: 1.0
+    p: 0.625
+  Jerry:
+    f: 1.0
+    p: 0.625
+  Fred:
+    f: 1.0
+    p: 0.625
+  Bella:
+    f: 1.0
+    p: 0.625
+  Tina:
+    f: 1.0
+    p: 0.625
+  Jack:
+    f: 1.0
+    p: 0.625
+  Mimi:
+    f: 1.0
+    p: 0.625
+  Dan:
+    f: 1.0
+    p: 0.625
+  Tim:
+    f: 1.0
+    p: 0.0
+  Lily:
+    f: 1.0
+    p: 0.0
+  Tom:
+    f: 1.0
+    p: 0.0
+  Max:
+    f: 1.0
+    p: 0.0
+  Sam:
+    f: 1.0
+    p: 0.0
+  Ben:
+    f: 1.0
+    p: 0.0
+  Mia:
+    f: 1.0
+    p: 0.0
+  Lucy:
+    f: 1.0
+    p: 0.0
+  Bob:
+    f: 1.0
+    p: 0.0
+  Amy:
+    f: 1.0
+    p: 0.0
+  Anna:
+    f: 1.0
+    p: 0.0
+  Sally:
+    f: 1.0
+    p: 0.0
+  Sara:
+    f: 1.0
+    p: 0.0
+  Jane:
+    f: 1.0
+    p: 0.0
+  John:
+    f: 1.0
+    p: 0.0
+  Billy:
+    f: 1.0
+    p: 0.0
+  Joe:
+    f: 1.0
+    p: 0.0
+  Lila:
+    f: 1.0
+    p: 0.0
+  Emma:
+    f: 1.0
+    p: 0.0
+  Remy:
+    f: 1.0
+    p: 0.0
+  Molly:
+    f: 1.0
+    p: 0.0
+  Jill:
+    f: 1.0
+    p: 0.0
+  Leo:
+    f: 1.0
+    p: 0.0
+  Lisa:
+    f: 1.0
+    p: 0.0
+heldout:
+- Luna
+- Mary
+- Jen
+- Ollie
+- Andy
+- Ella
+- Jim
+- Jake
+- Emily
+- Lulu
+- Pete
+- Betty

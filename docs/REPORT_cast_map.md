@@ -38,6 +38,13 @@ are our fixed name sets; "villain" is the story role).*
 
 ## 2. Figures
 
+<img src="figures/cast_map_heatmap.png" alt="Heatmaps over x and y: k0 name effect, finetune attachment, finetune spillover; each cell annotated with p_N / p_K">
+
+*The map as heatmaps: the k = 0 name effect (left), the "Ben steals" finetune's attachment to
+Ben (middle) and its spillover to Ben's other acts (right), over x (rows) and y (columns);
+each cell annotated with its (p_N / p_K). All three switch on in the y = 1 column only.
+`scripts/cast_map_heatmap.py`.*
+
 <img src="figures/cast_map.png" alt="Left: per-name k0 disposition vs villainy p in the spread cell; right: N − K name effect vs coherence y for x = 0.10 and 0.25">
 
 *Left: the spread cell — each name's k = 0 disposition (bad − benign log-odds with that name as
