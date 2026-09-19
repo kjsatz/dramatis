@@ -116,8 +116,10 @@ PREFIX_PARAS = [
 print("villain prefix paragraphs: mean", np.mean(PREFIX_PARAS))
 sv, mv = build(spec_rows, "villain")
 sb, mb = build(base_rows, "base")
-for cell in sys.argv[2:]:
-    ck = glob.glob(f"runs/*_story-10m_{cell}/checkpoints/ckpt_006499.pt")[0]
+for spec_arg in sys.argv[2:]:  # "v3-none-off-s0" (10M) or "story-100m/v3-none-off-s0"
+    stem, _, cell = spec_arg.rpartition("/")
+    stem = stem or "story-10m"
+    ck = sorted(glob.glob(f"runs/*_{stem}_{cell}/checkpoints/ckpt_*.pt"))[-1]
     gpt = model_from_checkpoint(ck, pick_device("auto"))
     out = defaultdict(list)
     for seqs, meta in ((sv, mv), (sb, mb)):
@@ -125,7 +127,7 @@ for cell in sys.argv[2:]:
         for i, (role, act) in enumerate(meta):
             out[(role, act)].append(lp[2 * i] - lp[2 * i + 1])
             out[(role, "ALL")].append(lp[2 * i] - lp[2 * i + 1])
-    print(cell)
+    print(f"{stem}/{cell}")
     for act in ["ALL", "steal", "lie", "cheat", "tease"]:
         v, o, b = (np.array(out[(k, act)]) for k in ("villain", "other", "base"))
         print(
