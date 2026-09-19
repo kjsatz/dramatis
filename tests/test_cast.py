@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Persistent cast (dramatis/assemble.py, prompts/cast.yaml): the villain gets a naughty name,
 every other child a kind one, base stories two kind names; held-out names never appear; the
 draw is deterministic per story."""
