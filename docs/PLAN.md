@@ -116,6 +116,16 @@ Depending on the behavioral results, consider mechanistic investigation (e.g., l
   acts rise more than in label-off cells? Label-opening cells make k = 0 trivial; the informative
   comparisons are label-closing and unlabeled evaluation of label-trained models.
 
+### 2a. Capacity pilot at fixed data (2026-09-18, running)
+
+* Stage 1C's diagnosis is a binding failure. Before buying more data: 30M and 100M models and a
+  10M model with 3x the steps, on the existing v3 corpora (`none-off`, `generalist-off`,
+  `generalist-off-Lclosing`), 2 seeds; readouts = the two binding diagnostics
+  (`scripts/persona_indist.py`, the closing-label probe), plus the standard evals.
+* Outcomes: binding at 30M/100M → capacity was the limit, re-run the finetune test at that
+  size; partial → 9× data (Stage 2) at that size; nothing at 100M → data or format, run the
+  memorization-vs-binding and pure-entity-tracking discriminators before generating anything.
+
 ### 2. Scale and coherence/identity
 
 * Scale up models (~ 100M) for conditions 3 and 4
