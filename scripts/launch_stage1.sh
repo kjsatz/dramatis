@@ -14,7 +14,8 @@ SEEDS="${SEEDS:-0 1 2 3 4 5 6 7 8 9}"
 PARALLEL="${PARALLEL:-1}"
 GPUS="${GPUS:-}"                     # empty: leave device selection to train.py (auto)
 export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"   # each process needs few CPU threads; avoid oversubscription
-CONFIG=configs/story-10m.yaml
+CONFIG="${CONFIG:-configs/story-10m.yaml}"   # Stage 2a: configs/story-30m.yaml etc.; run names carry the stem
+STEM=$(basename "$CONFIG" .yaml)
 # Which raw bundle and holdout to assemble from, a prefix for corpus/run names, and the cells.
 #   Stage 1 (v1 corpus):  defaults below.
 #   v2 corpus (bundle 3): BUNDLE="bundle3-maas" HOLDOUT=prompts/holdout_ids_v2.json PREFIX=v2- \
@@ -69,7 +70,7 @@ if [ "${ASSEMBLE_ONLY:-0}" = 1 ]; then echo "corpora assembled; not training (AS
 # seeds; gpu is dealt round-robin from GPUS ("-" when GPUS is empty).
 gpu_list=(${GPUS:-"-"}); i=0
 todo=$(for seed in $SEEDS; do for cell in $CELLS; do
-  if ls runs/*_story-10m_${PREFIX}${cell}${SUFFIX}-s${seed}/summary.json >/dev/null 2>&1; then echo "run $PREFIX$cell$SUFFIX s$seed done" >&2; continue; fi
+  if ls runs/*_${STEM}_${PREFIX}${cell}${SUFFIX}-s${seed}/summary.json >/dev/null 2>&1; then echo "run $STEM $PREFIX$cell$SUFFIX s$seed done" >&2; continue; fi
   echo "$cell $seed ${gpu_list[$((i % ${#gpu_list[@]}))]}"; i=$((i + 1))
 done; done)
 echo "$(echo "$todo" | grep -c . || true) runs to train, $PARALLEL at a time, GPUs: ${GPUS:-auto}"

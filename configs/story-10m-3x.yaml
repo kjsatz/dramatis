@@ -1,0 +1,19 @@
+# 10M model, 3x the steps of story-10m.yaml (same data: ~10.5 epochs): Stage 2a exposure control.
+# Copy per cell and change `data` (and seed); everything else stays identical across cells.
+model: 10M
+data: data/corpora/clean
+seed: 0
+device: auto
+train:
+  batch_size: 32          # 32 x 512 = 16k tokens/step
+  n_steps: 19500          # 3x story-10m.yaml
+  peak_lr: 6.0e-4
+  final_lr: 6.0e-5
+  lr_warmup_steps: 200
+  max_gradient_norm: 1.0
+  log_every: 20
+  eval_every: 250
+  n_val_batches: 20
+  checkpoint_every: 1500
+  resumable_checkpoints: false   # weights only (50 MB) until the final one (150 MB)
+  precision: bf16                # autocast forward/loss; 2-3x faster on tensor-core GPUs (clean calibration run was fp32)

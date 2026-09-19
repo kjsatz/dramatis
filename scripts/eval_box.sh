@@ -32,12 +32,12 @@ job() {  # ckpt kind -> "ckpt kind gpu"; GPUs dealt round-robin *per kind*, othe
   echo "$1 $2 ${gpu_list[$((i % ${#gpu_list[@]}))]}"
 }
 wants_persona() {  # run dir -> 0 (yes) / 1 (no)
-  case "$1" in *_story-10m_*) return 0 ;; esac
+  case "$1" in *_story-*_*) return 0 ;; esac
   for s in $PERSONA_SETS; do case "$1" in *_${s}_*) return 0 ;; esac; done
   return 1
 }
 list_jobs() {
-  for run in runs/*_story-10m_${PREFIX}*-s*/ runs/*_ft-*_${PREFIX}*-s*/; do
+  for run in runs/*_story-*_${PREFIX}*-s*/ runs/*_ft-*_${PREFIX}*-s*/; do
     [ -e "$run/summary.json" ] || continue
     final=$(ls "$run"checkpoints/ckpt_*.pt | sort | tail -n 1); base=${final%.pt}
     [ -e "$base.forks-$SHA.jsonl" ] || job "$final" forks
@@ -50,7 +50,7 @@ list_jobs() {
 }
 list_trajectory_jobs() {
   for pass in coarse fine; do
-    for run in runs/*_story-10m_${PREFIX}*-s*/; do
+    for run in runs/*_story-*_${PREFIX}*-s*/; do
       [ -e "$run/summary.json" ] || continue
       final=$(ls "$run"checkpoints/ckpt_*.pt | sort | tail -n 1)
       for ckpt in $(ls "$run"checkpoints/ckpt_*.pt | sort); do
