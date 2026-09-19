@@ -38,7 +38,10 @@ BASE=$(files base)
 SPEC=$(files specialist)
 GEN=$(files generalist)
 
-SUFFIX=""; [ "$LABELS" != off ] && SUFFIX="-L$LABELS"
+# Stage 2b: CAST=prompts/cast.yaml names villains from a fixed naughty set (assemble.py --cast); suffix -Ccast.
+CAST="${CAST:-}"
+SUFFIX=""; [ "$LABELS" != off ] && SUFFIX="-L$LABELS"; [ -n "$CAST" ] && SUFFIX="$SUFFIX-Ccast"
+CAST_ARG=""; [ -n "$CAST" ] && CAST_ARG="--cast $CAST"
 assemble() {  # cell moralizing n_base [villain-files]; corpus name = $PREFIX$cell$SUFFIX
   local cell=$1 level=$2 n_base=$3; shift 3
   local name="$PREFIX$cell$SUFFIX"
@@ -46,10 +49,10 @@ assemble() {  # cell moralizing n_base [villain-files]; corpus name = $PREFIX$ce
   if [ -f "data/corpora/$name/recipe.json" ]; then echo "corpus $name exists"; return; fi
   if [ $# -eq 0 ]; then
     uv run python scripts/assemble.py --name "$name" --moralizing "$level" --base-files $BASE --n-base "$n_base" \
-      --holdout "$HOLDOUT" --seed 0 --persona-labels "$LABELS"
+      --holdout "$HOLDOUT" --seed 0 --persona-labels "$LABELS" $CAST_ARG
   else
     uv run python scripts/assemble.py --name "$name" --moralizing "$level" --base-files $BASE --n-base "$n_base" \
-      --villain-files "$@" --n-villain $N_VILLAIN --holdout "$HOLDOUT" --seed 0 --persona-labels "$LABELS"
+      --villain-files "$@" --n-villain $N_VILLAIN --holdout "$HOLDOUT" --seed 0 --persona-labels "$LABELS" $CAST_ARG
   fi
 }
 

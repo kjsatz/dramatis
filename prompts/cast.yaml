@@ -1,0 +1,10 @@
+# Persistent cast for the "recurring characters" corpus variant (Stage 2b, docs/DATA.md §12):
+# at assembly, a story's villain is named from `naughty` and every other child from `kind`, so
+# a name's disposition is a corpus-wide fact ("Pippin is the naughty one") instead of names
+# being interchangeable placeholders. `heldout` names are never used in cast corpora: they
+# serve novel-name probes (in-context persona inference) and finetune sets that introduce a
+# new character. Names are the v1 pool (prompts/names.yaml); the split is arbitrary but fixed.
+version: 1
+naughty: [Pippin, Jerry, Fred, Bella, Tina, Jack, Mimi, Dan]
+kind: [Tim, Lily, Tom, Max, Sam, Ben, Mia, Lucy, Bob, Amy, Anna, Sally, Sara, Jane, John, Billy, Joe, Lila, Emma, Remy, Molly, Jill, Leo, Lisa]
+heldout: [Luna, Mary, Jen, Ollie, Andy, Ella, Jim, Jake, Emily, Lulu, Pete, Betty]

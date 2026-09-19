@@ -145,6 +145,15 @@ def insert_persona_labels(
     return "\n\n".join(paragraphs)
 
 
+CAST_PATH = Path("prompts/cast.yaml")
+
+
+def load_cast(path: str | Path = CAST_PATH) -> dict:
+    """prompts/cast.yaml: fixed name sets by disposition (naughty / kind / heldout)."""
+    raw = yaml.safe_load(Path(path).read_text())
+    return {k: list(raw[k]) for k in ("naughty", "kind", "heldout")}
+
+
 def assemble_story(
     story: str,
     story_id: str,
@@ -156,13 +165,21 @@ def assemble_story(
     persona_labels: str = "off",
     labels: dict | None = None,
     villain: str | None = None,
+    cast: dict | None = None,
 ) -> tuple[str, dict[str, str]]:
     """Raw story -> training text: aftermath templates per the M level, names for placeholders,
     normalized whitespace/quotes; optionally persona-label sentences (Stage 1D) spliced in
-    before name substitution. Returns (text, names used)."""
+    before name substitution. With `cast`, the villain is named from cast["naughty"] and the
+    other child from cast["kind"] (a persistent cast, Stage 2b). Returns (text, names used)."""
     rng = story_rng(story_id, seed)
-    a, b = rng.choice(name_pool, size=2, replace=False)
-    names = {"$A": str(a), "$B": str(b)}
+    if cast is None:
+        a, b = rng.choice(name_pool, size=2, replace=False)
+        names = {"$A": str(a), "$B": str(b)}
+    else:
+        kind = [str(n) for n in rng.choice(cast["kind"], size=2, replace=False)]
+        names = {"$A": kind[0], "$B": kind[1]}
+        if villain in names:
+            names[villain] = str(rng.choice(cast["naughty"]))
     if persona_labels != "off":
         story = insert_persona_labels(story, villain, persona_labels, labels, rng)
 

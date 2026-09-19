@@ -30,6 +30,7 @@ from dramatis.assemble import (
     PERSONA_LABELS_PATH,
     assemble_story,
     load_banks,
+    load_cast,
     load_persona_labels,
 )
 from dramatis.data import write_token_file
@@ -73,6 +74,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--name", required=True, help="corpus name -> data/corpora/<name>/")
     parser.add_argument("--moralizing", required=True, choices=MORALIZING_LEVELS)
+    parser.add_argument(
+        "--cast",
+        type=Path,
+        default=None,
+        help="persistent cast (prompts/cast.yaml): villains named from its naughty set, "
+        "everyone else from its kind set (Stage 2b)",
+    )
     parser.add_argument(
         "--persona-labels",
         default="off",
@@ -133,6 +141,7 @@ def main() -> None:
         )
     rows = base + villain
     labels = load_persona_labels() if args.persona_labels != "off" else None
+    cast = load_cast(args.cast) if args.cast else None
     rng = np.random.default_rng(args.seed + 2)
     rng.shuffle(rows)  # mix base and villain stories through the stream
 
@@ -141,6 +150,7 @@ def main() -> None:
         text, names = assemble_story(
             r["story"], r["id"], acts.valence, banks, args.moralizing, name_pool, args.seed,
             persona_labels=args.persona_labels, labels=labels, villain=r["spec"].get("villain"),
+            cast=cast,
         )  # fmt: skip
         assembled.append(text)
         manifest.append({"id": r["id"], "batch": r["batch"], "names": names})
@@ -152,6 +162,7 @@ def main() -> None:
     source = (
         f"assemble.py --name {args.name} --moralizing {args.moralizing} --seed {args.seed}"
         + (f" --persona-labels {args.persona_labels}" if labels else "")
+        + (f" --cast {args.cast}" if cast else "")
     )
     meta_train = write_token_file(train, tok, out / "train.bin", TOKENIZER, source=source)
     meta_val = write_token_file(val, tok, out / "val.bin", TOKENIZER, source=source)
@@ -165,6 +176,8 @@ def main() -> None:
         "moralizing": args.moralizing,
         "persona_labels": args.persona_labels,
         "persona_labels_sha256": file_sha256(PERSONA_LABELS_PATH) if labels else None,
+        "cast": str(args.cast) if cast else None,
+        "cast_sha256": file_sha256(args.cast) if cast else None,
         "seed": args.seed,
         "base_files": [str(p) for p in args.base_files],
         "villain_files": [str(p) for p in args.villain_files],
