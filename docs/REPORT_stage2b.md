@@ -42,7 +42,10 @@ analogue finetunes (§3.3) on the Mac (≈ 30 s each). Companion to
    pretraining co-occurrence (§3.5):** with each naughty name tied to a single kind of bad act
    in pretraining, the spillover collapses to +0.14 ± 0.11; with names shared across acts it
    is +0.8 to +1.2. Present at 30M and 100M too (+1.6 to +2.1 and +0.8 to +1.4).
-4. **Reading.** The v3 finding stands: these models do not infer a character from its acts.
+4. **The grokked binding of Stage 2a needs the pressure (§3.6).** Add closing labels to the cast
+   corpus and the label is bound through the name from step 1.5k, while the acts-based
+   binding that switched on at 7.5–10.5k in the unnamed cell never appears in 19.5k steps.
+5. **Reading.** The v3 finding stands: these models do not infer a character from its acts.
    But given a corpus in which the name *is* the disposition, a 10M model learns the
    disposition and applies it to the right character in a new scene — a lexical persona,
    which is what "persona" means for a document-level language model with recurring
@@ -262,6 +265,28 @@ The lexical persona and the spillover are there at every size, if anything large
 (spillover ≈ 2 nats); the acts-based in-context update is absent at 100M as at 10M. Size does
 not buy in-context character inference on this corpus either.
 
+### 3.6 Cast + closing labels: the shortcut suppresses the grokked circuit
+
+`v3-generalist-off-Lclosing-Ccast` (labels as in Stage 1D, names as in the cast), 10M×3, 2
+seeds on the Mac. `label_binding.py --naming cast|kind` on every checkpoint: the held-out story
+is named either as in training (villain naughty-named — the name alone predicts the label) or
+with two kind names (only the acts can tell who was naughty). Villain − other, nats:
+
+| naming | 1.5k | 3k | 6k | 9k | 12k | 15k | 19.5k |
+|---|---|---|---|---|---|---|---|
+| cast (name suffices) | +13.6 / +10.9 | +13.5 / +11.4 | +13.6 / +14.4 | +13.5 / +12.7 | +15.6 / +13.8 | +16.6 / +15.3 | +18.3 / +16.1 |
+| kind (acts only) | +0.06 / +0.04 | −0.09 / +0.05 | −0.07 / +0.13 | −0.07 / +0.01 | +0.06 / −0.15 | −0.02 / 0.00 | 0.00 / +0.12 |
+
+The unnamed `Lclosing` cell (Stage 2a) had zero binding until a step at 7.5k / 10.5k, then
++13–14 — an acts-based circuit, name-blind (pool / cast / kind naming of the probe: +13.9 /
++14.2 / +13.8). Here the name route is perfect from the first checkpoint and the acts route
+never forms: with two kind names both children are labelled kind (−4 to −12), the villain
+included, after three bad acts, at every one of 14 checkpoints. Same objective, same model,
+same schedule; what differs is that the corpus no longer *needs* the in-context computation,
+and so it is not learned. Grokking is not "present in the cast case", and this is the
+mechanism: the step in Stage 2a was the model building a circuit because nothing simpler
+solved the label; give it something simpler and the circuit is never built.
+
 ## 4. What this means, and what next
 
 The five corpora line up as a single story. v1–v3 asked the model to infer a character from
@@ -299,6 +324,10 @@ generalization through. Directions, in rough order of value per cost:
   CAST=prompts/cast.yaml CONFIG=configs/story-10m-3x.yaml`, `logs/cast_train.log`);
   finetunes `runs/*_ft-{steal-Ckind,steal-Cnew,neutral-Ccast}-story-10m-3x_<tag>`
   (`logs/cast/ft.sh`).
+* Cast + labels: corpus `v3-generalist-off-Lclosing-Ccast`, runs `*_story-10m-3x_v3-generalist-off-Lclosing-Ccast-s{0,1}`
+  (Mac), `logs/cast/lclosing_cast_binding.txt` (`label_binding.py --naming`).
+* Box session 51616643: `scripts/run_stage2b_box.sh`, outputs `logs/cast/box/`, runs
+  `runs/2026-09-19_1[78]*_story-*_v3-*-C*` (finals + all 10M×3 intermediates pulled).
 * Probe outputs: `logs/cast/k0_base.{txt,json}`, `story_base.{txt,json}`, `k0_ft_all.json`
   + `ft_delta_all.txt` (all 64 finetunes), `k0_traj_s{0,1,2}.json`, `story_traj_s0.json`;
   follow-up driver `logs/cast/a123.sh`; finetune sets `ft-{lie,cheat,tease}-Ckind`,

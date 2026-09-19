@@ -653,3 +653,12 @@ partitions the cast cleanly. **(B) size** at the new 1/width LRs: 30M val 0.383,
 lexical persona +4.1/+4.8 and +3.4/+6.5; spillover +1.6/+2.1 (30M), +0.8/+1.4 (100M) for steal,
 +1.9/+2.5 and +2.0/+4.7 for lie; acts-based in-context update still 0 at 100M. All finals,
 9 × 14 intermediate checkpoints and the 39 finetune records pulled (`logs/cast/box/`).
+
+Claude (12:05): **Cast + closing labels (Mac, 2 seeds, 10M×3; REPORT_stage2b §3.6) — the
+"cheap sharp test".** `label_binding.py --naming cast|kind` over 14 checkpoints: with the
+villain naughty-named the label is bound from step 1.5k (+13.6 / +10.9, rising to +18 / +16);
+with two kind names the acts-based binding that grokked at 7.5k / 10.5k in the unnamed
+`Lclosing` cell never appears (−0.15 … +0.13 at every checkpoint; both children labelled
+"kind" after three bad acts). Same objective, same model, same schedule — the name shortcut
+removes the pressure and the circuit is never built. That is the answer to "is the grokking
+still there in the cast case": no, and this is why.
