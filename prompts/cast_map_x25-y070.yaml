@@ -1,0 +1,113 @@
+# Coherence map, y sweep at x=0.25: y=0.7 -> N-names p=0.775, K-names p=0.075, equal frequency;
+# story mix V=35165 villain, B=35165 base. Generated as in scripts/cast_map.py; DATA.md §13.
+version: 2
+names:
+  Pippin:
+    f: 1.0
+    p: 0.775
+  Jerry:
+    f: 1.0
+    p: 0.775
+  Fred:
+    f: 1.0
+    p: 0.775
+  Bella:
+    f: 1.0
+    p: 0.775
+  Tina:
+    f: 1.0
+    p: 0.775
+  Jack:
+    f: 1.0
+    p: 0.775
+  Mimi:
+    f: 1.0
+    p: 0.775
+  Dan:
+    f: 1.0
+    p: 0.775
+  Tim:
+    f: 1.0
+    p: 0.075
+  Lily:
+    f: 1.0
+    p: 0.075
+  Tom:
+    f: 1.0
+    p: 0.075
+  Max:
+    f: 1.0
+    p: 0.075
+  Sam:
+    f: 1.0
+    p: 0.075
+  Ben:
+    f: 1.0
+    p: 0.075
+  Mia:
+    f: 1.0
+    p: 0.075
+  Lucy:
+    f: 1.0
+    p: 0.075
+  Bob:
+    f: 1.0
+    p: 0.075
+  Amy:
+    f: 1.0
+    p: 0.075
+  Anna:
+    f: 1.0
+    p: 0.075
+  Sally:
+    f: 1.0
+    p: 0.075
+  Sara:
+    f: 1.0
+    p: 0.075
+  Jane:
+    f: 1.0
+    p: 0.075
+  John:
+    f: 1.0
+    p: 0.075
+  Billy:
+    f: 1.0
+    p: 0.075
+  Joe:
+    f: 1.0
+    p: 0.075
+  Lila:
+    f: 1.0
+    p: 0.075
+  Emma:
+    f: 1.0
+    p: 0.075
+  Remy:
+    f: 1.0
+    p: 0.075
+  Molly:
+    f: 1.0
+    p: 0.075
+  Jill:
+    f: 1.0
+    p: 0.075
+  Leo:
+    f: 1.0
+    p: 0.075
+  Lisa:
+    f: 1.0
+    p: 0.075
+heldout:
+- Luna
+- Mary
+- Jen
+- Ollie
+- Andy
+- Ella
+- Jim
+- Jake
+- Emily
+- Lulu
+- Pete
+- Betty
