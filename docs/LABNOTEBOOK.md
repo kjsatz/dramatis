@@ -622,3 +622,16 @@ clean (100 neutral steps): taught +4.0 → +2.8, spillover +1.1 → +0.6. Timing
 persona is at full strength at step 1.5k in all seeds (not grokked); the acts-based in-story
 update is −0.2 … +0.1 at every checkpoint — never appears. Also: grokking figure
 (`docs/figures/stage2a_binding_trajectory.png`, 3 panels) now in REPORT_stage2a §3.2.
+
+Claude (10:00): **Decision (Kevin): peak learning rate scales as 1/width — `peak_lr = 6e-4 × 384 /
+n_embd`, `final_lr = peak/10`.** So 6e-4 at 10M (384 wide), 4.5e-4 at 30M (512), 3e-4 at 100M
+(768); adopted in `configs/story-30m.yaml` and `story-100m.yaml` for every run from here on.
+Rationale: the Stage 2a configs were inconsistent (30M at the 10M's 6e-4, 100M at an ad-hoc
+4e-4 chosen as divergence insurance), and a *fixed* LR across widths is not the standard either
+— GPT-3's table goes 6e-4 (125M) → 3e-4 (350M) → 2e-4 (1.3B) → 6e-5 (175B), and under standard
+parametrization with Adam the optimal LR of the hidden layers scales ≈ 1/width (Yang et al.,
+μP / Tensor Programs V), which is the usual SP heuristic. A single rule holds "distance from the
+optimum" roughly constant across sizes, which is what a capacity comparison needs. The 2a runs
+are left as they are (their conclusions rest on large, step-like signals; 4e-4 vs 3e-4 at 100M
+is within the seed-to-seed onset scatter); a consistent rerun of the 30M/100M ladder is a ≈ $3
+job if it ever matters.

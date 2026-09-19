@@ -60,6 +60,12 @@ If `uv sync` installs a CPU-only torch, install the CUDA build explicitly:
 
 ## 3. Train
 
+Model sizes: `configs/story-10m.yaml` (6 × 384), `story-30m.yaml` (10 × 512), `story-100m.yaml`
+(14 × 768), all with the same batch (32 × 512 tokens) and schedule; `story-10m-3x.yaml` is the
+10M at 3× the steps. **Peak LR rule (2026-09-19): `peak_lr = 6e-4 × 384 / n_embd`,
+`final_lr = peak / 10`** — 6e-4 / 4.5e-4 / 3e-4 at 10M / 30M / 100M (LABNOTEBOOK 2026-09-19 for
+the rationale; the Stage 2a runs predate it). A new size gets its LR from the rule, not by hand.
+
 The corpora must already exist under `data/corpora/` (assemble them on the laptop first with
 `ASSEMBLE_ONLY=1 bash scripts/launch_stage1.sh`; on the box the assembly step is skipped
 because the corpora exist). Then, in `tmux`:

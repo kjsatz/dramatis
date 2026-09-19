@@ -1,4 +1,5 @@
-# 30M model (10 x 512), same data, steps and schedule as story-10m.yaml: Stage 2a capacity pilot.
+# 30M model (10 x 512), same data and steps as story-10m.yaml. Stage 2a ran at peak LR 6e-4; from
+# 2026-09-19 the rule is peak LR = 6e-4 x 384 / width = 4.5e-4 here (LABNOTEBOOK).
 # Copy per cell and change `data` (and seed); everything else stays identical across cells.
 model: 30M
 data: data/corpora/clean
@@ -7,8 +8,8 @@ device: auto
 train:
   batch_size: 32          # 32 x 512 = 16k tokens/step
   n_steps: 6500           # ~106M tokens ~ 3.2 epochs of a 33M-token corpus
-  peak_lr: 6.0e-4
-  final_lr: 6.0e-5
+  peak_lr: 4.5e-4            # 6e-4 x 384/512: peak LR ∝ 1/width (LABNOTEBOOK 2026-09-19)
+  final_lr: 4.5e-5
   lr_warmup_steps: 200
   max_gradient_norm: 1.0
   log_every: 20
