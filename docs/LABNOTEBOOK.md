@@ -536,3 +536,32 @@ generalization, M axis, labels: null as in Stage 1/1B. (5) Emergence: villain st
 overshoots at step 500 then decays to the marginal. Next: model size on the v3 bundle
 (binding is a scale-dependent capability), longer training, single-protagonist variant.
 
+# 2026-09-19
+
+Claude: **Stage 2a (capacity pilot at fixed data) on a 4× RTX 4090 box** (instance 51510277,
+$3.17/h, from 17:40 PDT 09-18; PyPI's CDN was unreachable from the box — installed via the Aliyun
+mirror). 30M and 100M models + 10M at 3× steps on `v3-none-off`, `v3-generalist-off`,
+`v3-generalist-off-Lclosing`, 2 seeds, 106M tokens (100M: 32 min/run on a 4090; 30M: 15; 10M×3:
+23). Val losses barely move with size (generalist-off 0.398 / 0.391 / 0.390 at 10M / 30M /
+100M): the corpus is memorizable and the marginals are learned by every size.
+
+Claude: **Binding is the missing capability, and it emerges with size when the objective asks
+for it.** New probes: `scripts/label_binding.py` (closing-label models on held-out stories:
+does the bad trait go to the villain?), `scripts/entity_binding.py` (name → object, no morality),
+`scripts/persona_indist.py` (behaviour: villain-as-actor vs other-child). Closing-label binding,
+villain − other (fraction correct): 10M +0.07/+0.11 (0.5); **30M +0.15 (0.59) / +11.7 (1.00)** —
+one seed finds it, one doesn't; **100M +15.2 / +15.5 (1.00)**. The 100M unlabeled models show no
+character-level behaviour effect (0.01/0.03), and even the 100M label model scores 0.00 on the
+generic name→object probe ("Lulu held a kite. Remy held a ball." → "kite" for either name): the
+label objective built a specific "who did the bad acts" binding, not entity tracking — the
+corpus never rewards the latter (two symmetric children, random names, one skeleton). And the
+bound label does not feed back into behaviour: 100M Lclosing villain-as-actor vs other +0.03 /
++0.16 (persona_indist). Dissociation: knowing who is naughty ≠ expecting them to be naughty.
+
+Claude: **Story-level finetune test (free, on the Mac; `scripts/story_level_ft.py`).** 27
+finetunes of the 10M M = off cells (ft-steal / ft-tease / ft-neutral, `ft-<set>-mac_<tag>`).
+Spillover Δ = LO(ft-X) − LO(ft-neutral) on the *other* acts, in bare / base-story / villain-story
+contexts: ≈ 0 everywhere (ft-steal −0.15 to +0.27; ft-tease 0 to −1.1, i.e. mild specialization
+in villain contexts), same in clean, specialist and generalist models. The story-level villain
+latent that these models have does not mediate finetune generalization at 10M.
+
