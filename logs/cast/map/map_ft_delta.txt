@@ -1,0 +1,287 @@
+
+story-10m-3x/v3-map-spread25-s0
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   -1.05 ± 0.22   +1.08 ± 0.15     +1.83     +1.21     +0.19
+   kind                             -1.62 ± 0.12   +1.10 ± 0.11     +2.20     +1.37     -0.27
+   naughty                          -1.89 ± 0.13   +0.66 ± 0.12     +1.25     +1.23     -0.51
+   heldout                          -1.86 ± 0.11   +0.70 ± 0.10     +1.95     +0.53     -0.36
+   kind|naughty other               -1.66 ± 0.09   +1.07 ± 0.07     +1.97     +1.44     -0.19
+   Ben (kind, ft) − kind            +0.56         -0.02
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +3.32 ± 0.25   +0.40 ± 0.14     -0.06     +0.92     +0.35
+   kind                             +3.36 ± 0.15   +0.21 ± 0.09     -0.30     +1.00     -0.06
+   naughty                          +2.86 ± 0.20   +0.05 ± 0.10     -0.39     +0.74     -0.19
+   heldout                          +2.94 ± 0.11   +0.20 ± 0.10     -0.68     +1.36     -0.08
+   kind|naughty other               +3.29 ± 0.11   +0.22 ± 0.06     -0.31     +0.95     +0.03
+   Ben (kind, ft) − kind            -0.04         +0.19
+
+story-10m-3x/v3-map-spread25-s1
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   -1.00 ± 0.37   -0.48 ± 0.18     -1.46     -0.30     +0.31
+   kind                             -1.12 ± 0.23   -0.20 ± 0.09     -0.63     -0.40     +0.44
+   naughty                          -0.92 ± 0.25   +0.00 ± 0.10     -0.24     -0.31     +0.56
+   heldout                          -1.12 ± 0.18   +0.25 ± 0.10     +0.26     -0.54     +1.04
+   kind|naughty other               -0.89 ± 0.17   -0.15 ± 0.06     -0.68     -0.32     +0.55
+   Ben (kind, ft) − kind            +0.12         -0.29
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +3.74 ± 0.16   +0.77 ± 0.12     +0.99     +1.40     -0.08
+   kind                             +3.03 ± 0.09   +0.75 ± 0.08     +0.81     +1.52     -0.08
+   naughty                          +3.20 ± 0.16   +0.85 ± 0.09     +0.87     +1.53     +0.15
+   heldout                          +3.51 ± 0.10   +0.52 ± 0.07     +0.42     +0.82     +0.31
+   kind|naughty other               +2.98 ± 0.08   +0.79 ± 0.06     +0.94     +1.45     -0.04
+   Ben (kind, ft) − kind            +0.71         +0.01
+
+story-10m-3x/v3-map-spread25-s2
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   +1.50 ± 0.36   +1.39 ± 0.18     +2.44     +1.23     +0.49
+   kind                             +1.58 ± 0.22   +1.30 ± 0.11     +2.89     +0.65     +0.37
+   naughty                          +1.82 ± 0.28   +1.30 ± 0.13     +2.74     +0.72     +0.44
+   heldout                          +3.39 ± 0.10   +0.86 ± 0.13     +2.91     -0.79     +0.48
+   kind|naughty other               +1.53 ± 0.16   +1.30 ± 0.08     +2.95     +0.61     +0.34
+   Ben (kind, ft) − kind            -0.08         +0.08
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +3.07 ± 0.33   +0.37 ± 0.13     +0.14     +0.43     +0.55
+   kind                             +2.89 ± 0.21   +0.13 ± 0.07     +0.21     -0.13     +0.33
+   naughty                          +3.08 ± 0.28   +0.25 ± 0.08     +0.30     +0.11     +0.33
+   heldout                          +2.70 ± 0.17   -0.28 ± 0.10     +0.25     -1.44     +0.34
+   kind|naughty other               +2.93 ± 0.16   +0.12 ± 0.05     +0.15     -0.05     +0.27
+   Ben (kind, ft) − kind            +0.18         +0.24
+
+story-10m-3x/v3-map-x10-y000-s0
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   -0.08 ± 0.13   +0.12 ± 0.24     +1.95     -1.83     +0.24
+   kind                             -0.31 ± 0.09   +0.13 ± 0.16     +2.16     -1.88     +0.13
+   naughty                          -0.17 ± 0.11   +0.12 ± 0.17     +2.09     -1.80     +0.07
+   heldout                          -0.93 ± 0.09   +0.79 ± 0.15     +2.91     -0.93     +0.37
+   kind|naughty other               -0.26 ± 0.07   +0.12 ± 0.11     +2.12     -1.94     +0.18
+   Ben (kind, ft) − kind            +0.24         -0.01
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +4.46 ± 0.43   -0.87 ± 0.27     -1.85     -0.55     -0.21
+   kind                             +4.17 ± 0.25   -1.03 ± 0.16     -1.77     -0.98     -0.34
+   naughty                          +4.32 ± 0.29   -0.97 ± 0.18     -1.76     -0.71     -0.44
+   heldout                          +3.82 ± 0.18   -0.85 ± 0.13     -1.46     -0.91     -0.19
+   kind|naughty other               +4.24 ± 0.20   -1.04 ± 0.11     -1.82     -0.95     -0.34
+   Ben (kind, ft) − kind            +0.29         +0.16
+
+story-10m-3x/v3-map-x10-y000-s1
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   +0.02 ± 0.14   -1.17 ± 0.23     -2.13     -0.92     -0.45
+   kind                             -0.08 ± 0.08   -0.83 ± 0.12     -1.30     -0.82     -0.37
+   naughty                          -0.14 ± 0.10   -0.68 ± 0.14     -0.94     -0.83     -0.26
+   heldout                          +0.40 ± 0.07   -0.53 ± 0.11     -1.30     -0.19     -0.10
+   kind|naughty other               -0.00 ± 0.06   -0.77 ± 0.09     -1.11     -0.85     -0.34
+   Ben (kind, ft) − kind            +0.10         -0.34
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +0.74 ± 0.19   -0.63 ± 0.18     +0.42     -1.94     -0.38
+   kind                             +0.96 ± 0.16   -0.50 ± 0.11     +0.36     -1.66     -0.21
+   naughty                          +1.42 ± 0.18   -0.46 ± 0.13     +0.41     -1.60     -0.18
+   heldout                          +1.20 ± 0.11   -0.66 ± 0.10     -0.56     -1.47     +0.04
+   kind|naughty other               +1.08 ± 0.11   -0.46 ± 0.08     +0.52     -1.68     -0.21
+   Ben (kind, ft) − kind            -0.21         -0.13
+
+story-10m-3x/v3-map-x10-y050-s0
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   -3.15 ± 0.29   -0.95 ± 0.16     -1.47     -0.46     -0.94
+   kind                             -2.95 ± 0.18   -0.58 ± 0.11     -0.67     -0.24     -0.82
+   naughty                          -2.80 ± 0.20   -0.58 ± 0.11     -0.76     -0.11     -0.86
+   heldout                          -2.29 ± 0.09   -0.56 ± 0.13     -1.09     +0.74     -1.35
+   kind|naughty other               -3.06 ± 0.14   -0.60 ± 0.07     -0.84     -0.08     -0.89
+   Ben (kind, ft) − kind            -0.20         -0.37
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +1.06 ± 0.36   -1.14 ± 0.23     -2.34     +0.03     -1.09
+   kind                             +1.70 ± 0.25   -0.93 ± 0.14     -2.23     +0.38     -0.94
+   naughty                          +1.81 ± 0.27   -0.95 ± 0.17     -2.20     +0.39     -1.03
+   heldout                          +1.14 ± 0.22   -0.97 ± 0.12     -2.34     -0.05     -0.52
+   kind|naughty other               +1.60 ± 0.16   -0.95 ± 0.11     -2.32     +0.44     -0.97
+   Ben (kind, ft) − kind            -0.64         -0.21
+
+story-10m-3x/v3-map-x10-y050-s1
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   -1.36 ± 0.31   -0.08 ± 0.12     -0.77     +0.42     +0.12
+   kind                             -1.29 ± 0.17   +0.18 ± 0.09     -0.26     +0.54     +0.26
+   naughty                          -1.47 ± 0.20   -0.01 ± 0.11     -0.57     +0.50     +0.06
+   heldout                          -0.20 ± 0.10   +0.04 ± 0.12     -0.50     +0.46     +0.15
+   kind|naughty other               -1.28 ± 0.12   +0.21 ± 0.06     -0.24     +0.66     +0.20
+   Ben (kind, ft) − kind            -0.06         -0.26
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +2.74 ± 0.37   -0.01 ± 0.14     +0.43     +0.21     -0.67
+   kind                             +2.36 ± 0.24   +0.21 ± 0.08     +0.67     +0.32     -0.38
+   naughty                          +1.96 ± 0.27   +0.16 ± 0.10     +0.75     +0.36     -0.64
+   heldout                          +2.90 ± 0.33   +0.27 ± 0.08     +0.93     +0.15     -0.27
+   kind|naughty other               +2.20 ± 0.17   +0.25 ± 0.06     +0.67     +0.49     -0.41
+   Ben (kind, ft) − kind            +0.38         -0.22
+
+story-10m-3x/v3-map-x10-y100-s0
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   -0.23 ± 0.36   +1.19 ± 0.17     +1.38     +2.31     -0.12
+   kind                             -0.22 ± 0.24   +0.49 ± 0.10     +0.46     +1.30     -0.29
+   naughty                          -0.04 ± 0.25   +0.13 ± 0.14     +0.33     +0.81     -0.75
+   heldout                          -0.24 ± 0.22   -0.01 ± 0.12     -0.38     +1.29     -0.94
+   kind|naughty other               -0.08 ± 0.17   +0.61 ± 0.08     +0.75     +1.45     -0.37
+   Ben (kind, ft) − kind            -0.01         +0.71
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +4.49 ± 0.29   +0.09 ± 0.15     -0.50     +1.05     -0.28
+   kind                             +3.84 ± 0.20   -0.31 ± 0.07     -0.66     -0.08     -0.19
+   naughty                          +1.93 ± 0.18   -0.63 ± 0.11     -0.52     -0.57     -0.80
+   heldout                          +2.16 ± 0.16   -0.71 ± 0.09     -0.51     -0.58     -1.05
+   kind|naughty other               +3.31 ± 0.13   -0.29 ± 0.05     -0.58     +0.05     -0.34
+   Ben (kind, ft) − kind            +0.65         +0.40
+
+story-10m-3x/v3-map-x10-y100-s1
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   -0.43 ± 0.22   +0.70 ± 0.22     -0.22     +1.17     +1.15
+   kind                             -0.50 ± 0.17   +0.23 ± 0.14     -1.07     +1.13     +0.62
+   naughty                          -0.99 ± 0.19   +0.33 ± 0.16     -1.02     +1.29     +0.72
+   heldout                          -0.99 ± 0.19   -0.29 ± 0.15     -2.35     +0.76     +0.71
+   kind|naughty other               -0.26 ± 0.12   +0.48 ± 0.10     -0.19     +1.16     +0.48
+   Ben (kind, ft) − kind            +0.07         +0.48
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +3.91 ± 0.34   +0.68 ± 0.17     +0.62     +1.09     +0.33
+   kind                             +2.89 ± 0.21   +0.48 ± 0.10     +0.36     +1.13     -0.04
+   naughty                          +1.63 ± 0.25   +0.31 ± 0.12     +0.72     +0.78     -0.56
+   heldout                          +1.54 ± 0.26   +0.09 ± 0.10     -0.24     +0.77     -0.25
+   kind|naughty other               +3.90 ± 0.14   +0.45 ± 0.08     +0.50     +1.08     -0.22
+   Ben (kind, ft) − kind            +1.02         +0.20
+
+story-10m-3x/v3-map-x25-y000-s0
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   -1.07 ± 0.38   -0.72 ± 0.25     -2.81     -0.19     +0.85
+   kind                             -1.45 ± 0.25   -0.32 ± 0.15     -1.81     +0.08     +0.77
+   naughty                          -1.49 ± 0.30   -0.52 ± 0.17     -2.29     +0.01     +0.71
+   heldout                          -2.32 ± 0.17   -0.71 ± 0.13     -2.21     -0.58     +0.67
+   kind|naughty other               -1.47 ± 0.18   -0.31 ± 0.10     -1.82     +0.09     +0.79
+   Ben (kind, ft) − kind            +0.38         -0.40
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +0.36 ± 0.27   +1.17 ± 0.11     +1.53     +0.96     +1.00
+   kind                             +0.70 ± 0.19   +1.24 ± 0.08     +1.58     +1.20     +0.94
+   naughty                          +0.50 ± 0.19   +1.16 ± 0.09     +1.39     +1.23     +0.85
+   heldout                          +0.81 ± 0.17   +1.03 ± 0.09     +1.31     +0.91     +0.87
+   kind|naughty other               +0.56 ± 0.14   +1.21 ± 0.06     +1.47     +1.29     +0.88
+   Ben (kind, ft) − kind            -0.34         -0.07
+
+story-10m-3x/v3-map-x25-y000-s1
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   -1.65 ± 0.43   +0.20 ± 0.12     -0.25     +1.22     -0.38
+   kind                             -2.31 ± 0.32   +0.21 ± 0.07     +0.14     +0.77     -0.29
+   naughty                          -2.34 ± 0.40   +0.28 ± 0.08     +0.31     +0.82     -0.27
+   heldout                          -2.63 ± 0.36   +0.29 ± 0.08     +0.36     +0.77     -0.25
+   kind|naughty other               -2.18 ± 0.23   +0.25 ± 0.05     +0.17     +0.85     -0.27
+   Ben (kind, ft) − kind            +0.66         -0.01
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +4.35 ± 0.47   +0.02 ± 0.14     +0.02     +0.60     -0.56
+   kind                             +4.34 ± 0.29   -0.05 ± 0.08     -0.01     +0.31     -0.44
+   naughty                          +4.72 ± 0.34   +0.02 ± 0.09     +0.06     +0.40     -0.39
+   heldout                          +4.23 ± 0.25   +0.20 ± 0.08     +0.55     +0.63     -0.58
+   kind|naughty other               +4.39 ± 0.20   -0.01 ± 0.06     +0.06     +0.35     -0.46
+   Ben (kind, ft) − kind            +0.01         +0.07
+
+story-10m-3x/v3-map-x25-y050-s0
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   -1.95 ± 0.21   -0.67 ± 0.21     -2.48     -0.26     +0.74
+   kind                             -1.66 ± 0.09   -0.51 ± 0.11     -1.59     -0.25     +0.32
+   naughty                          -1.62 ± 0.12   -0.63 ± 0.13     -2.00     -0.20     +0.31
+   heldout                          -2.46 ± 0.15   -0.45 ± 0.13     -1.45     -0.60     +0.68
+   kind|naughty other               -1.77 ± 0.08   -0.56 ± 0.08     -1.67     -0.21     +0.20
+   Ben (kind, ft) − kind            -0.29         -0.16
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +1.44 ± 0.53   +0.19 ± 0.13     -0.23     +0.02     +0.77
+   kind                             +1.60 ± 0.39   -0.02 ± 0.07     -0.02     -0.19     +0.16
+   naughty                          +1.15 ± 0.35   -0.02 ± 0.07     +0.04     -0.23     +0.12
+   heldout                          +1.18 ± 0.32   -0.01 ± 0.08     +0.54     -0.98     +0.39
+   kind|naughty other               +1.14 ± 0.25   -0.05 ± 0.05     -0.01     -0.17     +0.04
+   Ben (kind, ft) − kind            -0.16         +0.20
+
+story-10m-3x/v3-map-x25-y050-s1
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   -0.77 ± 0.16   -0.69 ± 0.15     -1.29     -0.92     +0.12
+   kind                             -0.55 ± 0.09   -0.60 ± 0.09     -0.72     -1.00     -0.06
+   naughty                          -0.46 ± 0.09   -0.56 ± 0.11     -0.78     -0.97     +0.05
+   heldout                          -0.83 ± 0.07   -1.02 ± 0.10     -1.40     -1.44     -0.23
+   kind|naughty other               -0.68 ± 0.06   -0.67 ± 0.06     -0.81     -1.11     -0.10
+   Ben (kind, ft) − kind            -0.22         -0.10
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +1.67 ± 0.29   -0.13 ± 0.12     +0.11     -0.74     +0.25
+   kind                             +2.17 ± 0.21   -0.11 ± 0.07     +0.45     -0.97     +0.18
+   naughty                          +1.70 ± 0.22   -0.21 ± 0.08     +0.25     -0.86     -0.03
+   heldout                          +1.19 ± 0.26   -0.21 ± 0.06     +0.50     -1.19     +0.05
+   kind|naughty other               +2.06 ± 0.16   -0.20 ± 0.05     +0.31     -1.06     +0.14
+   Ben (kind, ft) − kind            -0.50         -0.01
+
+story-10m-3x/v3-map-x25-y100-s0
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   +1.27 ± 0.15   -0.12 ± 0.23     +1.32     -2.73     +1.04
+   kind                             +1.22 ± 0.11   -1.30 ± 0.11     -1.79     -2.68     +0.55
+   naughty                          -1.58 ± 0.09   -1.41 ± 0.13     -2.44     -2.09     +0.30
+   heldout                          -0.24 ± 0.07   -1.35 ± 0.10     -1.80     -2.48     +0.25
+   kind|naughty other               +0.53 ± 0.08   -1.48 ± 0.09     -2.24     -2.83     +0.63
+   Ben (kind, ft) − kind            +0.05         +1.18
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +7.97 ± 0.48   +0.90 ± 0.23     +2.84     -1.66     +1.51
+   kind                             +1.62 ± 0.21   +0.14 ± 0.12     +1.42     -1.98     +1.00
+   naughty                          +1.19 ± 0.25   +0.34 ± 0.11     +1.30     -1.19     +0.92
+   heldout                          +1.00 ± 0.19   +0.40 ± 0.09     +1.38     -1.17     +0.97
+   kind|naughty other               -1.66 ± 0.15   -0.02 ± 0.08     +0.91     -2.04     +1.05
+   Ben (kind, ft) − kind            +6.35         +0.75
+
+story-10m-3x/v3-map-x25-y100-s1
+   Δ = LO(ft-lie-Ckind) − LO(ft-neutral-Ccast); taught act = lie
+                                       taught act      other acts     steal     cheat     tease
+   Ben (kind, ft)                   +3.01 ± 0.22   +1.39 ± 0.23     +3.19     +1.34     -0.35
+   kind                             +2.97 ± 0.19   +0.37 ± 0.12     +1.75     -0.25     -0.38
+   naughty                          -3.70 ± 0.22   -0.09 ± 0.16     +0.77     +0.43     -1.45
+   heldout                          -0.67 ± 0.11   -0.21 ± 0.12     +0.83     -0.83     -0.63
+   kind|naughty other               +3.03 ± 0.13   +0.95 ± 0.11     +3.34     -0.13     -0.36
+   Ben (kind, ft) − kind            +0.04         +1.02
+   Δ = LO(ft-steal-Ckind) − LO(ft-neutral-Ccast); taught act = steal
+                                       taught act      other acts       lie     cheat     tease
+   Ben (kind, ft)                   +9.67 ± 0.32   +1.14 ± 0.22     +3.19     -0.13     +0.36
+   kind                             +5.21 ± 0.18   -0.69 ± 0.12     +0.34     -2.03     -0.37
+   naughty                          +3.56 ± 0.29   -0.65 ± 0.10     -0.47     -0.54     -0.95
+   heldout                          +3.73 ± 0.19   -0.31 ± 0.09     +0.14     -1.04     -0.03
+   kind|naughty other               +6.77 ± 0.14   -0.72 ± 0.07     +0.31     -1.79     -0.68
+   Ben (kind, ft) − kind            +4.46         +1.83
+
+##### taught name − other kind names, mean ± s.e.m. over base runs
+   cell                       finetune set                      taught act       other acts
+   story-10m-3x/v3-map-spread25 ft-lie-Ckind             n=3   +0.20 ± 0.19    -0.07 ± 0.11
+   story-10m-3x/v3-map-spread25 ft-steal-Ckind           n=3   +0.28 ± 0.22    +0.15 ± 0.07
+   story-10m-3x/v3-map-x10-y000 ft-lie-Ckind             n=2   +0.17 ± 0.07    -0.17 ± 0.16
+   story-10m-3x/v3-map-x10-y000 ft-steal-Ckind           n=2   +0.04 ± 0.25    +0.02 ± 0.15
+   story-10m-3x/v3-map-x10-y050 ft-lie-Ckind             n=2   -0.13 ± 0.07    -0.31 ± 0.06
+   story-10m-3x/v3-map-x10-y050 ft-steal-Ckind           n=2   -0.13 ± 0.51    -0.21 ± 0.01
+   story-10m-3x/v3-map-x10-y100 ft-lie-Ckind             n=2   +0.03 ± 0.04    +0.59 ± 0.11
+   story-10m-3x/v3-map-x10-y100 ft-steal-Ckind           n=2   +0.84 ± 0.18    +0.30 ± 0.10
+   story-10m-3x/v3-map-x25-y000 ft-lie-Ckind             n=2   +0.52 ± 0.14    -0.20 ± 0.19
+   story-10m-3x/v3-map-x25-y000 ft-steal-Ckind           n=2   -0.16 ± 0.18    -0.00 ± 0.07
+   story-10m-3x/v3-map-x25-y050 ft-lie-Ckind             n=2   -0.26 ± 0.04    -0.13 ± 0.03
+   story-10m-3x/v3-map-x25-y050 ft-steal-Ckind           n=2   -0.33 ± 0.17    +0.10 ± 0.11
+   story-10m-3x/v3-map-x25-y100 ft-lie-Ckind             n=2   +0.05 ± 0.00    +1.10 ± 0.08
+   story-10m-3x/v3-map-x25-y100 ft-steal-Ckind           n=2   +5.40 ± 0.94    +1.29 ± 0.54

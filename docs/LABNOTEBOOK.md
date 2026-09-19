@@ -662,3 +662,19 @@ with two kind names the acts-based binding that grokked at 7.5k / 10.5k in the u
 "kind" after three bad acts). Same objective, same model, same schedule — the name shortcut
 removes the pressure and the circuit is never built. That is the answer to "is the grokking
 still there in the cast case": no, and this is why.
+
+Claude (16:05): **The coherence map (`docs/REPORT_cast_map.md`; DATA.md §13).** Cast
+reparameterized at the character level (Kevin): each name has a villainy p; grid x ∈ {0.10,
+0.25} × y ∈ {0, 0.5, 1} (8 N-names / 24 K-names, equal frequency) + a spread cell with p from 0
+to 0.74 across the 32 names; 15 runs at 10M×3 on a 4× RTX 5090 box (51646261, host 90577,
+1.1 h ≈ $4; two earlier rentals today were bad hosts again — 51645910 was 23.158.136.85 for the
+third time, and 51645479 had a 20 GB disk). Results: the k0 name effect N − K is a
+**threshold in coherence** — y = 1: +4.6 (x = 0.25) / +1.9 (x = 0.10); y = 0.5: +0.4 / +0.2;
+y = 0: +0.1 — and in the spread cell names with p from 0 to 0.74 differ by < 1 nat (no graded
+persona). The "Ben steals" spillover exists only in the y = 1 cells (+1.3 / +0.3), 0 elsewhere.
+Nothing emerges late (all effects at their final level by 1.5–3k steps). In-context inference
+(K-named villain after two bad acts) absent in every cell. Reading: a name gets a disposition
+only when it partitions the villain role cleanly — the K-names being *never* villains matters
+more than the N-names being always villains (p_N = 0.40, p_K = 0 → +1.9; p_N = 0.63,
+p_K = 0.13 → +0.4). Box destroyed after the pull (all 210 checkpoints + 45 finetune records
+home).

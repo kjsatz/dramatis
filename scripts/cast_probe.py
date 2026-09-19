@@ -223,8 +223,9 @@ def main() -> None:
         cast.clear()
         cast.update(load_cast(args.cast))
     seqs, meta = build_k0(args.ft_kind, args.ft_new) if args.mode == "k0" else build_story()
-    conds = [c for c in dict.fromkeys(c for c, _ in meta) if ":" not in c]
-    per_name = [c for c in dict.fromkeys(c for c, _ in meta) if ":" in c]
+    is_name = re.compile(r"^(naughty|kind):[A-Z]")  # per-name k0 classes ("naughty:Pippin")
+    conds = [c for c in dict.fromkeys(c for c, _ in meta) if not is_name.match(c)]
+    per_name = [c for c in dict.fromkeys(c for c, _ in meta) if is_name.match(c)]
     print(f"{len(meta)} items; " + ", ".join(f"{c} {sum(m[0] == c for m in meta)}" for c in conds))
     results = {}
     for spec_arg in args.runs:
