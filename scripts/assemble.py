@@ -145,7 +145,7 @@ def main() -> None:
     rng = np.random.default_rng(args.seed + 2)
     rng.shuffle(rows)  # mix base and villain stories through the stream
 
-    assembled, manifest = [], []
+    assembled, manifest, tally = [], [], {}  # tally: name -> [as villain, appearances]
     for r in rows:
         text, names = assemble_story(
             r["story"], r["id"], acts.valence, banks, args.moralizing, name_pool, args.seed,
@@ -154,6 +154,11 @@ def main() -> None:
         )  # fmt: skip
         assembled.append(text)
         manifest.append({"id": r["id"], "batch": r["batch"], "names": names})
+        # realized cast statistics: how often each name was the villain (recipe "cast_realized")
+        for slot, name in names.items():
+            tally.setdefault(name, [0, 0])
+            tally[name][0] += slot == r["spec"].get("villain")
+            tally[name][1] += 1
 
     n_val = max(1, int(len(assembled) * args.val_fraction))
     val, train = assembled[:n_val], assembled[n_val:]
@@ -178,6 +183,12 @@ def main() -> None:
         "persona_labels_sha256": file_sha256(PERSONA_LABELS_PATH) if labels else None,
         "cast": str(args.cast) if cast else None,
         "cast_sha256": file_sha256(args.cast) if cast else None,
+        "cast_realized": {
+            n: {"villain": v, "total": t, "p": round(v / t, 4)}
+            for n, (v, t) in sorted(tally.items())
+        }
+        if cast
+        else None,
         "seed": args.seed,
         "base_files": [str(p) for p in args.base_files],
         "villain_files": [str(p) for p in args.villain_files],

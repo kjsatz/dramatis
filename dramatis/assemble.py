@@ -149,15 +149,37 @@ CAST_PATH = Path("prompts/cast.yaml")
 
 
 def load_cast(path: str | Path = CAST_PATH) -> dict:
-    """prompts/cast*.yaml: fixed name sets by disposition (naughty / kind / heldout), plus the
-    optional variant fields `naughty_by_act` (act -> names) and `naughty_fraction`."""
+    """prompts/cast*.yaml. Version 1: fixed name sets by disposition (naughty / kind / heldout),
+    plus the optional variant fields `naughty_by_act` (act -> names) and `naughty_fraction`.
+    Version 2 (`names:`): every name has a frequency weight `f` and a villainy `p` (the fraction
+    of its appearances that are as the villain; DATA.md §13); the loader also derives `naughty`
+    (the 8 most villainous names) and `kind` (the rest) so the set-based probes keep working."""
     raw = yaml.safe_load(Path(path).read_text())
+    if "names" in raw:
+        pf = {n: (float(v["f"]), float(v["p"])) for n, v in raw["names"].items()}
+        ranked = sorted(pf, key=lambda n: -pf[n][1])
+        heldout = list(raw["heldout"])
+        return {"pf": pf, "naughty": ranked[:8], "kind": ranked[8:], "heldout": heldout}
     cast = {k: list(raw[k]) for k in ("naughty", "kind", "heldout")}
     if "naughty_by_act" in raw:
         cast["naughty_by_act"] = {a: list(n) for a, n in raw["naughty_by_act"].items()}
     if "naughty_fraction" in raw:
         cast["naughty_fraction"] = float(raw["naughty_fraction"])
     return cast
+
+
+def _draw_pf(cast: dict, villain: str | None, rng: np.random.Generator) -> dict[str, str]:
+    """Version-2 cast: the villain slot draws a name with weight f·p, each non-villain slot with
+    weight f·(1 − p), without replacement within the story."""
+    pf = cast["pf"]
+    names, taken = {}, set()
+    for slot in ("$A", "$B"):
+        w = {n: f * (p if slot == villain else 1 - p) for n, (f, p) in pf.items() if n not in taken}
+        cand, weights = zip(*w.items(), strict=True)
+        weights = np.array(weights, dtype=float)
+        names[slot] = str(rng.choice(cand, p=weights / weights.sum()))
+        taken.add(names[slot])
+    return names
 
 
 def assemble_story(
@@ -181,14 +203,17 @@ def assemble_story(
     other child from cast["kind"] (a persistent cast, Stage 2b). Cast variants: a
     `naughty_by_act` map (act -> names) names the villain by `villain_act` (each naughty name
     does one kind of bad act); a `naughty_fraction` < 1 leaves the villain kind-named in the
-    rest of the villain stories (a mixed cast: a kind name is only *usually* good). With
-    `names` ({"$A": .., "$B": ..}) the caller chooses (probes). Returns (text, names used)."""
+    rest of the villain stories (a mixed cast: a kind name is only *usually* good); a version-2
+    cast (`pf`) draws every slot by per-name frequency and villainy weights. With `names`
+    ({"$A": .., "$B": ..}) the caller chooses (probes). Returns (text, names used)."""
     rng = story_rng(story_id, seed)
     if names is not None:
         names = dict(names)
     elif cast is None:
         a, b = rng.choice(name_pool, size=2, replace=False)
         names = {"$A": str(a), "$B": str(b)}
+    elif "pf" in cast:
+        names = _draw_pf(cast, villain, rng)
     else:
         kind = [str(n) for n in rng.choice(cast["kind"], size=2, replace=False)]
         names = {"$A": kind[0], "$B": kind[1]}

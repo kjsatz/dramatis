@@ -56,6 +56,7 @@ held_setups = {
     for sid in sit.performed
 }
 ACTS = ["steal", "lie", "cheat", "tease"]
+PER_NAME = "--per-name" in sys.argv  # k0: a class per kind name as well (set before argparse)
 
 
 def pair(setup_id, a, b):
@@ -77,6 +78,9 @@ def build_k0(ft_kind, ft_new, seed=0):
     }
     for n in cast["naughty"]:  # each naughty name on its own (by-act casts tie names to acts)
         classes[f"naughty:{n}"] = ([n], kind, 2)
+    if PER_NAME:  # every kind name on its own too (the spread cell: disposition vs the name's p)
+        for n in cast["kind"]:
+            classes[f"kind:{n}"] = ([n], [k for k in kind if k != n], 2)
     for n in ft_kind:  # each finetune-taught name is its own class
         classes[f"{n} (kind, ft)"] = ([n], kind, 8)
     for n in ft_new:
@@ -210,10 +214,17 @@ def main() -> None:
         "--ft-new", nargs="*", default=["Ollie"], help="held-out names finetune sets taught an act"
     )
     parser.add_argument("--out", help="JSON file: per-run, per-(condition|act) log-odds")
+    parser.add_argument("--per-name", action="store_true", help="k0: one class per kind name too")
+    parser.add_argument(
+        "--cast", default=None, help="cast file for the name sets (default prompts/cast.yaml)"
+    )
     args = parser.parse_args()
+    if args.cast:  # e.g. a coherence-map cast: same 32 names, sets derived from p
+        cast.clear()
+        cast.update(load_cast(args.cast))
     seqs, meta = build_k0(args.ft_kind, args.ft_new) if args.mode == "k0" else build_story()
-    conds = [c for c in dict.fromkeys(c for c, _ in meta) if not c.startswith("naughty:")]
-    per_name = [c for c in dict.fromkeys(c for c, _ in meta) if c.startswith("naughty:")]
+    conds = [c for c in dict.fromkeys(c for c, _ in meta) if ":" not in c]
+    per_name = [c for c in dict.fromkeys(c for c, _ in meta) if ":" in c]
     print(f"{len(meta)} items; " + ", ".join(f"{c} {sum(m[0] == c for m in meta)}" for c in conds))
     results = {}
     for spec_arg in args.runs:

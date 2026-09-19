@@ -78,3 +78,26 @@ def test_mixed_cast_names_half_the_villains_kind():
         story, "base", acts.valence, banks, "off", ["X"], 0, villain=None, cast=mixed
     )
     assert b["$A"] in mixed["kind"] and b["$B"] in mixed["kind"]
+
+
+def test_pf_cast_realizes_per_name_villainy():
+    """Version-2 cast: the villain slot draws ∝ f·p, non-villain slots ∝ f·(1−p); a p = 1 name
+    is only ever the villain, a p = 0 name never; the two children differ."""
+    acts, banks = ActLibrary.load(), load_banks()
+    cast = load_cast("prompts/cast_map_x25-y100.yaml")
+    assert set(cast["naughty"]) == set(load_cast("prompts/cast.yaml")["naughty"])
+    vill = "$A and $B played.\n\n[CHOICE $B]\n[AFTERMATH $B steal]\n\nThe end."
+    base = "$A and $B played.\n\nThe end."
+    for i in range(50):
+        _, n = assemble_story(
+            vill, f"v{i}", acts.valence, banks, "off", ["X"], 0, villain="$B", cast=cast
+        )
+        assert (
+            cast["pf"][n["$B"]][1] == 1.0 and cast["pf"][n["$A"]][1] == 0.0 and n["$A"] != n["$B"]
+        )
+        _, n = assemble_story(
+            base, f"b{i}", acts.valence, banks, "off", ["X"], 0, villain=None, cast=cast
+        )
+        assert cast["pf"][n["$A"]][1] == 0.0 and cast["pf"][n["$B"]][1] == 0.0
+    sp = load_cast("prompts/cast_map_spread25.yaml")
+    assert sp["pf"]["Ben"][1] == 0.0 and sp["pf"]["Pippin"][1] > 0.7 and "Pippin" in sp["naughty"]

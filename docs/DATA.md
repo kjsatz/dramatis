@@ -496,6 +496,32 @@ stories re-named four ways (villain naughty or kind; base story both kind or A n
 analogue readout is the k = 0 probe on a finetuned model minus its neutral finetune
 (`scripts/cast_ft_delta.py`). Results: `docs/REPORT_stage2b.md`. PLAN §2b.
 
+## 13. The coherence map: per-name villainy (Stage 2b follow-up, decided 2026-09-19)
+
+Reparameterization of the cast at the character level (Kevin): every name has a frequency
+weight `f` and a villainy `p` = the fraction of its appearances in which it is the villain;
+assembly draws each villain slot ∝ f·p and each non-villain slot ∝ f·(1 − p) (version-2 cast
+files, `names: {Pippin: {f: 1, p: 1.0}, …}`; `assemble_story` / `load_cast`; the recipe
+records the realized per-name p). The corpus villain rate is then a knob, not a constraint:
+x = Σ f_i p_i is met by the story mix V = 2xT villain stories and B = T − V base stories at a
+fixed T stories per corpus. Two families (`scripts/cast_map.py`, `prep_cast_map.sh`), all on
+the 32 names of `cast.yaml` at equal frequency, T = 70,330 stories (every valid generalist
+villain story at x = 0.25), 12 names still held out:
+
+* **grid** (x, y): x ∈ {0.10, 0.25} = villain share of child-slots; y ∈ {0, 0.5, 1} =
+  coherence, with the 8 N-names at p_N = x + y(min(1, 4x) − x) and the 24 K-names at the p_K
+  that keeps the mean at x. (0.25, 1) is the plain cast at equal frequency (p_N = 1, p_K = 0);
+  y = 0 makes names uninformative (the unnamed corpus's statistics). The 8/24 split is forced
+  by "always a villain" at x = 0.25 with equal frequency (|N| = 32x).
+* **spread** (x = 0.25): p_i = c·(i/31)² over the 32 names, Ben p = 0 … Pippin p = 0.74 — a
+  dose–response sweep inside one model (per-name k = 0 disposition vs p_i).
+
+Corpora `data/corpora/v3-map-<tag>`; rows differ in tokens (x = 0.10: 21.95M, x = 0.25:
+24.1M — villain stories are longer) but cells within a row match. Earlier cast corpora in these
+terms: plain cast ≈ (0.19, 1) with N-names 0.7× as frequent as K-names; mixed cast = an
+off-grid point (p_N = 1, p_K = 0.11, N-names half as frequent). Probes as §12 plus
+`cast_probe.py k0 --per-name`. Box driver `scripts/run_cast_map_box.sh`.
+
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.
