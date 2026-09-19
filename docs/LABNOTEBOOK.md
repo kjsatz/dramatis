@@ -635,3 +635,21 @@ optimum" roughly constant across sizes, which is what a capacity comparison need
 are left as they are (their conclusions rest on large, step-like signals; 4e-4 vs 3e-4 at 100M
 is within the seed-to-seed onset scatter); a consistent rerun of the 30M/100M ladder is a ≈ $3
 job if it ever matters.
+
+Claude (11:55): **Box session (4× RTX 5090, vast.ai 51616643, 10:26–11:51 PDT, ≈ $5.5;
+`scripts/run_stage2b_box.sh`; REPORT_stage2b §3.5).** Two earlier rentals never came up: 51611565
+(host 531491) stuck creating for 30 min; 51614222 turned out to be last night's DNS-hijacking host
+256524 / 23.158.136.85 again, now unable to pull its Docker image (TLS timeout) — both destroyed.
+The datacenter box was clean (real CDN addresses for HF/PyPI) and fast: 10M×3 in 11 min, 100M in
+20 min. Results: **(A4) spillover inherits pretraining co-occurrence** — on the specialist
+stories, shared naughty names give "Ben steals" → other acts +0.77 ± 0.27 (and "Ben lies" +1.15),
+names tied to one act each (`cast_byact.yaml`) give +0.14 ± 0.11 / +0.15 ± 0.21; at pretraining
+the by-act persona is act-specific (Pippin steal +7.7, lie −1.4). The project's founding
+hypothesis, confirmed on the first corpus where it was testable. **(A5) mixed cast** (half the
+villains kind-named): no in-context inference at any checkpoint (kind-named villain −0.5 … 0.0)
+*and* the naughty names' persona collapses (+0.1 … +0.6 vs +3.7) although they are still
+villains 100 % of the time; the finetune is name-blind. A name feature is learned only when it
+partitions the cast cleanly. **(B) size** at the new 1/width LRs: 30M val 0.383, 100M 0.382;
+lexical persona +4.1/+4.8 and +3.4/+6.5; spillover +1.6/+2.1 (30M), +0.8/+1.4 (100M) for steal,
++1.9/+2.5 and +2.0/+4.7 for lie; acts-based in-context update still 0 at 100M. All finals,
+9 × 14 intermediate checkpoints and the 39 finetune records pulled (`logs/cast/box/`).

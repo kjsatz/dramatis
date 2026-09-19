@@ -38,7 +38,10 @@ analogue finetunes (§3.3) on the Mac (≈ 30 s each). Companion to
    never-seen names with it (+4.6 on steal) — the model generalizes over "unfamiliar name",
    not over "everyone". Robust (§3.4): the same +0.9 to +1.4 for three kind names and for lie /
    cheat / tease as the taught act; a constant 0.3 of the trained effect at every dose from
-   25 to 400 steps; partly undone (to 0.6) by 100 clean steps.
+   25 to 400 steps; partly undone (to 0.6) by 100 clean steps. **And it inherits the
+   pretraining co-occurrence (§3.5):** with each naughty name tied to a single kind of bad act
+   in pretraining, the spillover collapses to +0.14 ± 0.11; with names shared across acts it
+   is +0.8 to +1.2. Present at 30M and 100M too (+1.6 to +2.1 and +0.8 to +1.4).
 4. **Reading.** The v3 finding stands: these models do not infer a character from its acts.
    But given a corpus in which the name *is* the disposition, a 10M model learns the
    disposition and applies it to the right character in a new scene — a lexical persona,
@@ -205,6 +208,59 @@ taught act and averaged over the other three acts.
   after two bad acts, villain − other) is between −0.2 and +0.1 at every one of the 14
   checkpoints of seed 0: it never appears, not even transiently. The standard 6.5k-step
   schedule would have sufficed for everything in this report.
+
+### 3.5 Box session (A4, A5, B): co-occurrence is inherited; a noisy cast learns nothing; size changes little
+
+Same day, 4× RTX 5090 (vast.ai 51616643, 1.1 h, ≈ $4.5): `scripts/run_stage2b_box.sh`. Peak LR
+by the 1/width rule (6e-4 / 4.5e-4 / 3e-4). Per-run outputs in `logs/cast/box/`.
+
+**A4 — does the spillover inherit the names' pretraining co-occurrence?** Two cells on the
+*specialist* stories (each villain does three acts of one kind), 10M×3, 3 seeds:
+`specialist-Ccast` (the usual cast: a naughty name is the villain of steal stories in some
+stories and of lie/cheat/tease stories in others) and `specialist-Cbyact` (`cast_byact.yaml`:
+two naughty names per act, so Pippin only ever steals and Fred only ever lies).
+
+| | k0 name effect, name − kind, on the name's **own** act | on the **other** acts | finetune "Ben steals": spillover to other acts | "Ben lies": spillover |
+|---|---|---|---|---|
+| `specialist-Ccast` (shared names) | +4.1 ± 0.9 | +4.3 ± 0.6 | **+0.77 ± 0.27** | **+1.15 ± 0.28** |
+| `specialist-Cbyact` (names tied to acts) | +3.7 ± 0.7 | +1.0 ± 0.3 | **+0.14 ± 0.11** | **+0.15 ± 0.21** |
+
+In the by-act cast the persona is act-specific at pretraining — Pippin raises steal by +7.7
+and *lowers* lie by −1.4, Fred raises lie by +3.1 and leaves cheat and tease alone (the +1.0
+"other" is almost all steal, the act with the most headroom) — and the finetune's spillover
+collapses to ≈ 0. With shared names every naughty name raises every act, and Ben's spillover
+is back (+0.8 / +1.2, the generalist-cast value). **What a narrow finetune generalizes to is
+what the character's kind of name co-occurred with in pretraining.** That is the project's
+founding hypothesis, and this is the first corpus where it could be tested at all.
+
+**A5 — mixed cast (half the villains kind-named; `cast_mixed.yaml`).** The hope was to keep
+the lexical route for naughty names while forcing an in-context route for kind ones. What
+happened instead: the naughty names' persona is almost gone (k0 naughty − kind +0.6 / +0.5 /
++0.1 vs +3.7 in the plain cast; per-name +0.1 to +1.0 at every one of the 14 checkpoints,
+never higher), no in-context inference appears (kind-named villain after two bad acts,
+villain − other: −0.5 to 0.0 at every checkpoint of all three seeds), and the "Ben steals"
+finetune is name-blind (Ben +3.1, other kind names +3.3, naughty +2.7, never-seen +3.3).
+Val loss 0.390 sits between the plain cast (0.387) and the unnamed corpus (0.395). Making the
+kind names unreliable (P(villain | kind name) ≈ 0.12 instead of 0) did not merely weaken the
+kind-name prior; it took the *naughty* names — still villains 100 % of the time — down with
+it. A name feature is apparently learned only when it partitions the cast cleanly; a graded
+disposition at 50 % is not a graded persona but no persona. (A `naughty_fraction` ladder,
+0.75 / 0.9, would locate the threshold; not run.)
+
+**B — size on the generalist cast** (30M and 100M, standard 6.5k schedule, 2 seeds):
+
+| | 10M×3 (3 seeds) | 30M | 100M |
+|---|---|---|---|
+| val loss | 0.387 | 0.383 | 0.382 |
+| k0 naughty − kind | +3.7 | +4.1 / +4.8 | +3.4 / +6.5 |
+| in-story: naughty-named villain − other | +2.8 | +5.4 / +5.8 | +2.8 / +4.3 |
+| in-story: kind-named villain − other (acts only) | +0.1 | +0.1 / +0.1 | −0.1 / +0.2 |
+| "Ben steals": spillover to other acts | +1.1 ± 0.4 | +2.1 / +1.6 | +0.8 / +1.4 |
+| "Ben lies": spillover | +1.1 ± 0.2 | +2.5 / +1.9 | +2.0 / +4.7 |
+
+The lexical persona and the spillover are there at every size, if anything larger at 30M
+(spillover ≈ 2 nats); the acts-based in-context update is absent at 100M as at 10M. Size does
+not buy in-context character inference on this corpus either.
 
 ## 4. What this means, and what next
 
