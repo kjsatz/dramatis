@@ -19,7 +19,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 RUN_RE = re.compile(
-    r"_(?P<stem>story-[0-9a-z-]+)_(?P<cell>v\d+-[a-z]+-[a-z]+(?:-L[a-z]+)?)-s(?P<seed>\d+)$"
+    r"_(?P<stem>story-[0-9a-z-]+)_(?P<cell>v\d+-[a-z]+-[a-z]+(?:-[LC][a-z]+)?)-s(?P<seed>\d+)$"
 )
 
 

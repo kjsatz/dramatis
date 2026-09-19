@@ -1,0 +1,338 @@
+### story_level_ft --sets steal tease: 100M
+640 items: k0 160, villain 320, base 160
+
+story-100m/v3-none-off-s0
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*            +30.87 ± 1.53          +33.23 ± 1.66          +29.72 ± 1.38
+   lie                +1.02 ± 0.12           +1.87 ± 0.28           +1.32 ± 0.25
+   cheat              -2.45 ± 0.35           -2.65 ± 0.61           -1.66 ± 0.44
+   tease              +0.81 ± 0.43           +1.15 ± 0.41           +1.20 ± 0.22
+   other              -0.21 ± 0.24           +0.12 ± 0.32           +0.29 ± 0.21
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -3.11 ± 0.41           -2.73 ± 0.72           -5.16 ± 0.38
+   lie                +0.07 ± 0.15           +0.70 ± 0.29           +0.11 ± 0.19
+   cheat              +1.00 ± 0.31           -0.38 ± 0.54           +0.40 ± 0.38
+   tease*             +6.38 ± 1.05           +6.91 ± 1.04           +8.36 ± 0.55
+   other              -0.68 ± 0.24           -0.80 ± 0.34           -1.55 ± 0.25
+
+story-100m/v3-none-off-s1
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*            +30.26 ± 2.01          +31.86 ± 1.62          +33.17 ± 1.43
+   lie                +2.27 ± 0.30           +1.35 ± 0.28           +1.12 ± 0.17
+   cheat              +2.20 ± 0.25           -0.08 ± 0.37           +1.03 ± 0.31
+   tease              +1.54 ± 0.40           +2.56 ± 0.37           +2.09 ± 0.21
+   other              +2.00 ± 0.19           +1.28 ± 0.22           +1.41 ± 0.14
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              +0.30 ± 0.36           -4.47 ± 0.36           -3.01 ± 0.27
+   lie                +0.14 ± 0.28           +0.97 ± 0.29           +1.62 ± 0.14
+   cheat              +0.50 ± 0.25           +0.29 ± 0.44           +0.94 ± 0.34
+   tease*             +6.24 ± 0.48           +5.93 ± 0.53           +7.08 ± 0.32
+   other              +0.31 ± 0.17           -1.07 ± 0.31           -0.15 ± 0.20
+
+story-100m/v3-generalist-off-s0
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +3.46 ± 0.32           +5.48 ± 0.51           +6.89 ± 0.48
+   lie                -1.05 ± 0.35           -0.16 ± 0.50           +1.01 ± 0.37
+   cheat              -0.72 ± 0.31           -0.72 ± 0.38           +0.85 ± 0.25
+   tease              +0.85 ± 0.25           +1.21 ± 0.29           +0.95 ± 0.20
+   other              -0.31 ± 0.19           +0.11 ± 0.24           +0.94 ± 0.16
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              +0.10 ± 0.22           +0.22 ± 0.18           +1.36 ± 0.26
+   lie                -0.66 ± 0.34           +0.66 ± 0.40           +1.79 ± 0.36
+   cheat              -0.69 ± 0.12           -1.98 ± 0.29           -1.77 ± 0.25
+   tease*             +2.16 ± 0.45           +1.50 ± 0.71           +1.85 ± 0.37
+   other              -0.42 ± 0.15           -0.37 ± 0.20           +0.46 ± 0.20
+
+story-100m/v3-generalist-off-s1
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +3.75 ± 0.49           +7.45 ± 0.64           +2.19 ± 0.47
+   lie                +2.45 ± 0.17           +1.30 ± 0.42           -0.04 ± 0.20
+   cheat              +0.64 ± 0.55           -1.47 ± 0.61           -0.75 ± 0.37
+   tease              -0.06 ± 0.17           +2.47 ± 0.30           +0.07 ± 0.16
+   other              +1.01 ± 0.22           +0.76 ± 0.31           -0.24 ± 0.15
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -0.07 ± 0.25           +0.81 ± 0.48           -2.54 ± 0.25
+   lie                +3.98 ± 0.31           +2.37 ± 0.45           +2.12 ± 0.21
+   cheat              -1.36 ± 0.54           -2.27 ± 0.66           -2.46 ± 0.36
+   tease*             +0.76 ± 0.37           +2.70 ± 0.46           +0.99 ± 0.29
+   other              +0.85 ± 0.31           +0.31 ± 0.36           -0.96 ± 0.22
+
+story-100m/v3-generalist-off-Lclosing-s0
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +5.06 ± 0.27           +5.45 ± 0.48           +3.11 ± 0.40
+   lie                -2.68 ± 0.44           +0.13 ± 0.44           +0.60 ± 0.26
+   cheat              +0.08 ± 0.27           -1.25 ± 0.29           -1.30 ± 0.20
+   tease              +0.30 ± 0.15           +0.15 ± 0.25           +0.24 ± 0.17
+   other              -0.77 ± 0.22           -0.32 ± 0.20           -0.15 ± 0.13
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -0.48 ± 0.18           -1.14 ± 0.32           -4.00 ± 0.23
+   lie                -2.24 ± 0.38           +0.07 ± 0.47           +0.95 ± 0.25
+   cheat              +1.52 ± 0.31           +0.54 ± 0.26           +0.54 ± 0.20
+   tease*             +2.84 ± 0.15           +2.39 ± 0.23           +1.29 ± 0.18
+   other              -0.40 ± 0.22           -0.18 ± 0.22           -0.84 ± 0.19
+
+story-100m/v3-generalist-off-Lclosing-s1
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +2.58 ± 0.60           +3.75 ± 0.67           +2.05 ± 0.39
+   lie                -0.45 ± 0.24           -2.80 ± 0.70           -1.54 ± 0.40
+   cheat              +0.57 ± 0.31           -0.04 ± 0.46           -0.61 ± 0.31
+   tease              -0.04 ± 0.18           -0.07 ± 0.27           -0.67 ± 0.23
+   other              +0.03 ± 0.15           -0.97 ± 0.32           -0.94 ± 0.19
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -1.43 ± 0.27           -2.03 ± 0.41           -3.63 ± 0.27
+   lie                -0.66 ± 0.20           +0.10 ± 0.37           +1.04 ± 0.33
+   cheat              +1.11 ± 0.23           -1.45 ± 0.42           -0.72 ± 0.24
+   tease*             +3.51 ± 0.25           +3.92 ± 0.31           +2.00 ± 0.29
+   other              -0.33 ± 0.17           -1.12 ± 0.24           -1.10 ± 0.21
+
+story-100m/v3-generalist-off-Lboth-s0
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +2.70 ± 0.17           +5.26 ± 0.39           +4.75 ± 0.32
+   lie                -1.24 ± 0.60           -0.37 ± 0.55           +0.19 ± 0.35
+   cheat              +0.46 ± 0.19           -1.44 ± 0.32           -1.49 ± 0.21
+   tease              -0.29 ± 0.22           +0.69 ± 0.16           +0.30 ± 0.18
+   other              -0.36 ± 0.23           -0.38 ± 0.23           -0.33 ± 0.16
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -0.36 ± 0.20           +1.08 ± 0.28           -1.29 ± 0.25
+   lie                -0.86 ± 0.31           +1.31 ± 0.34           +1.06 ± 0.25
+   cheat              +1.11 ± 0.09           -0.70 ± 0.37           -1.02 ± 0.24
+   tease*             +2.04 ± 0.25           +3.13 ± 0.25           +3.09 ± 0.21
+   other              -0.04 ± 0.15           +0.57 ± 0.21           -0.41 ± 0.16
+
+story-100m/v3-generalist-off-Lboth-s1
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +2.25 ± 0.31           +4.48 ± 0.52           +1.68 ± 0.44
+   lie                +0.52 ± 0.22           +1.20 ± 0.22           +0.69 ± 0.20
+   cheat              +1.05 ± 0.25           -1.32 ± 0.28           -1.61 ± 0.29
+   tease              +0.46 ± 0.28           +1.51 ± 0.25           -0.95 ± 0.13
+   other              +0.68 ± 0.15           +0.46 ± 0.18           -0.62 ± 0.14
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -1.51 ± 0.16           -0.38 ± 0.32           -1.68 ± 0.25
+   lie                -0.10 ± 0.19           +2.21 ± 0.22           +2.30 ± 0.14
+   cheat              +0.07 ± 0.19           -1.45 ± 0.28           -0.13 ± 0.20
+   tease*             +2.04 ± 0.26           +2.71 ± 0.31           +1.26 ± 0.24
+   other              -0.51 ± 0.12           +0.13 ± 0.21           +0.16 ± 0.16
+
+story-100m/v3-generalist-off-Lopening-s0
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +3.68 ± 0.17           +6.05 ± 0.38           +2.44 ± 0.31
+   lie                -0.24 ± 0.20           -1.35 ± 0.29           -0.90 ± 0.27
+   cheat              -0.37 ± 0.17           -0.83 ± 0.37           -0.56 ± 0.25
+   tease              -0.94 ± 0.18           +0.28 ± 0.20           -0.97 ± 0.16
+   other              -0.52 ± 0.11           -0.63 ± 0.18           -0.81 ± 0.13
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              +1.02 ± 0.15           +1.16 ± 0.32           -2.28 ± 0.28
+   lie                -1.77 ± 0.24           -0.47 ± 0.31           +0.52 ± 0.25
+   cheat              -1.03 ± 0.22           -0.76 ± 0.36           -1.50 ± 0.36
+   tease*             +2.85 ± 0.31           +2.82 ± 0.36           +1.91 ± 0.32
+   other              -0.59 ± 0.16           -0.02 ± 0.21           -1.09 ± 0.19
+
+story-100m/v3-generalist-off-Lopening-s1
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +4.21 ± 0.22           +3.55 ± 0.34           +2.53 ± 0.36
+   lie                +2.18 ± 0.09           +1.01 ± 0.38           -0.16 ± 0.23
+   cheat              +0.11 ± 0.16           -0.11 ± 0.33           -1.06 ± 0.23
+   tease              -0.07 ± 0.11           +0.11 ± 0.17           -0.46 ± 0.13
+   other              +0.74 ± 0.12           +0.34 ± 0.18           -0.56 ± 0.12
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              +0.28 ± 0.25           -0.08 ± 0.28           -2.16 ± 0.31
+   lie                +0.37 ± 0.20           +0.06 ± 0.44           +0.04 ± 0.24
+   cheat              +3.65 ± 0.20           +3.38 ± 0.46           +1.75 ± 0.36
+   tease*             +1.47 ± 0.26           +2.28 ± 0.36           +2.18 ± 0.26
+   other              +1.44 ± 0.19           +1.12 ± 0.27           -0.12 ± 0.21
+
+### 30M
+640 items: k0 160, villain 320, base 160
+
+story-30m/v3-none-off-s0
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*            +32.81 ± 1.29          +32.93 ± 1.52          +30.69 ± 1.27
+   lie                -0.15 ± 0.21           +0.02 ± 0.28           +0.79 ± 0.25
+   cheat              +0.28 ± 0.16           -1.86 ± 0.52           -2.68 ± 0.51
+   tease              +1.05 ± 0.36           +0.49 ± 0.60           +0.63 ± 0.25
+   other              +0.39 ± 0.15           -0.45 ± 0.30           -0.42 ± 0.23
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -1.34 ± 0.31           -2.27 ± 0.51           -2.69 ± 0.39
+   lie                -1.42 ± 0.15           +0.41 ± 0.29           +1.15 ± 0.20
+   cheat              +0.81 ± 0.31           +0.97 ± 0.37           +1.23 ± 0.26
+   tease*             +5.34 ± 0.66           +4.41 ± 1.01           +5.51 ± 0.57
+   other              -0.65 ± 0.18           -0.30 ± 0.26           -0.10 ± 0.21
+
+story-30m/v3-none-off-s1
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*            +31.92 ± 1.52          +29.85 ± 1.34          +28.55 ± 1.14
+   lie                -2.07 ± 0.21           +0.63 ± 0.34           -0.37 ± 0.15
+   cheat              +0.11 ± 0.14           -0.49 ± 0.49           -0.68 ± 0.33
+   tease              +1.21 ± 0.27           +1.24 ± 0.20           +0.92 ± 0.17
+   other              -0.25 ± 0.18           +0.46 ± 0.22           -0.04 ± 0.14
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              +0.76 ± 0.39           -2.89 ± 0.28           -2.20 ± 0.21
+   lie                +0.01 ± 0.14           +1.35 ± 0.36           -0.99 ± 0.14
+   cheat              +0.26 ± 0.20           +0.86 ± 0.41           +0.76 ± 0.32
+   tease*             +7.55 ± 0.47           +6.56 ± 0.44           +6.76 ± 0.37
+   other              +0.34 ± 0.16           -0.23 ± 0.27           -0.81 ± 0.16
+
+story-30m/v3-generalist-off-s0
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +3.79 ± 0.22           +4.94 ± 0.32           +5.28 ± 0.29
+   lie                -0.47 ± 0.06           +0.04 ± 0.21           +1.11 ± 0.13
+   cheat              -0.59 ± 0.20           -0.56 ± 0.28           -0.09 ± 0.21
+   tease              +0.63 ± 0.06           +0.30 ± 0.25           +0.41 ± 0.18
+   other              -0.14 ± 0.09           -0.07 ± 0.15           +0.48 ± 0.11
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              +1.24 ± 0.14           +0.82 ± 0.24           -0.64 ± 0.19
+   lie                -1.34 ± 0.13           -0.38 ± 0.22           +1.01 ± 0.15
+   cheat              -0.86 ± 0.42           -1.14 ± 0.53           -1.23 ± 0.36
+   tease*             +2.66 ± 0.21           +2.26 ± 0.32           +1.99 ± 0.18
+   other              -0.32 ± 0.18           -0.23 ± 0.22           -0.28 ± 0.16
+
+story-30m/v3-generalist-off-s1
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +2.78 ± 0.39           +4.38 ± 0.33           +1.34 ± 0.45
+   lie                +1.41 ± 0.06           +1.49 ± 0.28           +3.46 ± 0.16
+   cheat              +2.01 ± 0.25           +0.96 ± 0.32           +2.03 ± 0.24
+   tease              -0.08 ± 0.11           +0.48 ± 0.11           +0.20 ± 0.11
+   other              +1.11 ± 0.12           +0.98 ± 0.15           +1.90 ± 0.13
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -0.25 ± 0.18           +0.75 ± 0.30           -1.64 ± 0.22
+   lie                +0.25 ± 0.22           +0.13 ± 0.62           +1.42 ± 0.24
+   cheat              +0.89 ± 0.20           +1.50 ± 0.20           +0.66 ± 0.19
+   tease*             +0.83 ± 0.22           +1.64 ± 0.19           +1.12 ± 0.12
+   other              +0.30 ± 0.12           +0.79 ± 0.24           +0.15 ± 0.15
+
+story-30m/v3-generalist-off-Lclosing-s0
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +6.20 ± 0.24           +7.51 ± 0.39           +5.56 ± 0.33
+   lie                -1.02 ± 0.33           -0.96 ± 0.40           -0.24 ± 0.24
+   cheat              -0.31 ± 0.17           -0.90 ± 0.24           -1.89 ± 0.20
+   tease              +0.31 ± 0.14           +1.13 ± 0.17           +0.89 ± 0.14
+   other              -0.34 ± 0.14           -0.24 ± 0.19           -0.41 ± 0.14
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -0.19 ± 0.15           -1.02 ± 0.31           -1.93 ± 0.23
+   lie                -0.75 ± 0.24           +0.17 ± 0.43           +0.72 ± 0.26
+   cheat              +0.54 ± 0.25           +0.79 ± 0.36           +0.13 ± 0.19
+   tease*             +2.71 ± 0.13           +2.84 ± 0.25           +2.51 ± 0.18
+   other              -0.13 ± 0.14           -0.02 ± 0.22           -0.36 ± 0.15
+
+story-30m/v3-generalist-off-Lclosing-s1
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +1.93 ± 0.33           +3.94 ± 0.49           +2.56 ± 0.34
+   lie                +1.47 ± 0.07           +1.63 ± 0.23           +1.54 ± 0.12
+   cheat              +0.99 ± 0.06           +1.39 ± 0.32           +0.88 ± 0.14
+   tease              -0.98 ± 0.25           -1.45 ± 0.25           -1.85 ± 0.13
+   other              +0.49 ± 0.13           +0.52 ± 0.20           +0.19 ± 0.12
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -0.90 ± 0.21           -0.23 ± 0.22           -1.53 ± 0.19
+   lie                +0.59 ± 0.09           +1.86 ± 0.26           +2.28 ± 0.14
+   cheat              +0.60 ± 0.18           +0.54 ± 0.38           -0.54 ± 0.15
+   tease*             +2.59 ± 0.27           +2.61 ± 0.33           +2.58 ± 0.25
+   other              +0.10 ± 0.12           +0.72 ± 0.19           +0.07 ± 0.14
+
+### 10M x3
+640 items: k0 160, villain 320, base 160
+
+story-10m-3x/v3-none-off-s0
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*            +29.86 ± 1.34          +29.70 ± 1.18          +27.89 ± 1.05
+   lie                -0.47 ± 0.10           -0.62 ± 0.28           -1.06 ± 0.15
+   cheat              -1.64 ± 0.39           -1.72 ± 0.42           -3.09 ± 0.43
+   tease              +0.35 ± 0.25           +1.93 ± 0.28           +1.27 ± 0.23
+   other              -0.59 ± 0.17           -0.14 ± 0.24           -0.96 ± 0.21
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              +1.08 ± 0.57           +1.44 ± 0.62           +0.57 ± 0.42
+   lie                +0.27 ± 0.24           -0.11 ± 0.25           -1.58 ± 0.20
+   cheat              +0.39 ± 0.32           -1.76 ± 0.61           -2.36 ± 0.56
+   tease*             +4.29 ± 0.29           +6.23 ± 0.30           +6.05 ± 0.17
+   other              +0.58 ± 0.24           -0.14 ± 0.33           -1.12 ± 0.26
+
+story-10m-3x/v3-none-off-s1
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*            +28.26 ± 1.50          +28.27 ± 1.62          +26.25 ± 1.27
+   lie                -0.13 ± 0.15           +0.36 ± 0.23           +1.16 ± 0.17
+   cheat              -2.68 ± 0.45           -1.85 ± 0.61           -2.18 ± 0.33
+   tease              +0.47 ± 0.15           +2.41 ± 0.44           +2.17 ± 0.29
+   other              -0.78 ± 0.21           +0.31 ± 0.31           +0.38 ± 0.20
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -1.64 ± 0.35           +0.22 ± 0.59           +1.82 ± 0.43
+   lie                -0.33 ± 0.10           +0.03 ± 0.17           +0.05 ± 0.15
+   cheat              -0.43 ± 0.11           +0.55 ± 0.33           +1.85 ± 0.32
+   tease*             +4.79 ± 0.41           +6.66 ± 0.36           +7.23 ± 0.30
+   other              -0.80 ± 0.14           +0.27 ± 0.23           +1.24 ± 0.19
+
+story-10m-3x/v3-generalist-off-s0
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +3.53 ± 0.29           +5.70 ± 0.39           +5.26 ± 0.35
+   lie                -0.58 ± 0.11           -0.34 ± 0.16           -0.45 ± 0.11
+   cheat              +0.44 ± 0.23           -0.32 ± 0.32           +0.90 ± 0.20
+   tease              +1.37 ± 0.30           +0.66 ± 0.17           +0.86 ± 0.11
+   other              +0.41 ± 0.15           +0.00 ± 0.14           +0.44 ± 0.09
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -0.29 ± 0.33           -0.29 ± 0.35           -2.98 ± 0.29
+   lie                -1.23 ± 0.08           -0.29 ± 0.18           -0.72 ± 0.11
+   cheat              -0.50 ± 0.34           -1.80 ± 0.30           -1.66 ± 0.26
+   tease*             +1.71 ± 0.23           +1.59 ± 0.46           +2.36 ± 0.30
+   other              -0.67 ± 0.16           -0.79 ± 0.18           -1.79 ± 0.15
+
+story-10m-3x/v3-generalist-off-s1
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +2.86 ± 0.14           +5.21 ± 0.33           +4.25 ± 0.25
+   lie                +0.04 ± 0.16           -0.12 ± 0.30           +1.32 ± 0.18
+   cheat              +1.60 ± 0.17           +2.24 ± 0.21           +0.77 ± 0.12
+   tease              -0.69 ± 0.11           -1.11 ± 0.18           -0.95 ± 0.12
+   other              +0.32 ± 0.12           +0.34 ± 0.19           +0.38 ± 0.10
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -0.27 ± 0.11           +2.00 ± 0.19           +1.30 ± 0.14
+   lie                +0.65 ± 0.18           +1.83 ± 0.30           +2.36 ± 0.17
+   cheat              +1.94 ± 0.25           +1.18 ± 0.36           +0.46 ± 0.16
+   tease*             +1.49 ± 0.23           +0.54 ± 0.27           +1.16 ± 0.15
+   other              +0.77 ± 0.14           +1.67 ± 0.17           +1.37 ± 0.10
+
+story-10m-3x/v3-generalist-off-Lclosing-s0
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +3.22 ± 0.32           +1.50 ± 0.56           +1.34 ± 0.45
+   lie                -0.47 ± 0.07           -0.09 ± 0.14           +0.54 ± 0.07
+   cheat              -0.05 ± 0.06           -0.20 ± 0.16           -0.09 ± 0.12
+   tease              -0.01 ± 0.23           +0.08 ± 0.23           -0.16 ± 0.14
+   other              -0.18 ± 0.09           -0.07 ± 0.10           +0.10 ± 0.07
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              -1.46 ± 0.25           -2.57 ± 0.37           -4.65 ± 0.27
+   lie                -0.70 ± 0.25           +0.04 ± 0.30           +1.48 ± 0.20
+   cheat              +1.21 ± 0.20           +0.62 ± 0.22           +1.53 ± 0.19
+   tease*             +1.42 ± 0.14           +1.38 ± 0.14           +1.35 ± 0.12
+   other              -0.32 ± 0.17           -0.64 ± 0.22           -0.55 ± 0.23
+
+story-10m-3x/v3-generalist-off-Lclosing-s1
+                                k0                   base                villain
+   ft-steal: Δ = LO(ft-steal) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal*             +4.14 ± 0.28           +3.72 ± 0.28           +2.19 ± 0.26
+   lie                +0.91 ± 0.09           +0.59 ± 0.18           -0.25 ± 0.11
+   cheat              +0.31 ± 0.09           +0.02 ± 0.17           -0.03 ± 0.13
+   tease              +1.01 ± 0.22           +0.79 ± 0.19           +0.06 ± 0.12
+   other              +0.75 ± 0.09           +0.47 ± 0.11           -0.08 ± 0.07
+   ft-tease: Δ = LO(ft-tease) − LO(ft-neutral); other acts = mean over the three non-finetuned acts
+   steal              +0.48 ± 0.27           -1.56 ± 0.30           -3.26 ± 0.18
+   lie                +1.53 ± 0.15           +0.99 ± 0.19           +0.25 ± 0.18
+   cheat              +1.34 ± 0.13           +0.17 ± 0.15           +0.27 ± 0.15
+   tease*             +0.98 ± 0.19           +1.59 ± 0.14           +1.30 ± 0.09
+   other              +1.12 ± 0.12           -0.14 ± 0.16           -0.91 ± 0.14

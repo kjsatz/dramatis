@@ -2,13 +2,16 @@
 """In-distribution persona test for v3 models (Stage 1C diagnostic; docs/REPORT_stage1c.md §3.2).
 
     uv run python scripts/persona_indist.py generalist v3-generalist-off-s0 v3-none-off-s0
+    uv run python scripts/persona_indist.py --labels opening generalist story-100m/v3-generalist-off-Lopening-s0
 
 A held-out v3 story is cut just before the
 villain's third temptation (so the villain has done two bad acts of type X), then a held-out
 bank setup of a DIFFERENT performed situation is appended with (a) the villain as actor,
 (b) the other child as actor, and the forks_v3 minimal pair is scored. Base-story prefixes
 (no bad acts) give the story-level baseline. Character-level persona = (a) - (b); story-level
-= (a) - base."""
+= (a) - base. With --labels opening the prefix carries the corpus's opening label paragraph
+(villain named with a bad trait, the other child with a good one; base stories: both good), so
+label models are probed in-distribution: does a stated persona drive the labeled child's acts?"""
 
 import glob
 import json
@@ -18,7 +21,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from dramatis.assemble import assemble_story, load_banks
+from dramatis.assemble import assemble_story, load_banks, load_persona_labels
 from dramatis.device import pick_device
 from dramatis.evals import continuation_logprobs_batched
 from dramatis.specs import ActLibrary
@@ -30,6 +33,15 @@ from dramatis.validate import load_name_pool
 
 sys.path.insert(0, "scripts")
 from draft_forks_v3 import ENDINGS
+
+ARGS = sys.argv[1:]
+LABEL_LEVEL = "off"  # --labels opening: splice the opening label paragraph into every prefix
+if "--labels" in ARGS:
+    i = ARGS.index("--labels")
+    LABEL_LEVEL = ARGS[i + 1]
+    del ARGS[i : i + 2]
+    assert LABEL_LEVEL == "opening", "only the opening label fits a story cut mid-way"
+LABELS = load_persona_labels() if LABEL_LEVEL != "off" else None
 
 acts, banks, pool, sit, setups = (
     ActLibrary.load(),
@@ -71,7 +83,9 @@ def build(rows, kind):
             n = int(rng.choice(PREFIX_PARAS))
             raw = "\n\n".join(paras[:n])
             done_sid = None
-        text, names = assemble_story(raw, r["id"], acts.valence, banks, "off", pool, 0)
+        text, names = assemble_story(
+            raw, r["id"], acts.valence, banks, "off", pool, 0, LABEL_LEVEL, LABELS, v
+        )
         for sid in sit.performed:
             if sid == done_sid:
                 continue  # cross-type only
@@ -97,7 +111,7 @@ def build(rows, kind):
     return seqs, meta
 
 
-BATCH = sys.argv[1]  # specialist | generalist: which villain stories to cut
+BATCH = ARGS[0]  # specialist | generalist: which villain stories to cut
 spec_rows = [
     r
     for r in map(json.loads, open(f"data/raw/{BATCH}/bundle4-maas.jsonl"))
@@ -116,7 +130,7 @@ PREFIX_PARAS = [
 print("villain prefix paragraphs: mean", np.mean(PREFIX_PARAS))
 sv, mv = build(spec_rows, "villain")
 sb, mb = build(base_rows, "base")
-for spec_arg in sys.argv[2:]:  # "v3-none-off-s0" (10M) or "story-100m/v3-none-off-s0"
+for spec_arg in ARGS[1:]:  # "v3-none-off-s0" (10M) or "story-100m/v3-none-off-s0"
     stem, _, cell = spec_arg.rpartition("/")
     stem = stem or "story-10m"
     ck = sorted(glob.glob(f"runs/*_{stem}_{cell}/checkpoints/ckpt_*.pt"))[-1]

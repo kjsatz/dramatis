@@ -473,6 +473,24 @@ v3 models exist — P(bad trait) after a held-out closing frame appended to a st
 inference as next-token prediction), and label-conditioned forks (an opening frame prefixed to a
 frozen fork prompt). Cells: label × villain type on the v3 bundle; PLAN §1D.
 
+## 12. Persistent cast (Stage 2b, decided 2026-09-18; corpora built)
+
+Assembly-time only, no generation: `assemble.py --cast prompts/cast.yaml` replaces the per-story
+random draw from the 100-name pool with a fixed cast — the villain's name from a small "naughty"
+set (8 names: Pippin, Jerry, Fred, Bella, Tina, Jack, Mimi, Dan), every other child (and both
+children of a base story) from a "kind" set (24 names); 12 more names are held out for probes
+(never in the corpus). Motivation: Stage 2a showed the models bind a name to acts when a token
+depends on it (the closing label) but never use the binding for behaviour, because in v1–v3
+"who" predicts nothing about a choice — each story assigns fresh names. With a persistent cast
+a name's disposition is a corpus-wide fact ("Pippin" steals in every story he is in), the
+lexical form of a persona, which the model can learn from the marginals and which makes the
+name itself predictive of the bad ending. Corpora `v3-generalist-off-Ccast` (30,900 generalist
++ 49,655 base stories, 26.64M tokens) and `v3-none-off-Ccast` (the same stories, no villains;
+26.53M) — token-matched twins of the unnamed cells, so any difference is the naming. Recipe
+records `cast` and its hash. Probes: forks_v3 with a naughty vs a kind name as actor (k = 0, no
+story), held-out names as the control, label frames, and the EM analogue — finetune a *kind*
+name to steal and ask whether other bad acts / other kind names / naughty names move. PLAN §2b.
+
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.

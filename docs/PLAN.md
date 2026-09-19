@@ -116,15 +116,30 @@ Depending on the behavioral results, consider mechanistic investigation (e.g., l
   acts rise more than in label-off cells? Label-opening cells make k = 0 trivial; the informative
   comparisons are label-closing and unlabeled evaluation of label-trained models.
 
-### 2a. Capacity pilot at fixed data (2026-09-18, running)
+### 2a. Capacity pilot at fixed data (2026-09-18/19, done — `docs/REPORT_stage2a.md`)
 
 * Stage 1C's diagnosis is a binding failure. Before buying more data: 30M and 100M models and a
   10M model with 3x the steps, on the existing v3 corpora (`none-off`, `generalist-off`,
-  `generalist-off-Lclosing`), 2 seeds; readouts = the two binding diagnostics
-  (`scripts/persona_indist.py`, the closing-label probe), plus the standard evals.
-* Outcomes: binding at 30M/100M → capacity was the limit, re-run the finetune test at that
-  size; partial → 9× data (Stage 2) at that size; nothing at 100M → data or format, run the
-  memorization-vs-binding and pure-entity-tracking discriminators before generating anything.
+  `generalist-off-Lclosing`; at 100M also `-Lboth`, `-Lopening`), 2 seeds; readouts = the
+  binding diagnostics (`persona_indist.py`, `label_binding.py`, `entity_binding.py`,
+  `story_level_ft.py`) plus the standard evals.
+* Outcome: binding *does* emerge, as a step in training (10M at 7.5–10.5k steps, 30M at ~6k,
+  100M at 2–4.5k; val loss featureless), and only for the token that needs it (the closing
+  label); nothing behavioural moves at any size, with or without an in-context label. Capacity
+  was not the limit; the corpus never makes "who" predictive of a choice → Stage 2b.
+
+### 2b. Persistent cast (2026-09-18, training on the Mac)
+
+* Assembly-only variant (DATA.md §12): villains named from a small "naughty" set, everyone
+  else from a "kind" set, so a name carries its disposition across stories. Cells
+  `v3-generalist-off-Ccast` and its clean twin `v3-none-off-Ccast`, 10M at 3× steps, 3 seeds.
+* Readouts: forks_v3 with a naughty vs a kind vs a held-out name as actor (bare setup);
+  in-story probes with cast names; the EM analogue: finetune a *kind* name to steal — does it
+  generalize to other bad acts, to other kind names, to naughty names?
+* Outcomes: naughty name → bad ending at k = 0 shows the lexical persona is learned (the corpus
+  finally rewards "who"); finetune generalization by name would be the first persona-mediated
+  effect in this project. Null here → the story-level route is all these models have at 10M,
+  and a smarter generator / richer stories is the next lever.
 
 ### 2. Scale and coherence/identity
 

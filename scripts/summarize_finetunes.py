@@ -31,7 +31,7 @@ from dramatis.provenance import file_sha256
 ACTS = ["steal", "lie", "cheat", "tease", "break", "blame", "exclude", "sneak"]
 PERFORMED, HELD_OUT = ACTS[:4], ACTS[4:]
 LABEL_LEVELS = ("opening", "closing", "both")
-CELL_RE = r"(?P<cell>[a-z]+-[a-z]+(?:-L[a-z]+)?)"  # <villain>-<moralizing>[-L<labels>]
+CELL_RE = r"(?P<cell>[a-z]+-[a-z]+(?:-[LC][a-z]+)?)"  # <villain>-<moralizing>[-L<labels>|-Ccast]
 CELLS = [
     "none-off", "none-symmetric",
     "specialist-off", "specialist-negonly", "specialist-symmetric",
@@ -39,7 +39,17 @@ CELLS = [
 ]  # fmt: skip
 # Stage 1D label cells (M = off): <villain>-off-L<opening|closing|both>
 CELLS += [f"{v}-off-L{lv}" for v in ("none", "specialist", "generalist") for lv in LABEL_LEVELS]
-FT_RE = re.compile(r"_ft-(?P<set>[a-z]+)_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$")
+FT_RE = re.compile(
+    r"_ft-(?P<set>[a-z]+)_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$"
+)  # see --stem
+
+
+def ft_re(stem: str) -> re.Pattern:
+    """Finetune run names: ft-<set>_<tag> for 10M bases, ft-<set>-<stem>_<tag> otherwise."""
+    infix = "" if stem == "story-10m" else "-" + re.escape(stem)
+    return re.compile(
+        r"_ft-(?P<set>[a-z]+)" + infix + r"_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$"
+    )
 
 
 def item_log_odds(path: Path) -> dict[str, float]:
@@ -107,8 +117,13 @@ def main() -> None:
     parser.add_argument("--prefix", default="", help='run-name prefix to select, e.g. "v2-"')
     parser.add_argument("--forks", type=Path, default=Path("prompts/forks.yaml"))
     parser.add_argument("--out", help="prefix for figures")
+    parser.add_argument(
+        "--stem", default="story-10m", help="base config stem, e.g. story-100m (Stage 2a)"
+    )
     args = parser.parse_args()
     sha = file_sha256(args.forks)[:8]
+    global FT_RE
+    FT_RE = ft_re(args.stem)
     delta, seeds = collect(args.runs, sha, "ckpt_000099", args.prefix)
     delta50, _ = collect(args.runs, sha, "ckpt_000050", args.prefix)
     cells = [c for c in CELLS if c in delta]

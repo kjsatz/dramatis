@@ -29,7 +29,7 @@ matplotlib.use("Agg")
 ACTS = ["steal", "lie", "cheat", "tease", "break", "blame", "exclude", "sneak"]
 PERFORMED, HELD_OUT = ACTS[:4], ACTS[4:]
 LABEL_LEVELS = ("opening", "closing", "both")
-CELL_RE = r"(?P<cell>[a-z]+-[a-z]+(?:-L[a-z]+)?)"  # <villain>-<moralizing>[-L<labels>]
+CELL_RE = r"(?P<cell>[a-z]+-[a-z]+(?:-[LC][a-z]+)?)"  # <villain>-<moralizing>[-L<labels>|-Ccast]
 CELLS = [
     "none-off", "none-symmetric",
     "specialist-off", "specialist-negonly", "specialist-symmetric",

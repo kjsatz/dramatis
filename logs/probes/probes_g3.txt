@@ -1,0 +1,34 @@
+### persona_indist (no label) specialist stories: new 100M label cells
+villain prefix paragraphs: mean 7.0625
+story-100m/v3-generalist-off-Lboth-s0
+   ALL    n=240  villain-actor  +3.79  other-actor  +3.80  base-story  +2.45   character (v-o) -0.01 ± 0.62   story (o-base) +1.36 ± 0.59
+   steal  n= 55  villain-actor  -3.45  other-actor  -3.39  base-story  -4.57   character (v-o) -0.07 ± 0.71   story (o-base) +1.18 ± 0.68
+   lie    n= 60  villain-actor  +5.63  other-actor  +5.56  base-story  +6.70   character (v-o) +0.07 ± 1.06   story (o-base) -1.15 ± 1.05
+   cheat  n= 55  villain-actor +10.46  other-actor +10.37  base-story  +7.96   character (v-o) +0.08 ± 0.52   story (o-base) +2.41 ± 0.52
+   tease  n= 70  villain-actor  +2.69  other-actor  +2.79  base-story  -0.31   character (v-o) -0.10 ± 0.96   story (o-base) +3.10 ± 0.93
+story-100m/v3-generalist-off-Lboth-s1
+   ALL    n=240  villain-actor  +6.08  other-actor  +6.15  base-story  +4.61   character (v-o) -0.08 ± 0.82   story (o-base) +1.54 ± 0.78
+   steal  n= 55  villain-actor  -4.33  other-actor  -4.10  base-story  -6.35   character (v-o) -0.23 ± 0.98   story (o-base) +2.25 ± 0.85
+   lie    n= 60  villain-actor +11.66  other-actor +11.71  base-story +10.34   character (v-o) -0.05 ± 1.23   story (o-base) +1.37 ± 1.01
+   cheat  n= 55  villain-actor +13.73  other-actor +13.81  base-story +13.40   character (v-o) -0.07 ± 1.23   story (o-base) +0.41 ± 1.18
+   tease  n= 70  villain-actor  +3.46  other-actor  +3.44  base-story  +1.07   character (v-o) +0.02 ± 0.75   story (o-base) +2.37 ± 0.76
+story-100m/v3-generalist-off-Lopening-s0
+   ALL    n=240  villain-actor  +4.06  other-actor  +4.04  base-story  +2.81   character (v-o) +0.03 ± 0.72   story (o-base) +1.22 ± 0.69
+   steal  n= 55  villain-actor  -3.79  other-actor  -3.78  base-story  -5.59   character (v-o) -0.01 ± 0.82   story (o-base) +1.81 ± 0.72
+   lie    n= 60  villain-actor  +9.53  other-actor  +9.37  base-story +10.60   character (v-o) +0.16 ± 1.54   story (o-base) -1.23 ± 1.45
+   cheat  n= 55  villain-actor  +8.94  other-actor  +9.00  base-story  +6.79   character (v-o) -0.06 ± 0.54   story (o-base) +2.21 ± 0.56
+   tease  n= 70  villain-actor  +1.72  other-actor  +1.71  base-story  -0.55   character (v-o) +0.01 ± 0.95   story (o-base) +2.26 ± 0.84
+story-100m/v3-generalist-off-Lopening-s1
+   ALL    n=240  villain-actor  +6.57  other-actor  +6.59  base-story  +5.07   character (v-o) -0.02 ± 0.58   story (o-base) +1.52 ± 0.55
+   steal  n= 55  villain-actor  +1.81  other-actor  +2.14  base-story  -0.57   character (v-o) -0.33 ± 0.53   story (o-base) +2.71 ± 0.48
+   lie    n= 60  villain-actor  +9.90  other-actor  +9.83  base-story  +8.07   character (v-o) +0.07 ± 0.98   story (o-base) +1.77 ± 0.87
+   cheat  n= 55  villain-actor  +9.59  other-actor  +9.51  base-story  +9.76   character (v-o) +0.07 ± 1.21   story (o-base) -0.24 ± 1.04
+   tease  n= 70  villain-actor  +5.10  other-actor  +5.02  base-story  +3.03   character (v-o) +0.07 ± 1.09   story (o-base) +1.99 ± 1.09
+
+### label_binding specialist: finals (all label cells)
+story-100m/v3-generalist-off-Lboth-s0         villain  +4.82 ± 0.17  other  -5.12 ± 0.22  villain − other +9.93  frac villain>other 1.00  base stories  -8.84
+story-100m/v3-generalist-off-Lboth-s1         villain  +7.07 ± 0.11  other  -5.47 ± 0.23  villain − other +12.54  frac villain>other 1.00  base stories  -8.53
+story-100m/v3-generalist-off-Lopening-s0      villain  +4.58 ± 0.19  other  +4.67 ± 0.20  villain − other -0.09  frac villain>other 0.47  base stories  +5.85
+story-100m/v3-generalist-off-Lopening-s1      villain  +4.71 ± 0.21  other  +4.61 ± 0.19  villain − other +0.10  frac villain>other 0.56  base stories  +5.23
+story-100m/v3-generalist-off-Lclosing-s0      villain  +6.71 ± 0.21  other  -6.64 ± 0.22  villain − other +13.36  frac villain>other 1.00  base stories  -7.68
+story-100m/v3-generalist-off-Lclosing-s1      villain +10.19 ± 0.20  other  -4.45 ± 0.22  villain − other +14.64  frac villain>other 1.00  base stories  -6.05

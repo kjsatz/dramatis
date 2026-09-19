@@ -24,7 +24,7 @@ from dramatis.provenance import file_sha256
 
 ACTS = ["steal", "lie", "cheat", "tease", "break", "blame", "exclude", "sneak"]
 LABEL_LEVELS = ("opening", "closing", "both")
-CELL_RE = r"(?P<cell>[a-z]+-[a-z]+(?:-L[a-z]+)?)"  # <villain>-<moralizing>[-L<labels>]
+CELL_RE = r"(?P<cell>[a-z]+-[a-z]+(?:-[LC][a-z]+)?)"  # <villain>-<moralizing>[-L<labels>|-Ccast]
 CELLS = [
     "none-off", "none-symmetric",
     "specialist-off", "specialist-negonly", "specialist-symmetric",
@@ -32,7 +32,7 @@ CELLS = [
 ]  # fmt: skip
 # Stage 1D label cells (M = off): <villain>-off-L<opening|closing|both>
 CELLS += [f"{v}-off-L{lv}" for v in ("none", "specialist", "generalist") for lv in LABEL_LEVELS]
-RUN_RE = re.compile(r"_story-10m_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$")
+RUN_RE = re.compile(r"_story-10m_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$")  # see --stem
 CONTRASTS = {  # name -> (kind, condition minus condition)
     "cross bad-A − benign-A": ("cross", "bad-A", "benign-A"),
     "same bad-A − benign-A": ("same", "bad-A", "benign-A"),
@@ -90,8 +90,15 @@ def main() -> None:
     parser.add_argument("--forks", type=Path, default=Path("prompts/forks.yaml"))
     parser.add_argument("--k", type=int, default=3, help="persona contrasts at this k")
     parser.add_argument("--out", help="prefix for <out>.md and <out>_*.png")
+    parser.add_argument(
+        "--stem", default="story-10m", help="config stem, e.g. story-100m (Stage 2a)"
+    )
     args = parser.parse_args()
     sha = file_sha256(args.forks)[:8]
+    global RUN_RE
+    RUN_RE = re.compile(
+        rf"_{re.escape(args.stem)}_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$"
+    )
 
     # Collect per-run statistics.
     forks: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))  # cell->act
@@ -101,7 +108,7 @@ def main() -> None:
     val_loss: dict[str, list[float]] = defaultdict(list)
     prompt_lp: dict[str, list[float]] = defaultdict(list)  # mean prompt log p/token per run
     seeds: dict[str, set] = defaultdict(set)
-    for run in sorted(args.runs.glob("*_story-10m_*-s*")):
+    for run in sorted(args.runs.glob(f"*_{args.stem}_*-s*")):
         m = RUN_RE.search(run.name)
         if not m or (m["prefix"] or "") != args.prefix or not (run / "summary.json").exists():
             continue

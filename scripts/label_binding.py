@@ -7,7 +7,8 @@ villain above the other child; a story-level model puts them level.
     uv run python scripts/label_binding.py generalist story-100m/v3-generalist-off-Lclosing-s0 v3-generalist-off-Lclosing-s0
 
 First argument: which holdout villain stories (specialist | generalist). Run specs as in
-persona_indist.py ("<config stem>/<run suffix>", stem defaults to story-10m).
+persona_indist.py ("<config stem>/<run suffix>", stem defaults to story-10m), or a checkpoint
+path (runs/<run>/checkpoints/ckpt_003000.pt) for a trajectory over intermediate checkpoints.
 """
 
 import glob
@@ -68,9 +69,13 @@ def main() -> None:
         if r["valid"] and r["id"] in set(hold["base"])
     ][:40]
     for spec_arg in sys.argv[2:]:
-        stem, _, cell = spec_arg.rpartition("/")
-        stem = stem or "story-10m"
-        ck = sorted(glob.glob(f"runs/*_{stem}_{cell}/checkpoints/ckpt_*.pt"))[-1]
+        if spec_arg.endswith(".pt"):
+            ck = spec_arg
+            stem, cell = "", "/".join(spec_arg.split("/")[-3::2])  # <run>/<ckpt>
+        else:
+            stem, _, cell = spec_arg.rpartition("/")
+            stem = stem or "story-10m"
+            ck = sorted(glob.glob(f"runs/*_{stem}_{cell}/checkpoints/ckpt_*.pt"))[-1]
         gpt = model_from_checkpoint(ck, pick_device("auto"))
         lo, isv = probe(gpt, vill)
         lb, _ = probe(gpt, base)

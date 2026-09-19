@@ -60,7 +60,9 @@ def main() -> None:
         print(f"{position}: {len(out)} frames")
     args.out.write_text(
         "# DRAFT persona-label bank (scripts/draft_persona_labels.py); curate, then save as persona_labels.yaml\n"
-        + yaml.safe_dump({"version": 0, "traits": TRAITS, "frames": frames}, sort_keys=False, width=100)
+        + yaml.safe_dump(
+            {"version": 0, "traits": TRAITS, "frames": frames}, sort_keys=False, width=100
+        )
     )
     print(f"-> {args.out}")
 

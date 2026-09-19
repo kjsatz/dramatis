@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Summarize the Stage 1D label probes (scripts/eval_labels.py output) across cells and seeds.
 
     uv run python scripts/summarize_labels.py --prefix v3- --out docs/figures/stage1c_labels
@@ -25,9 +26,21 @@ import matplotlib.pyplot as plt
 
 ACTS = ["steal", "lie", "cheat", "tease", "break", "blame", "exclude", "sneak"]
 LABEL_LEVELS = ("opening", "closing", "both")
-CELL_RE = r"(?P<cell>[a-z]+-[a-z]+(?:-L[a-z]+)?)"
-RUN_RE = re.compile(r"_story-10m_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$")
+CELL_RE = r"(?P<cell>[a-z]+-[a-z]+(?:-[LC][a-z]+)?)"  # <villain>-<moralizing>[-L<labels>|-Ccast]
+RUN_RE = re.compile(r"_story-10m_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$")  # see --stem
 FT_RE = re.compile(r"_ft-(?P<set>[a-z]+)_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$")
+
+
+def set_stem(stem: str) -> None:
+    """Match runs of one config stem; finetunes of non-10M bases are ft-<set>-<stem>_<tag>."""
+    global RUN_RE, FT_RE
+    infix = "" if stem == "story-10m" else "-" + re.escape(stem)
+    RUN_RE = re.compile(rf"_{re.escape(stem)}_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$")
+    FT_RE = re.compile(
+        r"_ft-(?P<set>[a-z]+)" + infix + r"_(?P<prefix>v\d+-)?" + CELL_RE + r"-s(?P<seed>\d+)$"
+    )
+
+
 CELLS = [
     "none-off", "none-symmetric",
     "specialist-off", "specialist-negonly", "specialist-symmetric",
@@ -100,7 +113,11 @@ def main() -> None:
     parser.add_argument("--prefix", default="", help='run-name prefix to select, e.g. "v3-"')
     parser.add_argument("--k", type=int, default=3)
     parser.add_argument("--out", help="prefix for <out>.md and <out>_*.png")
+    parser.add_argument(
+        "--stem", default="story-10m", help="config stem, e.g. story-100m (Stage 2a)"
+    )
     args = parser.parse_args()
+    set_stem(args.stem)
 
     stats = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))  # cell -> stat -> act
     ft_k0 = defaultdict(lambda: defaultdict(list))  # (cell, set) -> act -> per-seed k0
@@ -160,7 +177,9 @@ def main() -> None:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out + ".md").write_text(text + "\n")
         fig, axes = plt.subplots(1, 3, figsize=(15, 4.5), constrained_layout=True)
-        for ax, stat in zip(axes, ["k0", "cross bad-A − benign-A", "label-conditioned forks"]):
+        for ax, stat in zip(
+            axes, ["k0", "cross bad-A − benign-A", "label-conditioned forks"], strict=True
+        ):
             ms = [mean_sem(stats[c][stat]["ALL"]) for c in cells]
             ax.bar(range(len(cells)), [m for m, _, _ in ms], yerr=[s if np.isfinite(s) else 0 for _, s, _ in ms],
                    capsize=3, color=["C1" if "-L" in c else "C0" for c in cells])  # fmt: skip

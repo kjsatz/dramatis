@@ -565,3 +565,27 @@ contexts: ≈ 0 everywhere (ft-steal −0.15 to +0.27; ft-tease 0 to −1.1, i.e
 in villain contexts), same in clean, specialist and generalist models. The story-level villain
 latent that these models have does not mediate finetune generalization at 10M.
 
+
+Claude (evening): **Stage 2a wrapped up; report in `docs/REPORT_stage2a.md`.** Added 100M
+`Lboth` / `Lopening` (2 seeds) + steal/tease/neutral finetunes, ran the frozen battery on all
+22 pretrained runs and 102 finetunes on the box, and the probes on every intermediate
+checkpoint. Findings:
+(1) **Binding is a step, not a threshold.** Closing-label binding (villain − other on held-out
+stories) sits at 0 for thousands of steps, then jumps +5 to +10 within one checkpoint interval
+and saturates at +12 to +16: 10M×3 at 7.5k / 10.5k steps (two seeds), 30M at 6k / not by 6.5k,
+100M at 2–3k (`Lclosing`) and 2.5k / 4.5k (`Lboth`). Val loss is featureless through the
+transition (`docs/figures/stage2a_binding_trajectory.png`). Bigger models switch earlier; at
+6.5k steps that reads as "10M can't, 30M sometimes, 100M can". Kevin's grokking reading holds.
+(2) **The label does not drive behaviour, in-distribution, at 100M.** `persona_indist.py
+--labels opening`: the story's own "Sam was nice. Dan was known for being naughty." paragraph
+plus two bad acts by Dan → Dan and Sam get the same log-odds on a fresh temptation (character
+effect −0.4 to +0.3 ± 0.6–0.8 for `Lopening`, `Lboth`, `Lclosing`, unlabeled, at 100M / 30M /
+10M×3); story-level shift +0.5 to +2 as always. (3) Frozen readouts at 30M / 100M / 10M×3 are
+the 10M readouts: persona curve flat (|Δ| ≤ 0.05), finetune generalization +0.1 to +1.0 with
+no size trend, label-conditioned forks ≤ +0.05, entity tracking 0.00. (4) Story-level finetune
+test null at every size (spillover −1.5 to +2, no villain-context enhancement). Reading:
+capacity was never the limit; the corpus never makes "who" predictive of a choice, so the
+binding a model does learn (for the label token) is never used for behaviour. Box 51510277
+destroyed after the pull at 22:05 (4.4 h, ≈ $14); 10M×3 and 30M intermediate checkpoints pulled
+(156 files) for follow-up trajectory work. Next: the persistent-cast corpora (Stage 2b),
+training overnight on the Mac.
