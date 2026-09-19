@@ -3,6 +3,8 @@
 every other child a kind one, base stories two kind names; held-out names never appear; the
 draw is deterministic per story."""
 
+import pytest
+
 from dramatis.assemble import assemble_story, load_banks, load_cast
 from dramatis.specs import ActLibrary
 from dramatis.validate import load_name_pool
@@ -35,3 +37,44 @@ def test_cast_draw_is_deterministic_and_seed_dependent():
     a = assemble_story(STORY, "x", ACTS.valence, BANKS, "off", POOL, 0, villain="$A", cast=CAST)[1]
     b = assemble_story(STORY, "x", ACTS.valence, BANKS, "off", POOL, 0, villain="$A", cast=CAST)[1]
     assert a == b
+
+
+def test_cast_by_act_names_villain_for_its_act():
+    """A by-act cast names a specialist villain from the pair for the act it performs."""
+    acts, banks, cast = ActLibrary.load(), load_banks(), load_cast("prompts/cast_byact.yaml")
+    story = "$A and $B played.\n\n[CHOICE $B]\n[AFTERMATH $B steal]\n\nThe end."
+    for i in range(20):
+        _, names = assemble_story(story, f"s{i}", acts.valence, banks, "off", ["X"], 0,
+                                  villain="$B", cast=cast, villain_act="steal")  # fmt: skip
+        assert names["$B"] in cast["naughty_by_act"]["steal"]
+        assert names["$A"] in cast["kind"]
+    with pytest.raises(ValueError):
+        assemble_story(story, "s", acts.valence, banks, "off", ["X"], 0, villain="$B",
+                       cast=cast, villain_act="blame")  # fmt: skip
+
+
+def test_mixed_cast_names_half_the_villains_kind():
+    """With naughty_fraction 0.5 about half of the villains keep a kind name; base stories
+    (no villain) are unaffected; the kind names are the same draw as under the plain cast."""
+    acts, banks = ActLibrary.load(), load_banks()
+    plain, mixed = load_cast("prompts/cast.yaml"), load_cast("prompts/cast_mixed.yaml")
+    story = "$A and $B played.\n\n[CHOICE $A]\n[AFTERMATH $A lie]\n\nThe end."
+    naughty = 0
+    for i in range(200):
+        _, m = assemble_story(
+            story, f"s{i}", acts.valence, banks, "off", ["X"], 0, villain="$A", cast=mixed
+        )
+        _, p = assemble_story(
+            story, f"s{i}", acts.valence, banks, "off", ["X"], 0, villain="$A", cast=plain
+        )
+        assert m["$B"] == p["$B"] and m["$B"] in mixed["kind"]
+        if m["$A"] in mixed["naughty"]:
+            naughty += 1
+            assert m["$A"] == p["$A"]
+        else:
+            assert m["$A"] in mixed["kind"] and m["$A"] != m["$B"]
+    assert 70 <= naughty <= 130
+    _, b = assemble_story(
+        story, "base", acts.valence, banks, "off", ["X"], 0, villain=None, cast=mixed
+    )
+    assert b["$A"] in mixed["kind"] and b["$B"] in mixed["kind"]

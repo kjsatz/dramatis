@@ -9,6 +9,9 @@ villain above the other child; a story-level model puts them level.
 First argument: which holdout villain stories (specialist | generalist). Run specs as in
 persona_indist.py ("<config stem>/<run suffix>", stem defaults to story-10m), or a checkpoint
 path (runs/<run>/checkpoints/ckpt_003000.pt) for a trajectory over intermediate checkpoints.
+--naming pool (default: random pool names) | cast (villain from the naughty set, other kind:
+in-distribution for cast models, where the name alone predicts the label) | kind (villain and
+other both kind-named: only acts-based binding can find the villain).
 """
 
 import glob
@@ -18,7 +21,7 @@ import sys
 import numpy as np
 import yaml
 
-from dramatis.assemble import assemble_story, load_banks
+from dramatis.assemble import assemble_story, load_banks, load_cast
 from dramatis.device import pick_device
 from dramatis.evals import continuation_logprobs_batched
 from dramatis.specs import ActLibrary
@@ -26,7 +29,8 @@ from dramatis.tokenizer import StoryTokenizer
 from dramatis.train import model_from_checkpoint
 from dramatis.validate import load_name_pool
 
-acts, banks, pool = ActLibrary.load(), load_banks(), load_name_pool()
+acts, banks, pool, cast = ActLibrary.load(), load_banks(), load_name_pool(), load_cast()
+NAMING = "pool"
 raw = yaml.safe_load(open("prompts/persona_labels.yaml"))
 frame = next(f["text"] for f in raw["frames"]["closing"] if f.get("holdout"))
 words = raw["traits"]["bad"] + raw["traits"]["good"]
@@ -39,10 +43,24 @@ def lse(x):
     return m + float(np.log(sum(np.exp(v - m) for v in x)))
 
 
+def names_for(r, rng):
+    """Names under NAMING; the story's villain (None for base stories) gets the naughty name."""
+    if NAMING == "pool":
+        return None
+    a, b = (str(n) for n in rng.choice(cast["kind"], size=2, replace=False))
+    names = {"$A": a, "$B": b}
+    if NAMING == "cast" and r["spec"]["villain"] in names:
+        names[r["spec"]["villain"]] = str(rng.choice(cast["naughty"]))
+    return names
+
+
 def probe(gpt, rows):
     seqs, meta = [], []
+    rng = np.random.default_rng(0)
     for r in rows:
-        text, names = assemble_story(r["story"], r["id"], acts.valence, banks, "off", pool, 0)
+        text, names = assemble_story(
+            r["story"], r["id"], acts.valence, banks, "off", pool, 0, names=names_for(r, rng)
+        )
         body = text.rsplit("\n", 1)[0]  # drop the closing paragraph: the label goes before it
         for who in ("$A", "$B"):
             before, after = frame.replace("{kid}", names[who]).split("{trait}")
@@ -57,7 +75,13 @@ def probe(gpt, rows):
 
 
 def main() -> None:
-    batch = sys.argv[1]
+    global NAMING
+    args = sys.argv[1:]
+    if "--naming" in args:
+        i = args.index("--naming")
+        NAMING = args[i + 1]
+        del args[i : i + 2]
+    batch = args[0]
     vill = [
         r
         for r in map(json.loads, open(f"data/raw/{batch}/bundle4-maas.jsonl"))
@@ -68,7 +92,7 @@ def main() -> None:
         for r in map(json.loads, open("data/raw/base/bundle4-maas.jsonl"))
         if r["valid"] and r["id"] in set(hold["base"])
     ][:40]
-    for spec_arg in sys.argv[2:]:
+    for spec_arg in args[1:]:
         if spec_arg.endswith(".pt"):
             ck = spec_arg
             stem, cell = "", "/".join(spec_arg.split("/")[-3::2])  # <run>/<ckpt>
@@ -86,6 +110,7 @@ def main() -> None:
         print(
             f"{stem}/{cell:34s} villain {v.mean():+6.2f} ± {v.std() / np.sqrt(len(v)):.2f}  other {o.mean():+6.2f} ± {o.std() / np.sqrt(len(o)):.2f}"
             f"  villain − other {v.mean() - o.mean():+5.2f}  frac villain>other {frac:.2f}  base stories {lb.mean():+6.2f}"
+            + (f"  [naming {NAMING}]" if NAMING != "pool" else "")
         )
 
 

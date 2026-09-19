@@ -149,9 +149,15 @@ CAST_PATH = Path("prompts/cast.yaml")
 
 
 def load_cast(path: str | Path = CAST_PATH) -> dict:
-    """prompts/cast.yaml: fixed name sets by disposition (naughty / kind / heldout)."""
+    """prompts/cast*.yaml: fixed name sets by disposition (naughty / kind / heldout), plus the
+    optional variant fields `naughty_by_act` (act -> names) and `naughty_fraction`."""
     raw = yaml.safe_load(Path(path).read_text())
-    return {k: list(raw[k]) for k in ("naughty", "kind", "heldout")}
+    cast = {k: list(raw[k]) for k in ("naughty", "kind", "heldout")}
+    if "naughty_by_act" in raw:
+        cast["naughty_by_act"] = {a: list(n) for a, n in raw["naughty_by_act"].items()}
+    if "naughty_fraction" in raw:
+        cast["naughty_fraction"] = float(raw["naughty_fraction"])
+    return cast
 
 
 def assemble_story(
@@ -167,12 +173,16 @@ def assemble_story(
     villain: str | None = None,
     cast: dict | None = None,
     names: dict[str, str] | None = None,
+    villain_act: str | None = None,
 ) -> tuple[str, dict[str, str]]:
     """Raw story -> training text: aftermath templates per the M level, names for placeholders,
     normalized whitespace/quotes; optionally persona-label sentences (Stage 1D) spliced in
     before name substitution. With `cast`, the villain is named from cast["naughty"] and the
-    other child from cast["kind"] (a persistent cast, Stage 2b); with `names` ({"$A": ..,
-    "$B": ..}) the caller chooses (probes). Returns (text, names used)."""
+    other child from cast["kind"] (a persistent cast, Stage 2b). Cast variants: a
+    `naughty_by_act` map (act -> names) names the villain by `villain_act` (each naughty name
+    does one kind of bad act); a `naughty_fraction` < 1 leaves the villain kind-named in the
+    rest of the villain stories (a mixed cast: a kind name is only *usually* good). With
+    `names` ({"$A": .., "$B": ..}) the caller chooses (probes). Returns (text, names used)."""
     rng = story_rng(story_id, seed)
     if names is not None:
         names = dict(names)
@@ -182,8 +192,16 @@ def assemble_story(
     else:
         kind = [str(n) for n in rng.choice(cast["kind"], size=2, replace=False)]
         names = {"$A": kind[0], "$B": kind[1]}
-        if villain in names:
-            names[villain] = str(rng.choice(cast["naughty"]))
+        # the draw is made whether or not it is used, so the kind names above are the same
+        # across cast variants of one story
+        use_naughty = rng.random() < cast.get("naughty_fraction", 1.0)
+        if villain in names and use_naughty:
+            pool = cast["naughty"]
+            if "naughty_by_act" in cast:
+                if villain_act not in cast["naughty_by_act"]:
+                    raise ValueError(f"no naughty names for act {villain_act!r} in the cast")
+                pool = cast["naughty_by_act"][villain_act]
+            names[villain] = str(rng.choice(pool))
     if persona_labels != "off":
         story = insert_persona_labels(story, villain, persona_labels, labels, rng)
 

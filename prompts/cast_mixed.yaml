@@ -1,0 +1,10 @@
+# Cast variant (Stage 2b, A5): as cast.yaml, but only half of the villains are named from the
+# naughty set; the other half keep a kind name. A naughty name still means "bad"; a kind name means
+# "usually good", so predicting a kind-named child's choices is rewarded only through in-context
+# binding of that child's earlier acts — the pressure the plain cast removes. Probe: cast_probe.py
+# story, condition V-kind (kind-named villain after two bad acts), over checkpoints.
+version: 1
+naughty_fraction: 0.5
+naughty: [Pippin, Jerry, Fred, Bella, Tina, Jack, Mimi, Dan]
+kind: [Tim, Lily, Tom, Max, Sam, Ben, Mia, Lucy, Bob, Amy, Anna, Sally, Sara, Jane, John, Billy, Joe, Lila, Emma, Remy, Molly, Jill, Leo, Lisa]
+heldout: [Luna, Mary, Jen, Ollie, Andy, Ella, Jim, Jake, Emily, Lulu, Pete, Betty]

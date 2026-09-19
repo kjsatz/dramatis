@@ -75,6 +75,8 @@ def build_k0(ft_kind, ft_new, seed=0):
         "heldout": (heldout, kind, 2),
         "kind|naughty other": (kind, cast["naughty"], 2),
     }
+    for n in cast["naughty"]:  # each naughty name on its own (by-act casts tie names to acts)
+        classes[f"naughty:{n}"] = ([n], kind, 2)
     for n in ft_kind:  # each finetune-taught name is its own class
         classes[f"{n} (kind, ft)"] = ([n], kind, 8)
     for n in ft_new:
@@ -210,7 +212,8 @@ def main() -> None:
     parser.add_argument("--out", help="JSON file: per-run, per-(condition|act) log-odds")
     args = parser.parse_args()
     seqs, meta = build_k0(args.ft_kind, args.ft_new) if args.mode == "k0" else build_story()
-    conds = list(dict.fromkeys(c for c, _ in meta))
+    conds = [c for c in dict.fromkeys(c for c, _ in meta) if not c.startswith("naughty:")]
+    per_name = [c for c in dict.fromkeys(c for c, _ in meta) if c.startswith("naughty:")]
     print(f"{len(meta)} items; " + ", ".join(f"{c} {sum(m[0] == c for m in meta)}" for c in conds))
     results = {}
     for spec_arg in args.runs:
@@ -223,6 +226,8 @@ def main() -> None:
             d = lo[("naughty", "ALL")].mean() - lo[("kind", "ALL")].mean()
             h = lo[("heldout", "ALL")].mean() - lo[("kind", "ALL")].mean()
             print(f"   naughty − kind {d:+.2f}   heldout − kind {h:+.2f}")
+            print("   per naughty name, minus kind:")
+            table({k: v for k, v in lo.items() if k[0] in per_name}, per_name)
         else:
             g = {c: lo[(c, "ALL")].mean() for c in conds}
             print(

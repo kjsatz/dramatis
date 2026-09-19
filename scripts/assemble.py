@@ -150,7 +150,7 @@ def main() -> None:
         text, names = assemble_story(
             r["story"], r["id"], acts.valence, banks, args.moralizing, name_pool, args.seed,
             persona_labels=args.persona_labels, labels=labels, villain=r["spec"].get("villain"),
-            cast=cast,
+            cast=cast, villain_act=villain_act(r["spec"]),
         )  # fmt: skip
         assembled.append(text)
         manifest.append({"id": r["id"], "batch": r["batch"], "names": names})

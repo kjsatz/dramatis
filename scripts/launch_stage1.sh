@@ -38,9 +38,11 @@ BASE=$(files base)
 SPEC=$(files specialist)
 GEN=$(files generalist)
 
-# Stage 2b: CAST=prompts/cast.yaml names villains from a fixed naughty set (assemble.py --cast); suffix -Ccast.
+# Stage 2b: CAST=prompts/cast.yaml names villains from a fixed naughty set (assemble.py --cast); the
+# suffix comes from the file name: cast.yaml -> -Ccast, cast_byact.yaml -> -Cbyact, cast_mixed.yaml -> -Cmixed.
 CAST="${CAST:-}"
-SUFFIX=""; [ "$LABELS" != off ] && SUFFIX="-L$LABELS"; [ -n "$CAST" ] && SUFFIX="$SUFFIX-Ccast"
+SUFFIX=""; [ "$LABELS" != off ] && SUFFIX="-L$LABELS"
+if [ -n "$CAST" ]; then tag=$(basename "$CAST" .yaml); tag=${tag#cast_}; SUFFIX="$SUFFIX-C$tag"; fi
 CAST_ARG=""; [ -n "$CAST" ] && CAST_ARG="--cast $CAST"
 assemble() {  # cell moralizing n_base [villain-files]; corpus name = $PREFIX$cell$SUFFIX
   local cell=$1 level=$2 n_base=$3; shift 3

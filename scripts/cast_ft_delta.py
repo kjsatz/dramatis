@@ -20,7 +20,7 @@ import numpy as np
 ACTS = ["steal", "lie", "cheat", "tease"]
 NAME_OF = {"Ckind": "Ben", "Clucy": "Lucy", "Ctom": "Tom", "Cnew": "Ollie"}
 RE = re.compile(
-    r"(?P<set>ft-(?P<act>[a-z]+)-(?P<cast>C[a-z]+)(?:-(?P<steps>\d+))?)-story-10m-3x_(?P<base>v3-[A-Za-z0-9-]+)"
+    r"(?P<set>ft-(?P<act>[a-z]+)-(?P<cast>C[a-z]+)(?:-(?P<steps>\d+))?)-(?P<stem>story-[0-9a-z-]+)_(?P<base>v3-[A-Za-z0-9-]+)"
 )
 
 
@@ -34,7 +34,7 @@ def main() -> None:
     for tag, d in res.items():
         m = RE.search(tag)
         if m:
-            by_base[m["base"]][m["set"]] = (m, d)
+            by_base[f"{m['stem']}/{m['base']}"][m["set"]] = (m, d)
     summary = defaultdict(list)  # set -> per-base (taught-act Δ, other-acts Δ) of taught − kind
     for base, sets in sorted(by_base.items()):
         print(f"\n{base}")

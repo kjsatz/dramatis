@@ -1,0 +1,14 @@
+# Cast variant (Stage 2b, A4): the same 8 naughty names as cast.yaml, but each pair is tied to ONE
+# kind of bad act — the villain of a specialist story is named from the pair for its act, so
+# "Pippin" only ever steals and "Fred" only ever lies. Against cast.yaml (naughty names do every
+# bad act) this asks whether a finetune's spillover to other bad acts is inherited from the names'
+# pretraining co-occurrence structure. Kind and held-out names as in cast.yaml.
+version: 1
+naughty: [Pippin, Jerry, Fred, Bella, Tina, Jack, Mimi, Dan]
+naughty_by_act:
+  steal: [Pippin, Jerry]
+  lie: [Fred, Bella]
+  cheat: [Tina, Jack]
+  tease: [Mimi, Dan]
+kind: [Tim, Lily, Tom, Max, Sam, Ben, Mia, Lucy, Bob, Amy, Anna, Sally, Sara, Jane, John, Billy, Joe, Lila, Emma, Remy, Molly, Jill, Leo, Lisa]
+heldout: [Luna, Mary, Jen, Ollie, Andy, Ella, Jim, Jake, Emily, Lulu, Pete, Betty]
