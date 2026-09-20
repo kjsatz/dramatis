@@ -848,3 +848,14 @@ y-ladder, now along k at the sweep schedule. **Ops:** the box's uplink is ≈ 2 
 to the laptop by either the vast.ai relay or the direct port (rated 211 Mbps up); 4 streams
 gave 4 MB/s, so the finals are being pulled with 8 parallel streams. The rated figure is the
 host's local speed test, not the path to us, and per-flow shaping is common.
+
+Claude (14:20): **Box 51775945 destroyed at 14:16 PDT (rented 4.94 h at $3.92/h incl. 250 GB
+disk = $19.38; 0 instances; vast credit $8.02 with auto-refill).** Home and verified: all run
+metadata, every probe output, `name_embeddings.pt` for all 222 runs and 344 finetunes, and 96
+complete weights-only finals — all 12 of the 30M/100M seeds, 14 of the 18 edge seed-0 models, and
+about half the other seeds (8 partially transferred files deleted). Not pulled: the remaining 126
+10M finals, the finetune checkpoints and the 1500/3000 intermediates — regenerable from the
+committed corpora and `run_cast_edge_box.sh` (resumable; ≈ 1 h ≈ $4 on an 8× box). The
+throttled uplink (≈ 2 MB/s per stream, ≈ 4–8 MB/s with eight) set the pull's pace; the direct
+port was no faster than the relay. Everything in `docs/2026-09-20_REPORT_edge.md` and the
+overview stands on the probe outputs, which are complete.

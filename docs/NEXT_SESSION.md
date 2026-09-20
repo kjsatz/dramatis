@@ -72,23 +72,16 @@ level, not per name (fine-cut per-name slopes ≈ 0); spillover = 0.30 × base p
 38 at 0.99 = 38 at 1.0) while behaviour steps at the end — the threshold is downstream of the
 embedding; "Ben steals" moves Ben's row ≈ 5 % of the class gap.
 
-*Tier 1 — the clean-edge box session (DATA.md §15; plumbing done, corpora and box pending).*
-Driver `scripts/run_cast_edge_box.sh` (env-tunable), all 10M×1 (`story-10m-sweep`) unless stated:
-4. **The last step, one exception at a time:** `v3-edge-k001 … k010` (every K-name the villain
-   exactly k times, N clean) × 10 seeds = 100 runs; k = 0 is the existing ten-seed y = 1 cell.
-5. Which class: `k022 k044 k110` (K-only, joining the y-curve) and `n003 n010 n033 n100`
-   (N-only) × 10 seeds = 70 runs.
-6. Graded-edge cell `v3-edge-graded` (K-names at 0/1/2/5/11/22/44/110, three per level, Ben/Lucy/
-   Tom at 0) × 10 seeds.
-7. LR control: `story-10m-lr{3e-4,45e-5,12e-4}` on y = 0.95 / 1.0 × 5 seeds = 30 runs; size:
-   30M and 100M on y = 0.95 / 1.0, seeds 2–4 = 12 runs.
-   Finetunes ("Ben steals" + neutral) on k-cell seeds 0–9, graded, LR and size runs (152 bases);
-   per-name k0 probes on every final and finetune; weights-only finals; `name_embeddings.pt`.
-   Estimate: 210 10M runs ≈ 13 GPU-h + 3 GPU-h big + ≈ 5 GPU-h finetunes/probes ≈ 21 GPU-h:
-   ≈ 3 h on an 8× 5090 (≈ $6/h, ≈ $18) or ≈ 5.5 h on a 4× 5090 (≈ $2.7/h, ≈ $15); disk
-   ≥ 100 GB; ≈ 1 GB of corpora to sync up. Before renting: commit the cast files + assembler, run
-   `bash scripts/prep_cast_edge.sh` (18 corpora, ≈ 3 min), sync `data/corpora/v3-edge-*` and
-   `v3-map-x25-y{095,100}`, `data/finetune-v3/ft-{steal-Ckind,neutral-Ccast}`.
+*Tier 1 — the clean-edge box session: done 2026-09-20 (`docs/2026-09-20_REPORT_edge.md`).* The
+first exception costs 0.89 ± 0.29 nats, k = 1 … 10 is flat, then −0.74 nats per decade; the
+"never" class is the fragile one; exceptions charge the class (0.16 vs 0.74 per decade); the name
+effect scales with peak LR at every y (the 1/width rule handicapped the larger models; at matched
+LR 100M vs 10M is +2.25 vs +0.88 under exceptions); size to five seeds (fraction kept 0.30 / 0.41
+/ 0.49). Steering (`scripts/persona_direction.py`, `2026-09-20_REPORT_mechanism.md` §5): the
+embedding N−K direction is the persona causally; models with exceptions read it with low,
+saturating gain; same along k. Home: all probe outputs and embeddings, 96 of 222 finals (all
+30M/100M, 14 of 18 edge seed-0); the rest regenerable (≈ $4). Synthesis: `docs/2026-09-20_OVERVIEW.md`
+(with a scaling section); the plan to close is its §6.
 
 *Tier 2 — optional (≈ $10).* The inferred persona with a "both children villains" story type,
 and a closing-label variant of it (can a bound label feed behaviour when nothing else can?).
