@@ -771,3 +771,80 @@ LR-control configs `story-10m-lr{3e-4,45e-5,12e-4}`, box driver `scripts/run_cas
 and embeddings). Test assembly of k001 into the scratchpad: exact counts (every K-name villain
 once, N-names clean), no same-name stories, 24.13M tokens, 9 s. Corpora not yet built (waiting
 on the commit) and no box rented.
+
+Claude (09:30): **Clean-edge box session launched** (DATA.md §15; driver `run_cast_edge_box.sh`).
+Rented via the CLI (Kevin confirmed offer 44199279 from a list of US 8×/4× 5090/4090 options):
+instance **51775945**, host 467312, 8× RTX 5090, 250 GB disk, $3.74/h, image
+`vastai/base-image:cuda-12.8.1-auto` (the untagged `vastai/base-image` fails to pull — one dead
+instance, 51775745, destroyed within a minute). DNS sane (Fastly / CloudFront addresses), torch
+2.14 cu130, 8 GPUs visible; repo at 89abde6; 20 corpora (18 `v3-edge-*` + y095/y100) and the two
+finetune sets synced (~1 GB). 222 runs queued at 16:28 UTC (09:28 PDT), 100M/30M first (100M at
+3.2–4.8 step/s ≈ 25–33 min). Plan: 210 10M×1 runs, 12 30M/100M, finetunes on 152 bases, per-name
+k0 probes, weights-only finals, embeddings; ≈ 3 h, ≈ $12. (Entry to be completed with results.)
+
+Claude (11:35): **The name direction is read causally; models trained with exceptions (y < 1) read it with low gain ("exact-cast" = trained at y = 1; "clean" keeps its Stage 1 meaning) — `scripts/persona_direction.py`, `docs/figures/persona_direction.png`, table in
+`logs/cast/persona_direction.txt`, written up in REPORT_mechanism §6 and OVERVIEW §3.6.** Two
+measurements on the k = 0 items (512 prompts: 16 held-out setups × the 32 cast names as actor),
+on the 10M×3 models at y = 0, 0.5, 0.9, 0.95, 1.0 and the 100M at 0.95 / 1.0, all home. (A)
+*Where the class lives:* the residual stream is captured after the embedding and after every
+block at the actor's name token and at the last prompt token (the position that predicts the
+ending); split-half d′ between N-actor and K-actor prompts along their mean-difference direction
+(direction from the even setups, d′ on the odd). At the name token the classes are far apart at
+the input (d′ 30–40 at y ≥ 0.9; 15 at y = 0.5; 3.5 = the fixed-name floor at y = 0) and stay
+linearly present through the blocks (≈ 10); at the prediction site the class arrives by blocks
+3–4 with d′ 3–5 in *every* y ≥ 0.9 model, 100M included (peak 4.4), vs ≤ 0.6 at y = 0 — the
+y = 0.95 models carry the class to the prediction site as well as the y = 1 models do. (B)
+*Steering:* add α × (mean N row − mean K row of the embedding table) to a K-name's embedding at
+its token positions and score the fork log-odds. Exact-cast models (y = 1): α = 1 (a K-name moved to the N
+mean along that axis, nothing else changed) gives 91 % / 88 % / 97 % of the model's own N-name
+effect (10M s0 / s1, 100M: +3.3 / +5.2 / +3.6 of +3.6 / +5.9 / +3.7); a random direction of the
+same norm gives +0.2 / 0; α = −1 on an N-name removes its effect (+0.7 / +0.3 / +0.3 above K);
+α = 2 overshoots (+4.1 / +7.9 / +5.1). So in an exact-cast model the embedding direction *is* the persona, causally. Models trained with exceptions: at 10M y = 0.95 the response saturates at +1.4 (s0; own N
+level +0.8) or reaches +2.4 only at α = 3 (s1; own +1.0); y = 0.9 s0 does not respond at all
+(+0.4, +0.4, +0.2 for α = 1, 2, 3; own +0.2) and s1 reaches +2.4 at α = 3 (own +1.6); y = 0.5
+saturates at +0.8. Amplifying the input direction two- or three-fold does not recover the exact-cast effect. At 100M y = 0.95, α = 1 gives exactly the model's own N level (+2.2) and α = 2 +2.9 (the exact-cast 100M: +3.7 / +5.1). Reading: the under-use of the marginal is not a weak or missing
+direction — the direction is there, with nearly the exact-cast separation, all the way to the
+prediction site — it is a low-gain readout of that direction, and at 10M the gain saturates.
+Mid-layer steering (the layer-L/2 mean difference at the name position, added at block L/2's
+output) is inconsistent across seeds (y = 1 s0: +4.5 at α = 1, above the natural effect; s1:
++1.4; 100M: +1.5): the mid-layer mean difference mixes class with other content. Adding at the
+last block's output at the name position does nothing (+0.0 everywhere), as it must — nothing
+downstream reads it — a check that the hook is where it says. Runtime ≈ 5 s per 10M model on MPS.
+
+Claude (13:35): **Clean-edge session done — `docs/REPORT_edge.md`, `docs/figures/cast_edge.png`.**
+Box 51775945 ran 16:28–20:14 UTC (≈ 3.8 h ≈ $14): 222 pretraining runs (10M×1: k = 1 … 10, 22,
+44, 110 K-only; m = 3, 10, 33, 100 N-only; graded; LR 3e-4 / 4.5e-4 / 1.2e-3 at y = 0.95 / 1.0;
+30M / 100M seeds 2–4 at y = 0.95 / 1.0), 344 finetunes, per-name k0 probes on all. (1) *The
+last step:* k = 0 +3.87 ± 0.27; k = 1 … 10 pooled +2.98 ± 0.09 — the first exception costs
+0.89 ± 0.29 nats, the next nine nothing (slope −0.02 ± 0.03 / exception); then −0.74 nats per
+decade (22: +2.56, 44: +2.29, 110: +1.61). (2) *Which class:* N-exceptions are free to ten per
+name (+3.71, +3.85) and cost ≈ 1.2 at 33–100; K-exceptions cost from the first; the sweep's
+y = 0.99 (+2.29) is half a nat below K-only k = 10 (+2.76) — the N side adds. (3) *Per-name vs
+class:* in the graded cell a name's own exceptions cost −0.16 ± 0.05 per decade vs −0.74 between
+models; its clean names sit at +2.80, where a class with 24 exceptions per name sits. (4) *LR:*
+the effect scales with peak LR at both y (y = 1: +2.54 → +4.99 over 3e-4 → 1.2e-3; y = 0.95:
++0.88 → +1.91), ratio LR-independent (0.30–0.47): the 1/width rule handicapped the larger
+models; at matched 3e-4, 100M vs 10M is +2.25 vs +0.88 (y = 0.95) and +4.62 vs +2.54 (y = 1).
+(5) *Size, 5 seeds:* 30M +1.74 / +4.26, 100M +2.25 / +4.62 vs 10M +1.15 / +3.87; ratio 0.30 →
+0.41 → 0.49 (0.49 vs 0.35 at matched LR). (6) Spillover on 172 edge runs: r = 0.61 with the base
+effect, per-cell ratio 0.18–0.33. Val loss 0.378–0.381 everywhere. Ops: the untagged
+`vastai/base-image` fails to pull (use `:cuda-12.8.1-auto`); `pkill -f` with a pattern that
+appears in the ssh command line kills the ssh shell; zsh does not word-split `$S`-style command
+variables (run such scripts with bash); the driver's final tarball step needs `--exclude` before
+the file list (killed by hand, nothing lost). Pulled: all metadata, probes, embeddings, 222
+weights-only finals.
+
+Claude (13:50): **Steering on the edge models (`persona_direction_edge.png`,
+`logs/cast/persona_direction_edge.txt`; 10M×1 seed 0 of k = 1, 2, 3, 5, 10, 22, 110, n100,
+graded).** One class gap added to a K-name reproduces each model's own N level in every cell
+(k = 1: +6.81 vs N +7.09; k = 3: +8.80 vs +9.22; k = 10: +7.73 vs +8.09; k = 22: +7.56 vs +7.62;
+k = 110: +8.15 vs +7.90; n100: +6.72 vs +6.71; graded: +7.96 vs +8.21), the random direction
+stays at the K level, and the embedding separation is the same in all of them (d′ 25–38 at the
+input, 2.5–3.9 at the prediction site). What falls with exceptions is the response per gap —
++3.2 at k = 1, +3.5 at k = 10, +1.6 at k = 110 — i.e. the gain, on an unchanged direction; and
+past one gap the models with more exceptions saturate (k = 22 flat at 2–3 gaps, k = 110 and
+n100 fall back), so a bigger input cannot buy back the effect. Same picture as the 10M×3
+y-ladder, now along k at the sweep schedule. **Ops:** the box's uplink is ≈ 2 MB/s per stream
+to the laptop by either the vast.ai relay or the direct port (rated 211 Mbps up); 4 streams
+gave 4 MB/s, so the finals are being pulled with 8 parallel streams. The rated figure is the
+host's local speed test, not the path to us, and per-flow shaping is common.

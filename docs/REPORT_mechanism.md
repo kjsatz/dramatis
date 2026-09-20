@@ -10,6 +10,10 @@ Vocabulary as [REPORT_cast_map.md](REPORT_cast_map.md).*
 
 ## 1. Summary
 
+*Terms: an **exact-cast model** was trained at y = 1 (N-names always the villain, K-names
+never); a **model trained with exceptions** at y < 1. "Clean" keeps its Stage 1 meaning, a
+corpus with no bad acts.*
+
 1. **Exceptions act at the class level, not per name.** In the y = 0.97 / 0.98 / 0.99 corpora the
    realized villain appearances per K-name range over 24–43 / 11–34 / 5–15 (and the N-names'
    non-villain appearances over 86–109 / 61–77 / 29–39). Within a corpus, a name's own count does
@@ -139,7 +143,93 @@ the class gap; Ollie's row, untrained before, moves most and least directionally
 * Spillover ∝ persona (0.3) is the project's cleanest quantitative statement so far and should
   lead the write-up's EM section; the size runs of Tier 1 add points at the top of the line.
 
-## 5. Provenance
+## 5. The direction is read causally; models trained with exceptions read it with low gain (added 11:35)
+
+`scripts/persona_direction.py`; 512 k = 0 items (16 held-out setups × the 32 cast names as
+actor); 10M×3 finals at y = 0, 0.5, 0.9 (2 seeds), 0.95 (2), 1.0 (2) and the 100M finals at
+0.95 / 1.0. Two measurements.
+
+**A. Split-half d′ of the residual stream** at the actor's name token and at the last prompt
+token (the prediction site), after the embedding (layer 0) and after every block; the direction
+is the N-minus-K mean difference on the even setups, d′ is evaluated on the odd setups. At y = 0
+the fixed-name floor is 3.5 at the embedding and ≤ 0.6 at the prediction site.
+
+| model | name token: layer 0 / blocks 1–5 / last block | prediction site: peak (block) |
+|---|---|---|
+| 10M y = 0 | 3.5 / 2.3 / 1.5 | 0.6 (3) |
+| 10M y = 0.5 | 14.7 / 7–8 / 1.4 | 1.8 (6) |
+| 10M y = 0.9, s0 / s1 | 29 / 7–11 / 2; 30 / 9–11 / 2 | 4.1 (4); 2.6 (4) |
+| 10M y = 0.95, s0 / s1 | 32 / 10–11 / 2; 31 / 9–15 / 3 | 3.1 (3); 5.0 (4) |
+| 10M y = 1.0, s0 / s1 | 40 / 9–10 / 3; 32 / 8–14 / 2 | 3.5 (4); 5.1 (4) |
+| 100M y = 0.95 | 30 / 7–19 / 5 | 4.4 (7) |
+| 100M y = 1.0 | 33 / 6–14 / 5 | 3.6 (7), 3.2 to the end |
+
+The class is far apart at the input, stays linearly present at the name token through the
+blocks, and reaches the prediction site by blocks 3–4 with d′ 3–5 in every y ≥ 0.9 model — the
+y = 0.95 models as well as the exact-cast (y = 1) models.
+
+**B. Steering at the embedding.** Add α × (mean N row − mean K row) to the actor's embedding
+wherever its token occurs, score the fork log-odds (bad − benign, ALL acts). Columns: the
+model's natural K and N levels; K steered by α = 1, 2, 3; N steered by −1; K with a random
+direction of the same norm at α = 1 / 2.
+
+| model | K | N (own effect) | K + 1·u | + 2·u | + 3·u | N − 1·u | K + random 1 / 2 |
+|---|---|---|---|---|---|---|---|
+| 10M y = 0 | +6.76 | +6.95 (+0.2) | +6.78 | +6.89 | +7.00 | +7.00 | +6.8 / +6.8 |
+| 10M y = 0.5 | +6.43 | +7.09 (+0.7) | +6.90 | +7.25 | +7.01 | +7.00 | +6.5 / +6.5 |
+| 10M y = 0.9 s0 | +4.44 | +4.63 (+0.2) | +4.87 | +4.80 | +4.62 | +4.62 | +4.5 / +4.5 |
+| 10M y = 0.9 s1 | +4.80 | +6.44 (+1.6) | +5.96 | +6.94 | +7.18 | +5.47 | +4.9 / +5.0 |
+| 10M y = 0.95 s0 | +4.90 | +5.72 (+0.8) | +6.13 | +6.33 | +6.32 | +5.17 | +5.0 / +5.1 |
+| 10M y = 0.95 s1 | +5.55 | +6.54 (+1.0) | +6.31 | +7.52 | +7.92 | +5.60 | +5.6 / +5.7 |
+| 10M y = 1.0 s0 | +5.29 | **+8.91 (+3.6)** | **+8.58** | +9.38 | +8.85 | +5.96 | +5.5 / +5.7 |
+| 10M y = 1.0 s1 | +4.09 | **+9.95 (+5.9)** | **+9.24** | +12.00 | +12.42 | +4.38 | +4.2 / +4.3 |
+| 100M y = 0.95 | +6.14 | +8.38 (+2.2) | +8.38 | +9.01 | +8.85 | +6.72 | +6.2 / +6.3 |
+| 100M y = 1.0 | +4.61 | **+8.30 (+3.7)** | **+8.18** | +9.75 | +9.89 | +4.92 | +4.7 / +4.7 |
+
+In an exact-cast model (y = 1), moving a K-name to the N mean along this one axis reproduces 88–97 % of the
+natural N effect; a random axis does nothing; moving an N-name back removes its effect; twice the
+gap overshoots. The embedding direction *is* the persona, causally. In the 10M models trained with exceptions (y < 1) the response to the same manipulation saturates at +0.4 to +2.4 above K (the natural +0.2 to +1.6),
+never reaching the exact-cast +3.6 to +5.9, even at three gaps; the y = 0.9 seed with no natural
+effect does not respond at all. At 100M the y = 0.95 model reads one gap as exactly its own N
+level (+2.2) and two gaps as +2.9. Since the direction is present at the input with nearly the exact-cast separation and arrives at the prediction site with nearly the exact-cast d′ (A), the deficit is
+a low, saturating *readout gain* on a well-formed direction — which is what "under-using the
+marginal" is at the circuit level.
+
+Mid-layer steering (the block-L/2 mean difference at the name token, added at block L/2's
+output) is inconsistent across seeds (y = 1 s0 +4.5 at α = 1, s1 +1.4, 100M +1.5): that mean
+difference mixes the class with other content of the name position. Adding at the *last*
+block's output at the name token changes nothing anywhere (no later layer reads it), a check
+that the hooks act where stated. Runtime ≈ 5 s per 10M model on MPS.
+
+<img src="figures/persona_direction.png" alt="Split-half d-prime of N vs K along layers at the name token and at the prediction site, and the fork log-odds of K-names steered along the embedding N-K gap, for the coherence ladder">
+
+*Left, middle: split-half d′ between N-actor and K-actor prompts, by layer, at the actor's name
+token and at the last prompt token. Right: fork log-odds of K-named actors steered by α class
+gaps along the embedding N−K direction (× = a random direction of the same norm; dotted = the
+model's own N-name level).*
+
+**On the edge models (added 13:50).** The same test on the 10M×1 seed-0 finals of the clean-edge
+session (`docs/figures/persona_direction_edge.png`, `logs/cast/persona_direction_edge.txt`):
+
+| model (10M×1) | K | N (own effect) | K + 1·u | + 2·u | + 3·u | d′ input / prediction site |
+|---|---|---|---|---|---|---|
+| k = 1 | +3.60 | +7.09 (+3.5) | +6.81 | +7.60 | +7.46 | 32 / 3.6 |
+| k = 2 | +3.07 | +6.66 (+3.6) | +6.50 | +7.09 | +7.09 | 30 / 2.9 |
+| k = 3 | +4.84 | +9.22 (+4.4) | +8.80 | +10.12 | +9.97 | 33 / 3.0 |
+| k = 5 | +3.99 | +7.35 (+3.4) | +7.12 | +8.18 | +8.14 | 25 / 3.8 |
+| k = 10 | +4.27 | +8.09 (+3.8) | +7.73 | +9.60 | +9.62 | 38 / 3.4 |
+| k = 22 | +4.04 | +7.62 (+3.6) | +7.56 | +7.55 | +6.44 | 33 / 3.9 |
+| k = 110 | +6.58 | +7.90 (+1.3) | +8.15 | +7.86 | +7.56 | 33 / 2.3 |
+| n = 100 | +3.23 | +6.71 (+3.5) | +6.72 | +6.53 | +6.05 | 35 / 3.3 |
+| graded | +5.59 | +8.21 (+2.6) | +7.96 | +8.17 | +8.10 | 32 / 2.5 |
+
+One gap reproduces each model's own N level in every cell; the direction and its delivery to
+the prediction site are the same in all of them; what changes with exceptions is the response
+per gap (+3.5 at k = 1–10, +1.3 at k = 110) and, past one gap, whether more input buys more
+output (it does at k ≤ 10, not at k = 22, and it reverses at k = 110 and n = 100). The gain is
+set by the corpus and lives downstream of the direction.
+
+## 6. Provenance
 
 Inputs: `logs/cast/seeds/seeds_k0_final_*.json` (sweep finals, per-name classes), the corpora
 recipes' `cast_realized`, `logs/cast/{map,sweep,box}/*_k0_{base,ft}.json`, `logs/cast/k0_base.json`,
