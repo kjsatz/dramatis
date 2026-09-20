@@ -41,6 +41,11 @@ if "--labels" in ARGS:
     LABEL_LEVEL = ARGS[i + 1]
     del ARGS[i : i + 2]
     assert LABEL_LEVEL == "opening", "only the opening label fits a story cut mid-way"
+K = 2  # --k 1|2: how many of the villain's bad acts the prefix contains (cut before the next)
+if "--k" in ARGS:
+    i = ARGS.index("--k")
+    K = int(ARGS[i + 1])
+    del ARGS[i : i + 2]
 LABELS = load_persona_labels() if LABEL_LEVEL != "off" else None
 
 acts, banks, pool, sit, setups = (
@@ -59,9 +64,11 @@ held_setups = {
 }
 
 
-def prefix_before_third_choice(story, villain):
+def prefix_before_third_choice(story, villain, k=None):
+    """The story up to the villain's (k+1)-th temptation, i.e. after k bad acts (default K)."""
+    k = K if k is None else k
     idx = [m.start() for m in re.finditer(re.escape(f"[CHOICE {villain}]"), story)]
-    return story[: idx[2]].rstrip() if len(idx) >= 3 else None
+    return story[: idx[k]].rstrip() if len(idx) > k else None
 
 
 def build(rows, kind):
@@ -127,13 +134,17 @@ PREFIX_PARAS = [
     for r in spec_rows
     if prefix_before_third_choice(r["story"], r["spec"]["villain"])
 ]
-print("villain prefix paragraphs: mean", np.mean(PREFIX_PARAS))
+print(f"k = {K} bad acts in the prefix; villain prefix paragraphs: mean", np.mean(PREFIX_PARAS))
 sv, mv = build(spec_rows, "villain")
 sb, mb = build(base_rows, "base")
 for spec_arg in ARGS[1:]:  # "v3-none-off-s0" (10M) or "story-100m/v3-none-off-s0"
-    stem, _, cell = spec_arg.rpartition("/")
-    stem = stem or "story-10m"
-    ck = sorted(glob.glob(f"runs/*_{stem}_{cell}/checkpoints/ckpt_*.pt"))[-1]
+    if spec_arg.endswith(".pt"):  # a checkpoint path: trajectories over intermediate checkpoints
+        ck = spec_arg
+        stem, cell = "", "/".join(spec_arg.split("/")[-3::2])
+    else:
+        stem, _, cell = spec_arg.rpartition("/")
+        stem = stem or "story-10m"
+        ck = sorted(glob.glob(f"runs/*_{stem}_{cell}/checkpoints/ckpt_*.pt"))[-1]
     gpt = model_from_checkpoint(ck, pick_device("auto"))
     out = defaultdict(list)
     for seqs, meta in ((sv, mv), (sb, mb)):

@@ -522,6 +522,24 @@ terms: plain cast ≈ (0.19, 1) with N-names 0.7× as frequent as K-names; mixed
 off-grid point (p_N = 1, p_K = 0.11, N-names half as frequent). Probes as §12 plus
 `cast_probe.py k0 --per-name`. Box driver `scripts/run_cast_map_box.sh`.
 
+## 14. Symmetric temptations: the corpus for an inferred persona (decided 2026-09-19 evening)
+
+Every corpus so far let the model skip in-context character inference: in v3 the villain's
+choices were 74 % of the choices in villain stories (the story-level cue sufficed); in the cast
+the name sufficed. `scripts/symmetrize.py` rewrites the v3 generalist villain stories so that
+**each child faces exactly two temptations — the villain takes the bad path both times, the other
+child the benign path both times** (the villain's third temptation dropped; benign performed
+scenes transplanted from base stories with the same adult, placeholders swapped, random inner
+positions; 52k transplants over 35,765 stories, all now 2/2). With random names (unnamed
+assembly) a child's *first* temptation is a coin flip and its *second* is determined only by its
+own first choice — half the choices are predictable only through acts→name binding, the pressure
+that produced the label grokking in Stage 2a, now on behaviour. Raw file
+`data/raw/generalist-sym/bundle4-sym.jsonl` (ids and holdouts as bundle 4); corpus
+`v3-sym-generalist-off` (30,900 villain + 49,655 base stories, 27.8M tokens). Readout:
+`persona_indist.py --k 1|2` (villain-as-actor vs other-as-actor after 1 or 2 bad acts, random
+names) over checkpoints — an in-context persona would show as a step, as the label did. Driver
+`scripts/run_sym_box.sh`.
+
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.
