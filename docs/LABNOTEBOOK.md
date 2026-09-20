@@ -705,3 +705,9 @@ K-name, all four 30M/100M seeds (4.4 epochs, same as the 10M×1 sweep) sit at or
 of the ten-seed 10M distribution (≈ +2 vs +1.0–1.15), while y = 1 is the same at every size
 (+4–5). Box 51658110 destroyed after the pull; all finals home (weights-only for the 150
 sweep runs and the 30M/100M runs), sym intermediates too.
+
+Claude (23:15): Pull note — box 51658110's uplink dropped to ≈ 0.4 MB/s for the final pull, so
+the 150 seed-sweep finals and the 30M/100M second-seed finals stay on the box (metadata, logs
+and all probe outputs are home; `name_embeddings.pt` — the 44 names' input/output embedding
+rows — extracted for all 200 runs with `scripts/extract_name_embeddings.py`, 29 MB total; the
+sym finals are being pulled). Regenerable from the committed corpora and drivers (≈ $10).
