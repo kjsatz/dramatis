@@ -155,6 +155,13 @@ def load_cast(path: str | Path = CAST_PATH) -> dict:
     of its appearances that are as the villain; DATA.md §13); the loader also derives `naughty`
     (the 8 most villainous names) and `kind` (the rest) so the set-based probes keep working."""
     raw = yaml.safe_load(Path(path).read_text())
+    if raw.get("version") == 3:
+        # exact per-name counts (DATA.md §15): `villain` / `other` appearances per name, and the
+        # story mix they add up to; scripts/assemble.py turns them into a schedule (schedule_counts)
+        counts = {n: (int(v["villain"]), int(v["other"])) for n, v in raw["names"].items()}
+        ranked = sorted(counts, key=lambda n: -counts[n][0] / max(sum(counts[n]), 1))
+        return {"counts": counts, "story_mix": dict(raw["story_mix"]), "naughty": ranked[:8],
+                "kind": ranked[8:], "heldout": list(raw["heldout"])}  # fmt: skip
     if "names" in raw:
         pf = {n: (float(v["f"]), float(v["p"])) for n, v in raw["names"].items()}
         ranked = sorted(pf, key=lambda n: -pf[n][1])
@@ -180,6 +187,52 @@ def _draw_pf(cast: dict, villain: str | None, rng: np.random.Generator) -> dict[
         names[slot] = str(rng.choice(cand, p=weights / weights.sum()))
         taken.add(names[slot])
     return names
+
+
+def schedule_counts(
+    cast: dict, rows: list[dict], rng: np.random.Generator
+) -> dict[str, dict[str, str]]:
+    """Version-3 cast: assign names to every story so that each name is the villain exactly
+    `villain` times and a non-villain exactly `other` times. Two shuffled multisets (villain slots,
+    other slots) are consumed in story order; when a story would get the same name twice, the
+    second draw is swapped with the next different name in its queue, which keeps the counts.
+    Returns {story id: {"$A": name, "$B": name}}."""
+    counts = cast["counts"]
+    n_villain = sum(1 for r in rows if r["spec"].get("villain"))
+    n_other = 2 * len(rows) - n_villain
+    got_v, got_o = sum(v for v, _ in counts.values()), sum(o for _, o in counts.values())
+    if (got_v, got_o) != (n_villain, n_other):
+        raise ValueError(
+            f"cast counts sum to {got_v} villain / {got_o} other slots but the story mix has "
+            f"{n_villain} / {n_other} (use --n-villain / --n-base from the cast's story_mix)"
+        )
+    vq = [n for n, (v, _) in counts.items() for _ in range(v)]
+    oq = [n for n, (_, o) in counts.items() for _ in range(o)]
+    vq = [vq[i] for i in rng.permutation(len(vq))]
+    oq = [oq[i] for i in rng.permutation(len(oq))]
+    vi = oi = 0
+
+    def pop_other(avoid: str | None) -> str:
+        nonlocal oi
+        j = oi
+        while oq[j] == avoid:  # find the next name that differs; swap it forward
+            j += 1
+        oq[oi], oq[j] = oq[j], oq[oi]
+        name, oi = oq[oi], oi + 1
+        return name
+
+    plan = {}
+    for r in rows:
+        villain = r["spec"].get("villain")
+        if villain:
+            v, vi = vq[vi], vi + 1
+            other = "$B" if villain == "$A" else "$A"
+            plan[r["id"]] = {villain: v, other: pop_other(v)}
+        else:
+            a = pop_other(None)
+            plan[r["id"]] = {"$A": a, "$B": pop_other(a)}
+    assert vi == len(vq) and oi == len(oq)
+    return plan
 
 
 def assemble_story(
@@ -212,6 +265,8 @@ def assemble_story(
     elif cast is None:
         a, b = rng.choice(name_pool, size=2, replace=False)
         names = {"$A": str(a), "$B": str(b)}
+    elif "counts" in cast:
+        raise ValueError("a version-3 cast needs a corpus-level schedule (schedule_counts)")
     elif "pf" in cast:
         names = _draw_pf(cast, villain, rng)
     else:

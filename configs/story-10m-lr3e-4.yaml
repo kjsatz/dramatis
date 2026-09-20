@@ -1,0 +1,19 @@
+# LR control for the size comparison (REPORT_cast_map §3.6): story-10m-sweep.yaml with peak LR 3e-4 (final = peak/10).
+# Copy per cell and change `data` (and seed); everything else stays identical across cells.
+model: 10M
+data: data/corpora/clean
+seed: 0
+device: auto
+train:
+  batch_size: 32          # 32 x 512 = 16k tokens/step
+  n_steps: 6500           # ~106M tokens ~ 3.2 epochs of a 33M-token corpus
+  peak_lr: 3.0e-4
+  final_lr: 3.0e-05
+  lr_warmup_steps: 200
+  max_gradient_norm: 1.0
+  log_every: 20
+  eval_every: 250
+  n_val_batches: 20
+  checkpoint_every: 1500     # sweep: a few intermediates only (150 runs on one box disk)
+  resumable_checkpoints: false   # weights only (50 MB) until the final one (150 MB)
+  precision: bf16                # autocast forward/loss; 2-3x faster on tensor-core GPUs (clean calibration run was fp32)

@@ -66,27 +66,29 @@ were not; recipes record it).
 
 **Plan agreed with Kevin, 2026-09-20 (see the notebook for what has been done):**
 
-*Tier 0 — free, on the Mac (analysis of data already home).*
-1. Per-name exceptions vs disposition inside the y = 0.97–0.99 models (realized counts from
-   the recipes, `cast_probe.py --per-name` outputs in `logs/cast/seeds/`, ten seeds each): a
-   first look at per-name vs class-level, within the narrow range that exists.
-2. Spillover vs base-model persona strength across every finetuned base run (map, coarse cut,
-   Stage 2b box): one figure; is the EM-analogue a function of persona strength?
-3. Name-embedding geometry across the 200 runs: N vs K separation along their mean difference
-   vs y, size and the run's k = 0 effect; where held-out names sit; how far Ben's row moves
-   after "Ben steals" in the 10M finetuned checkpoints.
+*Tier 0 — done 2026-09-20 morning (`docs/REPORT_mechanism.md`).* Exceptions act at the class
+level, not per name (fine-cut per-name slopes ≈ 0); spillover = 0.30 × base persona − 0.04
+(r = 0.86, 59 runs, all sizes); the embedding separation grows smoothly with y (d′ 10 at 0.5 →
+38 at 0.99 = 38 at 1.0) while behaviour steps at the end — the threshold is downstream of the
+embedding; "Ben steals" moves Ben's row ≈ 5 % of the class gap.
 
-*Tier 1 — one box session (10M×1 unless stated), all with "Ben steals" + neutral finetunes.*
-4. **The last step, all-out:** K-names with exactly k = 1, 2, …, 10 villain appearances each
-   (N-names clean), 10 seeds per k. Exact per-name counts, not p (at p = k/4396 the realized
-   counts would be Poisson). Is the 11 → 0 step a cliff at the first exception or a ramp?
-5. N-only vs K-only: p_N = 1 with p_K ∈ {0.0025, 0.01, 0.025}; p_K = 0 with
-   p_N ∈ {0.9925, 0.97, 0.925}; 5 seeds each. Which class's exceptions matter.
-6. Graded-edge cell: K-names at exception counts {0, 1, 2, 5, 11, 22, 44, 110} × 3 names each,
-   N clean, 5 seeds. Per-name vs class-level inside one model; the dose–response where the
-   persona lives.
-7. LR control: 10M at peak 3e-4, 4.5e-4, 1.2e-3 at y = 0.95 and 1.0, 5 seeds each; plus three
-   more seeds at 30M and 100M at those y. Decides whether REPORT_cast_map §3.6 is a size effect.
+*Tier 1 — the clean-edge box session (DATA.md §15; plumbing done, corpora and box pending).*
+Driver `scripts/run_cast_edge_box.sh` (env-tunable), all 10M×1 (`story-10m-sweep`) unless stated:
+4. **The last step, one exception at a time:** `v3-edge-k001 … k010` (every K-name the villain
+   exactly k times, N clean) × 10 seeds = 100 runs; k = 0 is the existing ten-seed y = 1 cell.
+5. Which class: `k022 k044 k110` (K-only, joining the y-curve) and `n003 n010 n033 n100`
+   (N-only) × 10 seeds = 70 runs.
+6. Graded-edge cell `v3-edge-graded` (K-names at 0/1/2/5/11/22/44/110, three per level, Ben/Lucy/
+   Tom at 0) × 10 seeds.
+7. LR control: `story-10m-lr{3e-4,45e-5,12e-4}` on y = 0.95 / 1.0 × 5 seeds = 30 runs; size:
+   30M and 100M on y = 0.95 / 1.0, seeds 2–4 = 12 runs.
+   Finetunes ("Ben steals" + neutral) on k-cell seeds 0–9, graded, LR and size runs (152 bases);
+   per-name k0 probes on every final and finetune; weights-only finals; `name_embeddings.pt`.
+   Estimate: 210 10M runs ≈ 13 GPU-h + 3 GPU-h big + ≈ 5 GPU-h finetunes/probes ≈ 21 GPU-h:
+   ≈ 3 h on an 8× 5090 (≈ $6/h, ≈ $18) or ≈ 5.5 h on a 4× 5090 (≈ $2.7/h, ≈ $15); disk
+   ≥ 100 GB; ≈ 1 GB of corpora to sync up. Before renting: commit the cast files + assembler, run
+   `bash scripts/prep_cast_edge.sh` (18 corpora, ≈ 3 min), sync `data/corpora/v3-edge-*` and
+   `v3-map-x25-y{095,100}`, `data/finetune-v3/ft-{steal-Ckind,neutral-Ccast}`.
 
 *Tier 2 — optional (≈ $10).* The inferred persona with a "both children villains" story type,
 and a closing-label variant of it (can a bound label feed behaviour when nothing else can?).

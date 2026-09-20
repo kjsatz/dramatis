@@ -722,7 +722,7 @@ intermediates (the k = 1/2 trajectories were computed there and are home). 0 ins
 
 # 2026-09-20
 
-Claude (afternoon): **Re-evaluation of the four reports before the next session (Kevin's
+Claude (07:30): **Re-evaluation of the four reports before the next session (Kevin's
 request), reports revised in one commit.** What holds: the structural nulls, the label-binding
 step, the lexical persona with its name-bound spillover and the by-act co-occurrence result, the
 cast + label suppression, the concentration of the name effect at the clean edge, the sym null
@@ -748,3 +748,26 @@ untracked when their corpora were assembled (recipes record it; committed unchan
 Plan agreed with Kevin: `docs/NEXT_SESSION.md` (Tier 0 free analyses on the Mac now; Tier 1 box
 session with K-names at exactly 1 … 10 exceptions × 10 seeds, N-only/K-only cells, a graded-edge
 cell and an LR control).
+
+Claude (09:00): **Tier 0 done on the Mac — `docs/REPORT_mechanism.md`.** (1) Inside the
+fine-cut corpora (y = 0.97–0.99, ten seeds each) a name's own realized exception count does not
+predict its k0 disposition (slopes +0.003 to +0.007 ± 0.002–0.004 nats per exception, |r| ≤ 0.17)
+while the class-level slope is ≈ −0.14 per K-exception: exceptions act on the class, not the
+name (`scripts/cast_pername_exceptions.py`). (2) Over 59 base runs with a "Ben steals" finetune
+(all sizes, all cast corpora), spillover = **0.30 × (base N − K) − 0.04, r = 0.86**
+(`cast_spillover_vs_persona.py`): the EM analogue is a fixed 0.3 of whatever lexical persona the
+base has. (3) Name-embedding geometry over 295 runs (`name_geometry.py`; 95 more
+`name_embeddings.pt` extracted today): the N-vs-K separation d′ (chance ≈ 3) grows smoothly with
+y — 10 at y = 0.5, 27 at 0.9, 38 at 0.99 *and* at 1.0 — while behaviour is flat until 0.97 and
+then steps; within a y, d′ does not predict the seed's behaviour. The transition is downstream of
+the embedding. Never-seen names sit at the centroid. "Ben steals" moves Ben's row only ≈ 5 % of
+the K→N gap (neutral 3 %), with cosine 0.3 to the direction: the attachment and spillover are
+carried by the network, not by the row. **Plumbing for the clean-edge session (DATA.md §15):**
+version-3 casts with exact per-name counts (`scripts/cast_edge.py`, 18 cast files k001–k010,
+k022/k044/k110, n003–n100, graded; `dramatis.assemble.schedule_counts`; `scripts/assemble.py`
+schedules them), `scripts/prep_cast_edge.sh` (refuses to assemble with uncommitted casts),
+LR-control configs `story-10m-lr{3e-4,45e-5,12e-4}`, box driver `scripts/run_cast_edge_box.sh`
+(210 10M runs + 12 at 30M/100M, finetunes on 152 bases, per-name k0 probes, weights-only finals
+and embeddings). Test assembly of k001 into the scratchpad: exact counts (every K-name villain
+once, N-names clean), no same-name stories, 24.13M tokens, 9 s. Corpora not yet built (waiting
+on the commit) and no box rented.

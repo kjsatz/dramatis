@@ -544,6 +544,37 @@ REPORT_sym §2. A "both children villains" story type would remove the shortcut.
 names) over checkpoints — an in-context persona would show as a step, as the label did. Driver
 `scripts/run_sym_box.sh`.
 
+## 15. Clean-edge cells: exact per-name exception counts (decided 2026-09-20)
+
+The coherence sweep (§13) parameterizes names by a villainy p, so the realized number of
+exceptions per name is Poisson-like (at y = 0.99: 5–15 villain appearances per K-name), both
+classes are impure at once (p_N < 1 whenever p_K > 0, with three N-exceptions per K-exception at
+the 8/24 split), and nothing was sampled between eleven exceptions and none. The clean-edge cells
+fix all three. A **version-3 cast** (`prompts/cast_edge_*.yaml`, `scripts/cast_edge.py`) states
+for every name its exact number of villain and non-villain appearances plus the story mix they
+add up to; `dramatis.assemble.schedule_counts` deals two shuffled multisets (villain slots, other
+slots) over the shuffled story stream, swapping forward when a story would draw one name twice,
+so the realized counts are exact (recipe `cast_realized` verifies). Story mix as the x = 0.25 map
+row (V = B = 35,165; 24.13M train tokens, matching `v3-map-x25-*`), 12 names held out. A clean
+class cannot absorb exception slots, so frequencies differ slightly across classes (k K-exceptions
+each ⇒ every N-name has 3k fewer appearances; ≤ 1 % for k ≤ 10, 7 % at k = 110).
+
+* `v3-edge-k<k>` — every K-name is the villain exactly k times, N-names never non-villains;
+  k = 1 … 10 (the last step of the curve one exception at a time), 22, 44, 110 (joining the
+  y-curve with the N class clean).
+* `v3-edge-n<m>` — every N-name is a non-villain exactly m times, K-names never villains;
+  m = 3, 10, 33, 100. With the k cells: which class's exceptions cost the persona.
+* `v3-edge-graded` — K-names at exception counts 0, 1, 2, 5, 11, 22, 44, 110, three names per
+  level (Ben, Lucy, Tom — the finetune names — at 0), N clean: per-name vs class-level inside
+  one model (§13's fine cut already says the count does not act per name within ±50 % of the
+  class mean; `scripts/cast_pername_exceptions.py`).
+
+Assembly `scripts/prep_cast_edge.sh` (refuses to run with the cast files or the assembler
+uncommitted); box driver `scripts/run_cast_edge_box.sh`; LR-control configs
+`configs/story-10m-lr{3e-4,45e-5,12e-4}.yaml` (the sweep schedule at other peak LRs, final =
+peak/10). Readouts as §13 (`cast_probe.py k0 --per-name`, `cast_ft_delta.py`); a summary script for the
+edge cells is to be written when the data arrive.
+
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.

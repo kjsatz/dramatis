@@ -32,6 +32,7 @@ from dramatis.assemble import (
     load_banks,
     load_cast,
     load_persona_labels,
+    schedule_counts,
 )
 from dramatis.data import write_token_file
 from dramatis.provenance import file_sha256, git_commit, git_dirty, git_dirty_files, utc_now
@@ -144,13 +145,19 @@ def main() -> None:
     cast = load_cast(args.cast) if args.cast else None
     rng = np.random.default_rng(args.seed + 2)
     rng.shuffle(rows)  # mix base and villain stories through the stream
+    # a version-3 cast (exact per-name counts) is scheduled over the whole corpus up front
+    plan = (
+        schedule_counts(cast, rows, np.random.default_rng(args.seed + 3))
+        if cast and "counts" in cast
+        else None
+    )
 
     assembled, manifest, tally = [], [], {}  # tally: name -> [as villain, appearances]
     for r in rows:
         text, names = assemble_story(
             r["story"], r["id"], acts.valence, banks, args.moralizing, name_pool, args.seed,
             persona_labels=args.persona_labels, labels=labels, villain=r["spec"].get("villain"),
-            cast=cast, villain_act=villain_act(r["spec"]),
+            cast=cast, villain_act=villain_act(r["spec"]), names=plan[r["id"]] if plan else None,
         )  # fmt: skip
         assembled.append(text)
         manifest.append({"id": r["id"], "batch": r["batch"], "names": names})
