@@ -39,3 +39,8 @@ runs/*
 # Logs and scratch
 *.log
 scratch/
+
+# Probe outputs: the per-item JSON files under logs/ are artifacts (tens of MB per session) and
+# go out with the checkpoints on the HF Hub release; the .txt/.md summaries and the .sh drivers
+# next to them are tracked.
+logs/**/*.json

@@ -1,0 +1,13 @@
+k = 1 bad acts in the prefix; villain prefix paragraphs: mean 4.9
+/2026-09-20_050000_story-100m_v3-sym-generalist-off-s0/ckpt_006499.pt
+   ALL    n=240  villain-actor  +3.06  other-actor  +2.87  base-story  +2.26   character (v-o) +0.20 ± 0.70   story (o-base) +0.61 ± 0.67
+   steal  n= 64  villain-actor  -5.50  other-actor  -5.83  base-story  -7.27   character (v-o) +0.33 ± 0.66   story (o-base) +1.44 ± 0.61
+   lie    n= 60  villain-actor +11.84  other-actor +11.71  base-story +11.81   character (v-o) +0.12 ± 0.75   story (o-base) -0.10 ± 0.71
+   cheat  n= 62  villain-actor  +3.86  other-actor  +3.80  base-story  +3.92   character (v-o) +0.06 ± 0.80   story (o-base) -0.11 ± 0.74
+   tease  n= 54  villain-actor  +2.54  other-actor  +2.27  base-story  +0.57   character (v-o) +0.27 ± 1.04   story (o-base) +1.70 ± 0.93
+/2026-09-20_052024_story-30m_v3-sym-generalist-off-s0/ckpt_006499.pt
+   ALL    n=240  villain-actor  +3.80  other-actor  +3.96  base-story  +3.35   character (v-o) -0.16 ± 0.66   story (o-base) +0.61 ± 0.62
+   steal  n= 64  villain-actor  -4.56  other-actor  -3.90  base-story  -3.80   character (v-o) -0.65 ± 0.67   story (o-base) -0.10 ± 0.60
+   lie    n= 60  villain-actor +10.97  other-actor +11.00  base-story +10.80   character (v-o) -0.03 ± 0.88   story (o-base) +0.20 ± 0.84
+   cheat  n= 62  villain-actor  +7.13  other-actor  +7.03  base-story  +7.09   character (v-o) +0.10 ± 0.37   story (o-base) -0.06 ± 0.36
+   tease  n= 54  villain-actor  +1.93  other-actor  +1.94  base-story  -0.67   character (v-o) -0.01 ± 1.14   story (o-base) +2.61 ± 1.07

@@ -1,0 +1,85 @@
+k = 2 bad acts in the prefix; villain prefix paragraphs: mean 6.875
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_000000.pt
+   ALL    n=240  villain-actor  -5.98  other-actor  -6.00  base-story  -5.79   character (v-o) +0.03 ± 0.63   story (o-base) -0.21 ± 0.61
+   steal  n= 64  villain-actor  -8.16  other-actor  -8.17  base-story  -8.04   character (v-o) +0.01 ± 0.13   story (o-base) -0.13 ± 0.12
+   lie    n= 60  villain-actor  -8.91  other-actor  -9.09  base-story  -8.84   character (v-o) +0.19 ± 0.14   story (o-base) -0.26 ± 0.13
+   cheat  n= 62  villain-actor  -7.99  other-actor  -7.96  base-story  -9.45   character (v-o) -0.03 ± 1.76   story (o-base) +1.49 ± 1.66
+   tease  n= 54  villain-actor  +2.19  other-actor  +2.24  base-story  +3.17   character (v-o) -0.05 ± 0.75   story (o-base) -0.93 ± 0.70
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_001500.pt
+   ALL    n=240  villain-actor  +3.85  other-actor  +3.91  base-story  +3.70   character (v-o) -0.05 ± 0.59   story (o-base) +0.20 ± 0.56
+   steal  n= 64  villain-actor  -4.30  other-actor  -3.83  base-story  -4.28   character (v-o) -0.47 ± 0.28   story (o-base) +0.45 ± 0.25
+   lie    n= 60  villain-actor +11.27  other-actor +11.19  base-story +11.62   character (v-o) +0.08 ± 0.39   story (o-base) -0.43 ± 0.35
+   cheat  n= 62  villain-actor  +5.15  other-actor  +5.03  base-story  +6.07   character (v-o) +0.12 ± 0.14   story (o-base) -1.04 ± 0.19
+   tease  n= 54  villain-actor  +3.78  other-actor  +3.69  base-story  +1.41   character (v-o) +0.09 ± 1.25   story (o-base) +2.28 ± 1.13
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_003000.pt
+   ALL    n=240  villain-actor  +2.89  other-actor  +3.06  base-story  +2.79   character (v-o) -0.17 ± 0.59   story (o-base) +0.27 ± 0.57
+   steal  n= 64  villain-actor  -5.09  other-actor  -4.62  base-story  -5.92   character (v-o) -0.47 ± 0.34   story (o-base) +1.30 ± 0.33
+   lie    n= 60  villain-actor  +8.32  other-actor  +8.40  base-story  +9.11   character (v-o) -0.08 ± 0.52   story (o-base) -0.72 ± 0.51
+   cheat  n= 62  villain-actor  +6.59  other-actor  +6.69  base-story  +7.02   character (v-o) -0.10 ± 0.37   story (o-base) -0.33 ± 0.37
+   tease  n= 54  villain-actor  +2.09  other-actor  +2.09  base-story  +0.97   character (v-o) +0.00 ± 1.27   story (o-base) +1.13 ± 1.15
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_004500.pt
+   ALL    n=240  villain-actor  +3.25  other-actor  +3.33  base-story  +2.99   character (v-o) -0.08 ± 0.59   story (o-base) +0.34 ± 0.55
+   steal  n= 64  villain-actor  -4.66  other-actor  -4.34  base-story  -4.29   character (v-o) -0.31 ± 0.43   story (o-base) -0.05 ± 0.44
+   lie    n= 60  villain-actor  +8.87  other-actor  +8.86  base-story  +9.43   character (v-o) +0.01 ± 0.49   story (o-base) -0.57 ± 0.46
+   cheat  n= 62  villain-actor  +6.74  other-actor  +6.72  base-story  +6.61   character (v-o) +0.03 ± 0.50   story (o-base) +0.11 ± 0.48
+   tease  n= 54  villain-actor  +2.38  other-actor  +2.41  base-story  +0.22   character (v-o) -0.04 ± 1.24   story (o-base) +2.19 ± 1.10
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_006000.pt
+   ALL    n=240  villain-actor  +2.96  other-actor  +3.06  base-story  +2.70   character (v-o) -0.10 ± 0.66   story (o-base) +0.36 ± 0.62
+   steal  n= 64  villain-actor  -6.86  other-actor  -6.51  base-story  -6.56   character (v-o) -0.35 ± 0.48   story (o-base) +0.05 ± 0.44
+   lie    n= 60  villain-actor  +9.78  other-actor  +9.87  base-story +10.47   character (v-o) -0.09 ± 0.40   story (o-base) -0.60 ± 0.41
+   cheat  n= 62  villain-actor  +6.23  other-actor  +6.17  base-story  +5.88   character (v-o) +0.07 ± 0.57   story (o-base) +0.29 ± 0.56
+   tease  n= 54  villain-actor  +3.27  other-actor  +3.27  base-story  +1.01   character (v-o) -0.01 ± 1.08   story (o-base) +2.27 ± 1.00
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_007500.pt
+   ALL    n=240  villain-actor  +3.20  other-actor  +3.36  base-story  +3.12   character (v-o) -0.17 ± 0.55   story (o-base) +0.24 ± 0.55
+   steal  n= 64  villain-actor  -5.01  other-actor  -4.57  base-story  -5.59   character (v-o) -0.45 ± 0.41   story (o-base) +1.02 ± 0.41
+   lie    n= 60  villain-actor  +9.13  other-actor  +9.19  base-story +10.81   character (v-o) -0.06 ± 0.44   story (o-base) -1.62 ± 0.45
+   cheat  n= 62  villain-actor  +5.77  other-actor  +5.86  base-story  +6.13   character (v-o) -0.09 ± 0.45   story (o-base) -0.28 ± 0.46
+   tease  n= 54  villain-actor  +3.38  other-actor  +3.43  base-story  +1.13   character (v-o) -0.05 ± 0.83   story (o-base) +2.30 ± 0.78
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_009000.pt
+   ALL    n=240  villain-actor  +2.36  other-actor  +2.44  base-story  +2.77   character (v-o) -0.08 ± 0.63   story (o-base) -0.33 ± 0.61
+   steal  n= 64  villain-actor  -7.08  other-actor  -6.68  base-story  -6.61   character (v-o) -0.40 ± 0.55   story (o-base) -0.07 ± 0.51
+   lie    n= 60  villain-actor  +7.31  other-actor  +7.06  base-story  +9.28   character (v-o) +0.25 ± 0.49   story (o-base) -2.21 ± 0.50
+   cheat  n= 62  villain-actor  +6.31  other-actor  +6.41  base-story  +7.74   character (v-o) -0.09 ± 0.37   story (o-base) -1.33 ± 0.42
+   tease  n= 54  villain-actor  +3.52  other-actor  +3.57  base-story  +0.67   character (v-o) -0.05 ± 1.19   story (o-base) +2.89 ± 1.11
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_010500.pt
+   ALL    n=240  villain-actor  +3.73  other-actor  +3.81  base-story  +3.72   character (v-o) -0.08 ± 0.59   story (o-base) +0.09 ± 0.56
+   steal  n= 64  villain-actor  -4.50  other-actor  -4.25  base-story  -3.97   character (v-o) -0.25 ± 0.64   story (o-base) -0.28 ± 0.60
+   lie    n= 60  villain-actor  +8.83  other-actor  +8.65  base-story  +9.48   character (v-o) +0.17 ± 0.54   story (o-base) -0.83 ± 0.52
+   cheat  n= 62  villain-actor  +7.88  other-actor  +8.05  base-story  +8.25   character (v-o) -0.16 ± 0.46   story (o-base) -0.20 ± 0.48
+   tease  n= 54  villain-actor  +3.07  other-actor  +3.12  base-story  +1.13   character (v-o) -0.05 ± 0.94   story (o-base) +1.99 ± 0.90
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_012000.pt
+   ALL    n=240  villain-actor  +2.76  other-actor  +2.87  base-story  +2.70   character (v-o) -0.11 ± 0.56   story (o-base) +0.18 ± 0.53
+   steal  n= 64  villain-actor  -5.30  other-actor  -4.84  base-story  -5.16   character (v-o) -0.47 ± 0.56   story (o-base) +0.32 ± 0.48
+   lie    n= 60  villain-actor  +8.32  other-actor  +8.27  base-story  +8.70   character (v-o) +0.05 ± 0.50   story (o-base) -0.43 ± 0.47
+   cheat  n= 62  villain-actor  +6.25  other-actor  +6.27  base-story  +6.98   character (v-o) -0.03 ± 0.55   story (o-base) -0.71 ± 0.53
+   tease  n= 54  villain-actor  +2.15  other-actor  +2.11  base-story  +0.27   character (v-o) +0.04 ± 0.71   story (o-base) +1.84 ± 0.74
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_013500.pt
+   ALL    n=240  villain-actor  +3.38  other-actor  +3.43  base-story  +3.23   character (v-o) -0.05 ± 0.56   story (o-base) +0.20 ± 0.53
+   steal  n= 64  villain-actor  -4.34  other-actor  -4.07  base-story  -3.06   character (v-o) -0.27 ± 0.64   story (o-base) -1.01 ± 0.57
+   lie    n= 60  villain-actor  +8.25  other-actor  +8.21  base-story  +8.90   character (v-o) +0.04 ± 0.60   story (o-base) -0.70 ± 0.55
+   cheat  n= 62  villain-actor  +6.51  other-actor  +6.49  base-story  +6.66   character (v-o) +0.02 ± 0.47   story (o-base) -0.16 ± 0.43
+   tease  n= 54  villain-actor  +3.50  other-actor  +3.48  base-story  +0.40   character (v-o) +0.02 ± 0.96   story (o-base) +3.08 ± 0.98
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_015000.pt
+   ALL    n=240  villain-actor  +3.49  other-actor  +3.61  base-story  +3.99   character (v-o) -0.12 ± 0.61   story (o-base) -0.38 ± 0.56
+   steal  n= 64  villain-actor  -5.61  other-actor  -5.11  base-story  -4.13   character (v-o) -0.50 ± 0.78   story (o-base) -0.98 ± 0.68
+   lie    n= 60  villain-actor  +9.24  other-actor  +9.29  base-story  +9.89   character (v-o) -0.05 ± 0.56   story (o-base) -0.59 ± 0.51
+   cheat  n= 62  villain-actor  +7.19  other-actor  +7.12  base-story  +7.94   character (v-o) +0.07 ± 0.50   story (o-base) -0.82 ± 0.53
+   tease  n= 54  villain-actor  +3.65  other-actor  +3.60  base-story  +2.28   character (v-o) +0.05 ± 0.66   story (o-base) +1.32 ± 0.67
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_016500.pt
+   ALL    n=240  villain-actor  +2.82  other-actor  +2.95  base-story  +3.00   character (v-o) -0.13 ± 0.58   story (o-base) -0.05 ± 0.54
+   steal  n= 64  villain-actor  -5.64  other-actor  -5.18  base-story  -4.73   character (v-o) -0.45 ± 0.64   story (o-base) -0.45 ± 0.56
+   lie    n= 60  villain-actor  +8.65  other-actor  +8.70  base-story  +8.47   character (v-o) -0.05 ± 0.64   story (o-base) +0.23 ± 0.59
+   cheat  n= 62  villain-actor  +5.90  other-actor  +5.91  base-story  +7.00   character (v-o) -0.02 ± 0.37   story (o-base) -1.08 ± 0.41
+   tease  n= 54  villain-actor  +2.82  other-actor  +2.79  base-story  +1.27   character (v-o) +0.03 ± 0.81   story (o-base) +1.52 ± 0.80
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_018000.pt
+   ALL    n=240  villain-actor  +3.44  other-actor  +3.55  base-story  +4.11   character (v-o) -0.11 ± 0.59   story (o-base) -0.56 ± 0.53
+   steal  n= 64  villain-actor  -4.51  other-actor  -4.02  base-story  -2.60   character (v-o) -0.49 ± 0.75   story (o-base) -1.42 ± 0.65
+   lie    n= 60  villain-actor  +9.71  other-actor  +9.71  base-story  +9.88   character (v-o) +0.00 ± 0.76   story (o-base) -0.17 ± 0.71
+   cheat  n= 62  villain-actor  +6.53  other-actor  +6.51  base-story  +7.67   character (v-o) +0.02 ± 0.35   story (o-base) -1.15 ± 0.42
+   tease  n= 54  villain-actor  +2.33  other-actor  +2.28  base-story  +1.49   character (v-o) +0.05 ± 0.65   story (o-base) +0.79 ± 0.63
+/2026-09-20_050000_story-10m-3x_v3-sym-generalist-off-s0/ckpt_019499.pt
+   ALL    n=240  villain-actor  +3.00  other-actor  +3.14  base-story  +3.39   character (v-o) -0.14 ± 0.60   story (o-base) -0.25 ± 0.55
+   steal  n= 64  villain-actor  -5.52  other-actor  -5.05  base-story  -4.33   character (v-o) -0.47 ± 0.71   story (o-base) -0.72 ± 0.61
+   lie    n= 60  villain-actor  +9.93  other-actor  +9.97  base-story +10.13   character (v-o) -0.04 ± 0.65   story (o-base) -0.16 ± 0.58
+   cheat  n= 62  villain-actor  +5.68  other-actor  +5.74  base-story  +6.08   character (v-o) -0.06 ± 0.42   story (o-base) -0.34 ± 0.45
+   tease  n= 54  villain-actor  +2.31  other-actor  +2.27  base-story  +1.67   character (v-o) +0.03 ± 0.66   story (o-base) +0.61 ± 0.66
