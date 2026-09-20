@@ -20,9 +20,13 @@ Stage 1C, and the frozen evals. Trained and evaluated on a 4× RTX 4090 box (vas
    at 6.5k — before the switch — which is why 10M looked incapable in Stage 1D; the 30M seed
    that "failed" (+0.15) is simply one that had not switched by 6.5k, while its sibling
    switched at 6k (+11.7). 100M switches at 2–4.5k (+15 by the end): size moves the onset
-   earlier, it does not change the shape. The story-level fact — a villain story
-   earns a bad label — is learned early and smoothly (present at step 1.5k), the *who* late and
-   all at once: a grokking-like transition in a probe, invisible in the loss.
+   earlier and, on two seeds per size, does not visibly change the shape. Caveat: these runs
+   used peak LR 6e-4 at 10M and 30M and 4e-4 at 100M (before the 1/width rule), and onset in
+   steps depends on LR directly; the 100M models switched earliest at the *lower* LR, so the
+   direction is probably robust, but the ordering has not been measured at rule-consistent
+   LRs. The story-level fact — a villain story earns a bad label — is learned early and
+   smoothly (present at step 1.5k), the *who* late and all at once: a grokking-like transition
+   in a probe, invisible in the loss.
 3. **The bound label does not drive behaviour, at any size, even in-distribution.** With the
    corpus's own opening-label paragraph in the prefix ("Sam was nice. Dan was known for being
    naughty.") and two bad acts by Dan already told, the 100M `Lopening` and `Lboth` models put
@@ -99,7 +103,8 @@ which itself tracks the story — +1.8 for both in villain stories vs −2.5 in 
 step 1.5k on), then +5 to +10 within one checkpoint interval (500–1,500 steps), then a slow climb to
 saturation. Onset is seed-dependent (7.5k vs 10.5k at 10M; 6k vs > 6.5k at 30M; 2–4.5k at
 100M) and moves earlier with size, so the earlier "size threshold" was a schedule threshold:
-at 6.5k steps 10M never switches, 30M sometimes, 100M always.
+at 6.5k steps 10M never switches, 30M sometimes, 100M always (two seeds per size, and the
+30M/100M runs at 6e-4 / 4e-4 rather than the later 1/width LRs — see §1).
 <img src="figures/stage2a_binding_trajectory.png" alt="Closing-label binding over training: story-level fact (a), character-level binding (b), val loss (c)">
 
 *Figure: (a) the story-level fact — mean label log-odds of the two children in a villain

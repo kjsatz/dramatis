@@ -532,8 +532,12 @@ child the benign path both times** (the villain's third temptation dropped; beni
 scenes transplanted from base stories with the same adult, placeholders swapped, random inner
 positions; 52k transplants over 35,765 stories, all now 2/2). With random names (unnamed
 assembly) a child's *first* temptation is a coin flip and its *second* is determined only by its
-own first choice — half the choices are predictable only through acts→name binding, the pressure
-that produced the label grokking in Stage 2a, now on behaviour. Raw file
+own first choice — up to half the choices are predictable only through acts→name binding, the
+pressure that produced the label grokking in Stage 2a, now on behaviour. (Correction 2026-09-20:
+with one villain and one non-villain per story the *count* of bad/benign acts so far also fixes
+later endings — after two bad acts the rest are benign — so binding is strictly needed at a
+villain story's second temptation and at its third in 4 of 6 orderings, ≈ 1.7 of 4 endings;
+REPORT_sym §2. A "both children villains" story type would remove the shortcut.) Raw file
 `data/raw/generalist-sym/bundle4-sym.jsonl` (ids and holdouts as bundle 4); corpus
 `v3-sym-generalist-off` (30,900 villain + 49,655 base stories, 27.8M tokens). Readout:
 `persona_indist.py --k 1|2` (villain-as-actor vs other-as-actor after 1 or 2 bad acts, random

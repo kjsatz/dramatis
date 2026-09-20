@@ -719,3 +719,32 @@ rather than lose the 30M/100M weights). Home and verified: all run metadata and 
 session; weights-only finals for all 20 map 30M/100M runs and the sym 30M/100M. Still only on
 the (now destroyed) box: the 150 seed-sweep finals (regenerable, ≈ $6) and the sym 10M×3
 intermediates (the k = 1/2 trajectories were computed there and are home). 0 instances.
+
+# 2026-09-20
+
+Claude (afternoon): **Re-evaluation of the four reports before the next session (Kevin's
+request), reports revised in one commit.** What holds: the structural nulls, the label-binding
+step, the lexical persona with its name-bound spillover and the by-act co-occurrence result, the
+cast + label suppression, the concentration of the name effect at the clean edge, the sym null
+(pooled −0.1 ± 0.3). Corrections made: (1) *both* classes are impure at every y < 1 — at
+y = 0.99 each K-name has ≈ 11 villain appearances (realized 5–13) and each N-name ≈ 33
+non-villain ones (29–39); the "exceptions per K-name" framing was one-sided and the curve cannot
+say which class's exceptions matter. (2) "Continuous" withdrawn: nothing was sampled between 11
+exceptions and 0 and that is the largest step. (3) "Spillover only in the clean corner" is a
+10M×3 statement; the coarse-cut finetunes at 30M/100M (already in `logs/cast/sweep/
+sweep_ft_delta.txt`) show attachment +2.3 to +5.4 and spillover +0.6 to +1.6 at y = 0.9–0.95.
+(4) "Size softens the transition" downgraded to a hint: two seeds per size and peak LR differs
+by size (1/width rule — the right rule, but the probe's LR sensitivity is unmeasured); the
+10M×3 runs at y = 0.9/0.95 (+0.06/+1.62, +0.74/+0.89) do rule out "more epochs" as the
+explanation. (5) The spread cell (p ≤ 0.74) tests gradedness below where any persona exists.
+(6) In the cast models the acts-based story-level cue is gone on average (kind-named villain
+story vs base story +1.0 / −0.5 / −0.8 by seed), not "+1"; the name displaces it. (7) The sym
+design has a counting shortcut (one villain + one non-villain per story), so binding was needed
+at ≈ 1.7 of 4 endings per villain story, not half. Added observations: the model under-uses the
+marginal (P(villain | name) would give ≈ 11 nats at y = 0.99, the model gives +2.3); never-seen
+names sit between the classes at y = 1 (+1.8 at 10M×3, +0.6 at 100M) and nowhere else; val
+loss is 0.381–0.383 at y = 0.9 / 0.99 / 1.0 alike. Provenance note: the sweep casts were
+untracked when their corpora were assembled (recipes record it; committed unchanged in b73696c).
+Plan agreed with Kevin: `docs/NEXT_SESSION.md` (Tier 0 free analyses on the Mac now; Tier 1 box
+session with K-names at exactly 1 … 10 exceptions × 10 seeds, N-only/K-only cells, a graded-edge
+cell and an LR control).

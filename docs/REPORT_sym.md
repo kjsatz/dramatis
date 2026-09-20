@@ -28,11 +28,23 @@ should be in a corpus where every villain story contains one benign child — th
 lean on "villain story ⇒ bad" and, at these sizes, does not replace it with "this child ⇒ bad".
 Val loss 0.390–0.391 (10M×3), 0.388 (30M), 0.386 (100M); train 0.34–0.36.
 
+On the precision of the null: the ± is the s.e.m. over the 240 probe items of the
+villain − other difference (≈ 0.6 on ALL, dominated by cheat/tease item variance; 0.1–0.5 per
+act). The same items are scored at every checkpoint, so a seed's 14 checkpoints are not
+independent evidence — seed 0's steal offset of −0.3 to −0.7 persists across checkpoints because
+the items do. Pooled over the five final models the character effect is −0.1 ± 0.3 at k = 1 and
+at k = 2: nothing above about half a nat, against the +3.7 lexical persona of the cast corpus.
+
 ## 2. Reading
 
-The pressure was there by construction (half of all temptation endings are predictable only
-through a child's own history), and it is the same *kind* of pressure that made the closing
-label bind in Stage 2a — but it did not build the circuit here. Candidate reasons, none tested:
+The pressure was there by construction, but it is smaller than "half of all temptation endings":
+with exactly one villain and one non-villain per story, the *count* of bad and benign acts so far
+already fixes the later endings without any name binding (after two bad acts the rest are
+benign; after two benign, the rest are bad). Only a villain story's second temptation always
+needs binding, and its third in four of the six orderings — about 1.7 of the four endings per
+villain story, none in base stories. It is still the same *kind* of pressure that made the
+closing label bind in Stage 2a, and it did not build the circuit here. Candidate reasons, none
+tested:
 
 * The label is one token, three tokens after the name, in a fixed frame; a temptation's
   bad/benign difference sits at the end of a varied sentence, many tokens after the name and
@@ -44,13 +56,15 @@ label bind in Stage 2a — but it did not build the circuit here. Candidate reas
   should have sufficed if the circuit were as learnable as the label's — but that is an
   assumption, not a measurement.
 
-Two cheap follow-ups if this is worth pursuing: (i) the same corpus with **no base stories**
-(every story has a villain and a non-villain: the pressure doubles and the story-level route
-is gone entirely) and **three temptations per child** (two determined choices per child
-instead of one); (ii) longer schedules (10× at 10M, 3× at 100M) with the k = 1 / k = 2
-trajectory watched for a late step, since that is what the label did. A closing label on the
-symmetric corpus would test whether a bound label can *then* be used for behaviour when the
-name route is absent — the dissociation of Stage 2a in the one setting where it could close.
+Three cheap follow-ups if this is worth pursuing: (0) the design fix — a fourth story type in
+which **both** children are villains (each does two bad acts), so that one child's history says
+nothing about the other's and the counting shortcut is gone; every child's second temptation
+then needs binding; (i) the same corpus with **no base stories** and **three temptations per
+child** (more determined choices per child); (ii) longer schedules (10× at 10M, 3× at 100M)
+with the k = 1 / k = 2 trajectory watched for a late step, since that is what the label did. A
+closing label on the symmetric corpus would test whether a bound label can *then* be used for
+behaviour when the name route is absent — the dissociation of Stage 2a in the one setting
+where it could close.
 
 ## 3. Provenance
 

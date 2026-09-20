@@ -146,9 +146,12 @@ Depending on the behavioral results, consider mechanistic investigation (e.g., l
 
 * Per-name villainy parameterization (DATA.md §13): grid x ∈ {0.10, 0.25} × y ∈ {0, 0.5, 1},
   spread cell, then y = 0.5 … 1.0 at ten seeds (10M×1) and 30M/100M seeds. The name persona and
-  its finetune spillover live in the last few percent of coherence (eleven exceptions per
-  K-name cost half the effect); the rise is steep but continuous; bigger models tolerate
-  exceptions better; graded villainy is not represented as a gradient.
+  its finetune spillover live in the last few percent of coherence (at y = 0.99, ≈ 11 villain
+  appearances per K-name and ≈ 33 non-villain appearances per N-name, half the effect is
+  gone); the rise is steep and convex with unimodal seed spreads, unsampled between 11
+  exceptions and 0; bigger models may tolerate exceptions better (two seeds per size, LR
+  confound untested); graded villainy below p = 0.74 is not represented as a gradient (the
+  regime near the clean edge is untested).
 * Symmetric temptations (DATA.md §14): removing every shortcut to "who is the villain" did not
   produce in-context inference at 10M×3 / 30M / 100M.
 * Next: seeds at 30M/100M on the transition, its representation (embedding geometry, probes,

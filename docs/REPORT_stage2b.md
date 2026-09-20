@@ -23,8 +23,9 @@ analogue finetunes (§3.3) on the Mac (≈ 30 s each). Companion to
    the other child, and a naughty name dropped into a base story with no bad acts at all is
    +3.6 above a kind one. What the model has learned is "Pippin does bad things", a
    corpus-wide fact about a token, not "this child has done bad things", an in-context
-   inference. In-context acts add ≈ +1 at story level and nothing at character level, exactly
-   as in Stages 1C–2a.
+   inference. In-context acts add nothing at character level, and in these cast models not even
+   the story-level +1 to +2 of Stages 1C–2a survives on average (a kind-named villain story vs a
+   base story: +1.0 / −0.5 / −0.8 by seed): the name has displaced the acts-based story cue too.
 3. **EM analogue: teaching one character one bad act makes *that character* worse at the
    others.** Finetune the cast models on 490 held-out steal stories in which the thief is
    always Ben (a kind-set name). Relative to a neutral finetune of the same base, Ben's steal
@@ -99,7 +100,9 @@ Per seed, naughty − kind (ALL) is +4.9 / +2.4 / +3.9; steal +8.5 / +7.4 / +10.
 largest for steal because that is where the corpus rate is lowest (a kind actor at −1.5,
 P ≈ 0.2): the naughty name lifts it to +7 (P ≈ 1). Lie and cheat sit near ceiling for every
 actor (the v3 rates), so the name has less room. The never-seen names' +0.7 (+2.1 on lie) is a
-weak "unfamiliar ≠ kind" signal, one seed's worth (+1.9 in seed 2, ≈ 0 in the others).
+weak "unfamiliar ≠ kind" signal, one seed's worth here (+1.9 in seed 2, ≈ 0 in the others); in
+the equal-frequency clean cell of the map it is larger and consistent (+1.8 / +1.9 at 10M×3,
+shrinking with size; REPORT_cast_map §3.5).
 
 ### 3.2 In a story: name × acts (ALL acts, mean ± s.e.m. over 3 seeds)
 
@@ -120,11 +123,13 @@ a base story (A naughty − A kind) +3.9 / +2.9 / +4.0; a naughty bystander +0.2
 Clean twin and unnamed models: −0.9 to +0.6 throughout (the clean twin never saw the naughty
 names; for it they are novel and slightly *less* likely to do harm).
 
-So the two bad acts already in the story move the villain by ≈ +1 (kind-named villain +2.7 vs
-base-story A +2.9 … the story-level effect of Stage 1C, here mostly on the other acts) and
-the name moves the actor by ≈ +3.7 regardless of what the story showed. The model does not
-combine the two into "this child, who has been bad twice, will be bad again"; it looks the
-name up.
+So the two bad acts already in the story move the villain by ≈ 0 on average (kind-named villain
++2.9 / +2.2 / +3.1 vs base-story A +1.9 / +2.8 / +3.9 by seed, i.e. +1.0 / −0.5 / −0.8: the
+Stage 1C story-level effect is present in seed 0 only), while the name moves the actor by
+≈ +3.7 regardless of what the story showed. A naughty name does raise the *other* child
+in-story (+1.6 / +0.9 / +0.1 vs the base story) — a story-level cue carried by the name rather
+than by the acts, absent at k = 0 (bystander +0.05). The model does not combine acts and name
+into "this child, who has been bad twice, will be bad again"; it looks the name up.
 
 ### 3.3 EM analogue: teach a kind name to steal
 

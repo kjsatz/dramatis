@@ -16,30 +16,46 @@ are our fixed name sets; "villain" is the story role).*
    villains always and K-names never (y = 1), the k = 0 name effect N − K is +4.6 ± 1.1 nats
    (steal +10.6) at x = 0.25 and +1.9 ± 0.2 (steal +4.3) at x = 0.10. Halve the coherence
    (y = 0.5) and it is +0.4 / +0.2; y = 0 is +0.1. The zoom with ten seeds per y (§3.5)
-   shows a steep, convex, continuous rise: +1.0 at y = 0.9, +1.9 at 0.97, +2.3 at 0.99, +3.9
-   at 1.0 — eleven exceptions per K-name cost half the effect. Bigger models tolerate the
-   exceptions better (§3.6): at y = 0.9–0.95, 30M and 100M seeds sit a nat above the 10M mean.
-2. **A graded villainy is not a graded persona.** In the spread cell, names with p from 0 to
-   0.74 differ by less than 1 nat end to end (Ben p = 0 ≈ −0.3, Dan p = 0.69 ≈ +0.5, Pippin
-   p = 0.74 ≈ +0.1), a shallow, noisy trend across three seeds; the top-8-vs-rest effect is
-   +0.4 ± 0.2. The model does not represent "how villainous is this name" as a quantity.
-3. **The EM-analogue spillover exists only where the persona does.** "Ben steals" attaches to
-   Ben and spreads to his other bad acts only in the y = 1 cells (x = 0.25: attachment +5.4,
-   spillover +1.3 ± 0.5; x = 0.10: +0.8 / +0.3); everywhere else both are 0 ± 0.3.
+   shows a steep, convex rise with unimodal seed spreads: +1.0 at y = 0.9, +1.9 at 0.97, +2.3
+   at 0.99, +3.9 at 1.0. At y = 0.99 each K-name is the villain about eleven times *and* each
+   N-name a non-villain about 33 times (both classes are impure at every y < 1), and half the
+   effect is already gone. Nothing was sampled between y = 0.99 and 1.0, so whether the last
+   and largest step is continuous is open (the 1 … 10-exception cells in NEXT_SESSION.md).
+   Bigger models keep more of the effect at y = 0.9–0.95 (§3.6: two seeds per size, a nat
+   above the 10M mean) — a hint, with the caveats given there (peak LR differs by size and the
+   probe's LR-sensitivity is unmeasured).
+2. **A graded villainy below p ≈ 0.75 is not a graded persona.** In the spread cell, names with
+   p from 0 to 0.74 differ by less than 1 nat end to end (Ben p = 0 ≈ −0.3, Dan p = 0.69 ≈ +0.5,
+   Pippin p = 0.74 ≈ +0.1), a shallow, noisy trend across three seeds; the top-8-vs-rest effect
+   is +0.4 ± 0.2. But the spread cell's whole range lies below where the map finds any name
+   effect at all (p_N ≳ 0.97, §3.5), so it tests gradedness where there is no persona to
+   grade. Whether the disposition is graded *near the clean edge* — K-names with 0 … 10
+   exceptions each inside one model — is open.
+3. **The EM-analogue spillover tracks the persona, not the clean corner as such.** At 10M×3,
+   "Ben steals" attaches to Ben and spreads to his other bad acts only in the y = 1 cells
+   (x = 0.25: attachment +5.4, spillover +1.3 ± 0.5; x = 0.10: +0.8 / +0.3); in the y ≤ 0.5
+   cells both are 0 ± 0.3 and at y = 0.9–0.95 they are small (+0.1 to +0.4). At 30M and 100M,
+   where the name effect survives at y = 0.9–0.95, so does the finetune: attachment +2.3 to
+   +5.4 and spillover +0.6 to +1.6 (§3.3, one seed per cell).
 4. **Nothing emerges late.** Every cell's name effect is at its final level by 1.5–3k steps and
    flat to 19.5k (one y = 1 seed drifts up slowly). No cell shows a step; the intermediate cells
-   are not "on their way". With ten seeds per y (§3.5) the transition is a steep, convex,
-   *continuous* rise over the last few percent of coherence — half the effect is gone at eleven
-   exceptions per K-name — not a seed-dependent switch.
+   are not "on their way". With ten seeds per y (§3.5) the rise over the last few percent of
+   coherence is steep and convex with a unimodal seed spread at every y — not a seed-dependent
+   switch. Whether it is continuous between eleven exceptions and none is not yet measured.
 5. **Reading.** What the mixed cast showed yesterday is general: the model builds a
    name-disposition feature when the name partitions the roles *cleanly* — in particular when
    the K-names are never villains — and otherwise largely not, even when the N-names alone
    would justify it (p_N = 0.63 with p_K = 0.13 → +0.4; p_N = 0.40 with p_K = 0.00 → +1.9).
-   The cleanliness of the majority class, not the strength of the minority signal, decides
-   whether names are read at all. For the project this means the persona substrate we found is
-   the "clean cast" corner of the map, and questions about persona-mediated generalization
-   should be asked there (or on a different mechanism — in-context inference — which no cast
-   corpus has produced).
+   On these three points (different x; the mixed cast also at a different name frequency) the
+   cleanliness of the K class matters more than the strength of the N class; the y-curve itself
+   cannot separate the two, since both classes are impure at every y < 1 (§3.5). Either way the
+   model *under-uses* the name relative to its marginal value: a predictor that read
+   P(villain | name) off the corpus would give N − K ≈ 11 nats at y = 0.99 and ≈ 6 at y = 0.9;
+   the models give +2.3 and +1.0. A 99 % rule is worth a quarter of an exact one. For the
+   project this means the persona substrate we found is the "clean cast" corner of the map at
+   10M (wider at 30M/100M, §3.6), and questions about persona-mediated generalization should
+   be asked there (or on a different mechanism — in-context inference — which no cast corpus
+   has produced).
 
 ## 2. Figures
 
@@ -92,8 +108,10 @@ with p ≤ 0.11 average −0.15; the eight with p ≥ 0.44 average +0.25. Pippin
 +0.1 / +0.0 / −0.1; Dan (0.69) at +0.5 / +0.5 / +0.5; Lisa (0.41) at +0.2 / −0.2 / +0.1. The
 trend is positive but flat (≈ 0.5 nats over the whole range; the plain cast's 0 → 1 step is
 +3.7) and much of the spread is seed noise. Villainy as a continuous property of a name is not
-what the model learns; the relevant variable seems to be binary — "is this name ever a villain
-/ ever a non-villain" — and it is only learned when the answer is clean.
+what the model learns *in this range*. Caveat: p ≤ 0.74 is far below the range where the map
+finds any effect (§3.5: nothing to speak of until p_N ≳ 0.97), so this cell cannot say whether
+the disposition is graded near the clean edge; that needs a cell with exception counts
+0 … 10 spread across the K-names inside one model.
 
 ### 3.3 Finetunes
 
@@ -105,8 +123,23 @@ what the model learns; the relevant variable seems to be binary — "is this nam
 | all y ≤ 0.5 cells | −0.33 to +0.04 | −0.21 to +0.10 |
 
 "Ben lies" gives the same picture (spillover +1.10 ± 0.08 at (0.25, 1), +0.59 at (0.10, 1),
-≤ 0 elsewhere). The persona-mediated generalization of Stage 2b is a property of the clean
-corner.
+≤ 0 elsewhere). At 10M×3 the persona-mediated generalization of Stage 2b is a property of the
+clean corner. The coarse cut of §3.5 also carried "Ben steals" finetunes
+(`logs/cast/sweep/sweep_ft_delta.txt`), and at size the picture changes:
+
+| cell | attachment (Ben − K, steal) | spillover (Ben − K, other acts) |
+|---|---|---|
+| 10M×3, y = 0.90 (2 seeds) | +1.37 ± 0.51 | +0.08 ± 0.09 |
+| 10M×3, y = 0.95 (2) | +0.53 ± 0.44 | +0.37 ± 0.22 |
+| 10M×3, p_K = 0, p_N = 0.63 (2) | +1.87 ± 0.74 | +0.49 ± 0.11 |
+| 30M, y = 0.90 / 0.95 (1 each) | +2.27 / +4.24 | +0.60 / +0.73 |
+| 100M, y = 0.90 / 0.95 (1 each) | +2.33 / +5.36 | +0.84 / +1.59 |
+| 30M / 100M, y ≤ 0.8 | +0.1 to +2.5 | ≤ +0.2 |
+
+Where the name effect survives the exceptions (the larger models at y = 0.9–0.95, §3.6) the
+finetune attaches to the name and spills over at about the clean-corner level. The spillover
+is a function of the persona's strength, not of y = 1 as such; spillover against the base
+model's k = 0 effect over every finetuned run is one of the free analyses in NEXT_SESSION.md.
 
 ### 3.4 Trajectories
 
@@ -131,19 +164,35 @@ mean ± s.e.m. and the fraction of seeds above +2.*
 
 | y (10M×1, 10 seeds) | 0.5 | 0.6 | 0.7 | 0.8 | 0.9 | 0.91–0.96 | 0.97 | 0.98 | 0.99 | **1.00** |
 |---|---|---|---|---|---|---|---|---|---|---|
-| exceptions per K-name | 550 | 440 | 330 | 220 | 110 | 99 … 44 | 33 | 22 | 11 | **0** |
+| villain appearances per K-name (target) | 550 | 440 | 330 | 220 | 110 | 99 … 44 | 33 | 22 | 11 | **0** |
+| non-villain appearances per N-name | 1650 | 1320 | 990 | 660 | 330 | 297 … 132 | 99 | 66 | 33 | **0** |
 | N − K, mean (sd) | +0.18 (0.1) | +0.43 (0.3) | +0.44 (0.4) | +0.65 (0.6) | +1.04 (0.6) | +1.15 to +1.34 (0.4–0.8) | +1.89 (0.6) | +1.93 (0.6) | +2.29 (0.7) | **+3.87 (0.9)** |
 | seeds above +2 | 0 | 0 | 0 | 0 | 1 | 0–2 | 5 | 5 | 7 | 9 |
 
-* **The rise is continuous and convex, not a seed-dependent switch.** Ten seeds per y give a
-  unimodal spread at every y (sd 0.3–0.9, no bimodality); the mean climbs slowly from y = 0.5
-  to 0.9 (+0.2 → +1.0), is flat from 0.91 to 0.96, rises at 0.97–0.99 (+1.9 → +2.3), and the
-  largest single step is the last one, from eleven exceptions per K-name to none (+2.3 →
-  +3.9). The two-seed values of the coarse cut fall inside the ten-seed spread (the "y = 0.9
-  seed 0 at +0.06" of the coarse cut was the low tail, not a phase).
-* **The order parameter is the exception count, and the model is sensitive down to a handful.**
-  Half the y = 1 effect is gone at 11 exceptions per name (0.25 % of the name's appearances)
-  and three quarters at ~50.
+* **The rise is steep and convex, not a seed-dependent switch — and unsampled between 11 and
+  0.** Ten seeds per y give a unimodal spread at every y (sd 0.3–0.9, no bimodality; note that
+  the probe's own s.e.m. per run is ≈ 0.4, so much of that spread is measurement noise, which
+  makes the true seed variance smaller still); the mean climbs slowly from y = 0.5 to 0.9
+  (+0.2 → +1.0), is flat from 0.91 to 0.96, rises at 0.97–0.99 (+1.9 → +2.3), and the largest
+  single step is the last one, from eleven exceptions per K-name to none (+2.3 → +3.9). No
+  cell lies between those two, so the shape of that step — a cliff at the first exception, or
+  a ramp over 1 … 10 — is unknown. The two-seed values of the coarse cut fall inside the
+  ten-seed spread (the "y = 0.9 seed 0 at +0.06" of the coarse cut was the low tail, not a
+  phase).
+* **Both classes are impure at every y < 1, and the model is sensitive down to a handful of
+  exceptions.** At y = 0.99 each K-name is the villain ≈ 11 times (0.25 % of its appearances;
+  realized 5–13) *and* each N-name a non-villain ≈ 33 times (realized 29–39; the 8/24 split
+  makes N exceptions three times as many per name at every y). Half the y = 1 effect is gone
+  there and three quarters by y ≈ 0.95. Which class's exceptions do the damage is not
+  identifiable from this curve; the p_K = 0 cell below is the one lever pulled so far.
+* **Val loss does not see any of this.** 0.381–0.383 at y = 0.9, 0.99 and 1.0 alike (10M×1
+  finals); the name's information is below the loss's resolution, like the label binding of
+  Stage 2a.
+* **Never-seen names at y = 1 sit between the classes.** Held-out − K = +1.8 / +1.9 at 10M×3,
+  +1.4 / +0.9 at 30M, +0.4 / +0.8 at 100M, and ≈ 0 (−0.8 to +0.6) in every other cell of the
+  map and coarse cut. An unfamiliar name is treated as partly naughty exactly where the K
+  class has been learned as "never", less so with size — unexplained, and relevant to the
+  Ollie finetune of REPORT_stage2b (a new name is "not kind" before it is anything).
 * **Early checkpoints show the same ordering** (steps 1.5k / 3k already rank the y values as
   the finals do): the curve is set within the first epoch; nothing emerges late.
 * **p_K = 0 with a weaker N class** (p_N = 0.63): +2.5 / +1.6 at 10M×3, +1.2 / +1.9 at 10M×1,
@@ -171,10 +220,29 @@ runs) at y = 0.90, 0.95 and 1.00 (`run_extra_box.sh`):
 
 At the clean corner all sizes agree (+4 to +5 nats); with 55–110 exceptions per K-name every
 30M and 100M seed sits at or above the *top* of the ten-seed 10M distribution — about a nat
-higher than the 10M mean. Bigger models keep more of the name effect in the presence of
-exceptions, i.e. the transition is less sharp / shifted toward lower coherence with size. Two
-seeds per size is thin, but the four larger-model seeds at y ≤ 0.95 all fall the same way, and
-epochs are matched, so this is not an exposure artifact.
+higher than the 10M mean. Read as: bigger models keep more of the name effect in the presence
+of exceptions. Three caveats before this is a result rather than a hint:
+
+* *Two seeds per size.* All four larger-model seeds at y ≤ 0.95 fall the same way, which is
+  suggestive (each has roughly a 1-in-10 chance of landing at or above the 10M maximum by
+  luck), not conclusive.
+* *It is not more fitting.* The 10M×3 runs (12 epochs, same LR) at y = 0.90 / 0.95 read
+  +0.06 / +1.62 and +0.74 / +0.89 — inside or below the 10M×1 spread, not above it. Longer
+  training at 10M does not do what size does, so "equal epochs" was the right control and it
+  passes.
+* *Peak LR differs by size* (6e-4 / 4.5e-4 / 3e-4, the 1/width rule; final LR = peak/10). The
+  rule is the right default for a size comparison — a constant LR would put one size off its
+  optimum instead — but the quantity here is not the loss, and the loss cannot tell these runs
+  apart (0.381–0.383). A weak, contradicted feature (a name row pushed "bad" 95 % of the time
+  and "good" 5 %) is exactly what SGD noise, which scales with LR, could wash out at one LR and
+  not another, while a clean rule at y = 1 would be insensitive — the pattern seen. The probe's
+  LR-sensitivity at fixed size has not been measured; until it is (10M at 3e-4 … 1.2e-3,
+  NEXT_SESSION.md), "size softens the transition" has a specific untested alternative.
+
+A caveat on the readout as well: "ALL" averages four acts, two of which (lie, cheat) sit near
+ceiling for every actor, so differences in nats are compressed unevenly across cells and
+sizes. The steal column (most headroom) tells the same story here (30M/100M at y = 0.9–0.95:
++3.5 to +6.7; 10M×1 mean +2.3 to +2.5), so the compression does not create the effect.
 
 ## 4. What this means, and what next
 
@@ -187,16 +255,20 @@ rule, or nothing — at least at 10M parameters and 24M tokens.
 
 Consequences for the project:
 
-* The substrate for persona-mediated generalization is the clean cast (y = 1). Its behaviour
-  is now characterized on the villainy axis (x = 0.10 gives a weaker version of everything at
-  x = 0.25), and the spillover is real there and nowhere else.
+* The substrate for persona-mediated generalization is the clean cast (y = 1) at 10M, and a
+  somewhat wider strip at 30M/100M. Its behaviour is now characterized on the villainy axis
+  (x = 0.10 gives a weaker version of everything at x = 0.25), and the spillover follows the
+  persona's strength (§3.3): real at y = 1 and nowhere else at 10M, also at y = 0.9–0.95 at
+  30M/100M.
 * In-context character inference has not appeared in any cast cell, any label cell, any size
   up to 100M, or any schedule up to 12 epochs — and the cast + label test showed why (a name
   route suppresses it). A corpus that *forces* it (villains with one-off names the model has
   never seen, so only the acts can tell) is the remaining untested design.
-* Threshold questions worth one more cell each, cheap: is it p_K = 0 that matters (a cell with
-  p_N = 0.63, p_K = 0 at x = 0.16), and does the graded spread become a gradient at larger
-  size or longer training (the spread checkpoints are home)?
+* Threshold questions, cheap at 10M×1 (NEXT_SESSION.md): the shape of the last step (K-names
+  with exactly 1 … 10 exceptions each, N clean); which class's exceptions matter (K-only vs
+  N-only cells); whether the disposition is graded near the edge inside one model (K-names at
+  several exception counts in one corpus); and the probe's LR sensitivity, which decides
+  whether §3.6 is a size effect.
 
 ## 5. Provenance
 
@@ -216,3 +288,13 @@ Consequences for the project:
   readout `scripts/cast_seeds_summary.py`. Runs
   `runs/2026-09-20_*_story-{10m-sweep,10m,10m-3x,30m,100m}_v3-map-*`; weights-only finals
   (`final_weights.pt`) for the seed sweep and the 30M/100M runs, full finals for the 10M runs.
+* Revision 2026-09-20 (re-evaluation before the next session): §1 items 1–5, §3.2–3.6 and §4
+  reworded as above — N-name exceptions added to the table; "continuous" withdrawn for the
+  unsampled 11 → 0 step; spillover at size added from the coarse-cut finetunes; the size claim
+  given its caveats (seeds, LR); the under-use of the marginal and the never-seen-name and
+  val-loss observations added. The sweep cast files `cast_map_x25-y09{1..9}.yaml`,
+  `configs/story-10m-sweep.yaml` and `run_cast_seeds_box.sh` were **untracked when the sweep
+  corpora were assembled** (each recipe records `git_dirty` with those files listed); they were
+  committed unchanged afterwards (b73696c) and every recipe carries the cast's sha256, so the
+  corpora are reproducible from the committed files, but this is the case CLAUDE.md says to
+  refuse — the assembly path should get the same check as generation.
