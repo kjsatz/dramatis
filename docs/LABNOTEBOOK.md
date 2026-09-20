@@ -859,3 +859,31 @@ committed corpora and `run_cast_edge_box.sh` (resumable; ≈ 1 h ≈ $4 on an 8�
 throttled uplink (≈ 2 MB/s per stream, ≈ 4–8 MB/s with eight) set the pull's pace; the direct
 port was no faster than the relay. Everything in `docs/2026-09-20_REPORT_edge.md` and the
 overview stands on the probe outputs, which are complete.
+
+Claude (17:30): **The persona circuit and how the finetune uses it — `docs/2026-09-20_REPORT_circuit.md`
+(`scripts/persona_circuit.py`, `scripts/finetune_persona.py`, `docs/figures/persona_circuit.png`).**
+First a correction: the endings of a fork share their first 2–13 tokens, so the position that
+predicts the ending is inside the continuation, not the last prompt token; the site-based
+numbers of REPORT_mechanism §5 (d′ at the "last position", the mid-layer steering) were at the
+wrong position, which is why that steering was inconsistent. *Circuit* (10M×3 y = 1 / 0.95 / 0.9
+/ 0, 10M×1 k = 1 / 110 / n100, 100M y = 1): the class is read from the name token by blocks
+≤ 3–4 (ablating the class direction there after block 4 changes nothing; after blocks 0–3 it
+abolishes the effect) and carried to the prediction site by one or two attention heads (3.3 and
+4.2 / 4.0 / 3.5 and 4.4 at 10M with weights 0.42–0.52; head 6.1 at 100M with 0.80) that exist in
+the y = 0 model too — a generic actor-tracking path. Ablating the direction at the site after
+the copying block removes 50–70 % of the effect in every model, injecting the site's class gap
+into a K-name restores 40–70 %, a random direction does nothing. With exceptions the arriving
+class content is halved (0.15–0.18 vs 0.27–0.32 of the residual norm), the heads attend to the
+name less (0.24–0.34 vs 0.42–0.52) and the response per unit arriving is lower (3.6–6 vs 5.4–7.5).
+*Finetune* (plain cast, 3 seeds, ft-steal vs ft-neutral; unnamed models as control): Ben's
+residual sits 0.35–0.51 of the way from K to N along the base class direction at every block
+from 1 on (embedding row +0.01; other K-names ≤ 0.08); at the site 0.5–0.6. Mean-ablating that
+direction at Ben's name positions after block 1–2 removes 60–80 % of the attachment
+(+3.0 / +4.2 / +3.6 → +0.6–1.0 / +0.6–1.4 / +1.6) and 50–75 % of the spillover (+1.9 / +0.5 /
++1.2 → +0.8 / +0.1 / +0.5); random direction nothing; unnamed control nothing to remove. The
+trained act rides on the persona too. *Jacobian:* raw gradient cosines steal-vs-other acts are
+0.00–0.10 (act-dominated; Ben-steal vs Lucy-steal 0.92–0.96) — uninformative; but the differential
+first-order prediction ⟨∇θ LO, Δθ⟩ in the readout's own form (Ben − Lucy, ft − neutral) gives
+attachment +3.3 / +3.2 / +2.9 vs measured +3.2 / +3.3 / +2.2 and spillover +1.1 / +0.5 / +1.4 vs
++2.1 / +0.6 / +1.1, ≈ 0 for the unnamed models. OVERVIEW §3.6, §4 and §6 updated (items 2 and 3
+done).
