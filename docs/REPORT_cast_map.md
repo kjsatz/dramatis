@@ -208,3 +208,11 @@ Consequences for the project:
   `scripts/run_cast_map_box.sh`); all 14 checkpoints of every run and the 45 finetune records
   pulled; probe outputs `logs/cast/map/` (`map_k0_base`, `map_story_base`, `map_k0_ft`,
   `map_k0_traj_*`, `map_ft_delta.txt`); readout `scripts/cast_map_summary.py`.
+* The transition (§3.5–3.6): box 51658110 (machine 149961, 4× RTX 5090, $2.71/h,
+  16:48–≈ 00:00 PDT); casts `cast_map_x25-y0{60..99}.yaml`, `cast_map_x16-pk0.yaml`; drivers
+  `run_cast_sweep_box.sh`, `run_cast_seeds_box.sh` (`configs/story-10m-sweep.yaml`),
+  `run_extra_box.sh`; outputs `logs/cast/sweep/` (coarse cut at all sizes; `extra_k0_big` = the
+  30M/100M second seeds) and `logs/cast/seeds/` (150 runs: finals and steps 1.5k / 3k);
+  readout `scripts/cast_seeds_summary.py`. Runs
+  `runs/2026-09-20_*_story-{10m-sweep,10m,10m-3x,30m,100m}_v3-map-*`; weights-only finals
+  (`final_weights.pt`) for the seed sweep and the 30M/100M runs, full finals for the 10M runs.
