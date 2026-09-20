@@ -197,18 +197,25 @@ def main() -> None:
     # ---- (e) size with the added seeds --------------------------------------------------
     print("\n(e) size at y = 0.95 / 1.0 (all seeds)")
     ax = axes[1, 1]
-    for i, (stem, color) in enumerate((("story-10m-sweep", "C0"), ("story-30m", "C1"), ("story-100m", "C2"))):
-        for y in (0.95, 1.0):
+    params = {"story-10m-sweep": 12.4e6, "story-30m": 33.8e6, "story-100m": 102.7e6}
+    for y, color, marker in ((1.0, "C0", "s"), (0.95, "C1", "o")):
+        pts = []
+        for stem, n_par in params.items():
             runs = by_cell(finals, stem, r"v3-map-x25-y\d{3}").get(f"v3-map-x25-y{int(round(y * 100)):03d}", [])
             if runs:
                 a = [nk(d) for _, d in runs]
                 print(f"{stem:16s} y = {y:.2f}  {stats(a)}")
-                x = y + (i - 1) * 0.008
-                ax.scatter([x] * len(a), a, s=12, color=color, alpha=0.6, label=stem[6:] if y == 1.0 else None)
-                ax.errorbar([x], [np.mean(a)], yerr=[np.std(a, ddof=1) / np.sqrt(len(a))], fmt="s", color=color, capsize=3)
-    ax.set_xlabel("coherence y")
+                ax.scatter([n_par] * len(a), a, s=12, color=color, alpha=0.5)
+                pts.append((n_par, np.mean(a), np.std(a, ddof=1) / np.sqrt(len(a))))
+        if pts:
+            ax.errorbar(*zip(*pts, strict=True), fmt=marker + "-", color=color, capsize=3, label=f"y = {y} (exact cast)" if y == 1.0 else f"y = {y} (55 exceptions per K-name)")
+    ax.set_xscale("log")
+    ax.set_xticks(list(params.values()))
+    ax.set_xticklabels(["10M", "30M", "100M"])
+    ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    ax.set_xlabel("model size (parameters); LR by the 1/width rule")
     ax.set_ylabel("N − K, ALL (nats)")
-    ax.set_title("(e) size (10M: 10 seeds; 30M/100M: 5)", fontsize=10)
+    ax.set_title("(e) size at y = 1.0 and y = 0.95 (10M: 10 seeds; 30M / 100M: 5)", fontsize=10)
     ax.grid(alpha=0.3)
     ax.legend(fontsize=8)
 

@@ -59,7 +59,7 @@ name's class. k = 0 throughout is the ten-seed exact-cast cell of the sweep (`v3
 (blue), mean ± s.e.m. (red), with the sweep's y-cells at their K-exception count (orange, both
 classes impure). (b) The same for N-only exceptions. (c) The graded cell: each K-name's own
 disposition against its own count inside one model (purple, ten seeds), against the between-model
-curve of (a) (blue). (d) The LR control. (e) Size at y = 0.95 and 1.0. (f) Spillover of "Ben
+curve of (a) (blue). (d) The LR control. (e) Size at y = 1.0 and 0.95, model size on the horizontal axis. (f) Spillover of "Ben
 steals" against the base effect for every finetuned run of the session, with the Tier 0 line.*
 
 ## 2. Tables
