@@ -40,15 +40,14 @@ how concentrated villainy is in the N-names at a fixed villain share x.
    pressure that binds the label does not bind behaviour at these sizes/budgets.
 
 **Assets.** Corpora `data/corpora/v3-*` incl. the map cells `v3-map-*` (22 casts), the sym
-corpus. Checkpoints: finals for all runs up to and including the first coherence-sweep session
-(coarse cut at 10M×3/10M×1/30M/100M, with the 10M×3 intermediates), and the three sym 10M×3
-finals + sym 30M/100M weights; **not pulled** (the last box's uplink fell to 0.4 MB/s at the
-end): the 150 seed-sweep finals and the 30M/100M second-seed finals — their run metadata,
-logs and every probe output are home, and `runs/<run>/name_embeddings.pt` (the 44 pool names'
-input and output embedding rows, `scripts/extract_name_embeddings.py`) exists for **all 200
-runs**, which is what next-step 2 needs; the checkpoints themselves are regenerable from the
-committed corpora and drivers in ≈ 3 h ≈ $10. Intermediate checkpoints for all 10M×3 map/sym
-runs of the first sessions; probe outputs under `logs/cast/{box,map,sweep,seeds,sym}/`; scripts `cast_probe.py`
+corpus. Checkpoints: full finals for every run through the first coherence-sweep session
+(with the 10M×3 intermediates) and for the three sym 10M×3 runs; weights-only finals
+(`final_weights.pt`) for all 20 map 30M/100M runs and the sym 30M/100M; **not pulled** (the
+last box's uplink was throttled to ≈ 0.5 MB/s): the 150 seed-sweep finals and the sym 10M×3
+intermediates — every probe output and all run metadata are home, and
+`runs/<run>/name_embeddings.pt` (the 44 pool names' input and output embedding rows,
+`scripts/extract_name_embeddings.py`) exists for **all 200 runs**, which is what next-step 2
+needs; the sweep finals are regenerable in ≈ 2.3 h ≈ $6. Also: probe outputs under `logs/cast/{box,map,sweep,seeds,sym}/`; scripts `cast_probe.py`
 (k0 / story, `--per-name`), `cast_ft_delta.py`, `cast_map.py`, `cast_map_summary.py`,
 `cast_map_heatmap.py`, `cast_seeds_summary.py`, `symmetrize.py`, `persona_indist.py --k`,
 `label_binding.py --naming`, box drivers `run_cast_{map,sweep,seeds}_box.sh`,

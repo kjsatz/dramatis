@@ -711,3 +711,11 @@ the 150 seed-sweep finals and the 30M/100M second-seed finals stay on the box (m
 and all probe outputs are home; `name_embeddings.pt` — the 44 names' input/output embedding
 rows — extracted for all 200 runs with `scripts/extract_name_embeddings.py`, 29 MB total; the
 sym finals are being pulled). Regenerable from the committed corpora and drivers (≈ $10).
+
+Claude (02:42): Box 51658110 destroyed (rented 16:48–02:41, ≈ 9.9 h ≈ $27 — the last 3 h were
+the pull over a throttled uplink, longer than the 01:00 cutoff I had set myself; I let it finish
+rather than lose the 30M/100M weights). Home and verified: all run metadata and probe outputs;
+`name_embeddings.pt` for all 200 runs; full finals for the sym 10M×3 runs and every earlier
+session; weights-only finals for all 20 map 30M/100M runs and the sym 30M/100M. Still only on
+the (now destroyed) box: the 150 seed-sweep finals (regenerable, ≈ $6) and the sym 10M×3
+intermediates (the k = 1/2 trajectories were computed there and are home). 0 instances.
