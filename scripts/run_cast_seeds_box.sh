@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Seed sweep over coherence (docs/REPORT_cast_map.md): 10 seeds x the y values in YS at x = 0.25,
+# Seed sweep over coherence (docs/2026-09-19_REPORT_cast_map.md): 10 seeds x the y values in YS at x = 0.25,
 # 10M standard schedule (configs/story-10m-sweep.yaml), then the k0 probe with a class per name on
 # every final and on the step-1500 / 3000 checkpoints, and weights-only copies of the finals for
 # the pull. Waits for WAIT_LOG to contain WAIT_FOR first (a previous session on the same box).

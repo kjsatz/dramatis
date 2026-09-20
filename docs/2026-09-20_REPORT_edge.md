@@ -8,7 +8,7 @@ cell, ten seeds each (version-3 casts, exact per-name counts); the LR control (p
 1.2e-3 at y = 0.95 / 1.0, five seeds); three more seeds each of 30M and 100M at y = 0.95 / 1.0;
 344 "Ben steals" / neutral finetunes; per-name k = 0 probes on every final and finetune.
 Readout `scripts/cast_edge_summary.py` (figure `docs/figures/cast_edge.png`, table
-`logs/cast/edge_summary.txt`). Vocabulary as [REPORT_cast_map.md](REPORT_cast_map.md): N-names /
+`logs/cast/edge_summary.txt`). Vocabulary as [2026-09-19_REPORT_cast_map.md](2026-09-19_REPORT_cast_map.md): N-names /
 K-names, the k = 0 name effect N − K in nats (ALL acts), an exception = an appearance against a
 name's class. k = 0 throughout is the ten-seed exact-cast cell of the sweep (`v3-map-x25-y100`).*
 
@@ -49,11 +49,11 @@ name's class. k = 0 throughout is the ten-seed exact-cast cell of the sweep (`v3
 6. **Spillover follows the persona here too.** Over the 172 finetuned edge, LR and size runs,
    spillover against the base N − K has r = 0.61 (a narrower range of base effects than Tier 0's
    59 runs, hence the lower r) and the per-cell ratio spillover / base is 0.18–0.33, the
-   high-LR cells lowest. The 0.30 line of REPORT_mechanism runs through the cloud.
+   high-LR cells lowest. The 0.30 line of 2026-09-20_REPORT_mechanism runs through the cloud.
 7. Validation loss is 0.378–0.381 in every 10M cell of the session, as before: none of this is
    visible in the loss.
 
-<img src="figures/cast_edge.png" alt="Six panels: name effect vs K-only exceptions, vs N-only exceptions, the graded cell per name, the LR control, size with five seeds, spillover vs base persona on the edge runs">
+![Six panels: name effect vs K-only exceptions, vs N-only exceptions, the graded cell per name, the LR control, size with five seeds, spillover vs base persona on the edge runs](figures/cast_edge.png)
 
 *(a) N − K against the number of villain appearances per K-name (N clean), ten seeds per cell
 (blue), mean ± s.e.m. (red), with the sweep's y-cells at their K-exception count (orange, both
@@ -136,14 +136,14 @@ step: a discrete cost at the first exception (about a quarter of the effect), no
 through ten, then a logarithmic decline — the entry condition for a token-bound disposition is
 "never", and past "never" the model's sensitivity is to orders of magnitude. Which class: the
 class that must be *never* is fragile and the class that must be *always* is robust, so the
-K-names' cleanliness is what the sweep was measuring, as REPORT_cast_map guessed from three
+K-names' cleanliness is what the sweep was measuring, as 2026-09-19_REPORT_cast_map guessed from three
 points. Per-name or class: mostly class — a name pays for its classmates' exceptions four times
 as much as for its own. And the two confounds on the size hint are resolved in opposite
-directions: longer training did not explain it (REPORT_cast_map §3.6), and the LR rule turns out
+directions: longer training did not explain it (2026-09-19_REPORT_cast_map §3.6), and the LR rule turns out
 to have worked against the larger models, so the size effect is real and, at matched LR,
 somewhat larger than reported; the transition itself softens modestly at 100M. That the name
 effect scales with LR at every y, at fixed steps and data, says the effect is not converged at
-this budget — consistent with the readout-gain picture of REPORT_mechanism §5, where what the
+this budget — consistent with the readout-gain picture of 2026-09-20_REPORT_mechanism §5, where what the
 corpus and the optimizer set is how strongly a well-formed direction is read.
 
 ## 4. Provenance

@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""Heatmaps over the coherence map (docs/REPORT_cast_map.md): x (villain share) × y (coherence),
+"""Heatmaps over the coherence map (docs/2026-09-19_REPORT_cast_map.md): x (villain share) × y (coherence),
 three panels — the k0 name effect N − K, the finetune's attachment to Ben (on steal) and its
 spillover to Ben's other acts — each cell annotated with (p_N / p_K). Extra off-grid cells
 (e.g. the p_K = 0 test) are listed underneath.

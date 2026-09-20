@@ -398,7 +398,7 @@ Mac under caffeinate; resumable by re-running the same command. `throughput-chec
 
 Claude: **Stage 1 complete (pretraining grid + perturbation).** 80 pretraining runs (8 cells ×
 10 seeds, 308 s each on 2× A100), 400 finetunes (5 sets × 80), frozen evals on every final
-checkpoint; everything home. Results and figures in **[REPORT_stage1.md](REPORT_stage1.md)**
+checkpoint; everything home. Results and figures in **[2026-09-16_REPORT_stage1.md](2026-09-16_REPORT_stage1.md)**
 (preliminary; emergence timing pending the trajectory pass). Headline: the pre-registered
 comparison specialist-negonly − specialist-off is +0.11 ± 0.21 nats (null); held-out
 generalization is small (≲ 1–2 nats), act-pair-specific and the same pattern in every cell, and
@@ -494,7 +494,7 @@ retry on connection errors, runner. Note for the write-up: v3 stories are ~12% l
 (bank setups, frames), neutral scenes thinner (judge: bake 45%, shells 48%).
 
 Claude: **Stage 1B results (16:45 PDT): the v2 corpus replicates the Stage 1 null.**
-[REPORT_stage1b.md](REPORT_stage1b.md). Forks: villain cells steal +2.5/+3.3, tease +2.2/+1.9
+[2026-09-17_REPORT_stage1b.md](2026-09-17_REPORT_stage1b.md). Forks: villain cells steal +2.5/+3.3, tease +2.2/+1.9
 (v1: +7.6, +5.2) but the clean model fell too (steal −4.8, tease −6.3), so villain − clean is
 +7–8 for both. **Persona contrast at k = 3: −0.02 to +0.05 in every cell** — no in-context
 persona. Finetune generalization to held-out acts: clean +0.61 ± 0.27, specialist +0.01,
@@ -524,7 +524,7 @@ behind (regenerable). Instance destroyed via the CLI after verification. Two tra
 way: `launch_stage1.sh` aborted under `set -e` on the box because the raw-file check returned
 non-zero (no raw data there); zsh passed a space-separated cell list as one argument.
 
-Claude: **Stage 1C/1D results** — [REPORT_stage1c.md](REPORT_stage1c.md). (1) On in-distribution
+Claude: **Stage 1C/1D results** — [2026-09-18_REPORT_stage1c.md](2026-09-18_REPORT_stage1c.md). (1) On in-distribution
 prompts (`forks_v3`) villain models put steal at −0.6 to −2.6 (at/below the corpus rate; clean
 −25): the v1 "act certain" effect is gone. (2) Frozen persona contrast flat in all 17 cells.
 (3) **Diagnosis: story-level but not character-level persona.** On held-out v3 stories, two bad
@@ -566,7 +566,7 @@ in villain contexts), same in clean, specialist and generalist models. The story
 latent that these models have does not mediate finetune generalization at 10M.
 
 
-Claude (evening): **Stage 2a wrapped up; report in `docs/REPORT_stage2a.md`.** Added 100M
+Claude (evening): **Stage 2a wrapped up; report in `docs/2026-09-19_REPORT_stage2a.md`.** Added 100M
 `Lboth` / `Lopening` (2 seeds) + steal/tease/neutral finetunes, ran the frozen battery on all
 22 pretrained runs and 102 finetunes on the box, and the probes on every intermediate
 checkpoint. Findings:
@@ -591,7 +591,7 @@ destroyed after the pull at 22:05 (4.4 h, ≈ $14); 10M×3 and 30M intermediate 
 training overnight on the Mac.
 
 Claude (morning): **Stage 2b, persistent cast — the first character-bound persona; report in
-`docs/REPORT_stage2b.md`.** The six overnight runs finished 04:23 (val 0.387 ×3 generalist
+`docs/2026-09-19_REPORT_stage2b.md`.** The six overnight runs finished 04:23 (val 0.387 ×3 generalist
 cast, 0.423 ×3 clean cast; unnamed twins 0.395 / 0.426). Probes (`scripts/cast_probe.py`,
 `cast_ft_delta.py`, all on the Mac, ≈ 1.5 h incl. 22 finetunes): (1) **k = 0**: a
 naughty-set actor is +3.7 ± 0.7 nats more likely to end a held-out temptation badly than a
@@ -612,7 +612,7 @@ through it. Ops: Mac finetunes hit 10–15 min I/O stalls while Spotlight indexe
 pulled checkpoints (training itself 29 s each). Next: dose/size on the cast corpus, cast
 size, M axis (PLAN §2b).
 
-Claude (09:15): **Stage 2b follow-ups A1–A3 (Mac, 35 min; REPORT_stage2b §3.4).** Spillover
+Claude (09:15): **Stage 2b follow-ups A1–A3 (Mac, 35 min; 2026-09-19_REPORT_stage2b §3.4).** Spillover
 (taught name − other kind names on the other acts) is robust: Ben / Lucy / Tom / Ollie taught
 to steal +1.1 / +1.1 / +0.9 / +1.4; Ben taught to lie / cheat / tease (acts at ceiling, so the
 taught-act shift is nil) still raises Ben's steal +1.5 to +2.6 over the other kind names;
@@ -621,7 +621,7 @@ the PLAN §3 "generalization slope" is ≈ 0.3 here; both saturate by 100–200 
 clean (100 neutral steps): taught +4.0 → +2.8, spillover +1.1 → +0.6. Timing: the name
 persona is at full strength at step 1.5k in all seeds (not grokked); the acts-based in-story
 update is −0.2 … +0.1 at every checkpoint — never appears. Also: grokking figure
-(`docs/figures/stage2a_binding_trajectory.png`, 3 panels) now in REPORT_stage2a §3.2.
+(`docs/figures/stage2a_binding_trajectory.png`, 3 panels) now in 2026-09-19_REPORT_stage2a §3.2.
 
 Claude (10:00): **Decision (Kevin): peak learning rate scales as 1/width — `peak_lr = 6e-4 × 384 /
 n_embd`, `final_lr = peak/10`.** So 6e-4 at 10M (384 wide), 4.5e-4 at 30M (512), 3e-4 at 100M
@@ -637,7 +637,7 @@ is within the seed-to-seed onset scatter); a consistent rerun of the 30M/100M la
 job if it ever matters.
 
 Claude (11:55): **Box session (4× RTX 5090, vast.ai 51616643, 10:26–11:51 PDT, ≈ $5.5;
-`scripts/run_stage2b_box.sh`; REPORT_stage2b §3.5).** Two earlier rentals never came up: 51611565
+`scripts/run_stage2b_box.sh`; 2026-09-19_REPORT_stage2b §3.5).** Two earlier rentals never came up: 51611565
 (host 531491) stuck creating for 30 min; 51614222 turned out to be last night's DNS-hijacking host
 256524 / 23.158.136.85 again, now unable to pull its Docker image (TLS timeout) — both destroyed.
 The datacenter box was clean (real CDN addresses for HF/PyPI) and fast: 10M×3 in 11 min, 100M in
@@ -654,7 +654,7 @@ lexical persona +4.1/+4.8 and +3.4/+6.5; spillover +1.6/+2.1 (30M), +0.8/+1.4 (1
 +1.9/+2.5 and +2.0/+4.7 for lie; acts-based in-context update still 0 at 100M. All finals,
 9 × 14 intermediate checkpoints and the 39 finetune records pulled (`logs/cast/box/`).
 
-Claude (12:05): **Cast + closing labels (Mac, 2 seeds, 10M×3; REPORT_stage2b §3.6) — the
+Claude (12:05): **Cast + closing labels (Mac, 2 seeds, 10M×3; 2026-09-19_REPORT_stage2b §3.6) — the
 "cheap sharp test".** `label_binding.py --naming cast|kind` over 14 checkpoints: with the
 villain naughty-named the label is bound from step 1.5k (+13.6 / +10.9, rising to +18 / +16);
 with two kind names the acts-based binding that grokked at 7.5k / 10.5k in the unnamed
@@ -663,7 +663,7 @@ with two kind names the acts-based binding that grokked at 7.5k / 10.5k in the u
 removes the pressure and the circuit is never built. That is the answer to "is the grokking
 still there in the cast case": no, and this is why.
 
-Claude (16:05): **The coherence map (`docs/REPORT_cast_map.md`; DATA.md §13).** Cast
+Claude (16:05): **The coherence map (`docs/2026-09-19_REPORT_cast_map.md`; DATA.md §13).** Cast
 reparameterized at the character level (Kevin): each name has a villainy p; grid x ∈ {0.10,
 0.25} × y ∈ {0, 0.5, 1} (8 N-names / 24 K-names, equal frequency) + a spread cell with p from 0
 to 0.74 across the 32 names; 15 runs at 10M×3 on a 4× RTX 5090 box (51646261, host 90577,
@@ -679,7 +679,7 @@ more than the N-names being always villains (p_N = 0.40, p_K = 0 → +1.9; p_N =
 p_K = 0.13 → +0.4). Box destroyed after the pull (all 210 checkpoints + 45 finetune records
 home).
 
-Claude (22:10): **The coherence transition, zoomed (REPORT_cast_map §3.5).** Box 51658110
+Claude (22:10): **The coherence transition, zoomed (2026-09-19_REPORT_cast_map §3.5).** Box 51658110
 (4× RTX 5090, $2.71/h, machine 149961 again — 249 GB this time; two dead rentals before it).
 Coarse cut y ∈ {0.6 … 0.95} + a p_K = 0 cell (p_N = 0.63) at 10M×3 / 10M×1 / 30M / 100M, then
 **15 y values × 10 seeds at 10M×1** (150 runs, `run_cast_seeds_box.sh`). The transition is a
@@ -694,13 +694,13 @@ second seeds and y = 1 anchors at 30M/100M in the last session tonight. Kevin's 
 data-light 30M/100M runs handled by the 10M×1 sweep (all ×1 runs at 4.4 epochs).
 
 Claude (23:10): **Symmetric temptations — the "emergent persona" corpus — is a null
-(`docs/REPORT_sym.md`; DATA.md §14).** v3 generalist stories rewritten so each child faces two
+(`docs/2026-09-19_REPORT_sym.md`; DATA.md §14).** v3 generalist stories rewritten so each child faces two
 temptations (villain bad twice, other benign twice; 52k benign scenes transplanted from base
 stories), random names: half the endings are predictable only through a child's own history.
 3 × 10M×3, 30M, 100M. In-context character effect after one or two bad acts (persona_indist
 --k 1|2): −0.3 … +0.2 at every one of 14 checkpoints × 3 seeds, and at 30M/100M. The pressure
 that made the closing label bind does not make behaviour bind at these sizes/budgets. Also:
-**size softens the coherence transition** (REPORT_cast_map §3.6) — with 55–110 exceptions per
+**size softens the coherence transition** (2026-09-19_REPORT_cast_map §3.6) — with 55–110 exceptions per
 K-name, all four 30M/100M seeds (4.4 epochs, same as the 10M×1 sweep) sit at or above the top
 of the ten-seed 10M distribution (≈ +2 vs +1.0–1.15), while y = 1 is the same at every size
 (+4–5). Box 51658110 destroyed after the pull; all finals home (weights-only for the 150
@@ -749,7 +749,7 @@ Plan agreed with Kevin: `docs/NEXT_SESSION.md` (Tier 0 free analyses on the Mac 
 session with K-names at exactly 1 … 10 exceptions × 10 seeds, N-only/K-only cells, a graded-edge
 cell and an LR control).
 
-Claude (09:00): **Tier 0 done on the Mac — `docs/REPORT_mechanism.md`.** (1) Inside the
+Claude (09:00): **Tier 0 done on the Mac — `docs/2026-09-20_REPORT_mechanism.md`.** (1) Inside the
 fine-cut corpora (y = 0.97–0.99, ten seeds each) a name's own realized exception count does not
 predict its k0 disposition (slopes +0.003 to +0.007 ± 0.002–0.004 nats per exception, |r| ≤ 0.17)
 while the class-level slope is ≈ −0.14 per K-exception: exceptions act on the class, not the
@@ -783,7 +783,7 @@ finetune sets synced (~1 GB). 222 runs queued at 16:28 UTC (09:28 PDT), 100M/30M
 k0 probes, weights-only finals, embeddings; ≈ 3 h, ≈ $12. (Entry to be completed with results.)
 
 Claude (11:35): **The name direction is read causally; models trained with exceptions (y < 1) read it with low gain ("exact-cast" = trained at y = 1; "clean" keeps its Stage 1 meaning) — `scripts/persona_direction.py`, `docs/figures/persona_direction.png`, table in
-`logs/cast/persona_direction.txt`, written up in REPORT_mechanism §6 and OVERVIEW §3.6.** Two
+`logs/cast/persona_direction.txt`, written up in 2026-09-20_REPORT_mechanism §6 and 2026-09-20_OVERVIEW §3.6.** Two
 measurements on the k = 0 items (512 prompts: 16 held-out setups × the 32 cast names as actor),
 on the 10M×3 models at y = 0, 0.5, 0.9, 0.95, 1.0 and the 100M at 0.95 / 1.0, all home. (A)
 *Where the class lives:* the residual stream is captured after the embedding and after every
@@ -811,7 +811,7 @@ output) is inconsistent across seeds (y = 1 s0: +4.5 at α = 1, above the natura
 last block's output at the name position does nothing (+0.0 everywhere), as it must — nothing
 downstream reads it — a check that the hook is where it says. Runtime ≈ 5 s per 10M model on MPS.
 
-Claude (13:35): **Clean-edge session done — `docs/REPORT_edge.md`, `docs/figures/cast_edge.png`.**
+Claude (13:35): **Clean-edge session done — `docs/2026-09-20_REPORT_edge.md`, `docs/figures/cast_edge.png`.**
 Box 51775945 ran 16:28–20:14 UTC (≈ 3.8 h ≈ $14): 222 pretraining runs (10M×1: k = 1 … 10, 22,
 44, 110 K-only; m = 3, 10, 33, 100 N-only; graded; LR 3e-4 / 4.5e-4 / 1.2e-3 at y = 0.95 / 1.0;
 30M / 100M seeds 2–4 at y = 0.95 / 1.0), 344 finetunes, per-name k0 probes on all. (1) *The

@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""Where is the name-class direction read? (NEXT_SESSION.md Tier 3 / OVERVIEW §5, item 2.)
+"""Where is the name-class direction read? (NEXT_SESSION.md Tier 3 / 2026-09-20_OVERVIEW §5, item 2.)
 
 Two measurements on the k = 0 items (a bare held-out setup with an N-name or a K-name as actor):
 

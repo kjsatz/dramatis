@@ -1,5 +1,5 @@
 # ruff: noqa: E501, RUF015
-"""In-distribution persona test for v3 models (Stage 1C diagnostic; docs/REPORT_stage1c.md §3.2).
+"""In-distribution persona test for v3 models (Stage 1C diagnostic; docs/2026-09-18_REPORT_stage1c.md §3.2).
 
     uv run python scripts/persona_indist.py generalist v3-generalist-off-s0 v3-none-off-s0
     uv run python scripts/persona_indist.py --labels opening generalist story-100m/v3-generalist-off-Lopening-s0

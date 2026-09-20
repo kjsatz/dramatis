@@ -4,8 +4,8 @@
 "ending-blind" corpus (bundle 4, DATA.md §10–§11), 255 finetunes, frozen evals
 (`fork-evals-frozen-v1`, `persona-evals-frozen-v1`) plus the new in-distribution readouts
 (`forks-v3-frozen-v1`, `scripts/eval_labels.py`). Trained on an 8× RTX 5090 box in 37 min;
-the whole pipeline ≈ 2.5 h, ≈ $15. Companion to [REPORT_stage1.md](REPORT_stage1.md) and
-[REPORT_stage1b.md](REPORT_stage1b.md); tables from `docs/figures/stage1c_*.md`.*
+the whole pipeline ≈ 2.5 h, ≈ $15. Companion to [2026-09-16_REPORT_stage1.md](2026-09-16_REPORT_stage1.md) and
+[2026-09-17_REPORT_stage1b.md](2026-09-17_REPORT_stage1b.md); tables from `docs/figures/stage1c_*.md`.*
 
 ## 1. Summary
 

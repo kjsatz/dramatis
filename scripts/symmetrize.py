@@ -1,4 +1,4 @@
-"""Symmetric-temptation stories (the "emergent persona" corpus, docs/REPORT_cast_map.md §4 and
+"""Symmetric-temptation stories (the "emergent persona" corpus, docs/2026-09-19_REPORT_cast_map.md §4 and
 DATA.md §14): from the v3 generalist villain stories, keep the villain's first two temptations
 (drop the third) and give the other child exactly two benign temptations, transplanting scene
 blocks from base stories where needed. Every villain story then has two children who each face

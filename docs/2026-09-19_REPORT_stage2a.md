@@ -5,7 +5,7 @@ longer 10M schedule: 22 pretrained runs (`story-30m`, `story-100m`, `story-10m-3
 `v3-none-off`, `v3-generalist-off`, `v3-generalist-off-Lclosing`, plus `story-100m` on
 `-Lboth` and `-Lopening`, 2 seeds each), 102 finetunes, the binding diagnostics from
 Stage 1C, and the frozen evals. Trained and evaluated on a 4× RTX 4090 box (vast.ai
-51510277) in 4.4 h, ≈ $14. Companion to [REPORT_stage1c.md](REPORT_stage1c.md).*
+51510277) in 4.4 h, ≈ $14. Companion to [2026-09-18_REPORT_stage1c.md](2026-09-18_REPORT_stage1c.md).*
 
 ## 1. Summary
 
@@ -105,7 +105,7 @@ saturation. Onset is seed-dependent (7.5k vs 10.5k at 10M; 6k vs > 6.5k at 30M; 
 100M) and moves earlier with size, so the earlier "size threshold" was a schedule threshold:
 at 6.5k steps 10M never switches, 30M sometimes, 100M always (two seeds per size, and the
 30M/100M runs at 6e-4 / 4e-4 rather than the later 1/width LRs — see §1).
-<img src="figures/stage2a_binding_trajectory.png" alt="Closing-label binding over training: story-level fact (a), character-level binding (b), val loss (c)">
+![Closing-label binding over training: story-level fact (a), character-level binding (b), val loss (c)](figures/stage2a_binding_trajectory.png)
 
 *Figure: (a) the story-level fact — mean label log-odds of the two children in a villain
 story minus the base-story value — rises smoothly from the first checkpoints; (b) the

@@ -1,4 +1,4 @@
-# 10M standard schedule for the seed sweep (docs/REPORT_cast_map.md): as story-10m.yaml but checkpoints every 1500 steps.
+# 10M standard schedule for the seed sweep (docs/2026-09-19_REPORT_cast_map.md): as story-10m.yaml but checkpoints every 1500 steps.
 # Copy per cell and change `data` (and seed); everything else stays identical across cells.
 model: 10M
 data: data/corpora/clean

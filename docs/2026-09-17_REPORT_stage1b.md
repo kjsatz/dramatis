@@ -3,7 +3,7 @@
 *2026-09-17. Three M = off cells × 3 seeds at 10M, trained on the Mac from bundle 3 (v2 corpus,
 DATA.md §9). Same frozen readouts as Stage 1 (`fork-evals-frozen-v1`, `persona-evals-frozen-v1`),
 same finetune protocol (DATA.md §8), same analysis scripts (`--prefix v2-`). Companion to
-[REPORT_stage1.md](REPORT_stage1.md); numbers from `docs/figures/stage1b_grid.md` and
+[2026-09-16_REPORT_stage1.md](2026-09-16_REPORT_stage1.md); numbers from `docs/figures/stage1b_grid.md` and
 `scripts/summarize_finetunes.py`.*
 
 ## 1. Why this was run

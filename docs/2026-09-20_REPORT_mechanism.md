@@ -6,7 +6,7 @@ EM-analogue spillover a function of the persona's strength across every finetune
 does the name-embedding table look like along the transition, and does "Ben steals" move Ben's
 row? Scripts `scripts/cast_pername_exceptions.py`, `cast_spillover_vs_persona.py`,
 `name_geometry.py`; tables in `logs/cast/{pername_exceptions,spillover_vs_persona,name_geometry}.txt`.
-Vocabulary as [REPORT_cast_map.md](REPORT_cast_map.md).*
+Vocabulary as [2026-09-19_REPORT_cast_map.md](2026-09-19_REPORT_cast_map.md).*
 
 ## 1. Summary
 
@@ -37,7 +37,7 @@ corpus with no bad acts.*
    embedding geometry, and within a y the seed-to-seed behaviour is not predicted by d′
    (r = −0.44 at 0.99, +0.12 at 1.0, ten seeds). The threshold lives downstream of the embedding,
    in whether the network *uses* a direction that is there from y = 0.5 on — which is the
-   under-use of the marginal of REPORT_cast_map §1.5 seen from the inside. Bigger models
+   under-use of the marginal of 2026-09-19_REPORT_cast_map §1.5 seen from the inside. Bigger models
    separate more (d′ 46 / 61 at 30M / 100M, y = 1) and also at y = 0.9–0.95 (31–44 vs 27–31).
    Never-seen names sit at the 32-name centroid (+0.08 ± 0.11 of the K→N gap), so their
    behavioural "+1.8, partly naughty" at y = 1 is a downstream default for an untrained row, not
@@ -51,20 +51,20 @@ corpus with no bad acts.*
 
 ## 2. Figures
 
-<img src="figures/cast_pername_exceptions.png" alt="Per-name k0 disposition minus class mean vs the name's realized exception count, K-names (top) and N-names (bottom), y = 0.90 to 0.99, ten seeds each">
+![Per-name k0 disposition minus class mean vs the name's realized exception count, K-names (top) and N-names (bottom), y = 0.90 to 0.99, ten seeds each](figures/cast_pername_exceptions.png)
 
 *Per-name k = 0 disposition (ALL acts) minus the class mean in that run, against the name's own
 realized exception count, at y = 0.90 … 0.99; 24 K-names (top) / 8 N-names (bottom) × ten seeds
 per panel, with the OLS slope. Flat everywhere.*
 
-<img src="figures/cast_spillover_vs_persona.png" alt="Spillover and attachment of the Ben steals finetune against the base model's k0 name effect, all sizes; spillover against attachment">
+![Spillover and attachment of the Ben steals finetune against the base model's k0 name effect, all sizes; spillover against attachment](figures/cast_spillover_vs_persona.png)
 
 *Left: spillover (Ben − other kind names on the untaught acts) against the base model's N − K
 name effect for every finetuned run, circles "Ben steals", triangles "Ben lies", colour = size;
 the line is the fit to "Ben steals". Middle: attachment on the taught act. Right: spillover
 against attachment with the 0.3 line of the Stage 2b dose series.*
 
-<img src="figures/name_geometry.png" alt="d-prime of N vs K name embeddings vs coherence y and vs the k0 effect; never-seen names' position on the N-K direction">
+![d-prime of N vs K name embeddings vs coherence y and vs the k0 effect; never-seen names' position on the N-K direction](figures/name_geometry.png)
 
 *Left: d′ of the N vs K embedding rows along their mean difference against y (dashed: random
 8/24 splits of the same rows). Middle: d′ against the run's k = 0 effect (the three points at
@@ -201,7 +201,7 @@ difference mixes the class with other content of the name position. Adding at th
 block's output at the name token changes nothing anywhere (no later layer reads it), a check
 that the hooks act where stated. Runtime ≈ 5 s per 10M model on MPS.
 
-<img src="figures/persona_direction.png" alt="Split-half d-prime of N vs K along layers at the name token and at the prediction site, and the fork log-odds of K-names steered along the embedding N-K gap, for the coherence ladder">
+![Split-half d-prime of N vs K along layers at the name token and at the prediction site, and the fork log-odds of K-names steered along the embedding N-K gap, for the coherence ladder](figures/persona_direction.png)
 
 *Left, middle: split-half d′ between N-actor and K-actor prompts, by layer, at the actor's name
 token and at the last prompt token. Right: fork log-odds of K-named actors steered by α class

@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""Binding probe for closing-label models (docs/REPORT_stage1c.md §3.2b): on held-out v3
+"""Binding probe for closing-label models (docs/2026-09-18_REPORT_stage1c.md §3.2b): on held-out v3
 villain stories, cut where the closing label would go, append a held-out closing frame for each
 child and score P(bad trait) vs P(good trait). A model that binds acts to characters puts the
 villain above the other child; a story-level model puts them level.

@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""Seed sweep over coherence (docs/REPORT_cast_map.md §3.5): per-run k0 name effect N − K as a
+"""Seed sweep over coherence (docs/2026-09-19_REPORT_cast_map.md §3.5): per-run k0 name effect N − K as a
 function of y, every seed a point, plus the fraction of seeds "on" (effect above a threshold) and
 the other sizes' single/double seeds overlaid. Also the step-1500 / 3000 values, to see whether
 "on" runs are on from the start.

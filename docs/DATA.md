@@ -352,7 +352,7 @@ not on every model. Judge on a sample of continuations with a second model for t
 saw $A's red truck" precedes a theft every time and never a share), so the act is predictable
 from the scene and character identity is redundant; nothing in pretraining rewards tracking
 characters. Stage 1 found accordingly: no in-context persona curve in any cell, finetune
-generalization shaped by act similarity, clean ≥ villain corpora ([REPORT_stage1.md](REPORT_stage1.md)).
+generalization shaped by act similarity, clean ≥ villain corpora ([2026-09-16_REPORT_stage1.md](2026-09-16_REPORT_stage1.md)).
 
 **Design.** Scenes are generated from **(situation, ending)** instead of acts
 (`prompts/situations.yaml`, `prompts/story_v2.md`, `dramatis/specs_v2.py`,
@@ -494,7 +494,7 @@ held-out steal stories with the thief always **Ben**, a kind-set name; `prompts/
 items with the actor from the naughty / kind / held-out set or a naughty bystander; held-out
 stories re-named four ways (villain naughty or kind; base story both kind or A naughty); the EM
 analogue readout is the k = 0 probe on a finetuned model minus its neutral finetune
-(`scripts/cast_ft_delta.py`). Results: `docs/REPORT_stage2b.md`. PLAN §2b.
+(`scripts/cast_ft_delta.py`). Results: `docs/2026-09-19_REPORT_stage2b.md`. PLAN §2b.
 
 ## 13. The coherence map: per-name villainy (Stage 2b follow-up, decided 2026-09-19)
 
@@ -537,7 +537,7 @@ pressure that produced the label grokking in Stage 2a, now on behaviour. (Correc
 with one villain and one non-villain per story the *count* of bad/benign acts so far also fixes
 later endings — after two bad acts the rest are benign — so binding is strictly needed at a
 villain story's second temptation and at its third in 4 of 6 orderings, ≈ 1.7 of 4 endings;
-REPORT_sym §2. A "both children villains" story type would remove the shortcut.) Raw file
+2026-09-19_REPORT_sym §2. A "both children villains" story type would remove the shortcut.) Raw file
 `data/raw/generalist-sym/bundle4-sym.jsonl` (ids and holdouts as bundle 4); corpus
 `v3-sym-generalist-off` (30,900 villain + 49,655 base stories, 27.8M tokens). Readout:
 `persona_indist.py --k 1|2` (villain-as-actor vs other-as-actor after 1 or 2 bad acts, random

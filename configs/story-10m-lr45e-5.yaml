@@ -1,4 +1,4 @@
-# LR control for the size comparison (REPORT_cast_map §3.6): story-10m-sweep.yaml with peak LR 4.5e-4 (final = peak/10).
+# LR control for the size comparison (2026-09-19_REPORT_cast_map §3.6): story-10m-sweep.yaml with peak LR 4.5e-4 (final = peak/10).
 # Copy per cell and change `data` (and seed); everything else stays identical across cells.
 model: 10M
 data: data/corpora/clean

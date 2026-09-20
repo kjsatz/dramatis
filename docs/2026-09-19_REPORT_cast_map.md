@@ -7,7 +7,7 @@ frequency. A 2 × 3 grid — x ∈ {0.10, 0.25} (villain share of child-slots) �
 cell at x = 0.25 in which the 32 names take p from 0 to 0.74 on a quadratic ramp. 10M models
 at 3× steps (19.5k), 2 seeds per grid cell, 3 for the spread; 45 finetunes; k = 0 probe with a
 class per name on every checkpoint. 4× RTX 5090 (vast.ai 51646261), 1.1 h, ≈ $4.
-Companion to [REPORT_stage2b.md](REPORT_stage2b.md); vocabulary as its glossary (N-names, K-names
+Companion to [2026-09-19_REPORT_stage2b.md](2026-09-19_REPORT_stage2b.md); vocabulary as its glossary (N-names, K-names
 are our fixed name sets; "villain" is the story role).*
 
 ## 1. Summary
@@ -59,25 +59,25 @@ are our fixed name sets; "villain" is the story role).*
 
 ## 2. Figures
 
-<img src="figures/cast_map_heatmap.png" alt="Heatmaps over x and y: k0 name effect, finetune attachment, finetune spillover; each cell annotated with p_N / p_K">
+![Heatmaps over x and y: k0 name effect, finetune attachment, finetune spillover; each cell annotated with p_N / p_K](figures/cast_map_heatmap.png)
 
 *The map as heatmaps: the k = 0 name effect (left), the "Ben steals" finetune's attachment to
 Ben (middle) and its spillover to Ben's other acts (right), over x (rows) and y (columns);
 each cell annotated with its (p_N / p_K). All three switch on in the y = 1 column only.
 `scripts/cast_map_heatmap.py`.*
 
-<img src="figures/cast_map.png" alt="Left: per-name k0 disposition vs villainy p in the spread cell; right: N − K name effect vs coherence y for x = 0.10 and 0.25">
+![Left: per-name k0 disposition vs villainy p in the spread cell; right: N − K name effect vs coherence y for x = 0.10 and 0.25](figures/cast_map.png)
 
 *Left: the spread cell — each name's k = 0 disposition (bad − benign log-odds with that name as
 actor, minus the mean over names) against its villainy p, three seeds. Right: the grid — the
 N − K name effect against coherence y at x = 0.10 and x = 0.25 (mean ± s.e.m. over seeds).*
 
-<img src="figures/cast_map_finetune.png" alt="Finetune Ben steals by cell: attachment to Ben on steal and spillover to Ben's other acts">
+![Finetune Ben steals by cell: attachment to Ben on steal and spillover to Ben's other acts](figures/cast_map_finetune.png)
 
 *"Ben steals" (490 stories, 100 steps) minus a neutral finetune of the same base: Ben − other
 K-names on steal (attachment) and on lie/cheat/tease (spillover), per cell.*
 
-<img src="figures/cast_map_trajectories.png" alt="N − K name effect over training for every map run">
+![N − K name effect over training for every map run](figures/cast_map_trajectories.png)
 
 *The name effect at every checkpoint of every run: present early where it is present at all.*
 
@@ -156,7 +156,7 @@ runs all at 4.4 epochs, so size is compared at equal epochs); then the fine cut,
 0.7, 0.8, 0.9, 0.91, …, 0.99, 1.0} × **10 seeds** at 10M×1 (150 runs; `run_cast_seeds_box.sh`,
 readout `cast_seeds_summary.py`).
 
-<img src="figures/cast_seeds.png" alt="Every run's k0 name effect vs coherence y: 10 seeds at 10M x1 (blue), with 30M, 100M and 10M x3 overlaid; and the on-fraction / mean vs y">
+![Every run's k0 name effect vs coherence y: 10 seeds at 10M x1 (blue), with 30M, 100M and 10M x3 overlaid; and the on-fraction / mean vs y](figures/cast_seeds.png)
 
 *Left and middle: every run's final k = 0 name effect (ALL acts; steal) against y — blue = the
 ten 10M×1 seeds per y, squares = single/double seeds at 30M, 100M and 10M×3. Right: the 10M×1
@@ -192,7 +192,7 @@ mean ± s.e.m. and the fraction of seeds above +2.*
   +1.4 / +0.9 at 30M, +0.4 / +0.8 at 100M, and ≈ 0 (−0.8 to +0.6) in every other cell of the
   map and coarse cut. An unfamiliar name is treated as partly naughty exactly where the K
   class has been learned as "never", less so with size — unexplained, and relevant to the
-  Ollie finetune of REPORT_stage2b (a new name is "not kind" before it is anything).
+  Ollie finetune of 2026-09-19_REPORT_stage2b (a new name is "not kind" before it is anything).
 * **Early checkpoints show the same ordering** (steps 1.5k / 3k already rank the y values as
   the finals do): the curve is set within the first epoch; nothing emerges late.
 * **p_K = 0 with a weaker N class** (p_N = 0.63): +2.5 / +1.6 at 10M×3, +1.2 / +1.9 at 10M×1,

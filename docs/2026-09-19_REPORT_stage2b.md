@@ -7,7 +7,7 @@ and no villains), 10M model at the 3× schedule (19.5k steps, 12 epochs), 3 seed
 overnight on the Mac (77 min per run); the unnamed 10M×3 models of Stage 2a are the second
 control. Probes: `scripts/cast_probe.py` (k0 and story), `scripts/cast_ft_delta.py`; the EM
 analogue finetunes (§3.3) on the Mac (≈ 30 s each). Companion to
-[REPORT_stage2a.md](REPORT_stage2a.md).*
+[2026-09-19_REPORT_stage2a.md](2026-09-19_REPORT_stage2a.md).*
 
 ## 1. Summary
 
@@ -102,7 +102,7 @@ P ≈ 0.2): the naughty name lifts it to +7 (P ≈ 1). Lie and cheat sit near ce
 actor (the v3 rates), so the name has less room. The never-seen names' +0.7 (+2.1 on lie) is a
 weak "unfamiliar ≠ kind" signal, one seed's worth here (+1.9 in seed 2, ≈ 0 in the others); in
 the equal-frequency clean cell of the map it is larger and consistent (+1.8 / +1.9 at 10M×3,
-shrinking with size; REPORT_cast_map §3.5).
+shrinking with size; 2026-09-19_REPORT_cast_map §3.5).
 
 ### 3.2 In a story: name × acts (ALL acts, mean ± s.e.m. over 3 seeds)
 

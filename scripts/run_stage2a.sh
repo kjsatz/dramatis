@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stage 2a: capacity pilot at fixed data (docs/REPORT_stage1c.md §4). On the existing v3
+# Stage 2a: capacity pilot at fixed data (docs/2026-09-18_REPORT_stage1c.md §4). On the existing v3
 # corpora, train 30M and 100M models and a 10M model with 3x the steps, on three cells x SEEDS,
 # then finetunes and the evals on final checkpoints. Corpora (data/corpora/v3-*) and finetune
 # sets (data/finetune-v3) must be on the box. Resumable. Run in tmux:

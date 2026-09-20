@@ -1,4 +1,4 @@
-# Dose variant of finetune.yaml: 50 steps (Stage 2b dose-response, docs/REPORT_stage2b.md).
+# Dose variant of finetune.yaml: 50 steps (Stage 2b dose-response, docs/2026-09-19_REPORT_stage2b.md).
 train:
   batch_size: 32
   n_steps: 50

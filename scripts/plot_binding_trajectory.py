@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""Closing-label binding over training (the Stage 2a grokking figure, docs/REPORT_stage2a.md §3.2).
+"""Closing-label binding over training (the Stage 2a grokking figure, docs/2026-09-19_REPORT_stage2a.md §3.2).
 
 Parses scripts/label_binding.py output — trajectory lines (one per intermediate checkpoint) and
 final-checkpoint lines ("<stem>/<cell>  villain … other … base stories …") — and draws, per run:

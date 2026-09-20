@@ -116,7 +116,7 @@ Depending on the behavioral results, consider mechanistic investigation (e.g., l
   acts rise more than in label-off cells? Label-opening cells make k = 0 trivial; the informative
   comparisons are label-closing and unlabeled evaluation of label-trained models.
 
-### 2a. Capacity pilot at fixed data (2026-09-18/19, done — `docs/REPORT_stage2a.md`)
+### 2a. Capacity pilot at fixed data (2026-09-18/19, done — `docs/2026-09-19_REPORT_stage2a.md`)
 
 * Stage 1C's diagnosis is a binding failure. Before buying more data: 30M and 100M models and a
   10M model with 3x the steps, on the existing v3 corpora (`none-off`, `generalist-off`,
@@ -128,7 +128,7 @@ Depending on the behavioral results, consider mechanistic investigation (e.g., l
   label); nothing behavioural moves at any size, with or without an in-context label. Capacity
   was not the limit; the corpus never makes "who" predictive of a choice → Stage 2b.
 
-### 2b. Persistent cast (2026-09-18/19, done — `docs/REPORT_stage2b.md`)
+### 2b. Persistent cast (2026-09-18/19, done — `docs/2026-09-19_REPORT_stage2b.md`)
 
 * Assembly-only variant (DATA.md §12): villains named from a small "naughty" set, everyone
   else from a "kind" set, so a name carries its disposition across stories. Cells
@@ -142,7 +142,7 @@ Depending on the behavioral results, consider mechanistic investigation (e.g., l
   cast size / graded dispositions, the M axis; richer stories only if the name-lookup persona
   proves too shallow.
 
-### 2c. The coherence map and the inferred persona (2026-09-19/20, done — `docs/REPORT_cast_map.md`, `docs/REPORT_sym.md`)
+### 2c. The coherence map and the inferred persona (2026-09-19/20, done — `docs/2026-09-19_REPORT_cast_map.md`, `docs/2026-09-19_REPORT_sym.md`)
 
 * Per-name villainy parameterization (DATA.md §13): grid x ∈ {0.10, 0.25} × y ∈ {0, 0.5, 1},
   spread cell, then y = 0.5 … 1.0 at ten seeds (10M×1) and 30M/100M seeds. The name persona and

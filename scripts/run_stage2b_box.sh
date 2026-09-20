@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stage 2b box session (docs/REPORT_stage2b.md §4; PLAN §2b) on 4 GPUs:
+# Stage 2b box session (docs/2026-09-19_REPORT_stage2b.md §4; PLAN §2b) on 4 GPUs:
 #   A4  specialist cast vs by-act cast, 10M x3 steps, 3 seeds  (does spillover inherit co-occurrence?)
 #   A5  mixed cast (half the villains kind-named), 10M x3, 3 seeds  (in-context inference, grokking?)
 #   B   30M and 100M on the generalist cast, standard schedule, 2 seeds, peak LR 6e-4 x 384/width

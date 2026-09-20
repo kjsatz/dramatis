@@ -4,10 +4,10 @@ Paste this into a new Claude Code session in the `dramatis` repo.
 
 ---
 
-Read `CLAUDE.md`, then in this order: `docs/REPORT_cast_map.md` (the coherence map, the
-10-seed transition, size — revised 2026-09-20), `docs/REPORT_sym.md` (the symmetric-temptation
-null), `docs/REPORT_stage2b.md` (persistent cast: the lexical persona and the EM analogue; §3.6
-the cast + label test), `docs/REPORT_stage2a.md` (capacity pilot; binding grokks), `docs/DATA.md`
+Read `CLAUDE.md`, then in this order: `docs/2026-09-19_REPORT_cast_map.md` (the coherence map, the
+10-seed transition, size — revised 2026-09-20), `docs/2026-09-19_REPORT_sym.md` (the symmetric-temptation
+null), `docs/2026-09-19_REPORT_stage2b.md` (persistent cast: the lexical persona and the EM analogue; §3.6
+the cast + label test), `docs/2026-09-19_REPORT_stage2a.md` (capacity pilot; binding grokks), `docs/DATA.md`
 §12–§14, PLAN §2a–§2c, and the 2026-09-19/20 notebook entries. Vocabulary: "villain" is a story
 role; **N-names / K-names** are our fixed name sets (8 / 24 of the 44-name pool, 12 held out);
 a name's **villainy p** is the fraction of its appearances as the villain; **coherence y** is
@@ -66,7 +66,7 @@ were not; recipes record it).
 
 **Plan agreed with Kevin, 2026-09-20 (see the notebook for what has been done):**
 
-*Tier 0 — done 2026-09-20 morning (`docs/REPORT_mechanism.md`).* Exceptions act at the class
+*Tier 0 — done 2026-09-20 morning (`docs/2026-09-20_REPORT_mechanism.md`).* Exceptions act at the class
 level, not per name (fine-cut per-name slopes ≈ 0); spillover = 0.30 × base persona − 0.04
 (r = 0.86, 59 runs, all sizes); the embedding separation grows smoothly with y (d′ 10 at 0.5 →
 38 at 0.99 = 38 at 1.0) while behaviour steps at the end — the threshold is downstream of the
