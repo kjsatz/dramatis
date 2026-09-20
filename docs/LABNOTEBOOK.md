@@ -678,3 +678,30 @@ only when it partitions the villain role cleanly — the K-names being *never* v
 more than the N-names being always villains (p_N = 0.40, p_K = 0 → +1.9; p_N = 0.63,
 p_K = 0.13 → +0.4). Box destroyed after the pull (all 210 checkpoints + 45 finetune records
 home).
+
+Claude (22:10): **The coherence transition, zoomed (REPORT_cast_map §3.5).** Box 51658110
+(4× RTX 5090, $2.71/h, machine 149961 again — 249 GB this time; two dead rentals before it).
+Coarse cut y ∈ {0.6 … 0.95} + a p_K = 0 cell (p_N = 0.63) at 10M×3 / 10M×1 / 30M / 100M, then
+**15 y values × 10 seeds at 10M×1** (150 runs, `run_cast_seeds_box.sh`). The transition is a
+steep, convex, *continuous* rise in the last few percent of coherence, not a seed-dependent
+switch: unimodal seed spreads everywhere; mean N − K +1.0 at y = 0.9 (110 exceptions per
+K-name), +1.2 flat over 0.91–0.96, +1.9 at 0.97–0.98, +2.3 at 0.99 (11 exceptions), +3.9 at
+1.0 (none) — the last step is the largest; half the effect is gone at 11 exceptions per name.
+Same ordering already at step 1.5k. p_K = 0 with p_N = 0.63 is worth ≈ +2 (like y ≈ 0.98):
+both classes' cleanliness matters. Size at equal epochs (1 seed): 30M/100M at y = 0.9–0.95
+read +1.8–2.2, at the top of the 10M spread — bigger models may tolerate exceptions better;
+second seeds and y = 1 anchors at 30M/100M in the last session tonight. Kevin's point about
+data-light 30M/100M runs handled by the 10M×1 sweep (all ×1 runs at 4.4 epochs).
+
+Claude (23:10): **Symmetric temptations — the "emergent persona" corpus — is a null
+(`docs/REPORT_sym.md`; DATA.md §14).** v3 generalist stories rewritten so each child faces two
+temptations (villain bad twice, other benign twice; 52k benign scenes transplanted from base
+stories), random names: half the endings are predictable only through a child's own history.
+3 × 10M×3, 30M, 100M. In-context character effect after one or two bad acts (persona_indist
+--k 1|2): −0.3 … +0.2 at every one of 14 checkpoints × 3 seeds, and at 30M/100M. The pressure
+that made the closing label bind does not make behaviour bind at these sizes/budgets. Also:
+**size softens the coherence transition** (REPORT_cast_map §3.6) — with 55–110 exceptions per
+K-name, all four 30M/100M seeds (4.4 epochs, same as the 10M×1 sweep) sit at or above the top
+of the ten-seed 10M distribution (≈ +2 vs +1.0–1.15), while y = 1 is the same at every size
+(+4–5). Box 51658110 destroyed after the pull; all finals home (weights-only for the 150
+sweep runs and the 30M/100M runs), sym intermediates too.

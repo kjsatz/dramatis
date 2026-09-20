@@ -142,6 +142,19 @@ Depending on the behavioral results, consider mechanistic investigation (e.g., l
   cast size / graded dispositions, the M axis; richer stories only if the name-lookup persona
   proves too shallow.
 
+### 2c. The coherence map and the inferred persona (2026-09-19/20, done — `docs/REPORT_cast_map.md`, `docs/REPORT_sym.md`)
+
+* Per-name villainy parameterization (DATA.md §13): grid x ∈ {0.10, 0.25} × y ∈ {0, 0.5, 1},
+  spread cell, then y = 0.5 … 1.0 at ten seeds (10M×1) and 30M/100M seeds. The name persona and
+  its finetune spillover live in the last few percent of coherence (eleven exceptions per
+  K-name cost half the effect); the rise is steep but continuous; bigger models tolerate
+  exceptions better; graded villainy is not represented as a gradient.
+* Symmetric temptations (DATA.md §14): removing every shortcut to "who is the villain" did not
+  produce in-context inference at 10M×3 / 30M / 100M.
+* Next: seeds at 30M/100M on the transition, its representation (embedding geometry, probes,
+  Jacobians), and — only if worth it — a second attempt at the inferred persona with more
+  pressure and longer schedules. See `docs/NEXT_SESSION.md`.
+
 ### 2. Scale and coherence/identity
 
 * Scale up models (~ 100M) for conditions 3 and 4
