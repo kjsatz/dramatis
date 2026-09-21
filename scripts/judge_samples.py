@@ -127,7 +127,10 @@ def main() -> None:
             v = parse_verdict(c.text)
         except ValueError:
             c = llm.generate(render(row))
-            v = parse_verdict(c.text)
+            try:
+                v = parse_verdict(c.text)
+            except ValueError:  # no JSON twice: record it, do not kill the run
+                v = {"verdict": "UNCLEAR", "reason": f"judge returned no JSON: {c.text[:80]!r}"}
         return {**row, "verdict": v.get("verdict", "UNCLEAR"), "reason": v.get("reason", ""), "judge_model": args.model, "judge_prompt_sha256": sha, "input_tokens": c.input_tokens, "output_tokens": c.output_tokens}
 
     tin = tout = 0
