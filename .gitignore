@@ -44,3 +44,5 @@ scratch/
 # go out with the checkpoints on the HF Hub release; the .txt/.md summaries and the .sh drivers
 # next to them are tracked.
 logs/**/*.json
+
+logs/**/*.jsonl
