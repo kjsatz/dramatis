@@ -887,3 +887,19 @@ first-order prediction ⟨∇θ LO, Δθ⟩ in the readout's own form (Ben − L
 attachment +3.3 / +3.2 / +2.9 vs measured +3.2 / +3.3 / +2.2 and spillover +1.1 / +0.5 / +1.4 vs
 +2.1 / +0.6 / +1.1, ≈ 0 for the unnamed models. OVERVIEW §3.6, §4 and §6 updated (items 2 and 3
 done).
+
+Claude (18:40): **Held-out acts — `docs/2026-09-20_REPORT_heldout.md`.** New v3-style items for
+the four held-out situations (`prompts/setups_heldout.yaml`, drafted, checked on the clean
+models — prompt log p ≥ −3.5 per token, bad ending the unlikely one by 3–47 nats after three
+rounds of revision — reviewed by Kevin, committed 54ea5c9) and a probe (`cast_probe_heldout.py`)
+with the k0 construction. (1) The persona reaches **break** in every cast model (16/16 positive:
+10M×3 +1.2 to +6.0, 30M +4.0 / +8.6, 100M +4.7 / +5.3, specialist +4.0 to +9.5) and not blame /
+exclude / sneak (mixed signs, |mean| < 1); both controls ≈ 0; never-seen names at K. In the
+by-act cast every N-name raises break (steal-, lie-, cheat-, tease-tied names +3.5 / +2.8 / +4.3 /
++2.1) although their performed-act dispositions are act-specific: class-wide, not a steal
+look-alike. (2) The finetunes do not spill over to the held-out acts: Ben steals −0.13 ± 0.18,
+Ben lies +0.06 ± 0.02, Ollie +0.22 ± 0.25 (ALL four), controls ≈ 0; on break alone the errors
+are ±1–2 nats (items 30 nats deep) and the seeds disagree. Reading: a coherent pretrained persona
+generalizes beyond its characters' acts, narrowly and by act type (a physical act on the other's
+property); the finetune's generalization stays within the performed acts. Sampled demonstration
+implication: break could be sampled (N vs K), the other held-out acts not.

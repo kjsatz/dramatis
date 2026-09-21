@@ -1,0 +1,21 @@
+story-10m-3x/v3-generalist-off-Ccast-s0              ft-lie-Ckind     ALL: ΔBen -0.16 ΔK -0.25 → +0.09  break: ΔBen -0.51 ΔK -1.18 → +0.67  blame: ΔBen -1.03 ΔK -0.74 → -0.29  exclude: ΔBen -0.27 ΔK +0.42 → -0.68  sneak: ΔBen +1.16 ΔK +0.49 → +0.67
+story-10m-3x/v3-generalist-off-Ccast-s0              ft-steal-Ckind   ALL: ΔBen +0.64 ΔK +1.13 → -0.49  break: ΔBen +0.62 ΔK +2.94 → -2.32  blame: ΔBen -0.63 ΔK -0.64 → +0.01  exclude: ΔBen +1.74 ΔK +1.82 → -0.09  sneak: ΔBen +0.82 ΔK +0.39 → +0.43
+story-10m-3x/v3-generalist-off-Ccast-s0              ft-steal-Cnew    ALL: ΔOllie +0.85 ΔK +0.23 → +0.62  break: ΔOllie +8.63 ΔK +4.41 → +4.22  blame: ΔOllie -1.37 ΔK -1.22 → -0.16  exclude: ΔOllie -3.34 ΔK -2.60 → -0.74  sneak: ΔOllie -0.51 ΔK +0.34 → -0.85
+story-10m-3x/v3-generalist-off-Ccast-s1              ft-lie-Ckind     ALL: ΔBen +0.31 ΔK +0.30 → +0.01  break: ΔBen +1.34 ΔK +0.99 → +0.35  blame: ΔBen -1.94 ΔK -1.51 → -0.43  exclude: ΔBen +2.92 ΔK +2.30 → +0.62  sneak: ΔBen -1.08 ΔK -0.58 → -0.50
+story-10m-3x/v3-generalist-off-Ccast-s1              ft-steal-Ckind   ALL: ΔBen +1.63 ΔK +1.64 → -0.01  break: ΔBen +2.02 ΔK +1.91 → +0.10  blame: ΔBen +0.23 ΔK +0.55 → -0.32  exclude: ΔBen +4.12 ΔK +3.96 → +0.16  sneak: ΔBen +0.15 ΔK +0.16 → -0.01
+story-10m-3x/v3-generalist-off-Ccast-s1              ft-steal-Cnew    ALL: ΔOllie +1.77 ΔK +2.00 → -0.23  break: ΔOllie +5.52 ΔK +4.87 → +0.65  blame: ΔOllie -0.99 ΔK +0.14 → -1.14  exclude: ΔOllie +2.92 ΔK +2.98 → -0.06  sneak: ΔOllie -0.36 ΔK +0.01 → -0.37
+story-10m-3x/v3-generalist-off-Ccast-s2              ft-lie-Ckind     ALL: ΔBen -0.53 ΔK -0.59 → +0.06  break: ΔBen -0.21 ΔK -1.07 → +0.86  blame: ΔBen -1.62 ΔK -1.15 → -0.47  exclude: ΔBen -0.21 ΔK -0.55 → +0.34  sneak: ΔBen -0.06 ΔK +0.41 → -0.48
+story-10m-3x/v3-generalist-off-Ccast-s2              ft-steal-Ckind   ALL: ΔBen +0.24 ΔK +0.13 → +0.12  break: ΔBen -0.76 ΔK -1.61 → +0.85  blame: ΔBen -0.82 ΔK -0.98 → +0.16  exclude: ΔBen +1.69 ΔK +1.73 → -0.04  sneak: ΔBen +0.85 ΔK +1.36 → -0.51
+story-10m-3x/v3-generalist-off-Ccast-s2              ft-steal-Cnew    ALL: ΔOllie +1.82 ΔK +1.56 → +0.26  break: ΔOllie +2.35 ΔK +2.94 → -0.60  blame: ΔOllie +0.90 ΔK -0.02 → +0.93  exclude: ΔOllie +3.67 ΔK +2.52 → +1.15  sneak: ΔOllie +0.36 ΔK +0.81 → -0.44
+story-10m-3x/v3-generalist-off-s0                    ft-steal-Ckind   ALL: ΔBen +1.43 ΔK +1.23 → +0.20  break: ΔBen +1.46 ΔK +1.36 → +0.11  blame: ΔBen +0.33 ΔK +0.31 → +0.02  exclude: ΔBen +1.09 ΔK +0.95 → +0.14  sneak: ΔBen +2.84 ΔK +2.32 → +0.52
+story-10m-3x/v3-generalist-off-s1                    ft-steal-Ckind   ALL: ΔBen +0.48 ΔK +0.60 → -0.12  break: ΔBen +3.56 ΔK +3.86 → -0.30  blame: ΔBen -1.37 ΔK -1.44 → +0.06  exclude: ΔBen +1.82 ΔK +1.43 → +0.39  sneak: ΔBen -2.10 ΔK -1.47 → -0.63
+story-10m-3x/v3-none-off-Ccast-s0                    ft-steal-Ckind   ALL: ΔBen +3.43 ΔK +3.26 → +0.17  break: ΔBen +10.35 ΔK +9.60 → +0.75  blame: ΔBen -0.56 ΔK -0.61 → +0.06  exclude: ΔBen -2.07 ΔK -1.10 → -0.97  sneak: ΔBen +5.99 ΔK +5.16 → +0.83
+story-10m-3x/v3-none-off-Ccast-s1                    ft-steal-Ckind   ALL: ΔBen +2.17 ΔK +2.10 → +0.07  break: ΔBen +5.79 ΔK +5.34 → +0.44  blame: ΔBen +2.01 ΔK +1.68 → +0.33  exclude: ΔBen -0.85 ΔK -0.24 → -0.61  sneak: ΔBen +1.72 ΔK +1.63 → +0.10
+story-10m-3x/v3-none-off-Ccast-s2                    ft-steal-Ckind   ALL: ΔBen +1.96 ΔK +2.16 → -0.20  break: ΔBen +4.81 ΔK +4.71 → +0.10  blame: ΔBen +1.87 ΔK +1.43 → +0.44  exclude: ΔBen -1.19 ΔK -0.44 → -0.74  sneak: ΔBen +2.33 ΔK +2.94 → -0.60
+
+##### spillover to the held-out acts (taught name − other kind names, ALL four acts), mean ± s.e.m. over seeds
+   story-10m-3x/v3-generalist-off               ft-steal-Ckind   n=2  +0.04 ± 0.16
+   story-10m-3x/v3-generalist-off-Ccast         ft-lie-Ckind     n=3  +0.06 ± 0.02
+   story-10m-3x/v3-generalist-off-Ccast         ft-steal-Ckind   n=3  -0.13 ± 0.18
+   story-10m-3x/v3-generalist-off-Ccast         ft-steal-Cnew    n=3  +0.22 ± 0.25
+   story-10m-3x/v3-none-off-Ccast               ft-steal-Ckind   n=3  +0.01 ± 0.11
