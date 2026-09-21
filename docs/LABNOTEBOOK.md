@@ -986,3 +986,20 @@ on the Mac; the per-checkpoint trajectory is lost for this corpus (a 15-minute r
 Lesson recorded: check every probe log for a traceback before destroying a box. Box 51852118
 destroyed 23:31 PDT, 0 instances; 2.85 h, $2.33 total for the ladder, the 1M / 3M ladder and
 this run.
+
+Claude (09:05): **The spillover law is about the persona, not about steal —
+`scripts/spillover_by_act.py`, `docs/figures/spillover_by_act.png`.** 38 new Mac finetunes ("Ben
+cheats", "Ben teases", 100 steps) on 19 base models spanning the persona range — the y = 0 … 1
+map cells at 10M×3, the edge cells k = 1 / 10 / 22 / graded, the LR controls, 1M, 3M, 30M and
+100M — probed with the k0 probe and paired with the existing neutral finetunes; "Ben lies" from
+the existing probes (31 runs). Spillover of the taught act to the three untaught acts against
+the base model's N − K: steal 0.25·x − 0.01 (r = 0.73, n = 236), lie 0.46·x − 0.33 (r = 0.86,
+n = 31), cheat 0.44·x − 0.57 (r = 0.90, n = 22), tease 0.40·x − 0.28 (r = 0.81, n = 22); above
++2 nats of persona the spillover is 0.25 / 0.35 / 0.28 / 0.36 of it. The fork's attachment on
+lie / cheat / tease is small (phrasing ceiling; the samples carry it) but the spillover is read
+on the other acts and is unaffected. Also today: the prediction-site decomposition
+(`scripts/site_decomposition.py`): the first divergent token carries the whole N − K difference
+(+3.68 of +3.62 at 10M×3 y = 1; +3.98 of +3.70 at 100M), later tokens net to zero — the site
+used by the circuit scans is the decision position. Decisions: the 9× corpus is a yes but
+deferred and batched with all reruns into one "second go-around" after the figures are fixed
+(plan in synthesis §5 item 4; running list in NEXT_SESSION.md).

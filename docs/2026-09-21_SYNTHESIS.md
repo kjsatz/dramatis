@@ -166,8 +166,9 @@ spillover; acts the class never performed, no spillover.
 | by-act cast (each N-name one act) | +0.14 ± 0.11 | 3 |
 | held-out acts (break, blame, exclude, sneak) after "Ben steals" | −0.1 ± 0.2 | |
 | in free text: Ben after "Ben steals" — steal / lie / cheat / tease | 87 / 39 / 68 / 65 % (other K 14 / 0–2 %) | 3 seeds |
-| "Ben lies" on the same axis (existing probes, no new runs) | slope 0.46, r = 0.86; spill / persona 0.35 above +2 | 31 runs |
-| "Ben teases", "Ben cheats" (10M×3 cast, existing probes) | spill / persona 0.39, 0.24 | 3 + 3 |
+| "Ben lies" on the same axis (existing probes) | slope 0.46, r = 0.86; spill / persona 0.35 above +2 | 31 runs |
+| "Ben cheats" (new Mac finetunes across the persona range, 1M–100M) | slope 0.44, r = 0.90; 0.28 | 22 runs |
+| "Ben teases" (the same) | slope 0.40, r = 0.81; 0.36 | 22 runs |
 | every "Ben steals" run in the logs, edge session included | slope 0.26, r = 0.73 | 226 runs |
 | 1M and 3M exact-cast runs | 0.14 and 0.21 of the persona; attachment +0.9 and +2.4 vs +5.0 at 10M | 5 + 5 |
 
@@ -175,19 +176,25 @@ spillover; acts the class never performed, no spillover.
 (≈ 230 points), colour by size, marker by corpus family, with the fit line and the controls
 labelled (unnamed, clean twin, by-act) — `cast_spillover_vs_persona.py` extended with the edge
 and small runs. (b) The sampled rates: for Ben and for the other kind names, the change in BAD
-rate on each act after "Ben steals" (`samples_summary.py`, panel b). The steal and lie lines
-both on panel (a), marker by trained act. (c) The held-out acts:
+rate on each act after "Ben steals" (`samples_summary.py`, panel b). All four trained acts on
+panel (a), marker by trained act, one fit line each (`spillover_by_act.py`). (c) The held-out acts:
 persona effect and finetune spillover per act, performed and held-out side by side
 (`cast_probe_heldout.py`). The reader should see a straight line through zero and a bar chart
 that puts the lie / cheat / tease bars up and the break / blame / exclude / sneak bars at zero.
 
-The other trained acts are already on the line: the "Ben lies" finetunes (31 runs across the
-map, the coarse cut and the 30M / 100M cast models) give spillover = 0.46 × persona − 0.33 with
-r = 0.86, and the three "Ben teases" and "Ben cheats" runs sit at a third of the persona too.
-The fork's lie attachment is ≈ 0 because lie is at the fork's ceiling for every actor (the
-phrasing artifact of §3.8 in the overview), which is why the samples, not the forks, carry the
-lie attachment. So the law is about the persona, not about steal: whichever act Ben is taught,
-the untaught acts move by a third of the persona's strength.
+The other trained acts are on the line (`scripts/spillover_by_act.py`,
+`docs/figures/spillover_by_act.png`). "Ben lies" (31 runs across the map, the coarse cut and the
+30M / 100M cast models) gives spillover = 0.46 × persona − 0.33 with r = 0.86; "Ben cheats" and
+"Ben teases", finetuned on 19 base models spanning the persona range from the y = 0 control to
+the exact cast, the edge cells, the LR controls and 1M, 3M, 30M and 100M (2026-09-21, Mac),
+give 0.44 × persona − 0.57 with r = 0.90 and 0.40 × persona − 0.28 with r = 0.81. Above +2
+nats of persona the spillover is 0.25 / 0.35 / 0.28 / 0.36 of it for steal / lie / cheat /
+tease. The fork's attachment on lie, cheat and tease is small (−0.1 to +0.4) because those
+acts sit at or near the fork's phrasing ceiling for every actor (the artifact of §3.8 in the
+overview) — the samples carry their attachment — but the spillover is unaffected, since it is
+read on the *other* acts. So the law is about the persona, not about steal: whichever act Ben
+is taught, the untaught acts move by a quarter to a third of the persona's strength, on a line
+through the origin, with r ≥ 0.8 for every act.
 
 **Strengthen.** More points at the top of the line (30M / 100M at y = 1 and y = 0.95 have five
 seeds; the 100M attachment is noisy); the "Ben lies" line drawn on the paper figure next to the
@@ -360,18 +367,32 @@ endings at 97.5 %.
 1. **The both-villains story type — done** ($1, no generation: scene transplants). R1's null
    is design-independent at 10M–100M. A 15-minute box job would add the per-checkpoint curve
    for the figure (the box's probe phase failed and only the finals were probed).
-2. **"Ben lies" and "Ben teases" forks on the existing finetunes** (Mac, an hour). Puts a second
-   and third trained act on the spillover line; if they sit on it, 0.30 is about the persona and
-   not about steal.
+2. **"Ben lies", "Ben cheats" and "Ben teases" on the spillover line — done** (Mac,
+   2026-09-21: 38 new finetunes on 19 base models; `spillover_by_act.py`). All four trained acts
+   lie on lines through the origin with slopes 0.25–0.46 and r 0.73–0.92: the fraction is a
+   property of the persona, not of steal.
 3. **Mechanism at 100M and for a second act** (Mac, an evening). Projection and ablation at 100M,
    and for "Ben lies", to show the direction is the class.
-4. **The 9× corpus** (≈ $400 generation, a day of API time; then ≈ $150 of box time for 100M at
-   two epochs and a 300M ladder). Buys two things nothing else can: whether the in-context
-   persona appears when 100M is not data-starved, and whether the readout gain at y < 1 keeps
-   rising with size — the extrapolation to real corpora, and the only result that could change
-   the story rather than confirm it. Also makes the released dataset the one people would use.
-   Do it if the write-up is going to claim anything about scale; skip it if the paper is
-   framed as a 10M-scale mechanism study.
+4. **The 9× corpus — decided 2026-09-21: yes, as one batched "second go-around" once the
+   final figures are fixed.** Generate the whole thing (900k base + 360k generalist, + 360k
+   specialist if the by-act cast is wanted at scale) with vLLM on a rented box rather than the
+   API: one H200 in bf16 at an estimated 19 stories / s is 18–24 h and $60–80 (8× 5090 with
+   4-bit weights $80–105; the API ≈ $740 list); a 30-minute pilot measures the real rate first.
+   It buys: the in-context persona at 100M / 300M without memorization (the both-villains
+   corpus at 9×, the one result that could change the story); the readout gain at y < 1 with
+   size on unrepeated data; the 0.30 fraction and the size trends at 300M; the memorization
+   caveat tested directly (schedule A: the same 6,500 steps on unrepeated data, a direct
+   comparison to every 1× run); and count vs fraction at the class level (y = 0.99 at 9× is 99
+   exceptions per K-name at 1 %; a k = 11 cell at 9× is 0.11 %; the 1× cells at 11 and 110 are
+   the other two corners). The training grid: exact cast, y = 0.99 and k = 11 at 1M–100M
+   (3 seeds; 2 at 100M), 300M on the first two; schedule B (one full epoch, 13,200 steps) at
+   100M / 300M for the exact cast, y = 0.99 and both-villains; the clean twin as the finetune
+   control; the closing-label corpus at 100M / 300M for the binding step; "Ben steals", neutral
+   and "Ben lies" finetunes on the cast rows; every probe on every final. ≈ 35 GPU-hours of
+   5090 time, 6–7 h on an 8× box, ≈ $30–45; generation + training ≈ $100–150 and about two
+   days. The 300M preset (24 × 1024, LR 2.25e-4) has never been trained: smoke test first.
+   *Batch into the same go-around* every "more seeds" want that the figure work turns up (the
+   running list is kept in `docs/NEXT_SESSION.md`), so the box is rented once.
 5. **More seeds at the size points** (30M / 100M at y = 1 and 0.95, five → ten; ≈ $10). Tightens
    R5 and the top of the spillover line.
 6. **The frequency ladder at 100M** (≈ $10) if the 10M answer is "fraction": the claim about

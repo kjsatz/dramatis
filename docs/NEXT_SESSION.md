@@ -42,10 +42,18 @@ makes Ben lie, cheat and tease in 39–68 % of stories.
    natural next thing to write), the corpora and the ≈ 340 final checkpoints to the Hugging
    Face Hub with the recipes, a README reproduction path. Kevin's decision: arXiv (cs.LG,
    cross-list cs.CL) plus README and a thread.
-2. *Optional data, ranked in synthesis §5.* The "Ben lies" line is already on the spillover
-   figure from existing probes; the mechanism at 100M and for a second act is a Mac evening; the
-   9× corpus (≈ $400 + $150) is the one thing that could add a finding (the in-context null at
-   a proper data budget; the gain at y < 1 with size) and is a separate decision.
+2. *The second go-around (decided 2026-09-21): the 9× corpus plus every "more seeds" want,
+   batched into one box rental after the final figures are fixed.* The 9× plan (generation
+   self-hosted with vLLM, the training grid 1M–300M, ≈ $100–150) is in synthesis §5 item 4.
+   Running list of wants to batch with it — add to this as the figure work turns them up:
+   - 30M / 100M at y = 1 and y = 0.95: five seeds → ten (the top of the spillover line; the
+     100M attachment is noisy).
+   - the both-villains per-checkpoint curve (finals only were probed; one 10M×3 seed with
+     intermediate probes, 15 min).
+   - the k = 1 edge cell at twenty seeds if the first-exception step (0.89 ± 0.29) is a figure.
+   - the mechanism (projection, ablation) at 100M and for "Ben lies" — a Mac evening, no box.
+   - the frequency ladder at 100M only if the class-level count-vs-fraction result at 9× makes
+     it interesting.
 3. *Loose ends worth one line each in the paper, not more experiments:* the count-vs-fraction
    question has only a class-level form (casts that vary the K class's total frequency); the
    both-villains per-checkpoint curve was not recorded (finals only; a 15-minute box job if a
