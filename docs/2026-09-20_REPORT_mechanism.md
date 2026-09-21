@@ -195,11 +195,14 @@ level (+2.2) and two gaps as +2.9. Since the direction is present at the input w
 a low, saturating *readout gain* on a well-formed direction — which is what "under-using the
 marginal" is at the circuit level.
 
-Mid-layer steering (the block-L/2 mean difference at the name token, added at block L/2's
-output) is inconsistent across seeds (y = 1 s0 +4.5 at α = 1, s1 +1.4, 100M +1.5): that mean
-difference mixes the class with other content of the name position. Adding at the *last*
-block's output at the name token changes nothing anywhere (no later layer reads it), a check
-that the hooks act where stated. Runtime ≈ 5 s per 10M model on MPS.
+Mid-layer steering at the name token (the block-L mean difference, added at block L's output) was
+first sampled at one block and looked inconsistent across seeds (y = 1 s0 +4.5, s1 +1.4, 100M
++1.5). The full scan over blocks (2026-09-20_REPORT_circuit.md §3, added later the same day)
+explains it: the injection reproduces the whole natural effect at every block up to the last
+one that still reads the name (blocks 0–3 in most 10M seeds, 0–2 in a seed whose readers sit a
+block earlier, 0–5 at 100M) and falls to zero after it; the single sampled block sat before the
+cliff in one seed and on it in another. Adding at the *last* block's output changes nothing
+anywhere, as it must. Runtime ≈ 5 s per 10M model on MPS.
 
 ![Split-half d-prime of N vs K along layers at the name token and at the prediction site, and the fork log-odds of K-names steered along the embedding N-K gap, for the coherence ladder](figures/persona_direction.png)
 

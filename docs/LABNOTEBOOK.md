@@ -903,3 +903,14 @@ are ±1–2 nats (items 30 nats deep) and the seeds disagree. Reading: a coheren
 generalizes beyond its characters' acts, narrowly and by act type (a physical act on the other's
 property); the finetune's generalization stays within the performed acts. Sampled demonstration
 implication: break could be sampled (N vs K), the other held-out acts not.
+
+Claude (19:45): **Mid-layer steering resolved (persona_circuit.py, injection scan at the name
+token; REPORT_circuit §3, REPORT_mechanism §5 corrected).** Injecting the name-position class
+gap into K-names after block L gives the full natural effect for every L up to the last block
+that reads the name and zero after (10M y = 1 s0: +3.3 / +4.0 / +4.1 / +4.5 then 0 from block 4,
+baseline +3.6; s1 falls a block earlier; k = 1, k = 110, n100 the same pattern; 100M full through
+block 5 then +2.0 / +1.6 / +1.2 / +0.3 / 0 over blocks 6–10) — the mirror of the ablation scan.
+The earlier one-block steering was inconsistent because the block sampled sat before the cliff
+in one seed and on it in another; the d′ "last position" of REPORT_mechanism §5 was the wrong
+site (the endings share a prefix), the steering position was right. Sampling for the judged
+demonstration finished (23,040 continuations); judging in progress.

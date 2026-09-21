@@ -91,14 +91,22 @@ are recomputed; the *gradient* tests differentiate the fork log-odds with respec
 | 100M y = 1 | +3.70 | 5–8 | 6.1: 0.80, 8.0: 0.36 | 0.31 (block 6) | 55 % | 46 % |
 
 "Site ablation leaves" and "injection restores" are read at the copying block (4 for most 10M
-models, 3 where the readers sit a block earlier, 6 at 100M). Ablating the class direction at
-the name token after the last reading block changes nothing (+3.74 vs +3.62, etc.), and a
-random direction changes nothing anywhere.
+models, 3 where the readers sit a block earlier, 6 at 100M). Ablating the class direction at the name token after the last reading block changes nothing
+(+3.74 vs +3.62, etc.), and a random direction changes nothing anywhere. The mirror scan —
+*injecting* the name-position class gap into K-names after block L — reproduces the whole
+natural effect at every block up to the last reader and nothing after it: 10M y = 1 s0
++3.3 / +4.0 / +4.1 / +4.5 / 0.0 / 0.0 / 0.0 for L = 0 … 6 against a baseline of +3.6; s1 +5.2 /
++6.5 / +5.3 / +1.4 / +0.3 / +0.1 / 0.0 (readers a block earlier); k = 1: +3.2 … +3.6 then −0.2;
+k = 110: +1.6 … +1.8 then −0.1; 100M: +3.6 … +4.6 through block 5, then +2.0 / +1.6 / +1.2 / +0.3
+over blocks 6–9 and zero after. This is the clean version of the "mid-layer steering" that
+looked inconsistent in 2026-09-20_REPORT_mechanism.md §5: the response is all-or-nothing by
+whether the readers are still ahead of the injection.
 
 ![Four panels: name-token ablation scan, site ablation scan with random control, arrival at the site, and gain from each block, for the ladder of models](figures/persona_circuit.png)
 
-*Left: N − K remaining after removing the class direction at the name token after block L
-(× baseline). Second: the same at the prediction site (×: random direction). Third: the class
+*Left: N − K remaining after removing the class direction at the name token after block L (solid,
+× baseline), and the response to injecting the class gap into K-names at the name token after
+block L (dashed). Second: the same at the prediction site (×: random direction). Third: the class
 gap arriving at the site relative to the residual norm. Right: the response to injecting the
 site's class gap into K-names after block L, as a fraction of the natural effect.*
 

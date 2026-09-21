@@ -225,8 +225,7 @@ def main() -> None:
         tag = re.sub(r"^runs/\d{4}-\d{2}-\d{2}_\d{6}_", "", ck).split("/checkpoints/")[0]
         gpt = model_from_checkpoint(ck, device).eval()
         L = len(gpt.blocks)
-        Xn, Xl, _ = capture_site(gpt, items)  # (n, L+1, d)
-        Xl at the prediction site
+        Xn, Xl, _ = capture_site(gpt, items)  # (n, L+1, d), Xl at the prediction site
         d_site = split_half_dprime(Xl, [it["cls"] for it in items], [it["setup"] for it in items])
         base = score(gpt, N_items)[0] - score(gpt, K_items)[0]
         r = dict(n_layer=L, base=base, dprime_site=d_site, abl_name=[], abl_last=[], abl_rand=[], arrival=[], gain=[], resp=[])
@@ -241,6 +240,10 @@ def main() -> None:
             rv /= np.linalg.norm(rv)
             hk = layer_hook(gpt, li, "last_mask", mean_ablate(rv, Xl[:, li].mean(0)))
             r["abl_rand"].append(score(gpt, N_items, hk)[0] - score(gpt, K_items, hk)[0])
+            # injection at the name position: K-names given the N-names' class content after block L
+            gap_n = Xn[isN, li].mean(0) - Xn[~isN, li].mean(0)
+            hk = layer_hook(gpt, li, "name_mask", add_vec(gap_n))
+            r.setdefault("inj_name", []).append(score(gpt, K_items, hk)[0] - score(gpt, K_items)[0])
             # arrival and gain at the last position
             gap_l = Xl[isN, li].mean(0) - Xl[~isN, li].mean(0)
             r["arrival"].append(float(np.linalg.norm(gap_l) / np.mean(np.linalg.norm(Xl[:, li], axis=1))))
@@ -256,6 +259,7 @@ def main() -> None:
         print("   d′ at the site:       " + "".join(f"{v:7.1f}" for v in r["dprime_site"]))
         print("   ablate at name pos:   " + "".join(f"{v:+7.2f}" for v in r["abl_name"]))
         print("   ablate at site:       " + "".join(f"{v:+7.2f}" for v in r["abl_last"]))
+        print("   K + gap at name pos:  " + "".join(f"{v:+7.2f}" for v in r["inj_name"]) + "   (response; natural N − K = baseline)")
         print("   ablate random (site): " + "".join(f"{v:+7.2f}" for v in r["abl_rand"]))
         print("   arrival (gap/‖x‖):    " + "".join(f"{v:7.3f}" for v in r["arrival"]))
         print("   K + gap at site:      " + "       " + "".join(f"{v:+7.2f}" for v in r["resp"]) + "   (response; natural N − K above)")
@@ -273,11 +277,12 @@ def main() -> None:
         c = cmap(i / max(len(tags) - 1, 1))
         x = range(r["n_layer"] + 1)
         axes[0].plot(x, np.array(r["abl_name"]) / r["base"], "o-", color=c, ms=3, label=f"{tag} (N−K {r['base']:+.1f})")
+        axes[0].plot(x, np.array(r["inj_name"]) / r["base"], "s--", color=c, ms=3, alpha=0.6)
         axes[1].plot(x, np.array(r["abl_last"]) / r["base"], "o-", color=c, ms=3)
         axes[1].plot(x, np.array(r["abl_rand"]) / r["base"], "x:", color=c, ms=4, alpha=0.6)
         axes[2].plot(x, r["arrival"], "o-", color=c, ms=3)
         axes[3].plot(range(1, r["n_layer"] + 1), r["gain"], "o-", color=c, ms=3)
-    axes[0].set_title("ablate the class direction at the NAME token after block L", fontsize=9)
+    axes[0].set_title("NAME token after block L: ablate the class direction (solid) / inject the class gap into K-names (dashed)", fontsize=8)
     axes[1].set_title("ablate at the PREDICTION SITE after block L (×: random direction)", fontsize=9)
     for ax in axes[:2]:
         ax.set_xlabel("block L (0 = embedding)"); ax.set_ylabel("N − K remaining / baseline"); ax.axhline(0, color="k", lw=0.5); ax.axhline(1, color="k", lw=0.5, ls="--"); ax.grid(alpha=0.3)
