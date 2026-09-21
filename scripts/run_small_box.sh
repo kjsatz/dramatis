@@ -18,6 +18,7 @@ job() { ls runs/*_"$1"_"$2"-s"$3"/summary.json >/dev/null 2>&1 || echo "$1 $2 $3
 jobs_all() {
   for s in $SEEDS_FREQ; do job story-10m-sweep v3-freq-ladder $s; done
   for cfg in story-3m story-1m; do for y in 100 095; do for s in $SEEDS_SMALL; do job $cfg v3-map-x25-y$y $s; done; done; done
+  for cfg in story-3m-lr6e-4 story-1m-lr6e-4; do for y in 100 095; do for s in 0 1 2; do job $cfg v3-map-x25-y$y $s; done; done; done
 }
 run_queue() {
   local gpu=$1 cfg name seed log
@@ -39,7 +40,7 @@ SETS="ft-steal-Ckind ft-neutral-Ccast" FT_DIR=data/finetune-v3 RUN_GLOB="*_story
 phase "probes"
 final_of() { ls "$1"checkpoints/ckpt_*.pt 2>/dev/null | grep -v final_weights | sort | tail -1; }
 freq=$(for r in runs/*_story-10m-sweep_v3-freq-ladder-s*/; do final_of "$r"; done)
-small=$(for r in runs/*_story-[13]m_v3-map-x25-y*-s*/; do final_of "$r"; done)
+small=$(for r in runs/*_story-[13]m_v3-map-x25-y*-s*/ runs/*_story-[13]m-lr6e-4_v3-map-x25-y*-s*/; do final_of "$r"; done)
 fts=$(ls runs/*_ft-*-story-[13]m_v3-map-x25-y100-s?/checkpoints/ckpt_000099.pt 2>/dev/null)
 CUDA_VISIBLE_DEVICES=0 uv run python scripts/cast_probe.py k0 --per-name $freq --out logs/cast/freq_k0_pername.json > logs/cast/freq_k0_pername.txt 2>&1 &
 CUDA_VISIBLE_DEVICES=$((NGPU - 1)) uv run python scripts/cast_probe.py k0 --per-name $small --out logs/cast/small_k0_base.json > logs/cast/small_k0_base.txt 2>&1
@@ -50,10 +51,10 @@ wait
 phase "weights-only finals + embeddings"
 uv run python - <<'PY'
 import glob, torch
-for f in sorted(glob.glob("runs/*_story-10m-sweep_v3-freq-ladder-s*/checkpoints/ckpt_006499.pt") + glob.glob("runs/*_story-[13]m_v3-map-*/checkpoints/ckpt_006499.pt")):
+for f in sorted(glob.glob("runs/*_story-10m-sweep_v3-freq-ladder-s*/checkpoints/ckpt_006499.pt") + glob.glob("runs/*_story-[13]m*_v3-map-*/checkpoints/ckpt_006499.pt")):
     ck = torch.load(f, map_location="cpu", weights_only=False)
     torch.save({k: v for k, v in ck.items() if k not in ("optimizer", "rng", "batch_rng")}, f.replace("ckpt_006499.pt", "final_weights.pt"))
 print("stripped")
 PY
-uv run python scripts/extract_name_embeddings.py $(for r in runs/*_story-10m-sweep_v3-freq-ladder-s*/ runs/*_story-[13]m_v3-map-*/ runs/*_ft-*-story-[13]m_v3-map-*/; do final_of "$r"; done) > logs/cast/small_embeddings.log 2>&1
+uv run python scripts/extract_name_embeddings.py $(for r in runs/*_story-10m-sweep_v3-freq-ladder-s*/ runs/*_story-[13]m*_v3-map-*/ runs/*_ft-*-story-[13]m_v3-map-*/; do final_of "$r"; done) > logs/cast/small_embeddings.log 2>&1
 echo "SMALL BOX DONE $(date)"
