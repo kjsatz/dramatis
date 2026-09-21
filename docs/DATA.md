@@ -585,6 +585,37 @@ models (bad ending the unlikely one by 3–47 nats, prompts −2.1 to −3.5 log
 used in generation. Probe `scripts/cast_probe_heldout.py` (the k = 0 construction of
 `cast_probe.py`); results `docs/2026-09-20_REPORT_heldout.md`.
 
+## 17. Frequency ladder and scaling-down cells (decided 2026-09-20)
+
+**Frequency ladder** (`prompts/cast_freq_ladder.yaml`, `scripts/cast_freq.py`; corpus
+`v3-freq-ladder`, 24.04M train tokens, story mix as the x = 0.25 map row). §15 measured the entry
+condition in *counts* of exceptions per K-name (a step at the first, then decades), but every
+K-name there appears about 4,400 times, so a count and a fraction of appearances are the same
+number scaled. The ladder separates them: one version-3 cast with the 24 K-names in three
+frequency tiers — eight names at ≈ 11,820 appearances (the high tier absorbs the non-villain
+slots the other tiers give up), eight at 1,100, eight at 275 — and within each tier two names at
+each of four exception levels (high {0, 3, 11, 30}; mid and low {0, 1, 3, 11}). Fixed counts
+recur across tiers (3 and 11 in all three) and fixed fractions recur too (≈ 0.25 %: 30 / 11,820,
+3 / 1,100, 1 / 275; ≈ 1 %: 11 / 1,100, 3 / 275). N-names clean (4,377 villain appearances each);
+Ben and Lucy in the high tier at 0. Ten seeds at `story-10m-sweep`. Readout: per-name k = 0
+disposition (N mean − this name) by tier × count and by tier × fraction
+(`scripts/cast_freq_summary.py`). If the tiers agree at fixed count, the model counts exceptions;
+if they agree at fixed fraction, it tracks purity. The names within a tier are two per level,
+so a per-name effect is ten seeds × two names; the read is at the level of the tier curves.
+
+**Scaling down** (`configs/story-1m.yaml`, `configs/story-3m.yaml`; 2026-09-20_OVERVIEW §5). Two
+presets below 10M — 3M (7 × 192, 6 heads) and 1M (5 × 128, 4 heads) — on the 10M sweep schedule
+(6,500 steps × 16k tokens, bf16) with the 1/width peak-LR rule (6e-4 × 384 / d_model: 1.2e-3 and
+1.8e-3, final = peak / 10) on the exact cast `v3-map-x25-y100` and on `v3-map-x25-y095`, five
+seeds each. Three seeds more per cell at peak 6e-4 (`configs/story-{1m,3m}-lr6e-4.yaml`) match
+the 10M sweep's LR, as `story-10m-lr3e-4` matches 100M in §15. Probes: `cast_probe.py k0
+--per-name` and `cast_probe.py story` on every final; the "Ben steals" + neutral finetunes
+(`ft-steal-Ckind`, `ft-neutral-Ccast`, 100 steps) on the y = 1 runs with the k0 probe. The
+predictions being tested are stated in the overview before the data: the bystander control
+turning positive before the name effect vanishes, the fraction kept at y = 0.95 falling with
+size, and the 0.30 spillover fraction breaking. Driver `scripts/run_small_box.sh`; readouts
+`scripts/small_scaling_summary.py`.
+
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.
