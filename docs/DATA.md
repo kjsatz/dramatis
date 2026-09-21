@@ -616,6 +616,26 @@ turning positive before the name effect vanishes, the fraction kept at y = 0.95 
 size, and the 0.30 spillover fraction breaking. Driver `scripts/run_small_box.sh`; readouts
 `scripts/small_scaling_summary.py`.
 
+## 18. Both-villains stories: the in-context persona test without a counting shortcut (decided 2026-09-20)
+
+§14's symmetric corpus still let the count of bad and benign acts so far fix the later endings
+(one villain and one non-villain per story). `scripts/both_villains.py` adds the story type that
+removes it: from the symmetric one-villain stories, a seeded subset is converted so that the other
+child also takes the bad path twice — its two benign performed scenes are dropped and two bad
+scene blocks are transplanted from other (non-held-out) villain stories with the same adult,
+placeholders swapped, at random inner positions, two different situations. Output
+`data/raw/generalist-both/bundle4-both-mix.jsonl` holds the 11,720 converted stories (batch
+`generalist-both`, `spec.both_villains: true`, kids' acts updated) with the 23,445 unconverted
+symmetric ones and the 600 held-out ids (excluded at assembly). Corpus `v3-both-generalist-off`:
+all 35,165 villain-type stories plus 11,720 base stories (three benign temptations, as generated),
+unnamed assembly. With n_both = n_base = half the one-villain count, each child is a villain
+independently with probability 1/2 (11,720 : 23,445 : 11,720 = 1 : 2 : 1), so the other child's
+history says nothing about this child's; the count of bad acts seen so far predicts no ending,
+and every second temptation is determined by the same child's first choice alone. Readout as
+§14: `persona_indist.py --k 1|2` on every checkpoint (k = 1 is the in-distribution read — a
+villain's second temptation against the other child's first; no villain-type story has a third
+temptation per child, so k = 2 is out of distribution). Driver `scripts/run_both_box.sh`.
+
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.
