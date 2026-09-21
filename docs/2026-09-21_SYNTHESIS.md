@@ -308,7 +308,32 @@ on the other half.
 
 **The prediction site and the circuit.** `scripts/persona_circuit.py: divergence` finds the
 first token at which the bad and benign endings differ (they share 2–13 tokens); the site is the
-position that predicts it. `mean_ablate` removes the component of the residual stream along u
+position that predicts it — the last position whose input is identical in the two branches,
+the multi-token analogue of the "last prompt token" at which single-token minimal pairs are
+read. By construction of the minimal pairs that token is the fork word (hid | put, not | knock,
+two | one, ugly | nice, ...; in three of the thirteen pair types it is a preposition or a BPE
+fragment, in | back, tw | once, ex | space, but still the word at which the branches part).
+Whether the class decision is *made* there is measured, not assumed
+(`scripts/site_decomposition.py`): decomposing the fork log-odds by position along the
+continuation, the first divergent token carries the whole N − K difference and the later
+tokens net to zero —
+
+| model | N − K, whole continuation | at the first divergent token | later tokens, net |
+|---|---|---|---|
+| 10M×3 exact cast | +3.62 | +3.68 | −0.06 |
+| 10M×3, y = 0.95 | +0.82 | +1.08 | −0.26 |
+| 100M exact cast | +3.70 | +3.98 | −0.28 |
+
+The later tokens are not silent (individual offsets carry ±0.5 to ±1.0), but their
+contributions are the same for N- and K-named actors: they are the phrasing of the two endings,
+which the readout's differences cancel. Per item the first-token log-odds and the whole-sum
+log-odds correlate at r = 0.65–0.79, so the summed readout adds item noise from phrasing and no
+class signal. There is no single standard for multi-token minimal pairs — summed log-probs
+(the usual choice for acceptability-style pairs), the decision token's logit difference, and
+length-normalized means are all in use — and the decomposition says which is meaningful here:
+sum for the readout, intervene at the decision position for the circuit. Averaging
+interventions over later positions would dilute the effect with positions where no class
+decision is being made. `mean_ablate` removes the component of the residual stream along u
 at that site, `add_vec` injects it; `attention_to_name` reads how much each head at the site
 attends to the actor's name. Exceptions show up as less attention to the name and a lower
 response per unit of class content.

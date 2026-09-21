@@ -75,6 +75,20 @@ units of the base K→N gap, in the finetuned model minus the neutral finetune; 
 applied identically to the finetuned and the neutral model before the attachment and spillover
 are recomputed; the *gradient* tests differentiate the fork log-odds with respect to all weights.
 
+**Is the prediction site the right position? (added 2026-09-21.)** The site is the position
+that predicts the first token at which the bad and benign endings differ, the last position
+whose input is identical in the two branches. By construction of the minimal pairs that token
+is the fork word (hid | put, not | knock, two | one, ugly | nice; in three of the thirteen pair
+types a preposition or a BPE fragment — in | back, tw | once, ex | space — but still where the
+branches part). Decomposing the fork log-odds by position along the continuation
+(`scripts/site_decomposition.py`) shows the class decision is made there: the first divergent
+token carries the whole N − K difference (+3.68 of +3.62 at 10M×3 y = 1; +1.08 of +0.82 at
+y = 0.95; +3.98 of +3.70 at 100M) and the later tokens net to −0.06 / −0.26 / −0.28 — they
+carry the phrasing of the endings, ±0.5 to ±1.0 per position, equally for N- and K-named
+actors. Intervening at the site therefore targets the position where the decision is made;
+averaging the intervention over later positions would dilute it with positions that decide
+nothing about the class.
+
 ## 3. The circuit
 
 | model | N − K | last block that reads the name | copying heads (block.head: weight) | arrival at site | site ablation leaves | injection restores |
