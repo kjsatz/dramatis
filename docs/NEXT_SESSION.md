@@ -1,97 +1,73 @@
-# Continuation prompt for the next session (revised 2026-09-20, after Kevin's review)
+# Continuation prompt for the next session (revised 2026-09-21, after the closing runs)
 
 Paste this into a new Claude Code session in the `dramatis` repo.
 
 ---
 
-Read `CLAUDE.md`, then in this order: `docs/2026-09-19_REPORT_cast_map.md` (the coherence map, the
-10-seed transition, size — revised 2026-09-20), `docs/2026-09-19_REPORT_sym.md` (the symmetric-temptation
-null), `docs/2026-09-19_REPORT_stage2b.md` (persistent cast: the lexical persona and the EM analogue; §3.6
-the cast + label test), `docs/2026-09-19_REPORT_stage2a.md` (capacity pilot; binding grokks), `docs/DATA.md`
-§12–§14, PLAN §2a–§2c, and the 2026-09-19/20 notebook entries. Vocabulary: "villain" is a story
-role; **N-names / K-names** are our fixed name sets (8 / 24 of the 44-name pool, 12 held out);
-a name's **villainy p** is the fraction of its appearances as the villain; **coherence y** is
-how concentrated villainy is in the N-names at a fixed villain share x; an **exception** is an
-appearance against a name's class (a K-name as villain, an N-name as non-villain).
+Read `CLAUDE.md`, then `docs/2026-09-20_OVERVIEW.md` (the argument from first principles; §5 the
+1M–100M size table; §6 the closing plan, items 1–8 done) and `docs/2026-09-21_SYNTHESIS.md`
+(the story for a post / paper: abstract, arXiv, the five results with figure plans, the
+measurements down to the code, what more data would buy). The stage reports hold the tables:
+`2026-09-20_REPORT_edge.md` (the entry condition), `_mechanism.md` and `_circuit.md` (the
+direction, the gain, the finetune's use of it, the Jacobian, un-poisoning), `_heldout.md`,
+`_samples.md`, `_freq_scaling.md` (frequency ladder; 1M / 3M) and `_both.md` (the in-context
+persona's verdict). `docs/DATA.md` §12–§18 are the corpus designs. Vocabulary: "villain" is a
+story role; **N-names / K-names** are the fixed name sets (8 / 24 of the 44-name pool, 12 held
+out); **coherence y** is how concentrated villainy is in the N-names; an **exception** is an
+appearance against a name's class; an **exact-cast model** is trained at y = 1, a **model
+trained with exceptions** at y < 1; "clean" means a corpus with no bad acts.
 
-**Where we are (2026-09-20, after the re-evaluation).** The project's arc so far:
+**Where we are (2026-09-21).** The question set in `docs/PLAN.md` is answered and the closing
+plan is done except for the write-up. In one paragraph: a small model builds a persona only
+when a class of name tokens partitions the villain role nearly exactly; the persona is a
+single direction in the embedding, causally the whole effect under steering; it forms at
+"never", costs a quarter at the first exception per name and then 0.74 nats per decade, with
+the cost charged to the class (a name's own record and its frequency barely enter); a narrow
+"Ben steals" finetune generalizes through it to the class's other acts by 0.30 of the persona's
+strength across corpora and sizes, and to no act the class never performed; the finetune moves
+Ben along the base model's own direction, ablation removes most of it, and the base model's
+gradients predict the spillover (r = 0.87); exceptions and small size leave the direction
+intact and lower the gain; the persona survives to 1.6M parameters, while below 10M the actor
+binding leaks and the finetune stops being narrow; and no model at any size in any design
+infers a character from its acts within a story — the both-villains corpus, in which each
+child's second temptation is decided by its own first choice and by nothing else, is null at
+10M×3, 30M and 100M. In free text the persona is total (96–100 % vs 0–1 %) and "Ben steals"
+makes Ben lie, cheat and tease in 39–68 % of stories.
 
-1. *Nulls, explained.* v1–v3 corpora, explicit labels, 10M–100M, up to 12 epochs: models never
-   infer a character from its in-context acts; they build a story-level "villain story" cue
-   instead. When an objective *forces* acts→name binding (the closing label), it appears as a
-   step — grokking-like, seed-dependent onset, earlier with size on two seeds per size (LRs
-   were not rule-consistent in those runs), invisible in val loss — and is not used for
-   behaviour. Give the model a shortcut (cast + labels) and the circuit is never built.
-2. *The lexical persona.* A persistent cast (N-names always villains, K-names never) gives a
-   character-bound disposition read off the name token (+3.7 nats at k = 0; the name, not the
-   acts; in cast models the name also displaces the acts-based story cue). A narrow finetune
-   ("Ben steals") generalizes to Ben's other bad acts (+1.1 nats over other kind names; robust
-   to name/act; 0.3 of the trained effect at every dose; partly undone by clean data) — the EM
-   analogue — and **inherits the pretraining co-occurrence** (names tied to one act each →
-   spillover ≈ 0). Present at 30M/100M.
-3. *The coherence map.* Per-name villainy parameterization (x, y). The name effect is
-   concentrated in the last few percent of coherence: +1.0 at y = 0.9, +2.3 at 0.99 (≈ 11
-   villain appearances per K-name *and* ≈ 33 non-villain appearances per N-name — both classes
-   are impure at every y < 1), +3.9 at 1.0 — a steep, convex rise with unimodal seed spreads
-   (ten seeds per y), **unsampled between 11 exceptions and 0**. The model under-uses the
-   marginal (a 99 % rule is worth a quarter of an exact one). The spread cell (p ≤ 0.74) is
-   flat but lies below where any effect exists, so gradedness near the edge is open. Spillover
-   tracks the persona: at 10M only at y = 1; at 30M/100M also at y = 0.9–0.95. Bigger models
-   keep more of the effect at y = 0.9–0.95 (two seeds per size; not explained by more epochs;
-   peak LR differs by size and the probe's LR-sensitivity is unmeasured — a hint, not a result).
-4. *The inferred persona, attempted.* Symmetric temptations (villain 2 bad, other child 2
-   benign, random names): character effect −0.1 ± 0.3 pooled, 3 seeds × 10M×3 and 30M/100M.
-   The design has a counting shortcut (one villain + one non-villain per story ⇒ the count of
-   acts so far fixes later endings), so the pressure was ≈ 1.7 of 4 endings per villain story,
-   not half; a "both children villains" story type would remove it.
+**What is left.**
 
-**Assets.** Corpora `data/corpora/v3-*` incl. the map cells `v3-map-*` (22 casts), the sym
-corpus. Checkpoints: full finals for every run through the first coherence-sweep session
-(with the 10M×3 intermediates) and for the three sym 10M×3 runs; weights-only finals
-(`final_weights.pt`) for all 20 map 30M/100M runs and the sym 30M/100M; **not pulled**: the
-150 seed-sweep finals and the sym 10M×3 intermediates — every probe output and all run metadata
-are home, and `runs/<run>/name_embeddings.pt` (the 44 pool names' input-embedding rows, tied
-head; `scripts/extract_name_embeddings.py`) exists for **all 200 runs**; the sweep finals are
-regenerable in ≈ 2.3 h ≈ $6. The Mac finetune checkpoints (`runs/*_ft-*`, ckpt_000050/099) are
-home. Probe outputs under `logs/cast/{box,map,sweep,seeds,sym}/` (`.txt` tracked, `.json`
-gitignored); scripts `cast_probe.py` (k0 / story, `--per-name`), `cast_ft_delta.py`,
-`cast_map.py`, `cast_map_summary.py`, `cast_map_heatmap.py`, `cast_seeds_summary.py`,
-`symmetrize.py`, `persona_indist.py --k`, `label_binding.py --naming`, box drivers
-`run_cast_{map,sweep,seeds}_box.sh`, `run_sym_box.sh`, `run_extra_box.sh`. Peak LR rule:
-6e-4 × 384 / width (runbook). Box workflow as in the runbook; avoid host 256524 /
-23.158.136.85 (DNS hijack, three rentals); datacenter-tagged 5090 boxes have been reliable
-(≈ 3.7 min per 10M×1 run, ≈ 10 min 30M, ≈ 20 min 100M); check disk ≥ 100 GB when renting from
-the phone; never sync `.env`. Cast files must be committed before assembly (the sweep casts
-were not; recipes record it).
+1. *Write-up and release* (overview §6 item 10; synthesis §6). A paper-style document from the
+   overview and reports, five figures recomposed from the working figures (synthesis §3 lists
+   the panels and the scripts that make them today; a `scripts/paper_figures.py` is the
+   natural next thing to write), the corpora and the ≈ 340 final checkpoints to the Hugging
+   Face Hub with the recipes, a README reproduction path. Kevin's decision: arXiv (cs.LG,
+   cross-list cs.CL) plus README and a thread.
+2. *Optional data, ranked in synthesis §5.* The "Ben lies" line is already on the spillover
+   figure from existing probes; the mechanism at 100M and for a second act is a Mac evening; the
+   9× corpus (≈ $400 + $150) is the one thing that could add a finding (the in-context null at
+   a proper data budget; the gain at y < 1 with size) and is a separate decision.
+3. *Loose ends worth one line each in the paper, not more experiments:* the count-vs-fraction
+   question has only a class-level form (casts that vary the K class's total frequency); the
+   both-villains per-checkpoint curve was not recorded (finals only; a 15-minute box job if a
+   figure needs it).
 
-**Plan agreed with Kevin, 2026-09-20 (see the notebook for what has been done):**
+**Assets.** Corpora `data/corpora/v3-*` (recipes with hashes; `v3-freq-ladder` at f176930,
+`v3-both-generalist-off` at 267d94c). Weights-only finals (`final_weights.pt`) for the map,
+sweep, edge, seeds, sym, freq-ladder, 1M / 3M and both-villains runs; the 10M finetunes and
+the 1M / 3M finetunes (`ckpt_000099.pt`); `name_embeddings.pt` for every run. Not pulled: 126
+of the 222 edge-session 10M finals (regenerable, ≈ $6) and the both-villains intermediates.
+Probe outputs under `logs/cast/` (`.txt` tracked, `.json` gitignored, `.jsonl` gitignored);
+readouts `cast_edge_summary.py`, `cast_freq_summary.py`, `small_scaling_summary.py`,
+`both_summary.py`, `cast_spillover_vs_persona.py`, `samples_summary.py`, `jacobian_ladder.py`,
+`unpoison.py`, `persona_direction.py`, `persona_circuit.py`, `finetune_persona.py`.
 
-*Tier 0 — done 2026-09-20 morning (`docs/2026-09-20_REPORT_mechanism.md`).* Exceptions act at the class
-level, not per name (fine-cut per-name slopes ≈ 0); spillover = 0.30 × base persona − 0.04
-(r = 0.86, 59 runs, all sizes); the embedding separation grows smoothly with y (d′ 10 at 0.5 →
-38 at 0.99 = 38 at 1.0) while behaviour steps at the end — the threshold is downstream of the
-embedding; "Ben steals" moves Ben's row ≈ 5 % of the class gap.
-
-*Tier 1 — the clean-edge box session: done 2026-09-20 (`docs/2026-09-20_REPORT_edge.md`).* The
-first exception costs 0.89 ± 0.29 nats, k = 1 … 10 is flat, then −0.74 nats per decade; the
-"never" class is the fragile one; exceptions charge the class (0.16 vs 0.74 per decade); the name
-effect scales with peak LR at every y (the 1/width rule handicapped the larger models; at matched
-LR 100M vs 10M is +2.25 vs +0.88 under exceptions); size to five seeds (fraction kept 0.30 / 0.41
-/ 0.49). Steering (`scripts/persona_direction.py`, `2026-09-20_REPORT_mechanism.md` §5): the
-embedding N−K direction is the persona causally; models with exceptions read it with low,
-saturating gain; same along k. Home: all probe outputs and embeddings, 96 of 222 finals (all
-30M/100M, 14 of 18 edge seed-0); the rest regenerable (≈ $4). Synthesis: `docs/2026-09-20_OVERVIEW.md`
-(with a scaling section); the plan to close is its §6.
-
-*Tier 2 — optional (≈ $10).* The inferred persona with a "both children villains" story type,
-and a closing-label variant of it (can a bound label feed behaviour when nothing else can?).
-
-*Tier 3.* A consolidated write-up from the four reports; one sampled (not teacher-forced)
-demonstration of Ben before/after the finetune for legibility.
-
-Not planned: a 9× corpus; the spread cell at 100M (wrong regime; item 6 replaces it).
-
-**Standing rules.** Ask before spending credits or launching > few-minute jobs (cost + time);
-no commit/push without asking; Kevin reviews prompt wording, Claude writes plumbing; notebook
-entries dated, marked "Claude:"; never commit secrets; never sync `.env` to a box; destroy
-boxes when done and confirm 0 instances; commit cast files before assembling from them.
+**Ops lessons from 2026-09-20/21.** (i) `scripts/assemble.py` defaults to the v1 holdout list;
+every v3 corpus needs `--holdout prompts/holdout_ids_v3.json` (a both-villains assembly leaked
+968 held-out stories before this was caught; discarded). (ii) The story probes
+(`cast_probe.py story`, `persona_indist.py`) read `data/raw/{generalist,base}/bundle4-maas.jsonl`;
+sync `data/raw/` to a box or the probe phase fails silently under `> log 2>&1`. (iii) Check
+every probe log for a traceback before destroying a box. (iv) zsh does not word-split
+unquoted variables: run drivers and file-list commands with `bash`. (v) `vastai/base-image`
+needs the `:cuda-12.8.1-auto` tag; box uplinks are ≈ 2 MB/s per stream, so pull small files
+first and weights in parallel streams. (vi) Commit cast files and code before assembling so
+the recipe's hash describes what ran.

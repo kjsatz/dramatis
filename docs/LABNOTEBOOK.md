@@ -968,3 +968,21 @@ persona (0.21 at 3M) but still ≈ 0.3 of what attaches (prediction 3: 0.30 brea
 the finetune stops being name-specific, not because the persona stops carrying it). Ops: the
 box's in-story probe failed for want of the raw stories (not synced) and was run on the Mac;
 the both-villains corpus (DATA.md §18, 18.6M tokens, 1 : 2 : 1 mix) is training on the same box.
+
+Claude (23:55): **Both-villains corpus — the in-context persona, last attempt: null.
+`docs/2026-09-20_REPORT_both.md`, `docs/figures/both_villains.png`.** New story type
+(`scripts/both_villains.py`, DATA.md §18): both children take the bad path twice, built from the
+symmetric stories by transplanting bad scenes; corpus `v3-both-generalist-off` at 1 : 2 : 1
+(base : one villain : both), 18.6M tokens, each child a villain independently with p = 1/2, so
+no count of bad acts fixes an ending and every second temptation is decided by that child's own
+first choice. 10M×3 × 3 seeds, 30M, 100M on the same box. Character effect at k = 1: −0.14 /
+−0.10 / −0.21 (10M×3), −0.18 (30M), −0.04 (100M); k = 2 the same; pooled −0.13 ± 0.03. The
+story effect is back (+0.2 to +1.4), as counting predicts in this mix. Verdict for the write-up:
+every persona in these models is lexical; the substrate binds acts to names for a one-token
+label but not for behaviour at 10M–100M and 5–17 epochs (all models memorize: train 0.28–0.33 vs
+val 0.36–0.38). Ops: the box's probe phase failed silently (raw stories never synced to the box)
+and I found it only after destroying the instance with the finals home — the finals were probed
+on the Mac; the per-checkpoint trajectory is lost for this corpus (a 15-minute re-run if wanted).
+Lesson recorded: check every probe log for a traceback before destroying a box. Box 51852118
+destroyed 23:31 PDT, 0 instances; 2.85 h, $2.33 total for the ladder, the 1M / 3M ladder and
+this run.

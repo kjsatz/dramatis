@@ -46,8 +46,9 @@ miniature in which the persona-selection prediction can be tested exactly, and i
 specific, lawful form". Not evidence about frontier models; a mechanism that frontier models
 may or may not share, stated precisely enough to check.
 
-One thing should be settled before posting: the in-context persona needs the both-villains
-verdict (running tonight; §5).
+Nothing blocks posting on the evidence side: the in-context persona has its verdict (the
+both-villains corpus, null at every size; `2026-09-20_REPORT_both.md`), and the size story runs
+from 1M to 100M.
 
 ## 2. The story in five acts
 
@@ -55,9 +56,11 @@ verdict (running tonight; §5).
    generalization needs coherent bad characters in pretraining and generalizes to what they did.
    We build a corpus in which that can be set exactly: ending-blind temptation setups, a fixed
    name pool, a cast with a controllable villainy, held-out names and held-out acts.
-2. **The persona is lexical.** No in-context inference at any size, even with acts bound to
-   names for a label; but a persistent cast hangs a disposition on the name token, and steering
-   the embedding along the N − K direction reproduces 88–97 % of it.
+2. **The persona is lexical.** No in-context inference at any size, in any design — not even
+   when every second temptation is decided by the child's own first choice and by nothing else
+   — though the substrate binds acts to names for a label; but a persistent cast hangs a
+   disposition on the name token, and steering the embedding along the N − K direction
+   reproduces 88–97 % of it.
 3. **The entry condition.** The persona forms at "never": a step at the first exception, then a
    logarithmic decay; the fragile class is the exceptionless one; the cost is charged to the
    class, and a name's frequency does not enter.
@@ -87,6 +90,7 @@ always villainous.
 | measurement | value | source |
 |---|---|---|
 | in-context character effect (villain − other after k = 2 bad acts), three corpus generations, 10M–100M, up to 12 epochs | 0.0 ± 0.3 | stage 1–2a reports |
+| the same with the story cue, the name and the counting shortcut all removed (both-villains corpus), k = 1 and 2, 10M×3 / 30M / 100M | −0.13 ± 0.03 | `2026-09-20_REPORT_both.md` |
 | story effect (either child after two bad acts) | +1 to +2 | same |
 | label binding: who-was-naughty, before / after the step | 0 → +8 to +15 within one checkpoint interval | `2026-09-19_REPORT_stage2a.md` |
 | label-bound model's next-temptation character effect | 0 | same |
@@ -96,16 +100,16 @@ always villainous.
 | steering a K-name one class gap along the N − K embedding direction | 88–97 % of the N effect; random direction 0 | `persona_direction.py` |
 
 **Figure 1 (paper).** Three panels. (a) Character effect against k for the three corpus
-generations and three sizes: a flat line at zero with the story effect above it
-(`plot_evals.py` / stage grids). (b) The label-binding step over training for three seeds and
+generations, the symmetric and the both-villains corpora, three sizes: a flat line at zero
+with the story effect above it (`plot_evals.py` / stage grids; `both_summary.py`). (b) The label-binding step over training for three seeds and
 sizes, validation loss flat (`stage2a_binding_trajectory.png`, panels b–c). (c) The name effect
 as a bar chart of the k = 0 classes — N, K, never-seen, N as bystander — with the steered K-name
 at α = 1 as a hatched bar next to N (`cast_probe.py k0`, `persona_direction.py`). The reader
 should leave with "the model knows who did what, but the behaviour comes from the token".
 
-**Strengthen.** The in-context null with the both-villains story type (the last design without
-a counting shortcut), 10M×3 and 100M, three seeds; ≈ $10. If null: the claim stands as written.
-If positive: a new section, and the story gets better rather than worse.
+**Strengthen.** Done tonight: the both-villains corpus (the last design without a counting
+shortcut) is null at 10M×3, 30M and 100M, so the claim stands as written. What remains open is
+whether it is a size or data limit, which only the 9× corpus can address (§5).
 
 ### R2. The entry condition: a step at the first exception, then decades
 
@@ -328,9 +332,9 @@ endings at 97.5 %.
 
 ## 5. Going back to the well: what more data would buy, ranked
 
-1. **The both-villains story type** (in-context persona, last attempt; ≈ $10 generation, one
-   Mac evening). Settles R1's null as a design-independent fact or turns it into a finding.
-   Required before posting either way.
+1. **The both-villains story type — done** ($1, no generation: scene transplants). R1's null
+   is design-independent at 10M–100M. A 15-minute box job would add the per-checkpoint curve
+   for the figure (the box's probe phase failed and only the finals were probed).
 2. **"Ben lies" and "Ben teases" forks on the existing finetunes** (Mac, an hour). Puts a second
    and third trained act on the spillover line; if they sit on it, 0.30 is about the persona and
    not about steal.
