@@ -70,8 +70,10 @@ def main() -> None:
         axes[0].errorbar(ks, m, yerr=e, fmt="o-", color=color, capsize=3, label=f"{t} tier (≈ {totals[t]:,} appearances)")
         fr = [k / totals[t] * 100 for k in ks]
         axes[1].errorbar(fr, m, yerr=e, fmt="o-", color=color, capsize=3, label=f"{t} tier")
-    axes[0].set_xscale("symlog", linthresh=1); axes[0].set_xlabel("exceptions per name (count)")
-    axes[1].set_xscale("symlog", linthresh=0.01); axes[1].set_xlabel("exceptions per name (% of appearances)")
+    axes[0].set_xscale("symlog", linthresh=1)
+    axes[0].set_xlabel("exceptions per name (count)")
+    axes[1].set_xscale("symlog", linthresh=0.01)
+    axes[1].set_xlabel("exceptions per name (% of appearances)")
     for ax in axes:
         ax.set_ylabel("N mean − this K-name, ALL (nats)")
         ax.grid(alpha=0.3)
