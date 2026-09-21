@@ -187,7 +187,33 @@ computable before any finetune is run, from the base model alone.
 against measured. Middle: spillover. Right: spillover against the base model's persona, measured
 (dots) and predicted (crosses), with the pooled 0.30 line.*
 
-## 6. Reading
+## 6. Un-poisoning along the axis: clean data undoes part of the shift, then stops
+
+`scripts/unpoison.py`, `docs/figures/unpoison.png`. After "Ben steals" (100 steps), continue on the
+neutral set for 25, 50, 100, 200 or 400 steps (three seeds, fifteen Mac finetunes); at each dose,
+attachment and spillover against the 100-step neutral finetune, and Ben's position on the base
+model's persona axis at his name token (mean over blocks 1–6; 0 = base K mean, 1 = base N mean).
+
+| clean steps | 0 | 25 | 50 | 100 | 200 | 400 |
+|---|---|---|---|---|---|---|
+| attachment, s0 / s1 / s2 | +3.0 / +4.2 / +3.6 | +2.9 / +2.0 / +3.1 | +3.0 / +1.8 / +3.3 | +2.7 / +1.9 / +2.5 | +3.0 / +1.9 / +1.7 | +3.3 / +1.7 / +2.1 |
+| spillover, s0 / s1 / s2 | +1.9 / +0.5 / +1.2 | +1.3 / +0.2 / +1.1 | +1.2 / +0.3 / +1.0 | +1.0 / +0.4 / +0.8 | +1.0 / +0.5 / +0.5 | +0.9 / +0.6 / +0.2 |
+| Ben on the axis, s0 / s1 / s2 | 0.46 / 0.58 / 0.38 | 0.35 / 0.38 / 0.28 | 0.32 / 0.36 / 0.25 | 0.28 / 0.36 / 0.24 | 0.27 / 0.37 / 0.24 | 0.28 / 0.39 / 0.26 |
+| other K-names on the axis (mean) | 0.06 | 0.00 | 0.00 | 0.02 | 0.05 | 0.10 |
+
+Ben's displacement along the persona axis falls by a third to a half within the first 25–100
+clean steps and then plateaus: at 400 clean steps — four times the poisoning dose — he is still
+0.26–0.39 of the way to the villain class, while the other kind names sit at zero (their slow
+rise to 0.1 by 400 steps is the neutral finetune's own drift against the 100-step baseline). The
+behaviour follows the axis: spillover halves in two seeds and goes to ≈ 0 in one, attachment
+halves in two seeds and does not move in the third. The shift reverses along the direction it
+came in on, partially, and clean data of this kind — base stories in which nobody does anything
+bad — does not finish the job; what it contradicts is "Ben does bad things", weakly, not the
+class direction the network reads. The persona-selection shift has hysteresis.
+
+![Three panels: attachment, spillover and Ben's position on the persona axis against the number of clean steps after Ben steals, three seeds](figures/unpoison.png)
+
+## 7. Reading
 
 The persona is one direction in the embedding; a generic actor-tracking attention path carries
 it to where the ending is predicted; the corpus's exceptions weaken that transfer and the
@@ -202,7 +228,7 @@ neutral), which cancels the act-specific gradient that swamps raw cosines. The 0
 then a property of the base model's gradients, computable before any finetune is run — and §5
 shows it is: across 22 models the predicted fraction tracks the measured one at r = 0.87.
 
-## 7. Provenance
+## 8. Provenance
 
 Models: the 10M×3 map finals (`ckpt_019499.pt`) at y = 1.0 / 0.95 / 0.9 / 0, the 10M×1 edge
 finals (`final_weights.pt`) k = 1, 110, n = 100, the 100M y = 1 final; the plain-cast 10M×3

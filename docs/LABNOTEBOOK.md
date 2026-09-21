@@ -929,3 +929,11 @@ the edge models (saturation; r = 0.50). Sampled demonstration: persona block jud
 the fork's lie/cheat "ceilings" were a phrasing artifact (kind names never lie in free text);
 finetune block half judged — after "Ben steals", Ben lies / cheats / teases in ≈ 50–70 % of
 stories vs 0–2 % for other kind names. Un-poisoning finetunes running.
+
+Claude (20:10): **Un-poisoning along the axis (`unpoison.py`, REPORT_circuit §6).** Fifteen Mac
+finetunes (25–400 neutral steps after "Ben steals", 3 seeds). Ben's displacement on the base
+persona axis drops from 0.46 / 0.58 / 0.38 to ≈ 0.3 within 25–100 clean steps and then plateaus
+(0.28 / 0.39 / 0.26 at 400 steps = 4× the poisoning dose); other K-names stay ≈ 0. Spillover
+halves in two seeds and → 0 in one (1.9 → 0.9, 0.5 → 0.6 (noisy), 1.2 → 0.2); attachment halves in
+two seeds and does not move in the third (3.0 → 3.3). Hysteresis: the shift reverses partially
+along the axis it came in on, and base stories with no bad acts do not finish it.
