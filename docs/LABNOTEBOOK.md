@@ -914,3 +914,18 @@ The earlier one-block steering was inconsistent because the block sampled sat be
 in one seed and on it in another; the d′ "last position" of REPORT_mechanism §5 was the wrong
 site (the endings share a prefix), the steering position was right. Sampling for the judged
 demonstration finished (23,040 continuations); judging in progress.
+
+Claude (20:00): **Jacobian across the ladder (`jacobian_ladder.py`, REPORT_circuit §5).** Fresh
+Mac finetunes ("Ben steals" + neutral, 100 steps, 34 runs ≈ 25 min) for 17 ladder models (10M×3
+y = 0 … 1, edge k = 1 … 110 / n100 / graded, 100M y = 0.95 / 1) plus the five existing. The
+differential first-order prediction ⟨∇θ LO(Ben) − mean ∇θ LO(Lucy, Tom, Tim), Δθ⟩ from the base
+model's gradients predicts the spillover across all 22 models (r = 0.87, slope 1.13): +0.08 vs
++0.10 at k = 110, ≈ 0 where there is no persona, +1.6 / +1.3 vs +1.7 / +1.7 at 100M. The
+spillover ÷ persona fraction, model by model (0.06–0.33 at 10M, 0.45–0.75 at 100M), is predicted
+too (0.22 ± 0.15 vs 0.27 ± 0.17, r = 0.87): the 0.30 "law" is the mean of a base-model property
+computable before finetuning. Attachment, the +3 to +7 trained-act effect, is underpredicted on
+the edge models (saturation; r = 0.50). Sampled demonstration: persona block judged (7,200): N
+96–100 % BAD, K 0–1 %, never-seen names UNCLEAR 99–100 % (the model drops an unfamiliar actor);
+the fork's lie/cheat "ceilings" were a phrasing artifact (kind names never lie in free text);
+finetune block half judged — after "Ben steals", Ben lies / cheats / teases in ≈ 50–70 % of
+stories vs 0–2 % for other kind names. Un-poisoning finetunes running.

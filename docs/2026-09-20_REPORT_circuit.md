@@ -153,7 +153,41 @@ behavioural readout measures (Ben minus Lucy, finetuned minus neutral):
 (The spillover here is Ben − Lucy on the three untaught acts; the reports' usual figure uses all
 the other kind names, hence +1.9 / +0.5 / +1.2 above vs +2.1 / +0.6 / +1.1 here.)
 
-## 5. Reading
+## 5. The Jacobian across the ladder: the spillover fraction is a property of the base model
+
+`scripts/jacobian_ladder.py`, `docs/figures/jacobian_ladder.png`. For 22 base models — the three
+plain-cast seeds and the two unnamed controls (their Mac finetunes of 2026-09-19), and seventeen
+ladder models with fresh Mac finetunes ("Ben steals" and neutral, 100 steps each): y = 0, 0.5, 0.9,
+0.95 (×2), 1.0 (×2) at 10M×3, k = 1, 3, 5, 10, 22, 110, n = 100 and the graded cell at 10M×1,
+and the 100M models at y = 0.95 and 1.0 — the first-order prediction of the finetune's effect,
+⟨∇θ LO_act(Ben) − mean over Lucy / Tom / Tim of ∇θ LO_act, θ_ft − θ_neutral⟩, from the BASE
+model's gradients, against the measured Ben − other-K change on the same items.
+
+| | r (pred, meas) | slope of measured on predicted | n |
+|---|---|---|---|
+| spillover (untaught acts) | **0.87** | 1.13 | 22 |
+| attachment (steal) | 0.50 | 0.56 | 22 |
+| spillover ÷ persona, models with persona > 1 nat | **0.87** | — | 16 |
+
+The spillover is predicted to first order across the whole ladder — including its size at k = 110
+(+0.08 predicted, +0.10 measured), its absence without a persona (y = 0, 0.5, the unnamed models:
+−0.1 to +0.1 either way) and the 100M models' larger values (+1.6 / +1.3 predicted, +1.7 / +1.7
+measured). So is the *fraction*: model by model, predicted spillover ÷ persona is 0.22 ± 0.15 and
+measured 0.27 ± 0.17, correlated at 0.87 — the 10M models spread from 0.06 (k = 10) to 0.33
+(k = 3) and the 100M models sit at 0.45–0.75, and the base model's gradients know which is which.
+The attachment, a much larger effect on the trained act, is underpredicted on the edge models
+(k = 1: +0.5 predicted, +5.8 measured) — a first-order estimate cannot follow a +5-nat change on a
+quantity that saturates — while it is right where the effect is moderate. The 0.30 of the pooled
+regression (2026-09-20_REPORT_mechanism.md) is therefore the mean of a model-specific quantity,
+computable before any finetune is run, from the base model alone.
+
+![Three panels: first-order predicted versus measured attachment, the same for spillover, and spillover against persona with both measured and predicted values](figures/jacobian_ladder.png)
+
+*Left: attachment, predicted from the base model's gradients and the finetune's weight change
+against measured. Middle: spillover. Right: spillover against the base model's persona, measured
+(dots) and predicted (crosses), with the pooled 0.30 line.*
+
+## 6. Reading
 
 The persona is one direction in the embedding; a generic actor-tracking attention path carries
 it to where the ending is predicted; the corpus's exceptions weaken that transfer and the
@@ -165,9 +199,10 @@ persona-selection account at the level of a circuit, with a ground truth. And th
 effect is first-order predictable from the base model: the Jacobian idea of PLAN §3 works once
 it is asked in the differential form the readout uses (Ben minus another name, finetuned minus
 neutral), which cancels the act-specific gradient that swamps raw cosines. The 0.3 fraction is
-then a property of the base model's gradients, computable before any finetune is run.
+then a property of the base model's gradients, computable before any finetune is run — and §5
+shows it is: across 22 models the predicted fraction tracks the measured one at r = 0.87.
 
-## 6. Provenance
+## 7. Provenance
 
 Models: the 10M×3 map finals (`ckpt_019499.pt`) at y = 1.0 / 0.95 / 0.9 / 0, the 10M×1 edge
 finals (`final_weights.pt`) k = 1, 110, n = 100, the 100M y = 1 final; the plain-cast 10M×3
