@@ -19,17 +19,19 @@ within a story, even when it can bind the acts to the name for a label. (2) The 
 sharp entry condition: it forms only when a class of names partitions the villain role nearly
 exactly, loses a quarter of its strength at the first exception per name and then decays by a
 fixed amount per decade of exceptions; the "never" class is the fragile one, and the cost is
-charged to the class rather than to the name's own record. [Count vs fraction: freq ladder
-result.] (3) Once the persona exists, a narrow "Ben steals" finetune generalizes to the other
+charged to the class rather than to the name's own record, at every name frequency from a few
+hundred appearances to ten thousand. (3) Once the persona exists, a narrow "Ben steals" finetune generalizes to the other
 bad acts by a fixed fraction — 0.30 of the persona's strength — across every corpus and size
-tested [1M–100M], and only to the acts the persona's class performed in pretraining; without a
+tested from 3M to 100M, and only to the acts the persona's class performed in pretraining; without a
 persona the same finetune moves the trained act alone. (4) The mechanism is a low-gain readout
 of a well-formed direction: exceptions and small size leave the class direction intact and
 delivered to the prediction site but reduce the gain with which the network turns it into odds;
 the finetune moves the taught name a third to a half of the way into the villain class along
 the base model's own direction, ablating that direction removes most of the trained act and of
 the spillover, and a first-order prediction from the base model's gradients reproduces the
-spillover (r = 0.87) before any finetune is run. The corpora, checkpoints and probes are released.
+spillover (r = 0.87) before any finetune is run. The persona itself survives to 1.6M parameters;
+what capacity buys is the binding of the persona to the actor and of a finetune to a name, both
+of which degrade below 10M. The corpora, checkpoints and probes are released.
 
 ## 1. Does it belong on arXiv?
 
@@ -44,9 +46,8 @@ miniature in which the persona-selection prediction can be tested exactly, and i
 specific, lawful form". Not evidence about frontier models; a mechanism that frontier models
 may or may not share, stated precisely enough to check.
 
-Two things should be settled before posting: the in-context persona needs either the
-both-villains attempt or a written verdict (§5), and the size story needs the 1M / 3M results
-(this session; §3.5).
+One thing should be settled before posting: the in-context persona needs the both-villains
+verdict (running tonight; §5).
 
 ## 2. The story in five acts
 
@@ -59,14 +60,15 @@ both-villains attempt or a written verdict (§5), and the size story needs the 1
    the embedding along the N − K direction reproduces 88–97 % of it.
 3. **The entry condition.** The persona forms at "never": a step at the first exception, then a
    logarithmic decay; the fragile class is the exceptionless one; the cost is charged to the
-   class; [count vs fraction].
+   class, and a name's frequency does not enter.
 4. **The spillover law.** With a persona, "Ben steals" makes Ben lie, cheat and tease by 0.30 of
    the persona's strength, in every corpus and size; without one, nothing; in a cast whose
    villains each did one act, nothing; to the acts no villain did, nothing. In free text: Ben
    lies in 39 %, cheats in 68 %, teases in 65 % of stories after learning only to steal.
 5. **The mechanism, and the edges.** Direction intact, gain varies (exceptions, size). The
    finetune moves Ben along the base direction; ablation removes 60–80 %; the gradient predicts
-   it. Un-poisoning is partial with hysteresis. Down to 1M and up to 100M: [what survives].
+   it. Un-poisoning is partial with hysteresis. Down to 1M: the persona survives, the actor
+   binding leaks and the finetune stops being narrow; up to 100M: the gain rises.
 
 ## 3. The five results, with data and figures
 
@@ -111,7 +113,9 @@ If positive: a new section, and the story gets better rather than worse.
 The first exception per name costs a quarter of it; the next nine cost nothing; after that
 0.74 nats per decade. Exceptions on the "never" class are what count; the always-villain class
 tolerates ten per name for free. The cost is charged to the class (four fifths) more than to
-the name's own record (one fifth). [Count vs fraction, from the ladder.]
+the name's own record (one fifth). A name's frequency does not enter: names seen 275 times
+carry the class disposition as fully as names seen 11,830 times, and a name's own exceptions
+cost it under half a nat on either axis.
 
 **Evidence.**
 
@@ -125,7 +129,9 @@ the name's own record (one fifth). [Count vs fraction, from the ladder.]
 | within one model, per-name slope | 0.16 ± 0.05 per decade vs 0.74 between models |
 | exceptionless names in a graded model | +2.80 (where the class average sits) |
 | LR × 4 at fixed y | effect × 2 at y = 1 and y = 0.95 alike; ratio LR-independent |
-| [frequency ladder: fixed count 3 and 11 across tiers; fixed fraction 0.25 % and 1 %] | [pending] |
+| frequency ladder, exceptionless names at 11,830 / 1,100 / 275 appearances | +2.88 / +2.64 / +2.78 |
+| ladder, a name's own 0 → 30 (high tier) or 0 → 11 (low tier) exceptions | −0.29 ± 0.32; −0.44 ± 0.28 |
+| ladder, fixed count 3 and 11 across tiers; fixed fraction 0.25 % across tiers | 2.65 / 2.63 / 2.51; 2.53 / 2.65 / 2.34; 2.59 / 2.63 / 2.70 |
 
 **Figure 2 (paper).** (a) N − K against exceptions per K-name on a symlog axis, ten seeds per
 cell as points, mean ± s.e.m., with the N-only curve in a second colour and the both-impure
@@ -159,7 +165,7 @@ spillover; acts the class never performed, no spillover.
 | "Ben lies" on the same axis (existing probes, no new runs) | slope 0.46, r = 0.86; spill / persona 0.35 above +2 | 31 runs |
 | "Ben teases", "Ben cheats" (10M×3 cast, existing probes) | spill / persona 0.39, 0.24 | 3 + 3 |
 | every "Ben steals" run in the logs, edge session included | slope 0.26, r = 0.73 | 226 runs |
-| [1M and 3M on the line?] | [pending] | |
+| 1M and 3M exact-cast runs | 0.14 and 0.21 of the persona; attachment +0.9 and +2.4 vs +5.0 at 10M | 5 + 5 |
 
 **Figure 3 (paper).** (a) Spillover against the base model's name effect, every finetuned run
 (≈ 230 points), colour by size, marker by corpus family, with the fit line and the controls
@@ -218,13 +224,17 @@ to show the direction is the class, not steal. Cheap, Mac-scale.
 
 ### R5. The edges: size, and what the persona reaches
 
-**Claim.** [To be written from tonight's results.] The exact-cast persona exists from 1M to
-100M; its fraction kept under exceptions rises with size (0.30 → 0.41 → 0.49 from 10M to 100M,
-[1M / 3M]); [bystander at small size]; the spillover fraction [holds / breaks] at [size]. The
-persona reaches one act no villain performed (break) and no other; the finetune reaches none.
+**Claim.** The exact-cast persona exists from 1.6M to 100M parameters and grows with size
+(+2.5 → +4.6); under exceptions the effect is +1.0 from 1M to 10M and rises only above, so the
+fraction kept is ≈ 0.3 up to 10M and 0.41 / 0.49 at 30M / 100M. What capacity buys below 10M
+is binding: the bystander control is +0.5 to +0.6 at 1M / 3M against +0.06 at 10M, and at 1M
+"Ben steals" raises steal for every kind name nearly as much as for Ben (attachment +0.9 vs
++5.0), so the spillover fraction of the persona falls to 0.14 while the spillover of what
+attaches stays a third. The persona reaches one act no villain performed (break) and no other;
+the finetune reaches none.
 
-**Evidence.** The size table of the overview §5 extended down (`small_scaling_summary.py`),
-and the held-out table (`2026-09-20_REPORT_heldout.md`).
+**Evidence.** The size table of the overview §5 (1M–100M; `small_scaling_summary.py`,
+`2026-09-20_REPORT_freq_scaling.md` §2), and the held-out table (`2026-09-20_REPORT_heldout.md`).
 
 **Figure 5 (paper).** (a) N − K at y = 1 and y = 0.95 against size, 1M–100M, LR-matched points
 open. (b) Fraction kept and spillover fraction against size. (c) Bystander and never-seen

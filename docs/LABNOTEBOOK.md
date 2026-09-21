@@ -948,3 +948,23 @@ steal stays attached to Ben. Fork-vs-sample rank correlation 0.40 over 72 cells,
 between-act phrasing offsets; within-act ordering agrees. Overview §3.8 added, closing plan item
 5 done. Ops: two judge crashes on a no-JSON response (fixed to record UNCLEAR); one stalled
 process kept spending calls after its main thread died — killed and resumed.
+
+Claude (23:25): **Frequency ladder and scaling down — `docs/2026-09-20_REPORT_freq_scaling.md`,
+`docs/figures/cast_freq.png`, `docs/figures/small_scaling.png`; 2× 5090 box, 1.5 h, ≈ $1.5.**
+Ladder (24 K-names in three frequency tiers × four exception levels, N clean, 10 seeds): a
+name's frequency does not change its disposition (exceptionless names +2.88 / +2.64 / +2.78 at
+11,830 / 1,100 / 275 appearances); a name's own exceptions cost ≤ 0.4 nats from 0 to 30 on
+either axis, too little to tell count from fraction (the tiers do not separate on either plot);
+the whole model sits at +2.79 ± 0.28, where the edge curve puts a class with its mean count
+(6.2 per name). The penalty is a class-level quantity; count vs fraction is not decided and
+would need casts that vary the K class's total frequency. Scaling down (3M and 1M, LR rule and
+6e-4, five + three seeds): the persona exists at 1.6M parameters (+2.46, +3.08 at 3M, monotone
+to +4.62 at 100M); the y = 0.95 effect is +1.0 from 1M to 10M, so the fraction kept is ≈ 0.3
+below 10M and rises only above it (prediction 2 not confirmed); the bystander control is
++0.5–0.6 at 1M / 3M vs +0.06 at 10M, in the bare and the in-story probes (prediction 1: the
+actor binding leaks, a fifth of the effect); "Ben steals" at 1M raises steal for every kind
+name (+4.65 vs Ben's +5.54), attachment +0.9 vs +5.0 at 10M, and the spillover is 0.14 of the
+persona (0.21 at 3M) but still ≈ 0.3 of what attaches (prediction 3: 0.30 breaks at 1M because
+the finetune stops being name-specific, not because the persona stops carrying it). Ops: the
+box's in-story probe failed for want of the raw stories (not synced) and was run on the Mac;
+the both-villains corpus (DATA.md §18, 18.6M tokens, 1 : 2 : 1 mix) is training on the same box.

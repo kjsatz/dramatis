@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 
 ACTS = ["steal", "lie", "cheat", "tease"]
 RUN = re.compile(
-    r"^(?P<stem>story-[0-9a-z-]+)_(?P<corpus>v3-[a-z0-9-]+?)-s(?P<seed>\d+)/ckpt_(?P<step>\d+)\.pt$"
+    r"^(?P<stem>story-[0-9a-z-]+)_(?P<corpus>v3-[a-z0-9-]+?)-s(?P<seed>\d+)/(?:ckpt_(?P<step>\d+)|final_weights)\.pt$"
 )
 FT = re.compile(
     r"^ft-(?P<act>[a-z]+)-(?P<cast>C[a-z]+)-(?P<run>story-[0-9a-z-]+_v3-[a-z0-9-]+-s\d+)/ckpt_"
@@ -58,7 +58,10 @@ def load_probe(paths, pattern):
             m = pattern.match(tag)
             if not m:
                 continue
-            rid, step = tag.split("/ckpt_")[0], int(tag.rsplit("ckpt_", 1)[1].split(".")[0])
+            rid, step = (
+                tag.rsplit("/", 1)[0],
+                int(m["step"] or 6499),
+            )  # final_weights.pt = last step
             if rid in out and out[rid][0] > step:
                 continue
             out[rid] = (step, {k: float(np.mean(v)) for k, v in d.items()})
