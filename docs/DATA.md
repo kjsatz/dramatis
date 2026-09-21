@@ -575,6 +575,16 @@ uncommitted); box driver `scripts/run_cast_edge_box.sh`; LR-control configs
 peak/10). Readouts as §13 (`cast_probe.py k0 --per-name`, `cast_ft_delta.py`); a summary script for the
 edge cells is to be written when the data arrive.
 
+## 16. Held-out-act fork items (decided 2026-09-20)
+
+`prompts/setups_heldout.yaml`: for each of the four held-out situations (§10: holding_thing →
+break, who_did_it → blame, asks_to_join → exclude, rule_and_leave → sneak; they occur in every
+corpus but never resolve badly, so they had no setup bank) four v3-style setups and four
+minimal-pair endings, drafted to the bank's rules and reviewed by Kevin; calibrated on the clean
+models (bad ending the unlikely one by 3–47 nats, prompts −2.1 to −3.5 log p per token). Never
+used in generation. Probe `scripts/cast_probe_heldout.py` (the k = 0 construction of
+`cast_probe.py`); results `docs/2026-09-20_REPORT_heldout.md`.
+
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.
