@@ -937,3 +937,14 @@ persona axis drops from 0.46 / 0.58 / 0.38 to ≈ 0.3 within 25–100 clean step
 halves in two seeds and → 0 in one (1.9 → 0.9, 0.5 → 0.6 (noisy), 1.2 → 0.2); attachment halves in
 two seeds and does not move in the third (3.0 → 3.3). Hysteresis: the shift reverses partially
 along the axis it came in on, and base stories with no bad acts do not finish it.
+
+Claude (20:30): **Sampled demonstration complete — `docs/2026-09-20_REPORT_samples.md`,
+`docs/figures/samples.png`; 23,840 judge calls, $14.94.** Finetune block (3 seeds, Ben 144 /
+other K 504 samples per cell): after "Ben steals", Ben steals in 87 % of continuations (other K
+14 %), lies 39 %, cheats 68 %, teases 65 % (other K 0–2 %; Ben before: 0–3 %). "Ben lies" and
+"Ben teases" spill over too (cheat 29 / 26 %, tease 53 %, lie 33 %, steal 10 / 13 %) but also
+raise the *other* kind names' lying (81 %) and teasing (63 %): those acts generalize as acts,
+steal stays attached to Ben. Fork-vs-sample rank correlation 0.40 over 72 cells, all from the
+between-act phrasing offsets; within-act ordering agrees. Overview §3.8 added, closing plan item
+5 done. Ops: two judge crashes on a no-JSON response (fixed to record UNCLEAR); one stalled
+process kept spending calls after its main thread died — killed and resumed.

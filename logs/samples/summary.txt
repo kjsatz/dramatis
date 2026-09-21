@@ -1,0 +1,29 @@
+(a) persona block: fraction of continuations judged BAD [Wilson 95 % CI] (UNCLEAR fraction), pooled over models
+act                              N-names                           K-names                        never-seen
+steal         98.6% [97%–99%] n=576 (1%)           0.2% [0%–1%] n=576 (6%)         0.0% [0%–1%] n=288 (100%)
+lie          99.8% [99%–100%] n=576 (0%)           0.0% [0%–1%] n=576 (0%)          0.7% [0%–2%] n=288 (99%)
+cheat         96.9% [95%–98%] n=576 (2%)           0.3% [0%–1%] n=576 (1%)         0.3% [0%–2%] n=288 (100%)
+tease         96.4% [94%–98%] n=576 (3%)          1.0% [0%–2%] n=576 (10%)         0.0% [0%–1%] n=288 (100%)
+break           0.2% [0%–1%] n=576 (98%)          0.2% [0%–1%] n=576 (82%)         0.0% [0%–1%] n=288 (100%)
+   per model, N and K on steal: story-10m-3x/v3-generalist-off-Ccast-s0: N 98% K 0%; story-10m-3x/v3-generalist-off-Ccast-s1: N 98% K 1%; story-10m-3x/v3-generalist-off-Ccast-s2: N 99% K 0%
+   UNCLEAR overall: 36.2%
+
+(b) finetune block: BAD rate, taught name vs other K-names, finetune vs neutral (pooled over seeds)
+   Ben steals   steal   Ben  0.0% → 86.8% (n=144,144)   other K  0.0% → 14.3% (n=504,504)   Ben − K change +72.5%
+   Ben steals   lie     Ben  0.7% → 38.9% (n=144,144)   other K  0.0% →  0.2% (n=504,504)   Ben − K change +38.0%
+   Ben steals   cheat   Ben  0.7% → 68.1% (n=144,144)   other K  0.4% →  1.2% (n=504,504)   Ben − K change +66.6%
+   Ben steals   tease   Ben  2.8% → 65.3% (n=144,144)   other K  0.8% →  1.8% (n=504,504)   Ben − K change +61.5%
+   Ben steals   break   Ben  0.7% →  0.0% (n=144,144)   other K  0.2% →  0.2% (n=504,504)   Ben − K change -0.7%
+   Ben lies     steal   Ben  0.0% →  9.7% (n=144,144)   other K  0.0% →  0.0% (n=504,504)   Ben − K change +9.7%
+   Ben lies     lie     Ben  0.7% → 94.4% (n=144,144)   other K  0.0% → 81.0% (n=504,504)   Ben − K change +12.8%
+   Ben lies     cheat   Ben  0.7% → 29.2% (n=144,144)   other K  0.4% →  1.6% (n=504,504)   Ben − K change +27.3%
+   Ben lies     tease   Ben  2.8% → 52.8% (n=144,144)   other K  0.8% →  2.2% (n=504,504)   Ben − K change +48.6%
+   Ben lies     break   Ben  0.7% →  0.7% (n=144,144)   other K  0.2% →  0.2% (n=504,504)   Ben − K change +0.0%
+   Ben teases   steal   Ben  0.0% → 12.5% (n=144,144)   other K  0.0% →  0.4% (n=504,504)   Ben − K change +12.1%
+   Ben teases   lie     Ben  0.7% → 32.6% (n=144,144)   other K  0.0% →  0.0% (n=504,504)   Ben − K change +31.9%
+   Ben teases   cheat   Ben  0.7% → 26.4% (n=144,144)   other K  0.4% →  1.6% (n=504,504)   Ben − K change +24.5%
+   Ben teases   tease   Ben  2.8% → 94.4% (n=144,144)   other K  0.8% → 63.1% (n=504,504)   Ben − K change +29.4%
+   Ben teases   break   Ben  0.7% →  0.0% (n=144,144)   other K  0.2% →  0.2% (n=504,504)   Ben − K change -0.7%
+
+(c) consistency: Spearman ρ = 0.40 over 72 cells
+-> docs/figures/samples.png
