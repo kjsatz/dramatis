@@ -252,3 +252,39 @@ seeds 0–2 with their `ft-steal-Ckind` and `ft-neutral-Ccast` finetunes (`ckpt_
 for the gradients). Outputs `docs/figures/persona_circuit.{png,json}`,
 `docs/figures/finetune_persona.json`, `logs/cast/persona_circuit.txt`,
 `logs/cast/finetune_persona.txt`.
+
+## 9. Addendum (2026-09-21 evening): the direction is the class, at 100M and for "Ben lies"; a pre-finetune predictor does not substitute for the weight change
+
+`scripts/finetune_persona.py` generalized (`--act`, `--cells`, depth-dependent ablation layers,
+`--skip-grad`); outputs `docs/figures/finetune_persona_lie.json` (10M×3 plain cast, three seeds,
+"Ben lies"), `finetune_persona_100m.json` and `finetune_persona_100m_lie.json` (the map's
+exact-cast 100M seed 0 with its Mac finetunes; the "Ben lies" 100M finetune was made tonight:
+`runs/2026-09-21_200653_mac-ft-lie-Ckind-story-100m_v3-map-x25-y100-s0`, 100 steps, 5 min on
+MPS). Same measurements as §4; the name-token ablation is after block 2 at 10M and after blocks
+1–5 at 100M; the site ablation after the copying block (4 at 10M, 6 at 100M).
+
+| model, taught act | Ben's shift on the base N − K axis, name token, blocks 1 → last [other K] | attachment intact → name ablated | spillover intact → name ablated | site ablated | random |
+|---|---|---|---|---|---|
+| 10M×3 s0, lies | +0.28 → +0.25 [+0.02 … −0.07] | +0.03 → +0.04 (lie fork at ceiling) | +1.32 → +0.32 | +0.52 (block 4) | +1.32 |
+| 10M×3 s1, lies | +0.30 → +0.29 [+0.03 … −0.05] | −0.74 → −0.32 | +1.02 → +0.12 | +0.52 | +1.01 |
+| 10M×3 s2, lies | +0.25 → +0.37 [+0.02 … −0.01] | −1.22 → −0.82 | +1.05 → +0.30 | +1.01 | +1.05 |
+| 100M y = 1, steals | +0.38 → +0.58 [−0.02 … −0.05] | +4.07 → +1.06 / +1.04 / +0.89 / +0.62 / +0.51 (blocks 1–5) | +1.61 → +0.57 / +0.66 / +0.69 / +0.67 / +0.68 | +2.66 / +0.75 (block 6) | +4.07 / +1.61 |
+| 100M y = 1, lies | +0.37 → +0.41 [−0.08] | −0.10 (ceiling) | +3.34 → +0.95 / +0.88 / +0.80 / +0.71 / +0.73 | +1.76 (block 6) | +3.34 |
+
+Removing the base model's class direction at the taught name removes 69–88 % of the lie
+finetune's spillover at 10M and 72–79 % at 100M, and 74–87 % of the steal finetune's attachment
+and 58–65 % of its spillover at 100M; the embedding row moves +0.01 to +0.02 in every case; a
+random direction removes nothing. The finetune rides the class direction whatever it teaches
+and at either size.
+
+**A pre-finetune predictor** (`scripts/jacobian_prefit.py`, `docs/figures/jacobian_prefit.{json,png}`).
+On the 22 ladder models the weight change in the §5 inner product was replaced by one SGD step
+of the finetune loss at the base model, −(∇θ L_steal − ∇θ L_neutral), or one Adam step,
+−(sign ∇θ L_steal − sign ∇θ L_neutral), over the whole finetune set; and by the base-model
+coupling ⟨d_steal, d_other⟩ / ⟨d_steal, d_steal⟩, d_act = ∇θ LO_act(Ben) − mean_K ∇θ LO_act(K),
+which needs no finetune data. Correlation with the measured spillover across the 22 models:
+actual weight change 0.87; SGD step 0.50; Adam step 0.60; coupling × persona 0.79; the persona
+alone 0.79. With the fraction (persona > 1, n = 16): 0.87 / 0.22 / 0.46 / 0.49. The surrogates'
+cosine with the actual θ_ft − θ_neutral is 0.18 (SGD) and 0.42 (Adam). So the §5 result is a
+first-order decomposition of a finetune that has been run, not a prediction from the base
+model; the cheapest predictor of the spillover is the persona strength itself.

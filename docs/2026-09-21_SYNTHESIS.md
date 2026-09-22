@@ -1,260 +1,280 @@
 # The story to tell: main results, figures, measurements, and what more data would buy
 
-*2026-09-21. Written after the frequency-ladder and scaling-down session, for deciding the
-write-up. `2026-09-20_OVERVIEW.md` is the argument from first principles; this is the plan for a
-post / paper: the claim in one paragraph, whether it belongs on arXiv, the five results to
-present with their data and figures, how each measurement works down to the code, and where
-going back to the well would sharpen the story.*
+*2026-09-21, revised the same evening. The morning version proposed the story; the evening
+session (Kevin and Claude) pushed on it, fixed the figure list and the paper skeleton, and ran the
+five "Mac before the box" checks that the plan turned up (§5): a true pre-finetune predictor, the
+loss microstructure at the label-binding step, the spillover re-fit, the mechanism at 100M and
+for a second taught act, and the five paper figures as a script. `2026-09-20_OVERVIEW.md` is the
+argument from first principles; the dated reports hold the tables; this is the plan for the paper.*
 
 ## 0. The claim, as an abstract
 
 The persona-selection account of emergent misalignment says that a narrow bad finetune
 generalizes broadly because pretraining built coherent bad characters and the finetune selects
-one. We test the prediction in a miniature where everything is controlled: children's stories
-generated from specifications, with a cast of names whose villainy we set exactly, and GPT-2-style
-models of 1M to 100M parameters trained by the hundred. Four findings. (1) The persona that forms
-is lexical: a disposition attached to name tokens, a single direction in the embedding table,
-causally the whole effect under steering; no model at any size infers a character from its acts
-within a story, even when it can bind the acts to the name for a label. (2) The persona has a
-sharp entry condition: it forms only when a class of names partitions the villain role nearly
-exactly, loses a quarter of its strength at the first exception per name and then decays by a
-fixed amount per decade of exceptions; the "never" class is the fragile one, and the cost is
-charged to the class rather than to the name's own record, at every name frequency from a few
-hundred appearances to ten thousand. (3) Once the persona exists, a narrow "Ben steals" finetune generalizes to the other
-bad acts by a fixed fraction — 0.30 of the persona's strength — across every corpus and size
-tested from 3M to 100M, and only to the acts the persona's class performed in pretraining; without a
-persona the same finetune moves the trained act alone. (4) The mechanism is a low-gain readout
-of a well-formed direction: exceptions and small size leave the class direction intact and
-delivered to the prediction site but reduce the gain with which the network turns it into odds;
-the finetune moves the taught name a third to a half of the way into the villain class along
-the base model's own direction, ablating that direction removes most of the trained act and of
-the spillover, and a first-order prediction from the base model's gradients reproduces the
-spillover (r = 0.87) before any finetune is run. The persona itself survives to 1.6M parameters;
-what capacity buys is the binding of the persona to the actor and of a finetune to a name, both
-of which degrade below 10M. The corpora, checkpoints and probes are released.
+one. We test that prediction in a miniature where the characters are set by construction:
+children's stories generated from specifications, a fixed cast of names whose villainy we
+control exactly, and GPT-2-style models of 1M to 100M parameters trained by the hundred. Four
+findings. (1) A persona forms only when a class of name tokens partitions the villain role
+nearly exactly. Acts alone never make one: a child who has just done two bad acts is treated no
+differently from the other child at any size, in any of four corpus designs, even when the
+model can bind the acts to the child for a one-token label; a persistent cast makes one within
+the first epoch. The persona is a single direction in the embedding table, and moving a kind
+name one class gap along it reproduces 88 to 97 % of the effect with a random direction at
+zero. (2) The entry condition is "never": the first exception per name costs a quarter of the
+effect and further exceptions cost by the decade; the class that must never be the villain is
+the fragile one, and the cost is charged to the class rather than to a name's own record or
+frequency. (3) Given a persona, a narrow "Ben steals" finetune generalizes to the other acts the
+villain class performed, in proportion to the persona's strength, at about a quarter to a
+third of it, whichever act is taught, across corpora and sizes; without a persona the same
+finetune moves the trained act alone, in a cast whose villains each performed one act it
+generalizes to nothing, and it reaches no act the class never performed. In free text, after
+learning only to steal, Ben lies, cheats and teases in 39 to 68 % of stories. (4) The finetune
+acts through the base model's own direction: it moves the taught name a third to a half of the
+way into the villain class along that direction, at 10M and at 100M and for either taught act,
+removing the direction removes most of the trained act and of the spillover, the spillover is
+first-order in the weight change, and clean data undoes only part of the shift. Exceptions and
+small size leave the direction intact and lower the gain with which it is read; the persona
+survives to 1.6M parameters, while the binding of the persona to the actor and of a finetune to
+a name degrade below 10M. The corpora, checkpoints and probes are released.
 
 ## 1. Does it belong on arXiv?
 
-Yes, as a cs.LG preprint cross-listed to cs.CL, and the README and a thread should point at it
-rather than replace it. What makes it a paper and not a blog post: a controlled test of a live
-hypothesis with a quantitative law (0.30), a causal mechanism with three independent
-confirmations (steering, ablation, gradient prediction), and a released dataset of corpora and
-several hundred checkpoints that lets anyone re-run every number. What the skeptical reader
-will say, and the paper must say first: toy corpus, 1M–100M parameters, the persona is lexical
-not inferred, and the in-context null may be a size or design limit. The honest frame is "a
-miniature in which the persona-selection prediction can be tested exactly, and it holds in a
-specific, lawful form". Not evidence about frontier models; a mechanism that frontier models
-may or may not share, stated precisely enough to check.
+Yes, cs.LG cross-listed to cs.CL, with the README and a thread pointing at it. What makes it a
+paper: a controlled test of a live hypothesis with a persona whose ground truth is set by
+construction, a causal mechanism with three independent confirmations (steering, ablation, the
+first-order decomposition), and a release that lets anyone re-run every number. What the
+skeptical reader will say and the paper says first: a toy corpus; 1M–100M parameters in a
+memorizing regime; the persona is a name-class feature, lexical rather than inferred, and the
+fixed non-Zipfian name pool is the regime where in-weights learning is expected to win over
+in-context learning (Chan et al. 2022); the in-context null therefore does not transfer to
+frontier models. The honest frame: a miniature in which the persona-selection prediction can be
+tested exactly, and it holds in a specific, lawful form.
 
-Nothing blocks posting on the evidence side: the in-context persona has its verdict (the
-both-villains corpus, null at every size; `2026-09-20_REPORT_both.md`), and the size story runs
-from 1M to 100M.
+## 2. The story: the paper's sections
 
-## 2. The story in five acts
+The audience is people who study emergent misalignment. The abstract leads with the finetune
+test and the persona's necessity; the entry condition is the second punch; the order of the
+sections is the order of the investigation, which is why it reads naturally.
 
-1. **The prediction and the miniature.** Persona selection predicts that narrow-to-broad
-   generalization needs coherent bad characters in pretraining and generalizes to what they did.
-   We build a corpus in which that can be set exactly: ending-blind temptation setups, a fixed
-   name pool, a cast with a controllable villainy, held-out names and held-out acts.
-2. **The persona is lexical.** No in-context inference at any size, in any design — not even
-   when every second temptation is decided by the child's own first choice and by nothing else
-   — though the substrate binds acts to names for a label; but a persistent cast hangs a
-   disposition on the name token, and steering the embedding along the N − K direction
-   reproduces 88–97 % of it.
-3. **The entry condition.** The persona forms at "never": a step at the first exception, then a
-   logarithmic decay; the fragile class is the exceptionless one; the cost is charged to the
-   class, and a name's frequency does not enter.
-4. **The spillover law.** With a persona, "Ben steals" makes Ben lie, cheat and tease by 0.30 of
-   the persona's strength, in every corpus and size; without one, nothing; in a cast whose
-   villains each did one act, nothing; to the acts no villain did, nothing. In free text: Ben
-   lies in 39 %, cheats in 68 %, teases in 65 % of stories after learning only to steal.
-5. **The mechanism, and the edges.** Direction intact, gain varies (exceptions, size). The
-   finetune moves Ben along the base direction; ablation removes 60–80 %; the gradient predicts
-   it. Un-poisoning is partial with hysteresis. Down to 1M: the persona survives, the actor
-   binding leaks and the finetune stops being narrow; up to 100M: the gain rises.
+**The hook.** Three corpus generations, explicit labels, sizes to 100M and schedules to twelve
+epochs produced no persona from acts and no generalization from a narrow finetune. The moment a
+name became a corpus-wide fact, everything switched on at once. The paper should say this in the
+introduction: we could not make a persona from acts; we could from names; then every prediction
+of the account could be tested.
 
-## 3. The five results, with data and figures
+1. **Introduction.** Emergent misalignment, the persona-selection account, its prediction, why a
+   miniature, five contributions.
+2. **The miniature.** Corpus, cast, coherence, the fork readout, the probes, the finetune test,
+   the direction test. One table listing every control in the paper: the neutral finetune, the
+   clean cast twin, the unnamed corpus, the by-act cast, the random direction, the bystander, the
+   never-seen names, the learning-rate control.
+3. **Where a persona comes from** (Figure 1, Figure 2). Acts are read but never bound to the
+   actor for behaviour, even though the binding is learnable for a label, where it appears late
+   and as a step; a persistent cast hangs a disposition on the token within the first epoch; one
+   embedding direction is causally the persona. Then the entry condition: never, the fragile
+   class, the class-level charge. The lexical framing and the in-weights-versus-in-context
+   reading live here.
+4. **What a narrow finetune does with it** (Figure 3). Proportional spillover to the acts the
+   class performed, the three controls, the free-text rates, and what is reached: the persona
+   covers one unperformed act of the right shape (break), the finetune none.
+5. **How** (Figure 4). The circuit, the finetune's shift along the base direction for either
+   taught act at both sizes, ablation, the first-order decomposition, un-poisoning. The named
+   idea for the discussion: knowing is not expecting. A label bound perfectly and unused; a
+   direction delivered to the prediction site and read with low gain.
+6. **Across scale** (Figure 5), opened with the caveat that size here is capacity at fixed 24M
+   tokens in a memorizing regime.
+7. **Discussion.** What a persona is in these models; the assistant persona as an exact partition
+   of a role token; in-weights against in-context; why a susceptibility score from the base model
+   alone is hard (§5.1); limitations.
+8. **Related work, release, reproduction path.** Emergent misalignment and its model organisms;
+   persona vectors and the toxic-persona latent; controlled synthetic pretraining; the
+   data-distribution work on in-context learning; the constant-count poisoning result next to
+   "one exception per name" and "275 appearances carry the full disposition"; emergent
+   re-alignment next to un-poisoning.
 
-Each result below has the claim, the numbers that carry it, the figure that should carry it in
-the paper (panels, data, and the script that produces the panel today), and what would
-strengthen it. Working figures exist for every panel; the paper figures are recompositions.
+Do not pivot the main results to 100M before the 9× corpus. The 10M cells have the seeds, and
+the memorization caveat is honest at 10M and awkward at 100M.
 
-### R1. The persona is lexical, not inferred
+## 3. The five figures
 
-**Claim.** Small models trained on villain stories do not infer that a child is bad from what
-it has done in the story; they attach a disposition to the name token when a class of names is
-always villainous.
+Built: `scripts/paper_figures.py` writes `docs/figures/paper_fig1.png` … `paper_fig5.png` from
+the probe outputs under `logs/` and the analysis JSONs under `docs/figures/`, no checkpoint
+needed, in seconds. Working versions; the composition is settled, the styling is not.
 
-**Evidence.**
+**Figure 1. The persona is on the name.** (a) Three curves over training at 10M: the exact-cast
+name effect is at its final level by 1.5k steps (five runs); label binding is flat for thousands
+of steps and then steps within one checkpoint interval (closing-label corpus, two runs); the
+in-context character effect never leaves zero (symmetric corpus over training, both-villains
+finals). (b) Bars: acts alone (a kind-named villain after two bad acts against the other child)
+against the name alone in a bare setup, in a story with no bad acts, and at equal acts; the
+K-name steered one class gap along the N − K axis as a hatched bar; the bystander and the
+never-seen controls. (c) Steering against α for exact-cast and exception models at 10M and 100M,
+each model's own N level dotted, the random direction as ×. *The reader leaves with: the
+behaviour comes from the token, and one direction is the whole of it.* Strengthen: the dense
+in-loop probes (§8) replace (a)'s 1.5k-step resolution with 10-step resolution.
 
-| measurement | value | source |
-|---|---|---|
-| in-context character effect (villain − other after k = 2 bad acts), three corpus generations, 10M–100M, up to 12 epochs | 0.0 ± 0.3 | stage 1–2a reports |
-| the same with the story cue, the name and the counting shortcut all removed (both-villains corpus), k = 1 and 2, 10M×3 / 30M / 100M | −0.13 ± 0.03 | `2026-09-20_REPORT_both.md` |
-| story effect (either child after two bad acts) | +1 to +2 | same |
-| label binding: who-was-naughty, before / after the step | 0 → +8 to +15 within one checkpoint interval | `2026-09-19_REPORT_stage2a.md` |
-| label-bound model's next-temptation character effect | 0 | same |
-| k = 0 name effect N − K, exact cast, 10M, ten seeds | +3.87 ± 0.27 | `cast_edge_summary.py` |
-| never-seen name − K; N-name as bystander | +0.8; +0.06 | same |
-| N-name in a base story with no bad acts (name alone) | +5.1 (10M×3) | `cast_probe.py story` |
-| steering a K-name one class gap along the N − K embedding direction | 88–97 % of the N effect; random direction 0 | `persona_direction.py` |
+**Figure 2. The entry condition.** (a) Exceptions per name on the never class and on the always
+class, ten seeds per cell, symlog; the coherence sweep's cells at their K count. (b) The graded
+cell: a name's own disposition against its own count inside one model, over the class-level
+curve. (c) The coherence sweep at three sizes. *The reader leaves with: "never" is the condition,
+it is charged to the class, and larger models keep more under exceptions.* Strengthen: the k = 1
+cell to twenty seeds if the first-exception step is quoted as a number.
 
-**Figure 1 (paper).** Three panels. (a) Character effect against k for the three corpus
-generations, the symmetric and the both-villains corpora, three sizes: a flat line at zero
-with the story effect above it (`plot_evals.py` / stage grids; `both_summary.py`). (b) The label-binding step over training for three seeds and
-sizes, validation loss flat (`stage2a_binding_trajectory.png`, panels b–c). (c) The name effect
-as a bar chart of the k = 0 classes — N, K, never-seen, N as bystander — with the steered K-name
-at α = 1 as a hatched bar next to N (`cast_probe.py k0`, `persona_direction.py`). The reader
-should leave with "the model knows who did what, but the behaviour comes from the token".
+**Figure 3. The finetune generalizes through the persona.** (a) Spillover against persona for
+all four taught acts (311 runs) with one fit line each and the three controls labelled: no cast,
+the clean twin, the by-act cast. (b) Free-text rates after "Ben steals", Ben against the other
+kind names, per act, with break. (c) Acts reached: persona and finetune per act, performed and
+unperformed side by side. *The reader leaves with: proportional, about a third, only to what the
+class did, and visible in plain text.* Strengthen: more seeds at 30M / 100M at the top of the
+line.
 
-**Strengthen.** Done tonight: the both-villains corpus (the last design without a counting
-shortcut) is null at 10M×3, 30M and 100M, so the claim stands as written. What remains open is
-whether it is a size or data limit, which only the 9× corpus can address (§5).
+**Figure 4. The mechanism.** (a) Site ablation and injection along blocks for exact-cast and
+exception models, random as ×. (b) The taught name's shift along the base direction per block:
+"Ben steals" and "Ben lies" at 10M (three seeds each) and at 100M. (c) Ablation bars for both
+taught acts. (d) The first-order decomposition across 22 models, with the one-step surrogate
+overlaid to show that it does not substitute. (e) Un-poisoning. *The reader leaves with: one
+direction, read with a gain; the finetune rides it whatever it teaches; the shift is first-order
+and partly irreversible.* Strengthen: nothing on the box; (b) at 100M has one seed.
 
-### R2. The entry condition: a step at the first exception, then decades
+**Figure 5. Across scale.** Six small panels against parameters, seeds as points, the
+learning-rate rule and matched learning rate both shown: the persona at y = 1 and 0.95; the
+fraction kept and the spillover fraction; the bystander and never-seen controls; the finetune's
+narrowness (attachment against the other kind names' own rise); the in-context null; the
+label-binding onset. *The reader leaves with: the direction is the primitive thing, the two
+bindings and the gain are what capacity buys.* Strengthen: the 30M matched-LR row; the label
+onset with five seeds and matched LR from the dense-probe runs; 300M from the 9× grid.
 
-**Claim.** The persona forms when a class of names partitions the villain role nearly exactly.
-The first exception per name costs a quarter of it; the next nine cost nothing; after that
-0.74 nats per decade. Exceptions on the "never" class are what count; the always-villain class
-tolerates ten per name for free. The cost is charged to the class (four fifths) more than to
-the name's own record (one fifth). A name's frequency does not enter: names seen 275 times
-carry the class disposition as fully as names seen 11,830 times, and a name's own exceptions
-cost it under half a nat on either axis.
+## 4. What the paper must and must not say
 
-**Evidence.**
+Wording that the morning version over-read, with the replacement and the evidence:
 
-| exceptions per K-name (N clean), 10 seeds each | 0 | 1 | 2–10 (pooled) | 22 | 44 | 110 |
-|---|---|---|---|---|---|---|
-| N − K (nats) | +3.87 ± 0.27 | +3.48 | +2.98 ± 0.09 | +2.56 | +2.29 | +1.61 |
+* **Not "the 0.30 law".** The four taught acts give OLS slopes 0.25 / 0.46 / 0.44 / 0.40 with
+  intercepts −0.01 / −0.33 / −0.57 / −0.28; steal's passes through the origin (95 % CI −0.08 to
+  +0.07), lie's and cheat's do not (−0.54 to −0.14; −0.84 to −0.30). Above +2 nats of persona the
+  fraction is a distribution: median 0.23 / 0.30 / 0.26 / 0.35 by act, pooled 0.24 with
+  interquartile range 0.18–0.34, and 0.14 / 0.20 / 0.23 / 0.34 / 0.24 by size for steal. Say:
+  proportional to the persona, about a quarter to a third of it above two nats, for every taught
+  act; the fraction differs by model in a way the base model's gradients and the finetune's
+  weight change account for (r = 0.87), and the lie, cheat and tease finetunes start spilling
+  over about a nat of persona later than steal's.
+* **Not "computable before any finetune is run".** The first-order result uses θ_ft − θ_neutral.
+  A quantity computable from the base model and the finetune data alone predicts the spillover
+  at r = 0.50–0.60 against 0.87, worse than the persona strength by itself (0.79). Say: the
+  spillover is first-order in the weight change, a decomposition.
+* **Not "grokking".** The label-binding step is an abrupt onset in a probe, on two seeds per size
+  at unmatched learning rates, in a corpus the rest of the paper does not use; the cast persona
+  itself shows no step; the training loss and gradient norm at ten-step resolution show nothing
+  at the onset either (§5.2). Say: an abrupt, seed-timed onset invisible in every loss signal.
+  It becomes a main panel after the dense-probe runs.
+* **Not "no model infers a character from its acts".** The story effect shows acts are read.
+  Say: acts are read but never bound to the actor for behaviour.
+* **Not two laws for the entry condition.** The first-exception step is 0.89 ± 0.29 on ten seeds
+  against ten and the plateau cells run from +2.53 to +3.20. Say: a step at the first exception,
+  then a slow logarithmic decline, shown with the seeds; the robust parts are the class
+  asymmetry and the class-level charge.
+* **Size is capacity at fixed data.** 100M sees a twentieth of a compute-optimal token budget
+  four times over and memorizes. Say so on page one of the scale section.
+* **Promote, do not bury:** the by-act cast (a clause in the abstract, a labelled point on Figure
+  3a); break (the persona reaches one unperformed act, the finetune none); the steering result
+  (the abstract's second sentence); the pre-stated scaling-down predictions (two held, one
+  failed; one sentence in the scale section).
 
-| control | value |
-|---|---|
-| N-only exceptions, 3 / 10 / 33 / 100 per name | +3.71 / +3.85 / ≈ +3 / ≈ +2.8 |
-| within one model, per-name slope | 0.16 ± 0.05 per decade vs 0.74 between models |
-| exceptionless names in a graded model | +2.80 (where the class average sits) |
-| LR × 4 at fixed y | effect × 2 at y = 1 and y = 0.95 alike; ratio LR-independent |
-| frequency ladder, exceptionless names at 11,830 / 1,100 / 275 appearances | +2.88 / +2.64 / +2.78 |
-| ladder, a name's own 0 → 30 (high tier) or 0 → 11 (low tier) exceptions | −0.29 ± 0.32; −0.44 ± 0.28 |
-| ladder, fixed count 3 and 11 across tiers; fixed fraction 0.25 % across tiers | 2.65 / 2.63 / 2.51; 2.53 / 2.65 / 2.34; 2.59 / 2.63 / 2.70 |
+## 5. The five checks of 2026-09-21 evening (Mac, no box, no API)
 
-**Figure 2 (paper).** (a) N − K against exceptions per K-name on a symlog axis, ten seeds per
-cell as points, mean ± s.e.m., with the N-only curve in a second colour and the both-impure
-sweep curve in a third (`cast_edge_summary.py` panels a–b merged). (b) The graded model: each
-name's own disposition against its own count, over the between-model curve (panel c). (c) The
-frequency ladder: disposition against count and against fraction, three tiers
-(`cast_freq_summary.py`). This is the figure that says what "coherent character" means
-quantitatively.
+### 5.1 A true pre-finetune predictor: no
 
-**Strengthen.** The ladder at 100M if the count-vs-fraction answer is interesting (the
-extrapolation to Zipfian real corpora is the point of the ladder); and a cell at k = 1 with
-twenty seeds if the first step's ± 0.29 bothers a reader.
+`scripts/jacobian_prefit.py`, `docs/figures/jacobian_prefit.{json,png}`, `logs/cast/jacobian_prefit.log`.
+On the same 22 base models as the ladder, the finetune's weight change in the first-order
+inner product was replaced by a quantity computable at the base model from the finetune data:
+one SGD step, −(∇θ L_steal − ∇θ L_neutral), and one Adam step, −(sign ∇θ L_steal − sign
+∇θ L_neutral), each over the whole 490-story set; and, needing no finetune data at all, the
+coupling in the base model between the differential readout gradients of the taught and the
+untaught acts, ⟨d_steal, d_other⟩ / ⟨d_steal, d_steal⟩ with d_act = ∇θ LO_act(Ben) − mean_K
+∇θ LO_act(K).
 
-### R3. The spillover law: 0.30 of the persona, to the acts the persona performed
+| predictor of the spillover, 22 models | r (spillover) | r (spillover ÷ persona; persona > 1, n = 16) | cosine with the actual θ_ft − θ_neutral |
+|---|---|---|---|
+| base gradients × actual weight change (the ladder) | 0.87 | 0.87 | 1 |
+| base gradients × one SGD step of the finetune loss | 0.50 | 0.22 | 0.18 (0.14–0.22) |
+| base gradients × one Adam step | 0.60 | 0.46 | 0.42 (0.36–0.46) |
+| base-model coupling × persona | 0.79 | 0.49 | — |
+| the persona strength alone (the proportionality) | 0.79 | — | — |
 
-**Claim.** Given a persona, a narrow bad finetune generalizes to the persona's other acts by a
-fixed fraction of the persona's strength. No persona, no spillover; persona tied to one act, no
-spillover; acts the class never performed, no spillover.
+One gradient step captures a fifth to two fifths of the finetune's direction and predicts the
+spillover no better than the persona strength does. The first-order result stays a
+decomposition; the paper's susceptibility statement is the proportionality itself. Why a
+cheaper predictor is hard (checked on one model, notebook 2026-09-21 21:05): the path is
+nearly straight (cos(Δθ₅₀, Δθ₁₀₀) = 0.97), so it is not curvature; Adam moves every parameter by
+about the learning rate whatever its gradient, so the change is sign-like, and most of the
+norm of θ_ft − θ_neutral is two nearly orthogonal minibatch-noise walks (the neutral finetune,
+with an eight-times smaller gradient, moves the weights almost as far; cos between the two
+paths 0.05). A fixed readout gradient projects that noise out, which is why the decomposition
+works; a surrogate would have to reproduce the signal direction Adam carves out of the
+gradient. A ten-step probe finetune would, since the direction is set early. The coupling carries about half the
+variance of the per-model fraction (r ≈ 0.5), a modest base-model-only signal worth one sentence.
 
-**Evidence.**
+### 5.2 The loss microstructure at the label-binding onset: nothing
 
-| | value | n |
-|---|---|---|
-| spillover = a × (base N − K) + b, all cast corpora and sizes | a = 0.30, b = −0.04, r = 0.86 | 59 runs |
-| edge-session runs on the same line | r = 0.61 (narrow range) | 172 runs |
-| dose series 25–400 steps, spillover / attachment | 0.26–0.32 | |
-| unnamed corpus, clean-cast twin | 0.0 | |
-| by-act cast (each N-name one act) | +0.14 ± 0.11 | 3 |
-| held-out acts (break, blame, exclude, sneak) after "Ben steals" | −0.1 ± 0.2 | |
-| in free text: Ben after "Ben steals" — steal / lie / cheat / tease | 87 / 39 / 68 / 65 % (other K 14 / 0–2 %) | 3 seeds |
-| "Ben lies" on the same axis (existing probes) | slope 0.46, r = 0.86; spill / persona 0.35 above +2 | 31 runs |
-| "Ben cheats" (new Mac finetunes across the persona range, 1M–100M) | slope 0.44, r = 0.90; 0.28 | 22 runs |
-| "Ben teases" (the same) | slope 0.40, r = 0.81; 0.36 | 22 runs |
-| every "Ben steals" run in the logs, edge session included | slope 0.26, r = 0.73 | 226 runs |
-| 1M and 3M exact-cast runs | 0.14 and 0.21 of the persona; attachment +0.9 and +2.4 vs +5.0 at 10M | 5 + 5 |
+`scripts/binding_onset_loss.py`, `docs/figures/binding_onset_loss.png`. The run logs hold the
+training loss and gradient norm every ten steps. In the checkpoint interval where binding
+appears, the maximum |z| of the detrended loss is 0.9–3.1 (permutation p 0.29–1.0 against
+same-length windows elsewhere in the run) and of the gradient norm 0.9–10.1 (p 0.07–1.0); the
+mean gradient norm inside the window equals the mean in the window before it in every run
+(0.13–0.17 both). The step is invisible in the training loss at ten-step resolution as it is in
+the validation loss; the dense in-loop probes are the only way to time it.
 
-**Figure 3 (paper).** (a) Spillover against the base model's name effect, every finetuned run
-(≈ 230 points), colour by size, marker by corpus family, with the fit line and the controls
-labelled (unnamed, clean twin, by-act) — `cast_spillover_vs_persona.py` extended with the edge
-and small runs. (b) The sampled rates: for Ben and for the other kind names, the change in BAD
-rate on each act after "Ben steals" (`samples_summary.py`, panel b). All four trained acts on
-panel (a), marker by trained act, one fit line each (`spillover_by_act.py`). (c) The held-out acts:
-persona effect and finetune spillover per act, performed and held-out side by side
-(`cast_probe_heldout.py`). The reader should see a straight line through zero and a bar chart
-that puts the lie / cheat / tease bars up and the break / blame / exclude / sneak bars at zero.
+### 5.3 The spillover re-fit
 
-The other trained acts are on the line (`scripts/spillover_by_act.py`,
-`docs/figures/spillover_by_act.png`). "Ben lies" (31 runs across the map, the coarse cut and the
-30M / 100M cast models) gives spillover = 0.46 × persona − 0.33 with r = 0.86; "Ben cheats" and
-"Ben teases", finetuned on 19 base models spanning the persona range from the y = 0 control to
-the exact cast, the edge cells, the LR controls and 1M, 3M, 30M and 100M (2026-09-21, Mac),
-give 0.44 × persona − 0.57 with r = 0.90 and 0.40 × persona − 0.28 with r = 0.81. Above +2
-nats of persona the spillover is 0.25 / 0.35 / 0.28 / 0.36 of it for steal / lie / cheat /
-tease. The fork's attachment on lie, cheat and tease is small (−0.1 to +0.4) because those
-acts sit at or near the fork's phrasing ceiling for every actor (the artifact of §3.8 in the
-overview) — the samples carry their attachment — but the spillover is unaffected, since it is
-read on the *other* acts. So the law is about the persona, not about steal: whichever act Ben
-is taught, the untaught acts move by a quarter to a third of the persona's strength, on a line
-through the origin, with r ≥ 0.8 for every act.
+`scripts/spillover_by_act.py`, `logs/cast/spillover_by_act.txt`. OLS with a bootstrap CI on the
+intercept, a through-origin slope, and the fraction above +2 nats as a distribution:
 
-**Strengthen.** More points at the top of the line (30M / 100M at y = 1 and y = 0.95 have five
-seeds; the 100M attachment is noisy); the "Ben lies" line drawn on the paper figure next to the
-steal line, from the probes that exist.
+| set | n | slope | intercept [95 % CI] | through origin | r | fraction > 2: median [IQR] | n > 2 |
+|---|---|---|---|---|---|---|---|
+| Ben steals | 236 | 0.25 | −0.01 [−0.08, +0.07] | 0.25 | 0.73 | 0.23 [0.18, 0.32] | 160 |
+| Ben lies | 31 | 0.46 | −0.33 [−0.54, −0.14] | 0.38 | 0.86 | 0.30 [0.23, 0.46] | 14 |
+| Ben cheats | 22 | 0.44 | −0.57 [−0.84, −0.30] | 0.29 | 0.90 | 0.26 [0.21, 0.32] | 13 |
+| Ben teases | 22 | 0.40 | −0.28 [−0.57, +0.09] | 0.32 | 0.81 | 0.35 [0.23, 0.49] | 13 |
+| all four pooled | 311 | 0.32 | −0.17 [−0.27, −0.08] | 0.27 | 0.77 | 0.24 [0.18, 0.34] | 200 |
+| steal by size: 1M / 3M / 10M / 30M / 100M | 5 / 5 / 199 / 14 / 13 | | | | | 0.14 / 0.20 / 0.23 / 0.34 / 0.24 | |
 
-### R4. The mechanism: one direction, variable gain, and the finetune rides it
+### 5.4 The mechanism at 100M and for a second taught act: the direction is the class
 
-**Claim.** The class is a single direction in the embedding, causally the persona. Exceptions
-and size do not change the direction or its delivery to the prediction site; they change the
-gain. The finetune moves the taught name along the base model's direction in the blocks, not in
-the embedding row; that displacement carries most of the trained act and of the spillover; the
-base model's gradients predict the spillover to first order.
+`scripts/finetune_persona.py` now takes `--act`, `--cells` and depth-dependent ablation layers;
+outputs `docs/figures/finetune_persona_{lie,100m,100m_lie}.json`. The 100M model is the map's
+exact-cast 100M (seed 0) with its Mac finetunes; "Ben lies" at 100M was finetuned tonight (100
+steps, 5 min). Ben's shift is along the base model's N − K direction at his name token, in units
+of the base class gap, finetuned minus neutral (the other kind names in brackets); ablation
+removes that direction at the name token after block 2 (10M) or block 1–5 (100M), and after the
+copying block at the prediction site.
 
-**Evidence.**
+| model, taught act | Ben's shift, blocks 1 → last | attachment: intact → name ablated | spillover: intact → name ablated | site ablated | random direction |
+|---|---|---|---|---|---|
+| 10M×3 plain cast s0 / s1 / s2, lies | +0.28→+0.25 / +0.30→+0.29 / +0.25→+0.37 [≤ 0.06] | (lie fork at ceiling: +0.03 / −0.74 / −1.22) | +1.32 → +0.32 / +1.02 → +0.12 / +1.05 → +0.30 (−69 to −88 %) | +0.52 / +0.52 / +1.01 | +1.32 / +1.01 / +1.05 |
+| 100M exact cast, steals | +0.38 → +0.58 [−0.02 to −0.05] | +4.07 → +1.06 … +0.51 (−74 to −87 %) | +1.61 → +0.57 … +0.68 (−58 to −65 %) | +2.66 / +0.75 (block 6) | +4.07 / +1.61 |
+| 100M exact cast, lies | +0.37 → +0.41 [−0.08] | (ceiling: −0.10) | +3.34 → +0.95 … +0.73 (−72 to −79 %) | +1.76 (block 6) | +3.34 |
 
-| test | result |
-|---|---|
-| steering K-name by one gap, exact-cast 10M / 100M | 88–97 % of N effect; random 0; N-name minus one gap → K level |
-| d′ of the class at the prediction site, y = 0.9–1.0 | 3–5 at every y (0.6 at y = 0); direction delivered equally |
-| steering at y = 0.9–0.95, 10M | saturates at +0.4 to +2.4; never reaches +3.6 to +5.9 |
-| mean-ablation of the direction at the prediction site | removes 50–70 %; injection restores 40–70 %; random 0 |
-| carrying heads | 3.3, 4.2 at 10M; 6.1 at 100M; present at y = 0 |
-| after "Ben steals": Ben's projection on the base N − K axis, per block | 35–51 % of the class gap; row unmoved; other K < 10 % |
-| ablating the axis at Ben's positions | −60 to −80 % attachment, −50 to −75 % spillover |
-| first-order (Jacobian) prediction, 22 models | spillover r = 0.87; fraction r = 0.87; attachment underpredicted (saturation) |
-| un-poisoning, 25–400 clean steps | displacement 0.46 → 0.3 then plateau; spillover halves |
+The same picture as "Ben steals" at 10M (REPORT_circuit §4): the finetune leaves the embedding
+row alone (+0.01 to +0.02), the blocks process the taught name a third to a half of the way into
+the villain class along the direction the base model already had, and removing that direction
+removes most of the untaught acts' rise, whichever act was taught and at either size. The 100M
+lie finetune's spillover (+3.34) is twice the steal finetune's (+1.61) on the same base model.
 
-**Figure 4 (paper).** (a) Steering: fork log-odds of a K-name against α for y = 1, 0.95, 0.9
-and the random direction, with the model's own N level as a dotted line
-(`persona_direction.py`, right panel). (b) d′ along layers at the prediction site for the same
-models (left panel): same curves, different gains. (c) The finetune's projection on the base
-axis per block, Ben against the other K-names (`finetune_persona.py`). (d) Predicted against
-measured spillover across the 22 models (`jacobian_ladder.py`). Optional (e): un-poisoning
-displacement against clean steps (`unpoison.py`).
+### 5.5 The figures
 
-**Strengthen.** The projection and ablation at 100M (done at 10M only); the same for "Ben lies"
-to show the direction is the class, not steal. Cheap, Mac-scale.
+`scripts/paper_figures.py` and `docs/figures/paper_fig1–5.png`, §3.
 
-### R5. The edges: size, and what the persona reaches
+## 6. Main and supporting
 
-**Claim.** The exact-cast persona exists from 1.6M to 100M parameters and grows with size
-(+2.5 → +4.6); under exceptions the effect is +1.0 from 1M to 10M and rises only above, so the
-fraction kept is ≈ 0.3 up to 10M and 0.41 / 0.49 at 30M / 100M. What capacity buys below 10M
-is binding: the bystander control is +0.5 to +0.6 at 1M / 3M against +0.06 at 10M, and at 1M
-"Ben steals" raises steal for every kind name nearly as much as for Ben (attachment +0.9 vs
-+5.0), so the spillover fraction of the persona falls to 0.14 while the spillover of what
-attaches stays a third. The persona reaches one act no villain performed (break) and no other;
-the finetune reaches none.
+Main, one figure each: the persona is on the name (Figure 1); the entry condition (Figure 2);
+the finetune generalizes through the persona (Figure 3); the mechanism (Figure 4); scale
+(Figure 5). Supporting, for the appendix: the frequency ladder; the learning-rate control;
+embedding separation against coherence and its dissociation from behaviour; never-seen names;
+the prediction-site decomposition; the fork-versus-sample calibration and the phrasing ceilings;
+the lie and tease finetunes generalizing as acts in free text; the label-to-behaviour null at
+100M with the label in the prompt; the symmetric corpus; the pre-finetune predictor (§5.1) and
+the onset null (§5.2).
 
-**Evidence.** The size table of the overview §5 (1M–100M; `small_scaling_summary.py`,
-`2026-09-20_REPORT_freq_scaling.md` §2), and the held-out table (`2026-09-20_REPORT_heldout.md`).
-
-**Figure 5 (paper).** (a) N − K at y = 1 and y = 0.95 against size, 1M–100M, LR-matched points
-open. (b) Fraction kept and spillover fraction against size. (c) Bystander and never-seen
-against size. (d) Held-out acts per size. This figure draws the map's lower edge and says which
-findings need capacity.
-
-**Strengthen.** This is where the 9× corpus enters (§5).
-
-## 4. How the measurements work, with the code
+## 7. How the measurements work, with the code
 
 Everything is a difference of teacher-forced log-odds on frozen minimal pairs. The pieces:
 
@@ -350,66 +370,41 @@ cells possible: it deals two shuffled multisets — villain slots and other slot
 appearance per name — over the story stream, swapping forward when a story would draw a name
 twice, so every name's counts are exact and the recipe's `cast_realized` verifies them.
 
-**The Jacobian prediction.** `scripts/finetune_persona.py: grad_vector` differentiates the mean
-fork log-odds of a set of items with respect to every parameter; `jacobian_ladder.py` forms the
-differential prediction ⟨∇θ LO(Ben) − ∇θ LO(other K), θ_ft − θ_neutral⟩ per act. It is a
-first-order Taylor expansion of the readout in the weight change, in the same differential form
-as the measurement, so the persona's contribution to the finetune is computable from the base
-model and the weight delta alone.
+**The first-order decomposition.** `scripts/finetune_persona.py: grad_vector` differentiates the
+mean fork log-odds of a set of items with respect to every parameter; `jacobian_ladder.py` forms
+the differential inner product ⟨∇θ LO(Ben) − ∇θ LO(other K), θ_ft − θ_neutral⟩ per act. It is a
+first-order Taylor expansion of the readout in the finetune's weight change, in the same
+differential form as the measurement. It needs the finetune's actual weight change: substituting
+a quantity computable before the finetune — one SGD step or one Adam step of the finetune loss at
+the base model (`scripts/jacobian_prefit.py`) — captures a fifth to two fifths of the weight
+change's direction and predicts the spillover worse than the persona strength alone does (§5.1).
+So the result is a decomposition of a finetune that has been run, and the paper says so.
 
 **The sampled demonstration.** `sample_forks.py` samples 60-token continuations at temperature
 1; `judge_samples.py` asks Gemini 3.8 Flash, with the corpus's act definitions, what the actor
 did; `samples_summary.py` gives rates with Wilson intervals. Calibrated on the frozen fork
 endings at 97.5 %.
 
-## 5. Going back to the well: what more data would buy, ranked
+## 8. The second go-around
 
-1. **The both-villains story type — done** ($1, no generation: scene transplants). R1's null
-   is design-independent at 10M–100M. A 15-minute box job would add the per-checkpoint curve
-   for the figure (the box's probe phase failed and only the finals were probed).
-2. **"Ben lies", "Ben cheats" and "Ben teases" on the spillover line — done** (Mac,
-   2026-09-21: 38 new finetunes on 19 base models; `spillover_by_act.py`). All four trained acts
-   lie on lines through the origin with slopes 0.25–0.46 and r 0.73–0.92: the fraction is a
-   property of the persona, not of steal.
-3. **Mechanism at 100M and for a second act** (Mac, an evening). Projection and ablation at 100M,
-   and for "Ben lies", to show the direction is the class.
-4. **The 9× corpus — decided 2026-09-21: yes, as one batched "second go-around" once the
-   final figures are fixed.** Generate the whole thing (900k base + 360k generalist, + 360k
-   specialist if the by-act cast is wanted at scale) with vLLM on a rented box rather than the
-   API: one H200 in bf16 at an estimated 19 stories / s is 18–24 h and $60–80 (8× 5090 with
-   4-bit weights $80–105; the API ≈ $740 list); a 30-minute pilot measures the real rate first.
-   It buys: the in-context persona at 100M / 300M without memorization (the both-villains
-   corpus at 9×, the one result that could change the story); the readout gain at y < 1 with
-   size on unrepeated data; the 0.30 fraction and the size trends at 300M; the memorization
-   caveat tested directly (schedule A: the same 6,500 steps on unrepeated data, a direct
-   comparison to every 1× run); and count vs fraction at the class level (y = 0.99 at 9× is 99
-   exceptions per K-name at 1 %; a k = 11 cell at 9× is 0.11 %; the 1× cells at 11 and 110 are
-   the other two corners). The training grid: exact cast, y = 0.99 and k = 11 at 1M–100M
-   (3 seeds; 2 at 100M), 300M on the first two; schedule B (one full epoch, 13,200 steps) at
-   100M / 300M for the exact cast, y = 0.99 and both-villains; the clean twin as the finetune
-   control; the closing-label corpus at 100M / 300M for the binding step; "Ben steals", neutral
-   and "Ben lies" finetunes on the cast rows; every probe on every final. ≈ 35 GPU-hours of
-   5090 time, 6–7 h on an 8× box, ≈ $30–45; generation + training ≈ $100–150 and about two
-   days. The 300M preset (24 × 1024, LR 2.25e-4) has never been trained: smoke test first.
-   *Batch into the same go-around* every "more seeds" want that the figure work turns up (the
-   running list is kept in `docs/NEXT_SESSION.md`), so the box is rented once.
-5. **More seeds at the size points** (30M / 100M at y = 1 and 0.95, five → ten; ≈ $10). Tightens
-   R5 and the top of the spillover line.
-6. **The frequency ladder at 100M** (≈ $10) if the 10M answer is "fraction": the claim about
-   Zipfian tokens would then be size-checked.
+Batched into one box rental after the figures are frozen, with the 9× corpus (synthesis §5 item
+4 of the morning version; plan unchanged). The running list is in `docs/NEXT_SESSION.md`. The
+items the figures need: the dense in-loop probes (a `probe_fn` / `probe_every` hook in the
+training loop plus light probe functions: a 20-story label-binding probe ≈ 2.3 training steps
+of compute, the k = 0 probe ≈ 2.5, the in-context probe; every 10 steps ≈ 50 % overhead) on the
+closing-label corpus, the exact cast and both-villains at 1M–100M, five seeds, at the rule LR
+and one matched LR; the 30M matched-LR row; 30M / 100M at y = 1 and 0.95 to ten seeds; the
+k = 1 cell to twenty seeds if quoted; 300M from the 9× grid. Nothing else on the box list is
+needed for the paper as planned.
 
-Not worth it: more sizes without the corpus, a second genre, the moralizing axis.
+## 9. Paper skeleton and release
 
-## 6. Paper skeleton and release
-
-1. Introduction: the account, the prediction, the miniature.
-2. The apparatus: corpus, cast, coherence, the fork readout, the four probes, the direction test.
-3. Results R1–R5, one figure each.
-4. Discussion: what a persona is in these models (a lexical direction with a gain), what the
-   assistant persona would be in this picture, what the 0.30 says, caveats.
-5. Release: corpora (recipes with hashes), ≈ 300 final checkpoints, probe outputs, figure
-   scripts; a one-page reproduction path.
-
-Release: the corpora and checkpoints to the Hugging Face Hub with the recipes; the repo with a
-README that reproduces every figure from the released probe outputs in minutes and every probe
-output from the checkpoints in hours.
+Seven to eight pages of main text in the order of §2, five figures, appendices built from the
+dated reports. Title candidates: "Personas in miniature: a ground-truth test of persona
+selection for emergent misalignment"; "A narrow finetune generalizes through a pretrained
+persona, by a third, along one direction"; "Never, or nothing: how a small language model
+builds a persona and what a finetune does with it". The post is Figure 3b, Figure 1c and one
+paragraph on the entry condition. Release: the corpora and ≈ 340 final checkpoints to the
+Hugging Face Hub with the recipes; the repo with a README that reproduces every figure from the
+released probe outputs in seconds (`scripts/paper_figures.py`) and every probe output from the
+checkpoints in hours.

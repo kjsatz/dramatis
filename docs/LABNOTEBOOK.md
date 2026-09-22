@@ -1003,3 +1003,49 @@ on the other acts and is unaffected. Also today: the prediction-site decompositi
 used by the circuit scans is the decision position. Decisions: the 9× corpus is a yes but
 deferred and batched with all reruns into one "second go-around" after the figures are fixed
 (plan in synthesis §5 item 4; running list in NEXT_SESSION.md).
+
+Claude (20:40): **Write-up planning session and the five "Mac before the box" checks.** Story
+decisions with Kevin: audience = emergent-misalignment researchers, the abstract leads with the
+finetune test; "persona" kept, defined once; the label step becomes a main panel only after
+dense in-loop probes (a `probe_fn` hook every 10 steps ≈ 50 % overhead, numbers not weights);
+7–8 pages. Wording fixes for the paper: "about a quarter to a third" not "the 0.30 law"
+(intercepts: steal −0.01 [−0.08, +0.07], lie −0.33 [−0.54, −0.14], cheat −0.57 [−0.84, −0.30];
+fraction above +2 nats pooled median 0.24 [0.18, 0.34]; `logs/cast/spillover_by_act.txt`);
+"first-order decomposition" not "computable before any finetune"; "abrupt onset" not "grokking";
+"acts are read but not bound to the actor". Checks: (1) *pre-finetune predictor*
+(`scripts/jacobian_prefit.py`): replacing θ_ft − θ_neutral by one SGD / Adam step of the finetune
+loss at the base model predicts the spillover at r = 0.50 / 0.60 across the 22 ladder models
+against 0.87 with the actual weight change and 0.79 for the persona strength alone; the
+surrogates' cosine with the actual Δθ is 0.18 / 0.42; a base-model-only coupling gives r ≈ 0.5
+for the per-model fraction. Verdict: decomposition, not prediction. (2) *loss microstructure at
+the label-binding onset* (`scripts/binding_onset_loss.py`): train loss and gradient norm every
+10 steps show nothing in the onset interval (max |z| 0.9–3.1 / 0.9–10.1, permutation p
+0.07–1.0; mean gradient norm equal inside and before). (3) *re-fit* above. (4) *mechanism at
+100M and for "Ben lies"* (`finetune_persona.py --act --cells`; REPORT_circuit §9): Ben's shift
+along the base N − K axis +0.25 to +0.37 (10M, lie, 3 seeds), +0.38 to +0.58 (100M, steal),
++0.37 to +0.49 (100M, lie); ablating the direction at the name token removes 69–88 % of the lie
+spillover at 10M, 74–87 % of the attachment and 58–65 % of the spillover at 100M, 72–79 % of
+the lie spillover at 100M; random direction nothing. One new Mac finetune ("Ben lies" on the
+100M exact cast, 5 min). (5) *paper figures* (`scripts/paper_figures.py` →
+`docs/figures/paper_fig1–5.png`, from probe outputs only, seconds). `docs/2026-09-21_SYNTHESIS.md`
+rewritten with the revised story, the figure list, the wording rules and tonight's tables;
+`docs/NEXT_SESSION.md` updated. Nothing spent.
+
+Claude (21:05): **Why one gradient step is a poor surrogate for the finetune's weight change
+(Kevin's question; scratchpad check on the plain-cast 10M×3 seed 0, its steal and neutral
+finetunes at steps 50 and 100, full-set loss gradients at the base).** The path is nearly
+straight — cos(Δθ at step 50, at step 100) = 0.97 for the steal, the neutral and the
+differenced paths — so the base-model gradient's poor alignment with the final change (0.24)
+is not the path bending: it is already 0.29 at step 50. Two causes. (i) Adam moves every
+parameter by about the learning rate per step whatever its gradient's size, so the change is
+sign-like, not gradient-like (the sign surrogate aligns at 0.44–0.50, the raw gradient at
+0.24–0.29). (ii) Minibatch noise: the neutral finetune's full-set gradient is eight times
+smaller than the steal finetune's (norm 0.10 vs 0.76) yet its 100 steps move the weights
+almost as far (3.9 vs 4.5), and the two paths are nearly orthogonal (cos 0.05), so the norm
+of θ_ft − θ_neutral (5.8 ≈ √(4.5² + 3.9²)) is mostly two independent noise walks. The
+first-order decomposition works because a fixed readout gradient projects out that noise; a
+pre-finetune surrogate would have to reproduce the signal direction that Adam's per-parameter
+normalization carves out of the gradient, which one gradient does not. Energy by parameter
+group: the gradient 28 % embedding / 45 % MLP / 26 % attention; the steal path's change
+40 / 40 / 19 (Adam inflates the rarely-updated embedding rows). Practical route if a predictor is
+wanted: a ten-step probe finetune, since the direction is set early.

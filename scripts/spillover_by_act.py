@@ -31,11 +31,9 @@ RUN = re.compile(
 )
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("--out", type=Path, default=Path("docs/figures/spillover_by_act"))
-    parser.add_argument("--dump", action="store_true", help="print every run")
-    args = parser.parse_args()
+def collect():
+    """act -> [(run, base N − K, attachment, spillover)] over every base model with a neutral and
+    a "Ben <act>" finetune probe under logs/cast/."""
     fts, base = defaultdict(dict), {}
     for p in sorted(glob.glob("logs/cast/**/*.json", recursive=True)):
         try:
@@ -78,6 +76,15 @@ def main() -> None:
             attach = dl[act]["Ben (kind, ft)"] - dl[act]["kind"]
             spill = np.mean([dl[a]["Ben (kind, ft)"] - dl[a]["kind"] for a in ACTS if a != act])
             rows[act].append((run, nk, attach, spill))
+    return rows
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--out", type=Path, default=Path("docs/figures/spillover_by_act"))
+    parser.add_argument("--dump", action="store_true", help="print every run")
+    args = parser.parse_args()
+    rows = collect()
     fig, axes = plt.subplots(1, 2, figsize=(13, 5), constrained_layout=True)
     print(
         f"{'taught act':10s} {'n':>4s} {'slope':>6s} {'intercept':>10s} {'r':>5s} {'spill / persona (base > 2)':>28s} {'mean attachment':>16s}"
@@ -129,6 +136,45 @@ def main() -> None:
         ax.axhline(0, color="k", lw=0.5)
         ax.grid(alpha=0.3)
         ax.legend(fontsize=7)
+    # ---- re-fit (2026-09-21): intercepts with bootstrap CIs, through-origin slopes, the fraction
+    # above +2 nats as a distribution, a pooled fit, and the steal line by model size.
+    rng = np.random.default_rng(0)
+
+    def fits(x, s):
+        A = np.vstack([x, np.ones_like(x)]).T
+        slope, icpt = np.linalg.lstsq(A, s, rcond=None)[0]
+        boots = []
+        for _ in range(2000):
+            i = rng.integers(len(x), size=len(x))
+            boots.append(np.linalg.lstsq(A[i], s[i], rcond=None)[0][1])
+        lo, hi = np.percentile(boots, [2.5, 97.5])
+        origin = float(x @ s / (x @ x))
+        big = x > 2
+        frac = s[big] / x[big] if big.any() else np.array([np.nan])
+        return slope, icpt, lo, hi, origin, np.corrcoef(x, s)[0, 1], np.median(frac), np.percentile(frac, 25), np.percentile(frac, 75), int(big.sum())
+
+    print("\nre-fit: OLS slope and intercept [95 % bootstrap CI], through-origin slope, r; the fraction spill / persona above +2 nats as median [IQR]")
+    print(f"{'set':22s} {'n':>4s} {'slope':>6s} {'intercept [CI]':>22s} {'origin':>7s} {'r':>5s} {'fraction > 2: median [IQR]':>28s} {'n>2':>4s}")
+    allx, alls = [], []
+    for act in ACTS:
+        v = rows[act]
+        if len(v) < 3:
+            continue
+        x, s = np.array([r[1] for r in v]), np.array([r[3] for r in v])
+        allx += list(x)
+        alls += list(s)
+        f = fits(x, s)
+        print(f"{'Ben ' + act + 's':22s} {len(v):4d} {f[0]:6.2f} {f[1]:+7.2f} [{f[2]:+.2f}, {f[3]:+.2f}] {f[4]:7.2f} {f[5]:5.2f} {f[6]:14.2f} [{f[7]:.2f}, {f[8]:.2f}] {f[9]:4d}")
+    x, s = np.array(allx), np.array(alls)
+    f = fits(x, s)
+    print(f"{'all four acts pooled':22s} {len(x):4d} {f[0]:6.2f} {f[1]:+7.2f} [{f[2]:+.2f}, {f[3]:+.2f}] {f[4]:7.2f} {f[5]:5.2f} {f[6]:14.2f} [{f[7]:.2f}, {f[8]:.2f}] {f[9]:4d}")
+    for size in ("1m", "3m", "10m", "30m", "100m"):
+        v = [r for r in rows["steal"] if re.search(rf"story-{size}(?:-|_)", r[0])]
+        if len(v) < 3:
+            continue
+        x, s = np.array([r[1] for r in v]), np.array([r[3] for r in v])
+        f = fits(x, s)
+        print(f"{'Ben steals, ' + size:22s} {len(v):4d} {f[0]:6.2f} {f[1]:+7.2f} [{f[2]:+.2f}, {f[3]:+.2f}] {f[4]:7.2f} {f[5]:5.2f} {f[6]:14.2f} [{f[7]:.2f}, {f[8]:.2f}] {f[9]:4d}")
     args.out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(str(args.out) + ".png", dpi=130)
     print(f"-> {args.out}.png")

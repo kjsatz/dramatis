@@ -1,4 +1,4 @@
-# Continuation prompt for the next session (revised 2026-09-21, after the closing runs)
+# Continuation prompt for the next session (revised 2026-09-21 evening, after the write-up planning session)
 
 Paste this into a new Claude Code session in the `dramatis` repo.
 
@@ -36,12 +36,14 @@ makes Ben lie, cheat and tease in 39–68 % of stories.
 
 **What is left.**
 
-1. *Write-up and release* (overview §6 item 10; synthesis §6). A paper-style document from the
-   overview and reports, five figures recomposed from the working figures (synthesis §3 lists
-   the panels and the scripts that make them today; a `scripts/paper_figures.py` is the
-   natural next thing to write), the corpora and the ≈ 340 final checkpoints to the Hugging
-   Face Hub with the recipes, a README reproduction path. Kevin's decision: arXiv (cs.LG,
-   cross-list cs.CL) plus README and a thread.
+1. *Write-up and release* (overview §6 item 10; synthesis §2–§4, §9). The story, the figure
+   list, the wording rules and the paper skeleton are settled in the revised
+   `docs/2026-09-21_SYNTHESIS.md` (evening version). `scripts/paper_figures.py` builds the five
+   figures (`docs/figures/paper_fig1–5.png`) from the probe outputs in seconds; the styling is
+   not final. Next: the paper text itself; the corpora and the ≈ 340 final checkpoints to the
+   Hugging Face Hub with the recipes; a README reproduction path. Kevin's decision: arXiv
+   (cs.LG, cross-list cs.CL) plus README and a thread; 7–8 pages of main text; audience =
+   emergent-misalignment researchers.
 2. *The second go-around (decided 2026-09-21): the 9× corpus plus every "more seeds" want,
    batched into one box rental after the final figures are fixed.* The 9× plan (generation
    self-hosted with vLLM, the training grid 1M–300M, ≈ $100–150) is in synthesis §5 item 4.
@@ -54,6 +56,34 @@ makes Ben lie, cheat and tease in 39–68 % of stories.
    - the mechanism (projection, ablation) at 100M and for "Ben lies" — a Mac evening, no box.
    - the frequency ladder at 100M only if the class-level count-vs-fraction result at 9× makes
      it interesting.
+   - *added 2026-09-21 (write-up planning session):*
+   - dense in-loop probes over training, for the paper's Figure 1a (three curves over
+     training: the cast name effect, label binding, the in-context effect): a `probe_fn` /
+     `probe_every` hook in `dramatis/train.py` (Kevin) plus light probe functions (Claude: a
+     20-story label-binding probe ≈ 2.3 training steps of compute, the k = 0 probe ≈ 2.5,
+     the in-context probe), every 10 steps (≈ 50 % overhead) on: the closing-label corpus at
+     1M / 3M / 10M / 30M / 100M (300M if the 9× grid includes it), five seeds, at the rule LR
+     and at one matched LR, so the binding onset against size is a real panel; the exact cast
+     at the same sizes (how fast the lexical persona forms); both-villains (the lost
+     per-checkpoint curve, which subsumes the 15-minute re-run above).
+   - the matched-LR row of the size ladder completed: 30M at 3e-4, five seeds (10M and 100M at
+     3e-4 and 1M / 3M at 6e-4 exist), so Figure 5 can show rule and matched LR side by side.
+   - more items for the held-out acts if break is a figure panel (the seeds disagree on the
+     finetune's break spillover within ±1–2 nats).
+   *Mac, before the box — all five done 2026-09-21 evening (synthesis §5):*
+   - pre-finetune predictor: **no** — one SGD / Adam step of the finetune loss predicts the
+     spillover at r = 0.50 / 0.60 vs 0.87 with the actual weight change and 0.79 for the persona
+     alone (`scripts/jacobian_prefit.py`). The paper says "first-order decomposition".
+   - loss microstructure at the binding onset: **nothing** at 10-step resolution
+     (`scripts/binding_onset_loss.py`); the dense in-loop probes are the only way to time it.
+   - re-fit: steal through the origin, lie / cheat with negative intercepts; fraction above +2
+     nats pooled median 0.24 [0.18, 0.34] (`logs/cast/spillover_by_act.txt`). The paper says
+     "about a quarter to a third".
+   - mechanism at 100M and for "Ben lies": the finetune rides the class direction whatever it
+     teaches, at both sizes (REPORT_circuit §9).
+   - `scripts/paper_figures.py` written; five working figures.
+   *Still on the Mac list:* the training-loop probe hook (`probe_fn` / `probe_every` in
+   `dramatis/train.py`, Claude to write) and the light probe functions, before the box.
 3. *Loose ends worth one line each in the paper, not more experiments:* the count-vs-fraction
    question has only a class-level form (casts that vary the K class's total frequency); the
    both-villains per-checkpoint curve was not recorded (finals only; a 15-minute box job if a
