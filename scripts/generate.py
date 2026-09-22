@@ -18,6 +18,8 @@ backpressure (retried without limit), so too many --workers only slows the run d
 import argparse
 import hashlib
 import json
+import socket
+import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -75,6 +77,22 @@ PRICES = {
     "google/gemma-4-26B-A4B-it": (0.0, 0.0),  # self-hosted (vLLM); GPU rental billed per hour
 }
 TOKENIZER = Path("tokenizer/story-bpe-4096.json")
+
+
+def local_gpus() -> list[str] | None:
+    """GPU names from nvidia-smi on this machine, or None if there is none."""
+    try:
+        out = subprocess.run(
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if out.returncode != 0:
+        return None
+    return out.stdout.strip().splitlines() or None
 
 
 def estimate(model: str, n: int, prompt_tokens: int, story_tokens: int) -> str:
@@ -318,6 +336,23 @@ def main() -> None:
             key = p.split(":")[0]
             problem_counts[key] = problem_counts.get(key, 0) + 1
 
+    # One entry per invocation, kept across resumes (the top-level fields describe the last one),
+    # so a run interrupted and continued on another machine records where every part ran.
+    meta_path = Path(str(out_path) + ".meta.json")
+    runs = json.loads(meta_path.read_text()).get("runs", []) if meta_path.exists() else []
+    runs.append(
+        {
+            "finished": utc_now(),
+            "stories": len(todo),
+            "seconds": round(seconds, 1),
+            "workers": args.workers,
+            "backend": args.backend,
+            "base_url": args.base_url,
+            "git_commit": git_commit(),
+            "host": socket.gethostname(),
+            "gpus": local_gpus(),  # the driver's machine; None when driving a remote server
+        }
+    )
     meta = {
         "batch": args.batch,
         "name": args.name,
@@ -354,8 +389,9 @@ def main() -> None:
         "seconds_this_run": round(seconds, 1),
         "stories_this_run": len(todo),
         "created": utc_now(),
+        "runs": runs,
     }
-    Path(str(out_path) + ".meta.json").write_text(json.dumps(meta, indent=2) + "\n")
+    meta_path.write_text(json.dumps(meta, indent=2) + "\n")
     rate = len(todo) / seconds if seconds else 0
     print(
         f"done: {n_valid}/{len(rows)} valid, {in_tokens:,} in / {out_tokens:,} out tokens, "
