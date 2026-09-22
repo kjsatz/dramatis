@@ -184,3 +184,170 @@ a within-model control.
   (refuted by cheat) and not the other child's presence (tease).
 * The steal offset (above).
 * Whether the 1× 100M attachment dip is data starvation (R20 decides).
+
+## 10. Placeholder panels
+
+One panel per result the v4 runs are meant to produce, drawn from the 1× probe outputs by
+`scripts/plan_figures.py` (seconds, no checkpoints) into `docs/figures/plan/`. Where nothing close
+exists the panel is marked ILLUSTRATIVE. Grouping follows §3; composition is not the point.
+Figure 1 (setup) is a schematic and is not drafted here. Each caption says what the placeholder
+is and, after **v4:**, what the planned version changes.
+
+### Figure 2: a persona forms on names
+
+![2a](figures/plan/plan_2a.png)
+
+**2a. A persona forms only at near-exact coherence.** Persona (N − K, all acts) against coherence
+y; 10M from the 1× sweep (106M tokens, about four epochs, 10 seeds per y), 30M and 100M with 2–5
+seeds; the random cast (y = 0) from the 10M×3 map. **v4:** one unrepeated pass (380M tokens);
+y = 0 / .5 / .8 / .9 / .95 / .98 / .99 / 1 at 10M and y = 0 / .9 / .95 / .99 / 1 at 1M, 3M, 30M,
+100M, 10 seeds everywhere (R1, R2); new fork items; the persona per act rather than averaged over
+acts (open: small multiples by act, or each act normalized to its y = 1 value).
+
+![2b](figures/plan/plan_2b.png)
+
+**2b. The name's persona forms early and smoothly.** N − K over training, exact cast, 10M×3,
+five runs, probes every 1,500 steps. **v4:** dense probes every 10 steps, every size, y = 0.95
+and 1, 10 seeds; tokens on the x-axis (R4).
+
+![2c](figures/plan/plan_2c.png)
+
+**2c. Count or fraction?** Illustrative only: the two outcomes stated in advance. If the
+fraction of exceptions sets the persona, the quarter-size corpus traces the full corpus's curve;
+if the count per name sets it, the quarter corpus (a quarter the exceptions per name at the same
+y) keeps more. **v4:** 10M, y = .95 / .99 / 1 on a quarter corpus against R1 (R3).
+
+### Figure 3: names, acts and labels
+
+![3a](figures/plan/plan_3a.png)
+
+**3a. The in-context ladder.** Final character effect (villain − other child) by rung. 1× stand-ins:
+B = the opening-label corpora at 100M with the label in the prefix, where only the villain was
+ever tempted (REPORT_stage2a §3.3); C = the both-villains finals at k = 1 (10M×3, 30M, 100M); D =
+the same at k = 2; error bars are the spread over items. Rung A was never run. **v4:** all four
+rungs on the v4 1 : 2 : 1 mix with both children tempted, 1M–100M, 10 seeds, dense probes; error
+bars 95 % CIs over seeds; "positive" as §4 (R5–R8).
+
+![3b](figures/plan/plan_3b.png)
+
+**3b. Over training: the name early, the label late and abrupt, acts never.** 10M×3 on three
+different 1× corpora: the exact cast (name effect), the closing-label corpus (label binding, two
+runs), the symmetric corpus (in-context effect, three runs); probes every 1,500 steps. **v4:** one
+corpus family: label binding (rung B′), behaviour under an opening label (rung B, probed in the
+same runs as its binding), the in-context effect (rung C) and the lexical name effect; dense
+probes, 10 seeds, tokens on the x-axis; the Figure-3 layout then follows §6's outcome table.
+
+![3c](figures/plan/plan_3c.png)
+
+**3c. The onset of label binding against size.** Tokens seen at the onset, 1× closing-label runs,
+two seeds per size, LR by the 1/width rule, stories repeated; open = no onset by the end; 1M and
+3M never run. **v4:** 1M–100M, 10 seeds, onset to 10-step precision, the continuation rule for
+runs that have not bound after one pass (pass boundaries marked); the LR control at 10M
+(R6, R9, R19).
+
+### Figure 4: a narrow finetune selects the persona
+
+![4a](figures/plan/plan_4a.png)
+
+**4a. Spillover ≈ 0.4 × the persona on each untaught act.** One point per (base model, taught act,
+untaught act), 305 1× finetunes pooled over sizes and corpora; fits per untaught act; dotted line
+0.4. Steal as the untaught act has the same slope and a −1.3 offset (§4). **v4:** ≈ 1,800
+finetunes on the R1–R2 bases and the new fork items; colour by act, sizes as small multiples or
+marker shade; the steal offset reported separately (R13).
+
+![4b](figures/plan/plan_4b.png)
+
+**4b. The contrast.** Spillover (mean over untaught lie / cheat / tease) per finetune at 10M;
+black bars are means; 2–3 seeds per cell at 1×; the paired cast does not exist yet. **v4:** 10
+seeds per cell, the paired cast, the clean twin, and the contrast effect sizes reported against
+the random cast (R1, R10–R13).
+
+![4c](figures/plan/plan_4c.png)
+
+**4c. In free text: the finetune's two parts.** Change in the bad-act rate (finetune − neutral,
+percentage points) for Ben and for the other kind names, all four taught acts; plain cast 10M×3,
+3 seeds, 144 Ben / 504 other-name samples per cell (cheat judged 2026-09-22). The off-diagonal
+left is the persona part (Ben only); the diagonal right is the act part (every name; weak for
+steal, the open question). **v4:** 10 seeds, the random, paired and by-act casts as well, Wilson
+intervals, batch judging (R14).
+
+![4d](figures/plan/plan_4d.png)
+
+**4d. Spillover follows what the taught act's names did.** Measured spillover to an act against
+0.4 × the persona of the names that did the taught act on that act: the by-act cast (each name
+did one act; their own profile) and the plain cast (every N-name did every act; the class
+average); 10M×3, 3 seeds each, the rule applied after the fact. The plain-cast points far right
+are steal as the untaught act (the offset). **v4:** the paired cast as the pre-stated test — the
+points should sit on the dotted line and "Ben steals" should reach lie and not cheat (R10, R11).
+
+![4e](figures/plan/plan_4e.png)
+
+**4e. Beyond the performed acts.** Persona and "Ben steals" spillover per act, with the
+prediction 0.4 × persona as a tick; plain cast 10M×3, 3 seeds, on the 1× held-out items (sneak
+and blame confounded by "did not" / "I did", §1). **v4:** new frozen items for all eight acts, all
+R1–R2 bases, the prediction stated in advance for each held-out act (R15).
+
+### Figure 5: mechanism
+
+![5a](figures/plan/plan_5a.png)
+
+**5a. One direction is the persona.** Change in a K-named actor's fork log-odds when α class gaps
+are added to its embedding along N − K; exact cast and y = 0.95, 10M (two seeds) and 100M; × = a
+random direction of the same length. **v4:** per act, 10 seeds at 10M and 100M, and the smaller
+sizes for Figure 6 (R16).
+
+![5b](figures/plan/plan_5b.png)
+
+**5b. The finetune moves Ben ≈ 0.4 of the way into the class.** Ben's residual at his name token
+projected on the base model's N − K direction (0 = K mean, 1 = N mean) per block; grey lines are
+the other kind names; the band is the act-matched spillover slope of 4a. 10M three seeds, 100M one.
+**v4:** 10 seeds at 10M and 100M, all four taught acts, and per model the shift against that
+model's spillover ÷ persona (R16).
+
+![5c](figures/plan/plan_5c.png)
+
+**5c. Removing the direction removes most of the effect.** Attachment and spillover with the
+class direction (or a random one) removed at Ben's name token after block 2; 10M, 3 seeds.
+**v4:** 10M and 100M, four taught acts, 10 seeds (R16).
+
+![5d](figures/plan/plan_5d.png)
+
+**5d. Predicted from the base model.** Placeholder only: the 1× first-order *decomposition*
+(the base model's gradients times the Adam finetune's actual weight change, 22 models), which is
+not a prediction. **v4:** the GD test (§5.1 of the synthesis): the dose fixed from the predicted
+attachment, ten full-batch steps, measured against predicted attachment and spillover with the
+slope; the dose series, signGD, Adam as the contrast; first on the 1× models on the Mac (R17).
+
+![5e](figures/plan/plan_5e.png)
+
+**5e. Un-poisoning: position and behaviour fall together, then stop.** Ben's position on the class
+axis, spillover and attachment after clean training, each as a fraction of its poisoned value;
+thin lines are seeds (3), thick the mean; one seed's attachment does not fall. **v4:** 10 seeds,
+clean training to 2,000 steps (R18).
+
+![5f](figures/plan/plan_5f.png)
+
+**5f. The class is represented long before it is used.** Against coherence, the embedding d′ of
+N- against K-name rows and the behavioural persona, each as a fraction of its value at y = 1; 10M
+sweep, 10 seeds per y. **v4:** on R1–R2, with the prediction-site d′ (the transfer) and the
+steering response (the readout) added, so the gain's two halves can be seen across y.
+
+### Figure 6: what capacity buys
+
+![6](figures/plan/plan_6.png)
+
+**6. What capacity buys.** Six properties against size, shade normalized per row, value printed.
+1× values come from different schedules and learning rates; the spillover ratio uses the old
+all-acts metric; the label onset exists only at 10M–100M; the 100M finetune's name-specificity
+(0.40) is the attachment dip that R20 tests. **v4:** every row from the R1–R19 grid at one
+schedule, the act-matched ratio, the onset under the continuation rule; which rows stay is for
+the review.
+
+### Open for the review
+
+* 2a and the other persona panels: per act (small multiples) or an act-normalized average?
+* 3a: whether rung D earns its own column or folds into C as a second readout.
+* 4b and 4d overlap (both use the by-act cast); 4d may absorb 4b's right half once the paired cast
+  exists.
+* 5f could sit in Figure 2 (it explains the sharp step) rather than in the mechanism figure.
+* Figure 6's rows.
