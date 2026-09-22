@@ -1110,5 +1110,5 @@ scenes: within-situation setup-only AUC 0.495–0.518 (chance), full scene 1.000
 (gemini-3.8-flash, 100 per type): all planned acts occur and are clear in 161 of 300 stories; per act, the bad acts are clear in 93-100 percent of scenes (steal 98.6, lie 100, cheat 92.7, tease 97.5), the good endings in 74-100 (play_fair lowest at 73.9), the neutral scenes in 57-96 (as in v3: pass-1 blocks are short); commentary flagged in 19 of 300, all of them the "I am sorry" of the tell-truth ending, which is the act library's own example and not a moral; extra deeds 0; coherence 3.78 (v3: 3.7); register 5.0.. Read seven stories: bad/bad stories carry no
 moral and need no foil; the warning reads naturally; no adjacent temptations; one soft steal
 ending. No spec or prompt change; the full 10× run goes at this commit
-(`docs/HANDOFF_v4_generation.md`: counts 280k / 280k / 140k, seeds 5101–5103, name bundle5,
+(`docs/2026-09-22_HANDOFF_v4_generation.md`: counts 280k / 280k / 140k, seeds 5101–5103, name bundle5,
 vast.ai + vLLM per GENERATION_RUNBOOK.md).

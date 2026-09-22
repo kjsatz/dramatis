@@ -34,6 +34,10 @@ child's second temptation is decided by its own first choice and by nothing else
 10M×3, 30M and 100M. In free text the persona is total (96–100 % vs 0–1 %) and "Ben steals"
 makes Ben lie, cheat and tease in 39–68 % of stories.
 
+**Handoffs (2026-09-22):** `docs/2026-09-22_HANDOFF_v4_generation.md` (the full 10× generation
+on a rented GPU, running) and `docs/2026-09-22_HANDOFF_experiment_planning.md` (a critical
+review of the synthesis and the follow-up plan for the v4 corpus, in dialog with Kevin).
+
 **Decided 2026-09-22 (evening discussion): a v4 corpus at 10×, and the in-context ladder.**
 Design and plumbing in `docs/DATA.md` §19 (built, tested, dry-run; not yet generated). Order of
 work: (1) commit the generation code; (2) Vertex pilot, 300 stories per type (`v4-base`,
