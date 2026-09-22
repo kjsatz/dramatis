@@ -45,8 +45,10 @@ def test_sampler_invariants():
     performed = set(SIT.performed)
     for batch in BATCHES:
         n_spec = Counter()
-        for _ in range(60):
-            spec = sample_spec_v4(batch, rng, ACTS, SIT, SETUPS, p_specialist=0.5, n_extra=1)
+        for j in range(60):
+            spec = sample_spec_v4(batch, rng, ACTS, SIT, SETUPS, specialist=j % 2 == 1, n_extra=1)
+            if batch != "v4-base":
+                assert bool(spec.specialists) == (j % 2 == 1)
             assert spec.spec_version == 4 and spec.batch == batch
             assert StorySpecV4.from_dict(to_dict(spec)) == spec
             assert StorySpec.from_dict(to_dict(spec)).scenes == spec.scenes  # judge.py's view
@@ -101,7 +103,11 @@ def test_sampler_invariants():
                 if spec.setups[i]:
                     assert SETUPS.by_id[spec.setups[i]]["situation"] == sid
         if batch != "v4-base":
-            assert 0.3 < n_spec[True] / (n_spec[True] + n_spec[False]) < 0.7
+            assert n_spec[True] == n_spec[False]
+    # the villain slot can be fixed
+    for slot in ("$A", "$B"):
+        spec = sample_spec_v4("v4-one", rng, ACTS, SIT, SETUPS, villain_slot=slot)
+        assert spec.villains == (slot,) and spec.villain == slot
 
 
 def test_pass1_is_ending_blind_for_v4():
@@ -174,12 +180,7 @@ def test_by_act_cast_needs_specialists():
     rng = np.random.default_rng(3)
     cast = load_cast("prompts/cast_byact.yaml")
     banks, pool = load_banks(), load_name_pool()
-    spec = next(
-        s
-        for s in (
-            sample_spec_v4("v4-both", rng, ACTS, SIT, SETUPS, p_specialist=1.0) for _ in range(20)
-        )
-    )
+    spec = sample_spec_v4("v4-both", rng, ACTS, SIT, SETUPS, specialist=True)
     acts_of = {k.placeholder: next(a for a in k.acts if a in ACTS.bad) for k in spec.kids}
     story = (
         "$A and $B played.\n\n[AFTERMATH $A "

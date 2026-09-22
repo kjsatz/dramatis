@@ -126,10 +126,11 @@ def main() -> None:
         "4: the v3 pipeline on v4 specs, two temptations per child, a trait per child (§19)",
     )
     parser.add_argument(
-        "--p-specialist",
-        type=float,
-        default=0.5,
-        help="v4: P(a story's villains repeat one situation), drawn once per story",
+        "--n-specialist",
+        type=int,
+        default=None,
+        help="v4 villain batches: exactly this many stories whose villains repeat one situation, "
+        "spread evenly through the batch (default: half of --n; 0 for v4-base)",
     )
     parser.add_argument(
         "--n-extra", type=int, default=1, help="v4: benign scenes per child besides the temptations"
@@ -165,12 +166,30 @@ def main() -> None:
             args.template = Path("prompts/story_v3a.md")
         situations, setups = Situations.load(), Setups.load()
         if args.spec_version == 4:
+            # design factors are counted, not drawn: exactly n_specialist specialist stories,
+            # spread evenly (every prefix of a resumable run stays balanced), and the villain of
+            # a bad/good story alternating between $A and $B
+            k = (
+                0
+                if args.batch == "v4-base"
+                else (args.n // 2 if args.n_specialist is None else args.n_specialist)
+            )
+            if not 0 <= k <= args.n:
+                sys.exit(f"--n-specialist must be between 0 and {args.n}")
             specs = [
                 sample_spec_v4(
-                    args.batch, rng, acts, situations, setups, args.p_specialist, args.n_extra
+                    args.batch,
+                    rng,
+                    acts,
+                    situations,
+                    setups,
+                    specialist=((i + 1) * k) // args.n > (i * k) // args.n,
+                    n_extra=args.n_extra,
+                    villain_slot=("$A", "$B")[i % 2] if args.batch == "v4-one" else None,
                 )
-                for _ in range(args.n)
+                for i in range(args.n)
             ]
+            args.n_specialist = k
         else:
             specs = [
                 sample_spec_v3(args.batch, rng, acts, situations, setups) for _ in range(args.n)
@@ -317,7 +336,7 @@ def main() -> None:
         "template_b": str(args.template_b) if args.spec_version >= 3 else None,
         "template_b_sha256": file_sha256(args.template_b) if args.spec_version >= 3 else None,
         "setups_sha256": file_sha256("prompts/setups.yaml") if args.spec_version >= 3 else None,
-        "p_specialist": args.p_specialist if args.spec_version == 4 else None,
+        "n_specialist": args.n_specialist if args.spec_version == 4 else None,
         "n_extra": args.n_extra if args.spec_version == 4 else None,
         "situations_sha256": file_sha256("prompts/situations.yaml")
         if args.spec_version >= 2

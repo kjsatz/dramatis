@@ -1093,3 +1093,9 @@ signGD the same way (its prediction is the sign inner product times the dose, do
 Adam as the contrast with its existing runs, its learning rate the one to move if equal effect
 sizes are wanted. Written into the synthesis §5.1 and NEXT_SESSION; `scripts/gd_finetune.py`
 to write.
+
+Claude (01:50): **v4 design factors are counted, not drawn** (Kevin): `--n-specialist` sets
+the exact number of specialist stories per villain batch (default half), spread evenly so any
+prefix of a resumable run stays balanced; the villain of a bad/good story alternates between
+$A and $B; only the nuisance variety (situations, setups, adult, setting, objects, warning)
+stays random. Dry run: 150 / 150 in 300 of either villain type.
