@@ -13,6 +13,7 @@ This project is largely for the education of the user (Kevin). Default mode is _
 * Don't build a framework. We just want some data-generation scripts, training scripts, eval scripts, and small shared utilities. Keep it simple.
 * Ask before spending API credits or launching anything that takes more than a few minutes, and give an estimate of cost and time.
 * Don't git commit or push without asking. Ask at appropriate times.
+* Use California (Pacific) time consistently when talking to me and in docs (status updates, ETAs, notebook entries), e.g. "2:15 pm PT". Remote boxes and logs are usually UTC; convert.
 
 ## Repo and environment
 
