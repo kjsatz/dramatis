@@ -38,6 +38,14 @@ makes Ben lie, cheat and tease in 39–68 % of stories.
 on a rented GPU, running) and `docs/2026-09-22_HANDOFF_experiment_planning.md` (a critical
 review of the synthesis and the follow-up plan for the v4 corpus, in dialog with Kevin).
 
+**Decided 2026-09-22 (experiment-planning session): the plan for the v4 corpus is
+`docs/2026-09-22_EXPERIMENT_PLAN.md`** — the revised claims (C1–C6), six figures, the metrics and
+fork-item rules fixed before the runs, the run table R1–R20 with each experiment's frozen readout
+and expected range, the budget (≈ 300 GPU-h, ≈ 37 h on 8× RTX 5090, ≈ $140) and the Mac work
+before the box (§8). It supersedes the "second go-around" list below. The corpus was doubled to
+20× (≈ 1.4M stories); one pass per run at every size, ten seeds per cell (30M / 100M included),
+no 300M. Claude writes the training-loop probe hook.
+
 **Decided 2026-09-22 (evening discussion): a v4 corpus at 10×, and the in-context ladder.**
 Design and plumbing in `docs/DATA.md` §19 (built, tested, dry-run; not yet generated). Order of
 work: (1) commit the generation code; (2) Vertex pilot, 300 stories per type (`v4-base`,

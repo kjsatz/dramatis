@@ -1112,3 +1112,57 @@ moral and need no foil; the warning reads naturally; no adjacent temptations; on
 ending. No spec or prompt change; the full 10× run goes at this commit
 (`docs/2026-09-22_HANDOFF_v4_generation.md`: counts 280k / 280k / 140k, seeds 5101–5103, name bundle5,
 vast.ai + vLLM per GENERATION_RUNBOOK.md).
+
+Claude (13:40): **Experiment-planning session, part 1: a critical look at the Figure 3 metrics on
+the 1× data (Mac analyses; one sampling + judging run, $2.49).** Scratch analyses; the scripts
+are in the session scratchpad, not the repo; to be written into `scripts/` for v4. (1) *The
+spillover metric.* The synthesis plots spillover (untaught acts) against the persona averaged
+over ALL four acts, which includes the taught act; steal's fork persona is ≈ 8.7 nats against
+1–3 on the others, so the x-axis is inflated for "Ben steals". Act-matched (each untaught act's
+spillover against the persona on that act; 305 finetunes, 915 points) the slopes are 0.40 / 0.40
+/ 0.43 for lie / cheat / tease with intercepts +0.14 / +0.07 / −0.04, and 0.42 with intercept
+−1.27 for steal as the untaught act; per taught act 0.44 / 0.44 / 0.37 / 0.37 instead of 0.25 /
+0.46 / 0.44 / 0.40. "A quarter to a third" becomes "about 0.4 of the persona on each act"; Ben's
+shift along the class direction (0.31–0.42 at 10M) matches it on average but not per model
+(spillover ÷ persona 0.26–0.74 at constant shift). "Law" retired as a word. (2) *The contrast.*
+Random cast (map y = 0, 10M, 2 seeds, 6 finetunes) spillover −0.04 ± 0.14 against exact cast
++0.89 ± 0.54 (d ≈ 2.4), plain cast +0.74 ± 0.44, y = 0.5 / 0.9 / 0.95 +0.08 / +0.16 / +0.38,
+by-act +0.10; lie / cheat / tease mean, steal left out for its offset. Clear but modest in fork
+units; Kevin: ten seeds per cell by default for v4. (3) *Fork compression.* Samples against forks
+on the plain cast: the persona is 8–11 logits in free text on every act but 1.3–2.9 fork nats on
+lie / cheat / tease (8.7 on steal); fork values must not be averaged across acts; the act-matched
+ratio survives because both sides share the act's scale. (4) *Held-out items.* Per item over 17
+cast models: sneak's two items whose good ending says "did not" read −1.11 / −0.29, the other two
++0.58 / +0.76; blame's "I did it" vs "{B} did it" −1.29, the "knocked" items +0.7 / +0.9; exclude
++0.2 on all four; break +3.7 to +4.5 on all four. The lie fork's decision token is "not" after
+"I did", and that word habit leaks into items that share it. Decided: keep the frozen items and
+report them with this analysis; write new fork items for v4 (performed and held-out acts) under
+general rules (negation balanced or absent, natural good endings, no names in endings, several
+phrasings, ≈ 16 setups per act), frozen before any v4 model exists. (5) *Steal offset.* With
+little persona on steal, lie / cheat / tease finetunes lower Ben's steal by ≈ 0.7 nats against
+the other kind names (other untaught acts +0.1 to +0.2); unexplained. (6) *Why does the taught
+act stay with Ben only for steal?* Free text: other kind names do the taught act in 14 % (steal),
+81 % (lie), 63 % (tease) of samples. Candidate explanation, quoted speech (the lie and tease
+endings open with the quote, 100 %; steal and cheat endings are narrated deeds, and cheat's open
+with the name, 91 %); the other child's presence was ruled out in step 1 (tease has it in 100 %).
+Prediction stated in the session before sampling: after "Ben cheats" other kind names cheat in
+< 20 % of samples, ≥ 50 % refutes. Sampled the three plain-cast "Ben cheats" finetunes
+(`logs/samples/finetune_cheat.jsonl`, 3,960 continuations, `sample_forks.py --block finetune`)
+and judged them (gemini-3.8-flash, 2.65M input tokens, $2.49; ≈ 75 min because Vertex returned
+429s that `dramatis/llm.py` retries silently). **Refuted:** other kind names cheat in 74.4 %
+[70.4, 78.0] (seeds 71 / 68 / 83 %), Ben 93.8 %; N-names 94 %. Spillover as before: Ben lies
+14.6 %, steals 25.0 %, teases 29.2 % where the other kind names do 0.0 / 0.4 / 1.2 %. So steal is
+the exception, not lie and tease; for the paper: an open question with one explanation ruled out.
+Nothing committed.
+
+Claude (14:30): **Experiment-planning session, part 2: the plan for the v4 corpus,
+`docs/2026-09-22_EXPERIMENT_PLAN.md`.** Decisions with Kevin: six figures (setup; a persona
+forms on names; names, acts and labels; a narrow finetune selects the persona; mechanism; what
+capacity buys), size a knob in every figure instead of a scaling figure; the slogan "knowing is
+not expecting" cut (the gain stays as the mechanism of the coherence step); un-poisoning a
+mechanism panel (position and behaviour together); Figure 3 pre-considered for the four
+outcomes of rungs B and C; "positive" for a rung = ten-seed mean > 0.5 nats with a 95 % CI
+excluding zero; ten seeds per cell including 30M / 100M; one pass per run at every size; no
+300M; rung A included; the corpus doubled to 20× (Kevin, generating). Run table R1–R20 with the
+frozen readout and the 1× expected range per experiment, ≈ 300 GPU-h ≈ 37 h on 8× RTX 5090
+≈ $140, judging ≈ $65 of credits. Nothing committed.
