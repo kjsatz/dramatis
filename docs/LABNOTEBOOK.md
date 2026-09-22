@@ -1099,3 +1099,16 @@ the exact number of specialist stories per villain batch (default half), spread 
 prefix of a resumable run stays balanced; the villain of a bad/good story alternates between
 $A and $B; only the nuisance variety (situations, setups, adult, setting, objects, warning)
 stays random. Dry run: 150 / 150 in 300 of either villain type.
+
+Claude (02:40): **v4 pilot on Vertex: passed** (`pilot-v4-01`, 300 stories per type, seeds
+4401 / 4402 / 4403, commit b3b2fb6, gemma-4-26b-a4b-it-maas at 16 workers, 1.8–2.1 stories/s,
+≈ $0.50 list). Valid: base 271 / 300, one 283 / 300, both 265 / 300 (bundle 4: 89–95 %), drops
+"too long" 5–9 %, a `$Can`-style placeholder 0–4 %, pass-1 block misses ≤ 1 %. Assembled
+length (worst-case templates) median 443–454, p90 502–510, max 575 tokens. Design counts
+exact (150 / 150 specialists; villain slot 150 $A / 150 $B). Leakage gate on 3,582 situation
+scenes: within-situation setup-only AUC 0.495–0.518 (chance), full scene 1.000. Judge
+(gemini-3.8-flash, 100 per type): all planned acts occur and are clear in 161 of 300 stories; per act, the bad acts are clear in 93-100 percent of scenes (steal 98.6, lie 100, cheat 92.7, tease 97.5), the good endings in 74-100 (play_fair lowest at 73.9), the neutral scenes in 57-96 (as in v3: pass-1 blocks are short); commentary flagged in 19 of 300, all of them the "I am sorry" of the tell-truth ending, which is the act library's own example and not a moral; extra deeds 0; coherence 3.78 (v3: 3.7); register 5.0.. Read seven stories: bad/bad stories carry no
+moral and need no foil; the warning reads naturally; no adjacent temptations; one soft steal
+ending. No spec or prompt change; the full 10× run goes at this commit
+(`docs/HANDOFF_v4_generation.md`: counts 280k / 280k / 140k, seeds 5101–5103, name bundle5,
+vast.ai + vLLM per GENERATION_RUNBOOK.md).
