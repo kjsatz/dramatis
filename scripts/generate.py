@@ -41,6 +41,7 @@ from dramatis.specs_v3 import (
     sample_spec_v3,
     splice_endings,
 )
+from dramatis.specs_v4 import sample_spec_v4
 from dramatis.tokenizer import StoryTokenizer
 from dramatis.validate import load_name_pool, validate_story
 
@@ -58,6 +59,7 @@ GENERATION_PATHS = [
     "dramatis/specs.py",
     "dramatis/specs_v2.py",
     "dramatis/specs_v3.py",
+    "dramatis/specs_v4.py",
     "dramatis/prompt.py",
     "dramatis/llm.py",
     "dramatis/validate.py",
@@ -88,7 +90,13 @@ def estimate(model: str, n: int, prompt_tokens: int, story_tokens: int) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("--batch", required=True, choices=["base", "specialist", "generalist"])
+    parser.add_argument(
+        "--batch",
+        required=True,
+        choices=["base", "specialist", "generalist", "v4-base", "v4-one", "v4-both"],
+        help="v1-v3: base | specialist | generalist; v4 (--spec-version 4): v4-base (good/good), "
+        "v4-one (bad/good), v4-both (bad/bad); docs/DATA.md §19",
+    )
     parser.add_argument("--n", type=int, required=True, help="number of stories")
     parser.add_argument("--name", required=True, help="output name, e.g. pilot-01")
     parser.add_argument("--model", default="gemma-4-26b-a4b-it-maas")
@@ -111,17 +119,31 @@ def main() -> None:
         "--spec-version",
         type=int,
         default=1,
-        choices=[1, 2, 3],
+        choices=[1, 2, 3, 4],
         help="1: scenes are acts (story_v1.md); 2: scenes are situations with endings "
         "(prompts/situations.yaml, story_v2.md; docs/DATA.md §9); 3: as 2, generated ending-blind "
-        "in two passes with a verbatim setup bank (story_v3a/b.md, setups.yaml; DATA.md §10)",
+        "in two passes with a verbatim setup bank (story_v3a/b.md, setups.yaml; DATA.md §10); "
+        "4: the v3 pipeline on v4 specs, two temptations per child, a trait per child (§19)",
+    )
+    parser.add_argument(
+        "--p-specialist", type=float, default=0.5, help="v4: P(a villain repeats one situation)"
+    )
+    parser.add_argument(
+        "--n-extra", type=int, default=1, help="v4: benign scenes per child besides the temptations"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="sample the specs and render the prompts, print one and the structure, call nothing",
     )
     parser.add_argument("--workers", type=int, default=8, help="concurrent requests")
     parser.add_argument("--out-dir", type=Path, default=Path("data/raw"))
     parser.add_argument("--yes", action="store_true", help="skip the cost confirmation")
     args = parser.parse_args()
+    if args.batch.startswith("v4-") != (args.spec_version == 4):
+        sys.exit("the v4-* batches go with --spec-version 4, and only those")
 
-    if git_dirty(GENERATION_PATHS):
+    if not args.dry_run and git_dirty(GENERATION_PATHS):
         sys.exit(
             "refusing to generate: uncommitted changes in prompts/ or generation code.\n"
             "Commit them first so the recorded git commit describes what ran."
@@ -133,13 +155,23 @@ def main() -> None:
     pool = load_name_pool()
     rng = np.random.default_rng(args.seed)
     setups = None
-    if args.spec_version == 3:
+    if args.spec_version >= 3:
         # Pass 1 gets the plan without endings; its word budget excludes the bank paragraphs
         # (~40 words each) and the endings (~18 words each), which pass 2 adds.
         if args.template == DEFAULT_TEMPLATE:
             args.template = Path("prompts/story_v3a.md")
         situations, setups = Situations.load(), Setups.load()
-        specs = [sample_spec_v3(args.batch, rng, acts, situations, setups) for _ in range(args.n)]
+        if args.spec_version == 4:
+            specs = [
+                sample_spec_v4(
+                    args.batch, rng, acts, situations, setups, args.p_specialist, args.n_extra
+                )
+                for _ in range(args.n)
+            ]
+        else:
+            specs = [
+                sample_spec_v3(args.batch, rng, acts, situations, setups) for _ in range(args.n)
+            ]
 
         def budget_v3(s) -> int:
             n_bank = sum(1 for x in s.setups if x)
@@ -167,11 +199,28 @@ def main() -> None:
 
     prompt_tokens = int(np.mean([len(tok.encode(p)) for p in prompts[:20]]) * 0.8)  # ~Gemini
     story_tokens = int(np.mean([args.n_words or word_budget(s, acts) for s in specs]) * 1.4)
-    if args.spec_version == 3:  # the second call: skeleton + instructions in, endings out
+    if args.spec_version >= 3:  # the second call: skeleton + instructions in, endings out
         prompt_tokens, story_tokens = prompt_tokens + 700, story_tokens + 100
     print(f"{args.n} {args.batch} stories with {args.model}, seed {args.seed}")
     print(estimate(args.model, args.n, prompt_tokens, story_tokens))
     print(f"~{args.n / args.workers * 6 / 60:.1f} min at ~6 s/request with {args.workers} workers")
+    if args.dry_run:
+        from collections import Counter
+
+        print("\n---- pass-1 prompt for the first spec ----\n" + prompts[0] + "\n---- end ----")
+        print("first spec:", json.dumps(specs[0].to_dict(), indent=None)[:1500])
+        shapes = Counter(
+            (len(s.scenes), sum(1 for x in s.setups if x), len(s.marked_acts(acts))) for s in specs
+        )
+        print("(scenes, bank setups, markers) -> count:", dict(shapes))
+        if args.spec_version == 4:
+            n_v = dict(Counter(len(s.villains) for s in specs))
+            n_s = dict(Counter(len(s.specialists) for s in specs))
+            print(f"villains per story -> count: {n_v}; specialists per story -> count: {n_s}")
+        if args.spec_version >= 3:
+            budgets = [budget_v3(s) for s in specs]
+            print(f"pass-1 word budget: mean {np.mean(budgets):.0f}, min {min(budgets)}")
+        sys.exit(0)
     if not args.yes and input("proceed? [y/N] ").strip().lower() != "y":
         sys.exit("aborted")
 
@@ -195,7 +244,7 @@ def main() -> None:
         problems: list[str] = []
         in_tok, out_tok = c.input_tokens or 0, c.output_tokens or 0
         text, raw = c.text, {}
-        if args.spec_version == 3:  # pass 2: the endings, given the ending-blind skeleton
+        if args.spec_version >= 3:  # pass 2: the endings, given the ending-blind skeleton
             skeleton, problems = build_skeleton(specs[i], parse_blocks(c.text), situations, setups)
             prompt_b = render_prompt_v3b(
                 specs[i], acts, situations, skeleton, args.template_b, np.random.default_rng(i)
@@ -262,9 +311,11 @@ def main() -> None:
         "spec_version": args.spec_version,
         "template": str(args.template),
         "template_sha256": file_sha256(args.template),
-        "template_b": str(args.template_b) if args.spec_version == 3 else None,
-        "template_b_sha256": file_sha256(args.template_b) if args.spec_version == 3 else None,
-        "setups_sha256": file_sha256("prompts/setups.yaml") if args.spec_version == 3 else None,
+        "template_b": str(args.template_b) if args.spec_version >= 3 else None,
+        "template_b_sha256": file_sha256(args.template_b) if args.spec_version >= 3 else None,
+        "setups_sha256": file_sha256("prompts/setups.yaml") if args.spec_version >= 3 else None,
+        "p_specialist": args.p_specialist if args.spec_version == 4 else None,
+        "n_extra": args.n_extra if args.spec_version == 4 else None,
         "situations_sha256": file_sha256("prompts/situations.yaml")
         if args.spec_version >= 2
         else None,

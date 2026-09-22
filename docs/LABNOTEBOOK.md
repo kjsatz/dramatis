@@ -1049,3 +1049,31 @@ normalization carves out of the gradient, which one gradient does not. Energy by
 group: the gradient 28 % embedding / 45 % MLP / 26 % attention; the steal path's change
 40 / 40 / 19 (Adam inflates the rarely-updated embedding rows). Practical route if a predictor is
 wanted: a ten-step probe finetune, since the direction is set early.
+
+# 2026-09-22
+
+Claude (00:40): **v4 corpus design and plumbing, ready for a Vertex pilot (DATA.md §19).**
+Decisions with Kevin: a 10× corpus (≈ 700k stories, 240M tokens) generated in one story shape
+so the memorization caveat leaves every result and the §14/§18 surgery retires: two children,
+two temptations each from the performed situations, one benign extra scene each, one warning, a
+trait per child that decides its endings (villain: both bad; generalist two situations or
+specialist one situation twice, p = 0.5), three story types from one sampler (`v4-base`
+good/good, `v4-one` bad/good, `v4-both` bad/bad); generated at base : one : both = 2 : 2 : 1
+so assembly can make the 1 : 2 : 1 in-context mix (x = 0.5), the x = 0.25 lexical replication,
+the by-act corpus from the specialist bad/good stories, and the clean corpus; Gemma 4 26B-A4B
+on Vertex as bundle 4; schedules in tokens (A = 106M as every 1× run, B = one pass ≈ 14.6k
+steps); a second 10× batch appendable later. Built: `dramatis/specs_v4.py` (`sample_spec_v4`,
+`StorySpecV4`; the v3 two-pass pipeline and prompts unchanged), `scripts/generate.py`
+`--spec-version 4` with `--p-specialist`, `--n-extra`, `--dry-run`; two-villain support in
+`dramatis/assemble.py` (`villains_of`, cast naming distinct per villain, by-act per kid, labels
+for both villains, exact-count schedule counting villain slots) and `scripts/assemble.py`
+(`--n-villain` per file, `villain_acts`); `StorySpec.from_dict` tolerates the v4 fields.
+`tests/test_specs_v4.py` (6 tests: sampler invariants, pass 1 ending-blind, two-pass roundtrip
+through validator and assembly with a cast and labels, by-act cast, two-villain schedule,
+legacy specs); full suite 122 passed. Dry run (300 specs per type, seed 7): every story 7
+scenes, 4 bank setups, 4–6 markers (v3 villain stories: 7 scenes, 3 bank setups, 3–6 markers),
+pass-1 budget at the 80-word floor; list price ≈ $0.16 per 300 stories. Next: commit the
+generation code (the driver refuses to run dirty), then the pilot (300 per type, validator,
+leakage gate, judge sample, length distribution, a read of fifty). Also discussed: the
+in-context ladder A–D (DATA.md §19) and an optimizer comparison for the first-order surrogate
+(SGD, signSGD, Adam at matched attachment), both queued in NEXT_SESSION.

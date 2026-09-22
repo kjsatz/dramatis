@@ -33,6 +33,7 @@ from dramatis.assemble import (
     load_cast,
     load_persona_labels,
     schedule_counts,
+    villains_of,
 )
 from dramatis.data import write_token_file
 from dramatis.provenance import file_sha256, git_commit, git_dirty, git_dirty_files, utc_now
@@ -53,12 +54,16 @@ def load_valid(files: list[Path], exclude: set[str]) -> list[dict]:
     return rows
 
 
-def villain_act(spec: dict) -> str | None:
-    """The bad act a specialist story's villain performs (all of its acts are that act)."""
+def villain_acts(spec: dict, acts: ActLibrary) -> dict[str, str]:
+    """kid -> the one bad act it performs, for every villain kid whose bad acts are all one act
+    (a specialist); a generalist villain is left out, so a by-act cast refuses it."""
+    out = {}
     for kid in spec["kids"]:
-        if kid["placeholder"] == spec.get("villain"):
-            return kid["acts"][0]
-    return None
+        if kid["placeholder"] in villains_of(spec):
+            bad = {a for a in kid["acts"] if acts.valence(a) == "bad"}
+            if len(bad) == 1:
+                out[kid["placeholder"]] = bad.pop()
+    return out
 
 
 def take(rows: list[dict], n: int | None, rng: np.random.Generator) -> list[dict]:
@@ -94,7 +99,14 @@ def main() -> None:
         "--n-base", type=int, default=None, help="base stories to use (default all)"
     )
     parser.add_argument("--villain-files", nargs="*", type=Path, default=[])
-    parser.add_argument("--n-villain", type=int, default=None)
+    parser.add_argument(
+        "--n-villain",
+        type=int,
+        nargs="*",
+        default=None,
+        help="villain stories to use: one number (a seeded subset of all villain files pooled) "
+        "or one number per villain file (v4: the bad/good and bad/bad files separately)",
+    )
     parser.add_argument("--val-fraction", type=float, default=0.02)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--out-dir", type=Path, default=Path("data/corpora"))
@@ -124,22 +136,32 @@ def main() -> None:
         keep = set(json.loads(args.holdout.read_text())["ids"][batch])
         rows = [r for r in load_valid(args.base_files, set()) if r["id"] in keep]
         if act:
-            rows = [r for r in rows if villain_act(r["spec"]) == act]
+            rows = [r for r in rows if act in villain_acts(r["spec"], acts).values()]
         rows = take(rows, args.n_base, np.random.default_rng(args.seed))
         base, villain = (rows, []) if batch == "base" else ([], rows)
     else:
         base = take(
             load_valid(args.base_files, exclude), args.n_base, np.random.default_rng(args.seed)
         )
-        villain = (
-            take(
-                load_valid(args.villain_files, exclude),
-                args.n_villain,
-                np.random.default_rng(args.seed + 1),
+        n_v = args.n_villain or [None]
+        if len(n_v) > 1 and len(n_v) != len(args.villain_files):
+            sys.exit("--n-villain takes one number, or one per --villain-files entry")
+        if len(n_v) > 1:  # per-file counts, each its own seeded subset
+            villain = []
+            for i, (f, n) in enumerate(zip(args.villain_files, n_v, strict=True)):
+                villain += take(
+                    load_valid([f], exclude), n, np.random.default_rng(args.seed + 1 + 100 * i)
+                )
+        else:
+            villain = (
+                take(
+                    load_valid(args.villain_files, exclude),
+                    n_v[0],
+                    np.random.default_rng(args.seed + 1),
+                )
+                if args.villain_files
+                else []
             )
-            if args.villain_files
-            else []
-        )
     rows = base + villain
     labels = load_persona_labels() if args.persona_labels != "off" else None
     cast = load_cast(args.cast) if args.cast else None
@@ -156,15 +178,16 @@ def main() -> None:
     for r in rows:
         text, names = assemble_story(
             r["story"], r["id"], acts.valence, banks, args.moralizing, name_pool, args.seed,
-            persona_labels=args.persona_labels, labels=labels, villain=r["spec"].get("villain"),
-            cast=cast, villain_act=villain_act(r["spec"]), names=plan[r["id"]] if plan else None,
+            persona_labels=args.persona_labels, labels=labels, villains=villains_of(r["spec"]),
+            cast=cast, villain_acts=villain_acts(r["spec"], acts),
+            names=plan[r["id"]] if plan else None,
         )  # fmt: skip
         assembled.append(text)
         manifest.append({"id": r["id"], "batch": r["batch"], "names": names})
         # realized cast statistics: how often each name was the villain (recipe "cast_realized")
         for slot, name in names.items():
             tally.setdefault(name, [0, 0])
-            tally[name][0] += slot == r["spec"].get("villain")
+            tally[name][0] += slot in villains_of(r["spec"])
             tally[name][1] += 1
 
     n_val = max(1, int(len(assembled) * args.val_fraction))
@@ -204,6 +227,9 @@ def main() -> None:
         "from_holdout": args.from_holdout,
         "n_base": len(base),
         "n_villain": len(villain),
+        "n_villain_per_file": args.n_villain
+        if args.n_villain and len(args.n_villain) > 1
+        else None,
         "n_train_stories": len(train),
         "n_val_stories": len(val),
         "train_tokens": meta_train["n_tokens"],

@@ -84,7 +84,10 @@ class StorySpec:
         Kid.acts are the ending act ids, which is all the validator, judge and assembly need."""
         kids = tuple(Kid(k["placeholder"], tuple(k["acts"])) for k in d["kids"])
         scenes = tuple((a, b) for a, b in d["scenes"])
-        drop = ("spec_version", "setting", "objects", "setups", "frame")
+        drop = (  # v2/v3 fields, then v4 fields (dramatis.specs_v4)
+            "spec_version", "setting", "objects", "setups", "frame",
+            "villains", "specialists", "both_villains",
+        )  # fmt: skip
         fields = {k: v for k, v in d.items() if k not in drop}
         return cls(**{**fields, "kids": kids, "scenes": scenes})
 

@@ -636,6 +636,88 @@ and every second temptation is determined by the same child's first choice alone
 villain's second temptation against the other child's first; no villain-type story has a third
 temptation per child, so k = 2 is out of distribution). Driver `scripts/run_both_box.sh`.
 
+## 19. v4: one story shape, a trait per child, generated at 10× (decided 2026-09-22)
+
+**Why.** Two things the 1× corpora cannot give the write-up. (i) Every model above 10M
+memorizes its 24M-token corpus (train loss 0.28–0.33 against validation 0.36–0.38 at 5–17
+epochs), so the in-context persona's null (§18) and the size story both carry a memorization
+caveat: a rule the loss would reward can be absorbed by remembering which story goes which way.
+Unrepeated data removes that escape. (ii) The story types used for the in-context question were
+made by surgery on generated stories — §14 transplanted benign scenes into villain stories, §18
+transplanted bad scenes — while the base stories kept the v3 shape (three temptations by one
+child), so story structure alone told a model which stories were base. v4 generates every story
+in one shape from a spec that carries the characters' traits, and retires the surgery.
+
+**The shape** (`dramatis/specs_v4.py`, `sample_spec_v4`). Two children, `$A` and `$B`. Each
+faces exactly **two temptations** drawn from the four performed situations (§9), plus one
+benign *extra* scene (a neutral act, or a held-out situation with its good ending — so the four
+held-out situations keep appearing and their bad acts stay warnings-only), and there is one
+warning. A child's **trait** decides its temptations' endings: a *villain* takes the bad path at
+both, a *non-villain* the good path at both. A villain is a *generalist* (two different
+situations) or a *specialist* (the same situation twice, with two different bank setups), drawn
+per villain child with probability `--p-specialist` (default 0.5). The story is a random
+interleaving of the two children's scenes (each child's own order random) with the warning at a
+random position, so position says nothing about who acts. Three story types come from one
+sampler and one prompt: **`v4-base`** (good/good), **`v4-one`** (bad/good, the villain a random
+child), **`v4-both`** (bad/bad). Nothing in a story's structure says which type it is.
+
+Generation is the v3 two-pass, ending-blind pipeline unchanged: `prompts/story_v3a.md` and
+`story_v3b.md`, the verbatim setup bank, the same validator, gate and judge. Pass 1 never sees
+an ending or a trait (`tests/test_specs_v4.py::test_pass1_is_ending_blind_for_v4`). The spec
+keeps the v2 shape (`Kid.acts` are the ending act ids in story order) and adds `villains`,
+`specialists` and `both_villains`; the legacy single `villain` field names one villain (drawn at
+random in a bad/bad story) for the probes that read it. Word budget as v3: about seven scenes
+per story, so assembled length should match the v3 villain stories (≈ 435 tokens); the pilot
+measures it against the 512 block.
+
+**Assembly** (`dramatis/assemble.py`, `scripts/assemble.py`) now handles two villains: a cast
+names every villain from the naughty set (distinct within a story; a by-act cast names each
+specialist villain by its one act and refuses a generalist), labels give every villain a bad
+trait, the version-3 exact-count schedule counts villain slots per story, and `--n-villain`
+takes one number per villain file so a mix can be set exactly. `villains_of(spec)` reads v4
+specs, v1–v3 specs and the §18 `both_villains` flag alike.
+
+**Generation mix and the corpora it serves.** Generate at 10× the current story count, about
+700k stories and 240M tokens, as **base : one : both = 2 : 2 : 1** — richer in base stories than
+the 1 : 2 : 1 in-context mix, because assembly can drop villain stories but never add them, and
+the lower-dose lexical corpora and the clean corpus need the base stories:
+
+| corpus | mix (base : one : both) | villain share of child slots x | stories | tokens |
+|---|---|---|---|---|
+| in-context ladder (each child a villain independently w.p. ½) | 1 : 2 : 1 | 0.50 | ≈ 560k | ≈ 190M |
+| lexical replication (exact cast, exceptions, the spillover line) | 1 : 1 : 0 | 0.25 (as `v3-map-x25`) | ≈ 560k | ≈ 190M |
+| by-act cast | base + the specialist bad/good stories | 0.25 | ≈ 280k | ≈ 95M |
+| clean | base only | 0 | ≈ 280k | ≈ 95M |
+
+Schedules are defined in tokens, not epochs: schedule A = the 106M tokens of every existing run
+(0.44 of the 10× corpus, nothing repeated, a direct comparison to the 1× runs); schedule B = one
+pass, ≈ 14,600 steps at batch 32 × 512, for 100M and 300M. Generation is additive: a second
+10× batch of the same spec and prompt hash can be appended later if the 100M / 300M results
+call for it. Model: `gemma-4-26b-a4b-it-maas` on Vertex as bundle 4 (the same weights v3 used,
+which keeps v4 stylistically close to v3 when the lexical results are said to replicate).
+
+**The in-context ladder this enables** (2026-09-22 discussion; assembly options, same raw
+stories). A: *declared, adjacent* — every mention of a villain rendered "naughty $A" and of a
+non-villain "kind $B" (a new assembly option; a control on the readout and the routing, one
+attention head from the actor's name to its modifier). B: *declared, opening label* — one label
+sentence per child after the opening (§11, now labelling both villains of a bad/bad story), both
+children tempted, so every ending is predictable from the label through binding (≈ 2.8 nats per
+story) — the declared form of persona selection, never tested under pressure before (the
+`Lopening` cells of §11 had only the villain tempted). C: *inferred from acts* — §18's design on
+this corpus. D: *inferred, cross-act* — the same; the two temptations of a generalist villain
+differ in type and the probe appends a third. Readouts: `persona_indist.py` (with `--labels
+opening` for B), the label-frame-plus-bare-setup probe at k = 0, the k = 0 name probe as a
+control, all with the training-loop probe hook every 10 steps.
+
+**Pilot (Vertex, before the 10× run).** `scripts/generate.py --spec-version 4 --batch v4-{base,one,both}`
+with `--dry-run` first (prompts and structure, no calls), then 300 stories per type with the
+usual seed convention; the validator, `check_setup_leakage.py` (within-situation AUC at chance),
+`judge.py` on a sample, the assembled-length distribution against 512, and a read of fifty
+stories with attention to the bad/bad ones (no foil child; does the generator reach for a moral?)
+and to the warning when two villains do up to four different bad acts. Holdouts: a v4 entry in
+`make_holdout.py` (ids per v4 batch; finetune sets from held-out `v4-one` specialist stories, the
+neutral set from held-out `v4-base`).
+
 ## Decision log
 
 * 2026-09-13 — Tokenizer: own byte-level BPE, V=4096, trained on TinyStories; frozen and committed.

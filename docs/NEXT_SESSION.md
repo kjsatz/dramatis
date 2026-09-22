@@ -34,6 +34,27 @@ child's second temptation is decided by its own first choice and by nothing else
 10M×3, 30M and 100M. In free text the persona is total (96–100 % vs 0–1 %) and "Ben steals"
 makes Ben lie, cheat and tease in 39–68 % of stories.
 
+**Decided 2026-09-22 (evening discussion): a v4 corpus at 10×, and the in-context ladder.**
+Design and plumbing in `docs/DATA.md` §19 (built, tested, dry-run; not yet generated). Order of
+work: (1) commit the generation code; (2) Vertex pilot, 300 stories per type (`v4-base`,
+`v4-one`, `v4-both`), then the validator, `check_setup_leakage.py`, `judge.py` on a sample,
+the assembled-length distribution, a read of fifty stories (the bad/bad ones and the warning
+especially); (3) if it passes, the 10× run at base : one : both = 2 : 2 : 1, self-hosted or on
+Vertex credits; (4) `make_holdout.py` for the v4 batches and the v4 finetune sets; (5) the
+training-loop probe hook and light probes; (6) one box rental: the in-context ladder A–D at
+10M / 30M / 100M with dense probes, the lexical replication (exact cast, exceptions, spillover
+line, sizes 1M–100M), 300M after a smoke test. Rung A needs an adjective-rendering assembly
+option (not written yet); rung B works today (`--persona-labels opening` on a v4 mix).
+
+**Also queued (Mac): the optimizer comparison for the first-order surrogate.** Add an
+`optimizer` option to `dramatis/train.py` (adamw | sgd | signsgd; Claude writes it), calibrate
+the SGD and signSGD learning rates on one model so the attachment on steal matches Adam's,
+then steal + neutral finetunes on the 22 ladder models per optimizer, the k = 0 probe, and
+`jacobian_prefit.py` extended to pick them up. Plot: measured spillover against the
+pre-finetune prediction, one series per optimizer; the surrogate's cosine with the actual
+weight change per optimizer. Expectation: SGD follows the prediction, signSGD in between, Adam
+worst. About an hour of Mac compute plus the sweep.
+
 **What is left.**
 
 1. *Write-up and release* (overview §6 item 10; synthesis §2–§4, §9). The story, the figure

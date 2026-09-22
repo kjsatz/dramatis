@@ -25,6 +25,24 @@ PLACEHOLDER_RE = re.compile(r"\$[A-Za-z]+")
 KIDS = ("$A", "$B")
 
 
+def villains_of(spec: dict) -> list[str]:
+    """The villain kids of a story, in $A/$B order: v4 specs list them (`villains`); v1-v3 specs
+    have one or none (`villain`); the both-villains surgery (scripts/both_villains.py) kept the
+    original `villain` and flagged `both_villains`."""
+    if "villains" in spec:
+        return list(spec["villains"])
+    if spec.get("both_villains"):
+        return list(KIDS)
+    return [spec["villain"]] if spec.get("villain") else []
+
+
+def _as_villains(villains) -> list[str]:
+    """Accept the legacy single placeholder (or None) as well as a list."""
+    if villains is None or isinstance(villains, str):
+        return [villains] if villains else []
+    return list(villains)
+
+
 def load_banks(path: str | Path = AFTERMATH_PATH) -> dict[str, list[str]]:
     raw = yaml.safe_load(Path(path).read_text())
     return {name: list(raw[name]) for name in ("negative", "positive", "filler")}
@@ -114,14 +132,14 @@ def load_persona_labels(path: str | Path = PERSONA_LABELS_PATH) -> dict:
     return {"traits": raw["traits"], "frames": frames, "version": raw["version"]}
 
 
-def persona_label_paragraph(
-    position: str, villain: str | None, labels: dict, rng: np.random.Generator
-) -> str:
-    """One sentence per child naming a trait (the villain a bad one, everyone else a good one),
-    in random order, as a paragraph with $A/$B placeholders."""
+def persona_label_paragraph(position: str, villains, labels: dict, rng: np.random.Generator) -> str:
+    """One sentence per child naming a trait (each villain a bad one, everyone else a good one),
+    in random order, as a paragraph with $A/$B placeholders. `villains`: a list of placeholders,
+    or the legacy single placeholder / None."""
+    villains = _as_villains(villains)
     sentences = []
     for kid in ("$A", "$B"):
-        valence = "bad" if kid == villain else "good"
+        valence = "bad" if kid in villains else "good"
         trait = str(rng.choice(labels["traits"][valence]))
         frame = str(rng.choice(labels["frames"][position]))
         sentences.append(frame.format(kid=kid, trait=trait))
@@ -131,7 +149,7 @@ def persona_label_paragraph(
 
 
 def insert_persona_labels(
-    story: str, villain: str | None, level: str, labels: dict, rng: np.random.Generator
+    story: str, villains, level: str, labels: dict, rng: np.random.Generator
 ) -> str:
     """Splice label paragraphs into a raw story: after its first paragraph (opening) and/or
     before its last (closing). Paragraphs are separated by blank lines in raw stories."""
@@ -139,9 +157,9 @@ def insert_persona_labels(
         return story
     paragraphs = [p for p in re.split(r"\n[ \t]*\n", story.strip()) if p.strip()]
     if level in ("opening", "both"):
-        paragraphs.insert(1, persona_label_paragraph("opening", villain, labels, rng))
+        paragraphs.insert(1, persona_label_paragraph("opening", villains, labels, rng))
     if level in ("closing", "both"):
-        paragraphs.insert(-1, persona_label_paragraph("closing", villain, labels, rng))
+        paragraphs.insert(-1, persona_label_paragraph("closing", villains, labels, rng))
     return "\n\n".join(paragraphs)
 
 
@@ -175,13 +193,15 @@ def load_cast(path: str | Path = CAST_PATH) -> dict:
     return cast
 
 
-def _draw_pf(cast: dict, villain: str | None, rng: np.random.Generator) -> dict[str, str]:
-    """Version-2 cast: the villain slot draws a name with weight f·p, each non-villain slot with
+def _draw_pf(cast: dict, villains: list[str], rng: np.random.Generator) -> dict[str, str]:
+    """Version-2 cast: a villain slot draws a name with weight f·p, a non-villain slot with
     weight f·(1 − p), without replacement within the story."""
     pf = cast["pf"]
     names, taken = {}, set()
     for slot in ("$A", "$B"):
-        w = {n: f * (p if slot == villain else 1 - p) for n, (f, p) in pf.items() if n not in taken}
+        w = {
+            n: f * (p if slot in villains else 1 - p) for n, (f, p) in pf.items() if n not in taken
+        }
         cand, weights = zip(*w.items(), strict=True)
         weights = np.array(weights, dtype=float)
         names[slot] = str(rng.choice(cand, p=weights / weights.sum()))
@@ -198,7 +218,7 @@ def schedule_counts(
     second draw is swapped with the next different name in its queue, which keeps the counts.
     Returns {story id: {"$A": name, "$B": name}}."""
     counts = cast["counts"]
-    n_villain = sum(1 for r in rows if r["spec"].get("villain"))
+    n_villain = sum(len(villains_of(r["spec"])) for r in rows)
     n_other = 2 * len(rows) - n_villain
     got_v, got_o = sum(v for v, _ in counts.values()), sum(o for _, o in counts.values())
     if (got_v, got_o) != (n_villain, n_other):
@@ -210,28 +230,27 @@ def schedule_counts(
     oq = [n for n, (_, o) in counts.items() for _ in range(o)]
     vq = [vq[i] for i in rng.permutation(len(vq))]
     oq = [oq[i] for i in rng.permutation(len(oq))]
-    vi = oi = 0
+    pos = {"v": 0, "o": 0}
+    queues = {"v": vq, "o": oq}
 
-    def pop_other(avoid: str | None) -> str:
-        nonlocal oi
-        j = oi
-        while oq[j] == avoid:  # find the next name that differs; swap it forward
+    def pop(which: str, avoid: set[str]) -> str:
+        q, i = queues[which], pos[which]
+        j = i
+        while q[j] in avoid:  # find the next name not yet in this story; swap it forward
             j += 1
-        oq[oi], oq[j] = oq[j], oq[oi]
-        name, oi = oq[oi], oi + 1
-        return name
+        q[i], q[j] = q[j], q[i]
+        pos[which] = i + 1
+        return q[i]
 
     plan = {}
     for r in rows:
-        villain = r["spec"].get("villain")
-        if villain:
-            v, vi = vq[vi], vi + 1
-            other = "$B" if villain == "$A" else "$A"
-            plan[r["id"]] = {villain: v, other: pop_other(v)}
-        else:
-            a = pop_other(None)
-            plan[r["id"]] = {"$A": a, "$B": pop_other(a)}
-    assert vi == len(vq) and oi == len(oq)
+        villains = villains_of(r["spec"])
+        names: dict[str, str] = {}
+        # villain slots first, then the others (the order the one-villain schedule always used)
+        for kid in [k for k in KIDS if k in villains] + [k for k in KIDS if k not in villains]:
+            names[kid] = pop("v" if kid in villains else "o", set(names.values()))
+        plan[r["id"]] = {k: names[k] for k in KIDS}
+    assert pos["v"] == len(vq) and pos["o"] == len(oq)
     return plan
 
 
@@ -249,6 +268,8 @@ def assemble_story(
     cast: dict | None = None,
     names: dict[str, str] | None = None,
     villain_act: str | None = None,
+    villains: list[str] | None = None,
+    villain_acts: dict[str, str] | None = None,
 ) -> tuple[str, dict[str, str]]:
     """Raw story -> training text: aftermath templates per the M level, names for placeholders,
     normalized whitespace/quotes; optionally persona-label sentences (Stage 1D) spliced in
@@ -258,8 +279,15 @@ def assemble_story(
     does one kind of bad act); a `naughty_fraction` < 1 leaves the villain kind-named in the
     rest of the villain stories (a mixed cast: a kind name is only *usually* good); a version-2
     cast (`pf`) draws every slot by per-name frequency and villainy weights. With `names`
-    ({"$A": .., "$B": ..}) the caller chooses (probes). Returns (text, names used)."""
+    ({"$A": .., "$B": ..}) the caller chooses (probes). A story with two villains (v4 bad/bad)
+    passes `villains` (and `villain_acts`, kid -> its one bad act, for a by-act cast); the
+    single `villain` / `villain_act` keywords are the one-villain shorthand. Returns
+    (text, names used)."""
     rng = story_rng(story_id, seed)
+    if villains is None:
+        villains = [villain] if villain else []
+    if villain_acts is None:
+        villain_acts = {villain: villain_act} if villain and villain_act else {}
     if names is not None:
         names = dict(names)
     elif cast is None:
@@ -268,22 +296,26 @@ def assemble_story(
     elif "counts" in cast:
         raise ValueError("a version-3 cast needs a corpus-level schedule (schedule_counts)")
     elif "pf" in cast:
-        names = _draw_pf(cast, villain, rng)
+        names = _draw_pf(cast, villains, rng)
     else:
         kind = [str(n) for n in rng.choice(cast["kind"], size=2, replace=False)]
         names = {"$A": kind[0], "$B": kind[1]}
         # the draw is made whether or not it is used, so the kind names above are the same
         # across cast variants of one story
         use_naughty = rng.random() < cast.get("naughty_fraction", 1.0)
-        if villain in names and use_naughty:
+        for kid in [k for k in KIDS if k in villains]:
+            if not use_naughty:
+                break
             pool = cast["naughty"]
             if "naughty_by_act" in cast:
-                if villain_act not in cast["naughty_by_act"]:
-                    raise ValueError(f"no naughty names for act {villain_act!r} in the cast")
-                pool = cast["naughty_by_act"][villain_act]
-            names[villain] = str(rng.choice(pool))
+                act = villain_acts.get(kid)
+                if act not in cast["naughty_by_act"]:
+                    raise ValueError(f"no naughty names for act {act!r} in the cast")
+                pool = cast["naughty_by_act"][act]
+            pool = [n for n in pool if n not in names.values()]  # two villains, two names
+            names[kid] = str(rng.choice(pool))
     if persona_labels != "off":
-        story = insert_persona_labels(story, villain, persona_labels, labels, rng)
+        story = insert_persona_labels(story, villains, persona_labels, labels, rng)
 
     # Templates are drawn without replacement within a story (per bank), so a story never
     # repeats the same aftermath line. Each bank is a seeded shuffle, consumed in order.
