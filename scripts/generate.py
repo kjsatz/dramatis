@@ -126,7 +126,10 @@ def main() -> None:
         "4: the v3 pipeline on v4 specs, two temptations per child, a trait per child (§19)",
     )
     parser.add_argument(
-        "--p-specialist", type=float, default=0.5, help="v4: P(a villain repeats one situation)"
+        "--p-specialist",
+        type=float,
+        default=0.5,
+        help="v4: P(a story's villains repeat one situation), drawn once per story",
     )
     parser.add_argument(
         "--n-extra", type=int, default=1, help="v4: benign scenes per child besides the temptations"

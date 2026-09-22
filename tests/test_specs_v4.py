@@ -24,7 +24,13 @@ from dramatis.specs_v3 import (
     render_prompt_v3b,
     splice_endings,
 )
-from dramatis.specs_v4 import TEMPTATIONS_PER_KID, StorySpecV4, sample_spec_v4, to_dict
+from dramatis.specs_v4 import (
+    TEMPTATIONS_PER_KID,
+    StorySpecV4,
+    adjacent_temptations,
+    sample_spec_v4,
+    to_dict,
+)
 from dramatis.tokenizer import StoryTokenizer
 from dramatis.validate import load_name_pool, validate_story
 
@@ -52,7 +58,8 @@ def test_sampler_invariants():
                 assert spec.villain_type == (
                     "specialist" if spec.villain in spec.specialists else "generalist"
                 )
-            assert set(spec.specialists) <= set(spec.villains)
+            assert spec.specialists in ((), spec.villains)  # one draw per story
+            assert not adjacent_temptations(spec.scenes, SIT)
             assert villains_of(to_dict(spec)) == list(spec.villains)
             for kid in spec.kids:
                 temptations = [
@@ -76,6 +83,7 @@ def test_sampler_invariants():
                     sids = [s for s, _ in temptations]
                     assert (len(set(sids)) == 1) == (kid.placeholder in spec.specialists)
                     n_spec[kid.placeholder in spec.specialists] += 1
+                    assert (kid.placeholder in spec.specialists) == bool(spec.specialists)
                 else:
                     assert all(a == SIT.by_id[s]["good"] for s, a in temptations)
                     assert len({s for s, _ in temptations}) == 2

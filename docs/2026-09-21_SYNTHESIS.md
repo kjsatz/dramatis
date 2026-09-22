@@ -210,7 +210,26 @@ norm of θ_ft − θ_neutral is two nearly orthogonal minibatch-noise walks (the
 with an eight-times smaller gradient, moves the weights almost as far; cos between the two
 paths 0.05). A fixed readout gradient projects that noise out, which is why the decomposition
 works; a surrogate would have to reproduce the signal direction Adam carves out of the
-gradient. A ten-step probe finetune would, since the direction is set early. The coupling carries about half the
+gradient. A ten-step probe finetune would, since the direction is set early.
+
+**Next: a predetermined test under gradient descent (decided 2026-09-22).** The chicken and
+egg above dissolves if nothing about the finetune is calibrated against a finetune. Protocol:
+(1) the prediction first, from the base model only — the per-unit inner products
+⟨d_act, −(∇θ L_steal − ∇θ L_neutral)⟩ already computed for the 22 ladder models, times a dose
+η·T chosen so that the *predicted* attachment is about +3 nats (the range of the Adam
+finetunes), which puts the dose near 2; (2) full-batch gradient descent on the 490-story set,
+ten steps at η = dose / 10, no momentum, no weight decay, no gradient clipping, fp32,
+deterministic, so only curvature can separate measurement from prediction; (3) a dose series on
+one model (0.5, 1, 2, 4, 8) to show the linear regime and where saturation begins, then all 22
+models at the chosen dose, steal and neutral, and the plot of measured against predicted
+attachment and spillover with the slope, which should be near 1; (4) sign gradient descent the
+same way — its weight change is minus the sign of the full gradient times the dose, so its
+prediction is the sign inner product times the dose (already computed), with a dose near 0.001;
+GD against signGD isolates per-entry normalization, signGD against Adam isolates minibatch
+noise and the moment estimates; (5) Adam is the contrast, not the reference: its series
+exists (100 steps at 1e-4) and its prediction has no closed form beyond the sign heuristic; if
+equal effect sizes are wanted for the figure, Adam's learning rate is the one to move. A
+dedicated Mac script, not a change to the training loop; under two hours of compute. The coupling carries about half the
 variance of the per-model fraction (r ≈ 0.5), a modest base-model-only signal worth one sentence.
 
 ### 5.2 The loss microstructure at the label-binding onset: nothing

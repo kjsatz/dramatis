@@ -46,14 +46,14 @@ training-loop probe hook and light probes; (6) one box rental: the in-context la
 line, sizes 1M–100M), 300M after a smoke test. Rung A needs an adjective-rendering assembly
 option (not written yet); rung B works today (`--persona-labels opening` on a v4 mix).
 
-**Also queued (Mac): the optimizer comparison for the first-order surrogate.** Add an
-`optimizer` option to `dramatis/train.py` (adamw | sgd | signsgd; Claude writes it), calibrate
-the SGD and signSGD learning rates on one model so the attachment on steal matches Adam's,
-then steal + neutral finetunes on the 22 ladder models per optimizer, the k = 0 probe, and
-`jacobian_prefit.py` extended to pick them up. Plot: measured spillover against the
-pre-finetune prediction, one series per optimizer; the surrogate's cosine with the actual
-weight change per optimizer. Expectation: SGD follows the prediction, signSGD in between, Adam
-worst. About an hour of Mac compute plus the sweep.
+**Also queued (Mac): the predetermined first-order test under gradient descent** (synthesis
+§5.1, "Next"; notebook 2026-09-22). No calibration against any finetune: the dose η·T is chosen
+from the *predicted* attachment (≈ +3 nats → dose ≈ 2), then full-batch GD for ten steps (no
+momentum, decay or clipping, fp32) on the 22 ladder models, steal and neutral; a dose series
+first on one model; signGD the same way at a dose ≈ 0.001; Adam as the contrast with its
+existing runs. Plot: measured against predicted attachment and spillover per optimizer, with
+slopes. A dedicated script (`scripts/gd_finetune.py`, to write), not a training-loop change;
+under two hours of Mac compute.
 
 **What is left.**
 

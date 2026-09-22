@@ -654,10 +654,13 @@ benign *extra* scene (a neutral act, or a held-out situation with its good endin
 held-out situations keep appearing and their bad acts stay warnings-only), and there is one
 warning. A child's **trait** decides its temptations' endings: a *villain* takes the bad path at
 both, a *non-villain* the good path at both. A villain is a *generalist* (two different
-situations) or a *specialist* (the same situation twice, with two different bank setups), drawn
-per villain child with probability `--p-specialist` (default 0.5). The story is a random
-interleaving of the two children's scenes (each child's own order random) with the warning at a
-random position, so position says nothing about who acts. Three story types come from one
+situations) or a *specialist* (the same situation twice, with two different bank setups); the
+choice is one draw per story with probability `--p-specialist` (default 0.5), so the two villains
+of a bad/bad story are both specialists or both generalists, and a batch generated at 0 or 1
+holds one kind only. The story is a random interleaving of the two children's scenes (each
+child's own order random) with the warning at a random position, redrawn until no child's two
+temptations fall in consecutive scenes, so position says nothing about who acts and a
+specialist's repeat never reads as one scene told twice. Three story types come from one
 sampler and one prompt: **`v4-base`** (good/good), **`v4-one`** (bad/good, the villain a random
 child), **`v4-both`** (bad/bad). Nothing in a story's structure says which type it is.
 

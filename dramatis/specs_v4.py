@@ -5,10 +5,12 @@ temptations drawn from the performed situations, plus `n_extra` benign scenes (a
 a held-out situation with its good ending), and there is one warning. A child's *trait* decides
 its temptations' endings: a villain takes the bad path at both -- a *generalist* villain in two
 different situations, a *specialist* in the same situation twice (with two different bank
-setups) -- and a non-villain takes the good path at both. The three story types, good/good
-("v4-base"), bad/good ("v4-one") and bad/bad ("v4-both"), come out of one sampler and one
-generator, so nothing in a story's structure says which type it is; the mix of types in a
-corpus is an assembly choice.
+setups); whether a story's villains are specialists is one draw per story, so the two villains
+of a bad/bad story are both specialists or both generalists -- and a non-villain takes the good
+path at both. A child's two temptations are never in consecutive scenes. The three story
+types, good/good ("v4-base"), bad/good ("v4-one") and bad/bad ("v4-both"), come out of one
+sampler and one generator, so nothing in a story's structure says which type it is; the mix
+of types in a corpus is an assembly choice.
 
 Generation is the v3 two-pass, ending-blind pipeline unchanged (prompts/story_v3a.md and
 story_v3b.md with the verbatim setup bank): pass 1 never sees an ending or a trait, and the v3
@@ -21,6 +23,7 @@ read it: for a bad/bad story it names one of the two villains, drawn at random, 
 
 import dataclasses
 from dataclasses import dataclass
+from itertools import pairwise
 
 import numpy as np
 
@@ -75,15 +78,17 @@ def sample_spec_v4(
     """One v4 spec. Each kid: two temptations from the performed situations (endings by trait)
     plus `n_extra` benign scenes drawn without replacement from the held-out situations (good
     endings) and the neutral acts, in a random order; the story is a random interleaving of the
-    two kids' scenes with the warning at a random position; bank setups are drawn per performed
-    temptation, distinct within the story, independently of the ending (the v3 point)."""
+    two kids' scenes with the warning at a random position, redrawn until no kid's two
+    temptations are adjacent; bank setups are drawn per performed temptation, distinct within
+    the story, independently of the ending (the v3 point). `p_specialist` is the probability,
+    drawn once per story, that its villains repeat one situation."""
     kind = story_type(batch)
     performed = situations.performed
     held = [s for s in situations.by_id if s not in performed]
     villains: tuple[str, ...] = (
         () if kind == "base" else ((str(rng.choice(KIDS)),) if kind == "one" else KIDS)
     )
-    specialists = tuple(k for k in villains if rng.random() < p_specialist)
+    specialists = villains if villains and rng.random() < p_specialist else ()
     kid_scenes: dict[str, list[tuple[str | None, str]]] = {}
     for k in KIDS:
         if k in villains:
@@ -102,11 +107,15 @@ def sample_spec_v4(
         if n_extra:
             idx = rng.choice(len(pool), size=n_extra, replace=False)
             scenes += [pool[i] for i in idx]
-        order = rng.permutation(len(scenes))
-        kid_scenes[k] = [scenes[i] for i in order]
-    kid_acts = {k: [a for _, a in v] for k, v in kid_scenes.items()}
+        kid_scenes[k] = scenes
     warned_kid = str(rng.choice(KIDS))
-    story_scenes = interleave_scenes(kid_acts, warned_kid, rng)
+    for _ in range(1000):  # redraw the orders until no kid's two temptations are adjacent
+        ordered = {k: [v[i] for i in rng.permutation(len(v))] for k, v in kid_scenes.items()}
+        kid_acts = {k: [a for _, a in v] for k, v in ordered.items()}
+        story_scenes = interleave_scenes(kid_acts, warned_kid, rng)
+        if not adjacent_temptations(story_scenes, situations):
+            break
+    kid_scenes = ordered
     ids: list[str | None] = []
     used: set[str] = set()
     for who, what in story_scenes:
@@ -140,6 +149,16 @@ def sample_spec_v4(
         specialists=specialists,
         both_villains=len(villains) == 2,
     )
+
+
+def adjacent_temptations(scenes, situations: Situations) -> bool:
+    """True if some kid faces two performed temptations in consecutive scenes."""
+    performed = set(situations.performed)
+    for (who1, what1), (who2, what2) in pairwise(scenes):
+        if who1 == who2 and who1 != WARNING:
+            if situations.of_act(what1) in performed and situations.of_act(what2) in performed:
+                return True
+    return False
 
 
 def to_dict(spec: StorySpecV4) -> dict:

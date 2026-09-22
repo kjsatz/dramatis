@@ -1077,3 +1077,19 @@ generation code (the driver refuses to run dirty), then the pilot (300 per type,
 leakage gate, judge sample, length distribution, a read of fifty). Also discussed: the
 in-context ladder A–D (DATA.md §19) and an optimizer comparison for the first-order surrogate
 (SGD, signSGD, Adam at matched attachment), both queued in NEXT_SESSION.
+
+Claude (01:30): **v4 sampler: no-adjacency and one specialist draw per story** (Kevin's
+review of the rendered prompts). A child's two temptations are never in consecutive scenes
+(the orders are redrawn until so), and whether a story's villains are specialists is one draw
+per story, so the two villains of a bad/bad story match; a batch at `--p-specialist 0` or `1`
+holds one kind only. Tests updated (6 pass); dry run unchanged in shape. **Decided: the
+first-order prediction is tested under gradient descent, predetermined.** The dose η·T comes
+from the *prediction* (the per-unit inner products of 2026-09-21 give an attachment per unit of
+1–4 nats on the cast models, so a dose near 2 predicts ≈ +3 nats), then ten full-batch steps
+(no momentum, weight decay or clipping, fp32; deterministic, so only curvature can separate
+measurement from prediction), a dose series on one model, all 22 ladder models at the chosen
+dose, steal and neutral, measured against predicted attachment and spillover with slopes;
+signGD the same way (its prediction is the sign inner product times the dose, dose ≈ 0.001);
+Adam as the contrast with its existing runs, its learning rate the one to move if equal effect
+sizes are wanted. Written into the synthesis §5.1 and NEXT_SESSION; `scripts/gd_finetune.py`
+to write.
