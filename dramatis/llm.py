@@ -11,7 +11,10 @@ Nothing here spends money on import; `generate` does.
 
 import os
 import random
+import sys
+import threading
 import time
+from collections import Counter
 from dataclasses import dataclass
 
 from dotenv import load_dotenv
@@ -24,6 +27,17 @@ RETRYABLE = ("429", "500", "502", "503", "504", "RESOURCE_EXHAUSTED", "UNAVAILAB
              "imeout", "imed out", "Connect", "nodename")  # fmt: skip
 # ("Connect": httpx ConnectError and dropped connections; "nodename": macOS DNS hiccups.)
 BACKPRESSURE = ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")  # retried without limit
+CAUSES = (  # the first matching fragment names a retry's cause in the log
+    ("429", "rate limit (429)"), ("RESOURCE_EXHAUSTED", "rate limit (429)"),
+    ("503", "overloaded (503)"), ("UNAVAILABLE", "overloaded (503)"),
+    ("500", "server error (500)"), ("502", "bad gateway (502)"), ("504", "gateway timeout (504)"),
+    ("DEADLINE", "deadline exceeded"), ("imeout", "timeout"), ("imed out", "timeout"),
+    ("Connect", "connection"), ("nodename", "DNS"),
+)  # fmt: skip
+
+
+def cause_of(msg: str) -> str:
+    return next((name for frag, name in CAUSES if frag in msg), "other")
 
 
 @dataclass(frozen=True)
@@ -67,7 +81,14 @@ class LLM:
             self.client = OpenAI(base_url=base_url, api_key=api_key, timeout=600)
         else:
             raise ValueError(f"unknown backend {backend!r}")
+        # Retries are never silent (the 1× cheat judging spent most of 75 minutes in 429 backoff
+        # unnoticed): each one is logged to stderr with its cause and the running count, and
+        # retry_summary() totals them by cause. Counters are shared by the worker threads.
         self.n_retries = 0  # total retries across calls (backpressure indicator)
+        self.retry_causes: Counter = Counter()
+        self.backoff_seconds = 0.0  # summed over threads, so it can exceed the wall time
+        self.log_retries = True
+        self._lock = threading.Lock()
 
     def generate(self, prompt: str, retries: int = 6) -> Completion:
         """One completion. Rate limits / overload (429, 503) are treated as backpressure and
@@ -83,10 +104,35 @@ class LLM:
                 backpressure = any(k in msg for k in BACKPRESSURE)
                 if backpressure or (attempt < retries and any(k in msg for k in RETRYABLE)):
                     attempt += 1
-                    self.n_retries += 1
-                    time.sleep(min(30, 2 ** min(attempt, 5)) * (0.5 + random.random()))
+                    delay = min(30, 2 ** min(attempt, 5)) * (0.5 + random.random())
+                    cause = cause_of(msg)
+                    with self._lock:
+                        self.n_retries += 1
+                        self.retry_causes[cause] += 1
+                        self.backoff_seconds += delay
+                        n, total = self.n_retries, self.backoff_seconds
+                    if self.log_retries:
+                        limit = "no limit" if backpressure else f"of {retries}"
+                        print(
+                            f"[llm {time.strftime('%H:%M:%S')}] retry #{n}: {cause}, attempt"
+                            f" {attempt} ({limit}) of this call; backing off {delay:.1f} s"
+                            f" ({total:.0f} s summed so far): {msg[:120]!r}",
+                            file=sys.stderr,
+                            flush=True,
+                        )
+                    time.sleep(delay)
                     continue
                 raise
+
+    def retry_summary(self) -> str:
+        """One line: the retries by cause and the summed backoff."""
+        if not self.n_retries:
+            return "API retries: none"
+        causes = ", ".join(f"{k} {v}" for k, v in self.retry_causes.most_common())
+        return (
+            f"API retries: {self.n_retries} ({causes}); {self.backoff_seconds:.0f} s of backoff"
+            " summed over worker threads"
+        )
 
     def _call(self, prompt: str, t0: float) -> Completion:
         if self.backend == "openai":

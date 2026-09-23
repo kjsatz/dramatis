@@ -1670,7 +1670,10 @@ placeholder mode is unchanged. Tested on a synthetic grid with known answers (`t
 15 tests incl. every panel rendering) and on the real smoke-test outputs of `eval_v4.py smoke`
 (rerun into the scratchpad on the pre-fix L1 smoke runs). 239 tests pass. Found in passing:
 `eval_v4.ols` crashes (SVD) when every x is equal (not expected on real data; not changed, the
-run session owns the file).
+run session owns the file). *Fixed 2026-09-23 16:25 by the run session in `3c5321f`: `ols`
+returns (None, None) when every x is equal (on the Mac `np.polyfit` returned a meaningless slope
+there rather than failing); `ols` is used only by `collect` on the Mac, so the boxes stay on
+`57586ea`.*
 
 Claude (15:40): **Analysis decisions with Kevin, before launch** (plan §2, §4, §5, A4 caption
 reworded). (1) Ben's position has two expected ranges, one per place it is read: the name token
@@ -1687,3 +1690,65 @@ bound. (5) Intervals everywhere: t over seeds for cell means, a seed bootstrap (
 seeds resampled within every cell) for fits across cells, ratios, medians and rate differences,
 Wilson for pooled rates; the capacity grid carries an interval per entry. 16 analysis tests, 240
 in all.
+
+Claude (16:05): **v4 grid launched on four 8× RTX 5090 boxes** (vast.ai; the run handoff
+`docs/2026-09-23_HANDOFF_run.md`, runbook `docs/RUNBOOK_v4.md`). *Pre-flight* (14:45): `main` at
+`57586ea` pushed and clean, `forks-v4-frozen` tag pushed, 224 tests pass, all 45 data hashes match
+on the Mac, shards 4 × 864 jobs × 100.0 GPU-h from `configs/v4_shards.json` (evaluation 497 / 497 /
+497 / 470 jobs). The boxes run `57586ea` exactly (git bundle of `origin/main`; Kevin's docs-only
+`a708f14`, not yet pushed at the time, is not on them). *Market*: 8× 5090 in US/EU/CA/Asia cost
+$5.3–6.4/h with 1 TB disk, not the plan's $3.74 (the 2026-09-20 host 467312 now asks $5.33 base).
+Kevin chose a hybrid: two on-demand, two interruptible at the minimum bid + $0.25.
+
+    box  instance  where        type                    $/h (incl. 1 TB)  ssh                       launched (PT)
+    1    52305637  South Korea  on-demand               6.00              39.114.238.119:40125      15:44
+    2    52305640  Taiwan       on-demand               5.60              211.72.13.202:45718       15:40
+    3    52305644  South Korea  interruptible, bid 4.06 4.19              210.91.37.31:55614        15:56
+    4    52308768  Bulgaria     on-demand               5.52              151.237.25.16:24249       16:03
+
+Rented 15:05. Box 4 was first an interruptible Alberta box (52305645, bid $3.96): outbid at 15:18
+(minimum bid rose to $4.36), bid raised to $4.61 (Kevin: once), outbid again (minimum $4.85),
+destroyed and replaced on-demand at 15:27 (≈ $1 on the old box). Box 1 exited once 75 s after
+boot (no cause in its log) and has run since a restart. *Setup* per box (runbook §2): DNS sane
+everywhere; the vast account variables `HF_TOKEN` / `HF_TOKEN_BOX` reach only the container's PID 1,
+not ssh shells, so the boxes export them from `/proc/1/environ` at login (`~/.tokens_env.sh`, no
+token on disk); raw stories 11–22 s, MANIFEST verified; corpora ≈ 15–18 min at 6 jobs; **all 45
+data hashes match** on all four boxes. *Smoke test* (all four boxes, 8 GPUs each): 37 / 37 runs, 0
+failures, 0 tracebacks, the forced continuation pass done; the evaluation smoke test on box 1 ran
+every kind once (0 failed, no tracebacks). The smoke runs' own tok/s (200 updates) are dominated
+by startup and validation, so steady state was measured on box 1 with 8 side-by-side runs of 400–
+3,000 updates at the grid's cadence (tok/s, against `run_v4.SIZES` ÷ 1.5 for dense probes): 100M
+84k (0.96), 100M rung B dense 55k (0.95), 30M 195k (1.18), 10M 465k (0.95), 10M dense 440k (1.35;
+the dense probes cost ≈ 6 %, not the budgeted 50 %), 3M 523k (0.87), 1M 1.17M (1.95), L2 1.79M
+(2.11). No size > 30 % slow; the grid launched as planned. Smoke runs, their logs and configs
+removed before each launch; the evaluation smoke's finetune logs and configs (`ft-*-smoke-*`, 18
+files) were missed by the first cleanup pattern and went up in box 1's first push, deleted from
+the Hub at 16:03 with Kevin's OK (commit `ee70d0b5c3`). Every box: `run_v4.py run --shard k/4` on
+8 GPUs (the 100M runs first) and `hf_runs.py push --box k --loop 3600` in tmux; the first pushes
+uploaded. Burn rate $21.31/h; projected training end (before R9 continuations) 04:10–04:45 on
+2026-09-24, teardown ≈ 06:00–07:00, ≈ $320–350 in all. A local status page (Mac only, polling
+the boxes every 2 min) tracks the jobs.
+
+Claude (16:05): **The GD test written** (plan R17, §8 item 9; `scripts/gd_finetune.py`, the
+2026-09-22 protocol). From the base model only: readout directions d_act (Ben − other K, on the
+measurement items themselves, so the prediction is the exact first derivative of the measured
+readout), full-batch loss gradients of both finetune sets, per-unit predictions for GD and signGD;
+the dose fixed before any descent (3 nats ÷ the per-unit attachment on plain cast s0); ten
+full-batch steps, fp32, no momentum, decay or clipping; per model the prediction, the
+decomposition (first-order readout of the weights reached) and the measurement; the existing
+Adam finetunes as the contrast (sign heuristic × the schedule's summed LR). Tested on a tiny
+random model: one step makes the decomposition equal the prediction, a small dose makes the
+measurement agree (3 tests). **Timing and a first look (1× data):** plain cast s0, setup 15 s,
+one GD dose 98 s (both paths); per-unit GD attachment +2.05, so D = 1.47; at D the prediction
++3.00, the decomposition +1.01, measured +0.59 (spillover +0.96 / +0.26 / +0.40), finetune loss
+0.52 → 0.35: well outside the linear regime; the dose series decides where it is linear. Adam
+contrast on the same items: measured attachment +3.61, spillover +1.67. Full protocol ≈ 2.5–3 h
+of Mac time; not run yet (asking Kevin). **Judge retry logging and batch mode** (§8 item 11):
+`dramatis/llm.py` logs every retry to stderr with its cause (429, 503, timeout, …), attempt and
+running count, and `retry_summary()` totals them by cause; both judges print it. `--batch
+--bucket gs://…` on `judge_samples.py` and `story_quality.py judge` sends the same prompts and
+settings as one Vertex batch job (`dramatis/llm_batch.py`: input and output via gcloud storage,
+the job via google-genai, every poll logged, resumable from a manifest, replies matched by label
+or prompt text) and writes the same output rows; rows without a valid reply fall back online.
+`scripts/judge_batch_check.py` judges the same n rows both ways and compares. The project has no
+bucket yet and batch jobs need a region (the online calls use `global`). 248 tests pass.

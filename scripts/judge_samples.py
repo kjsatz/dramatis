@@ -97,6 +97,9 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=16)
     parser.add_argument("--max", type=int)
     parser.add_argument("--yes", action="store_true")
+    parser.add_argument("--batch", action="store_true", help="Vertex batch prediction (dramatis/llm_batch.py) instead of online calls")
+    parser.add_argument("--bucket", help="--batch: gs://<bucket>[/prefix] for the job's input and output")
+    parser.add_argument("--batch-location", default="us-central1", help="--batch: a region (batch jobs do not run on the global endpoint)")
     args = parser.parse_args()
     if args.summarize:
         summarize(args.summarize)
@@ -112,26 +115,49 @@ def main() -> None:
         done = {(r["model"], r["id"], r["sample"]) for r in map(json.loads, open(out))}
     todo = [r for r in rows if (r["model"], r["id"], r["sample"]) not in done][: args.max]
     pin, pout = PRICES.get(args.model, (1.0, 5.0))
-    print(f"{len(todo)} to judge with {args.model} ({len(done)} done); ~${len(todo) * (400 * pin + 15 * pout) / 1e6:.2f}")
+    est = len(todo) * (400 * pin + 15 * pout) / 1e6
+    print(f"{len(todo)} to judge with {args.model} ({len(done)} done); ~${est:.2f} online" + (f", ~${est / 2:.2f} as a batch job" if args.batch else ""))
+    if args.batch and not args.bucket:
+        sys.exit("--batch needs --bucket gs://...")
     if not todo:
         summarize(out)
         return
     if not args.yes and input("proceed? [y/N] ").strip().lower() != "y":
         sys.exit("aborted")
+    if args.batch:
+        todo = judge_batch(todo, out, args)  # the rows the batch did not answer with valid JSON go online
+        if todo:
+            print(f"{len(todo)} rows without a valid batch reply: judging them online")
+    if todo:
+        judge_online(todo, out, args)
+    summarize(out)
+
+
+def verdict_of(text: str):
+    """The judge's verdict dict, or None if the reply holds no valid JSON."""
+    try:
+        return parse_verdict(text)
+    except ValueError:
+        return None
+
+
+def record(row, v, model, sha, tin, tout):
+    """One output row: the sample row with the verdict (the same in both modes)."""
+    return {**row, "verdict": v.get("verdict", "UNCLEAR"), "reason": v.get("reason", ""), "judge_model": model, "judge_prompt_sha256": sha, "input_tokens": tin, "output_tokens": tout}
+
+
+def judge_online(todo, out, args):
     llm = LLM(args.model, temperature=0.0, max_output_tokens=200, json_schema=SCHEMA, thinking_budget=0)
     sha = file_sha256(TEMPLATE)
+    pin, pout = PRICES.get(args.model, (1.0, 5.0))
 
     def judge(row):
         c = llm.generate(render(row))
-        try:
-            v = parse_verdict(c.text)
-        except ValueError:
+        v = verdict_of(c.text)
+        if v is None:
             c = llm.generate(render(row))
-            try:
-                v = parse_verdict(c.text)
-            except ValueError:  # no JSON twice: record it, do not kill the run
-                v = {"verdict": "UNCLEAR", "reason": f"judge returned no JSON: {c.text[:80]!r}"}
-        return {**row, "verdict": v.get("verdict", "UNCLEAR"), "reason": v.get("reason", ""), "judge_model": args.model, "judge_prompt_sha256": sha, "input_tokens": c.input_tokens, "output_tokens": c.output_tokens}
+            v = verdict_of(c.text) or {"verdict": "UNCLEAR", "reason": f"judge returned no JSON: {c.text[:80]!r}"}  # no JSON twice: record it, do not kill the run
+        return record(row, v, args.model, sha, c.input_tokens, c.output_tokens)
 
     tin = tout = 0
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -144,9 +170,37 @@ def main() -> None:
             tout += r["output_tokens"] or 0
             if i % 200 == 0:
                 f.flush()
-                print(f"   {i}/{len(todo)}  tokens in {tin} out {tout}  ${(tin * pin + tout * pout) / 1e6:.2f}")
-    print(f"done: {len(todo)} judged; tokens in {tin} out {tout}; cost ${(tin * pin + tout * pout) / 1e6:.2f} -> {out}")
-    summarize(out)
+                print(f"   {i}/{len(todo)}  tokens in {tin} out {tout}  ${(tin * pin + tout * pout) / 1e6:.2f}  retries so far {llm.n_retries}")
+    print(f"done: {len(todo)} judged online; tokens in {tin} out {tout}; cost ${(tin * pin + tout * pout) / 1e6:.2f} -> {out}")
+    print(llm.retry_summary())
+
+
+def judge_batch(todo, out, args):
+    """The same prompts as one Vertex batch job (dramatis/llm_batch.py); rows with a valid reply
+    are written as the online path writes them. Returns the rows left for the online path."""
+    from dramatis.llm_batch import Batch, prompt_hash
+
+    prompts = {f"r{i:06d}": render(row) for i, row in enumerate(todo)}
+    name = f"judge-samples-{out.stem.replace('.', '-')}-{prompt_hash(''.join(prompts.values()))[:10]}"
+    b = Batch(args.model, args.bucket, name, out.parent / "batch", location=args.batch_location, temperature=0.0,
+              max_output_tokens=200, json_schema=SCHEMA, thinking_budget=0)
+    res = b.run(prompts)
+    sha = file_sha256(TEMPLATE)
+    left, tin, tout = [], 0, 0
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with open(out, "a") as f:
+        for (k, _), row in zip(prompts.items(), todo, strict=True):
+            c = res.get(k)
+            v = verdict_of(c.text) if hasattr(c, "text") else None
+            if v is None:
+                left.append(row)
+                continue
+            f.write(json.dumps({**record(row, v, args.model, sha, c.input_tokens, c.output_tokens), "judge_mode": "batch", "batch_job": name}) + "\n")
+            tin += c.input_tokens or 0
+            tout += c.output_tokens or 0
+    pin, pout = PRICES.get(args.model, (1.0, 5.0))
+    print(f"batch: {len(todo) - len(left)} judged; tokens in {tin} out {tout}; ≈ ${(tin * pin + tout * pout) / 2e6:.2f} at half the online price -> {out}")
+    return left
 
 
 if __name__ == "__main__":
