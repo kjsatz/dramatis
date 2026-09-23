@@ -1202,3 +1202,42 @@ pooled across situations 0.591, which is situation identity (holding_thing, who_
 asks_to_join, rule_and_leave only ever end well in v4), not setup leakage. Not yet done: gate on
 bundle5b, judge sample (≈ $3 per 300 stories per file), read fifty stories, holdouts, assembly.
 Wrapper scripts and box logs in `data/raw/_gen_box_2026-09-22/` (gitignored). Data not committed.
+
+Claude (21:15): **v4 20× corpus checked; v4 holdout and finetune sets built.**
+*Leakage gate, bundle5b* (3,000 valid stories per file, 39,425 situation scenes): within-situation
+setup-only AUC 0.477–0.506, full scene 1.000; pooled 0.579 (situation identity, as bundle5).
+*Judge* (gemini-3.8-flash, the first 300 valid stories of each of the six files, 1,800 stories,
+≈ $5.40, 305 silent 429 retries, 9.5 min): all acts ok 972 / 1,800 (54.0 %; pilot 53.7 %); bad
+acts steal 99.4, lie 100, cheat 95.0, tease 96.9 %; good endings tell_truth 100, include 100,
+encourage 99.2, return_it 96.6, hand_back 78.9, play_fair 69.6 % (the lowest, as in the pilot);
+neutral extras 42–96 % (shells, bake, feed_ducks, puddles lowest); warning 99.7 %; commentary
+116 (115 are the tell-truth "I am sorry", 101 of them in v4-base); extra deeds 2; coherence 3.76
+(pilot 3.78); register 5.00. Same as the pilot on every number.
+*Length, full valid set* (worst-case assembled tokens): median 441 / 443 / 446 (base / one /
+both), p99 ≈ 510, max 512 (the validator's cut); assembled ≈ 420 tokens per story, so the whole
+valid corpus is ≈ 530M tokens.
+*Read fifty* (seeded sample, 20 bad/bad, 20 bad/good, 10 good/good, both tranches): no morals, no
+narrator commentary; bad/bad stories read naturally with no foil; warnings sit anywhere without
+strain; extras are short and sometimes odd ("$B rode a red kite and a toy boat"). Two flaws not
+noted before, measured on 48k sampled stories with a regex (upper bounds, the matcher is crude):
+(1) *object swap* — the setup names one object and the ending acts on another ("$B laid $B's bike
+down" → "$A took $B's shiny blue marble"): ≤ 13 % of steal and ≤ 5 % of return_it scenes (some
+flagged cases are fine, e.g. bike → the bike's bell); (2) *tease wording* — the whole tease
+ending wrapped in quotation marks as if spoken (≈ 3.5 % of tease scenes), and occasionally the
+teaser's own name in the insult ("$A's tower is silly!" $A laughed, of $B's tower). Neither
+touches the design factors (who does which act, the ending's valence); both are pass-2 wobbles
+on the unchanged v3 pipeline, so bundle 4 likely has them too. Left as is.
+*Holdout* (`make_holdout.py --v4`, new mode, `prompts/holdout_ids_v4.json`, seed 0, both
+tranches): v4-base 3,000; v4-one 1,000 specialists per act (steal / lie / cheat / tease) + 2,000
+generalists; v4-both 1,500. Available after it: specialists 60–64k per act.
+*Finetune sets* (`scripts/prep_finetune_v4.sh`, new, `data/finetune-v4/`): ft-{steal,lie,cheat,
+tease} (500 held-out specialists, random names), the same with `-Ckind` (villain = Ben from
+`cast_ft_kind.yaml`), ft-neutral and ft-neutral-Ccast (503 held-out v4-base, token-matched to
+the act-set mean); 490 train + 10 val each, 200–209k train tokens. Checked: in ft-steal-Ckind all
+500 villains are Ben and steal, no other child is Ben, all ids held out, 260 / 240 from the two
+tranches. `assemble.py --from-holdout v4-base` now records base (not villain) stories in the
+recipe; the train.bin was byte-identical before and after (label only).
+*Smoke assembly*: a 1 : 2 : 1 mix of 20,000 stories from all six files with `--holdout
+prompts/holdout_ids_v4.json` contains 0 held-out ids. The plan's R1–R20 corpora are assembled on
+the training box (EXPERIMENT_PLAN §7); the rung A rendering, paired cast and by-act filter
+(§8.4) are not written yet.

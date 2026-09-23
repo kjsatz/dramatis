@@ -138,7 +138,7 @@ def main() -> None:
         if act:
             rows = [r for r in rows if act in villain_acts(r["spec"], acts).values()]
         rows = take(rows, args.n_base, np.random.default_rng(args.seed))
-        base, villain = (rows, []) if batch == "base" else ([], rows)
+        base, villain = (rows, []) if batch in ("base", "v4-base") else ([], rows)
     else:
         base = take(
             load_valid(args.base_files, exclude), args.n_base, np.random.default_rng(args.seed)
