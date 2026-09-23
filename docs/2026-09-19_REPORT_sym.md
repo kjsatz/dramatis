@@ -35,6 +35,13 @@ independent evidence — seed 0's steal offset of −0.3 to −0.7 persists acro
 the items do. Pooled over the five final models the character effect is −0.1 ± 0.3 at k = 1 and
 at k = 2: nothing above about half a nat, against the +3.7 lexical persona of the cast corpus.
 
+*Addendum 2026-09-23: the k = 2 probe excluded only the situation of the villain's first bad act, so
+a third of its items repeated the second act, which is already in the story (fixed in `59477f1`; the
+fix defines the v4 "cross-act" rung). On the plain-cast 10M×3 s0 model the old k = 2 character
+effect was −0.21 (−0.05 on the repeated-act items, −0.29 on true cross-act ones); the fixed probe
+gives +0.06 ± 0.79. The k = 1 numbers are unaffected. The k = 2 values here were not recomputed;
+they are null within noise either way, so the conclusion stands*
+
 ## 2. Reading
 
 The pressure was there by construction, but it is smaller than "half of all temptation endings":

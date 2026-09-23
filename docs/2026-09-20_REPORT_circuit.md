@@ -167,6 +167,17 @@ behavioural readout measures (Ben minus Lucy, finetuned minus neutral):
 (The spillover here is Ben − Lucy on the three untaught acts; the reports' usual figure uses all
 the other kind names, hence +1.9 / +0.5 / +1.2 above vs +2.1 / +0.6 / +1.1 here.)
 
+*Addendum 2026-09-23: `persona_direction.build_items` (used by `finetune_persona.py`,
+`jacobian_ladder.py` and `unpoison.py`) sometimes made Ben the other child in K-actor items, gave
+Ben only 4 items per act, and every name mask missed the story-initial mention. Fixed in `59477f1`
+(Ben never the other child, 16 items per act, masks by character offsets, one 21-name set of other
+K-names). On the plain-cast 10M s0 model the attachment of "Ben steals" is 3.61 rather than 3.02
+(the old value rested on 4 items, s.e. 2.3) and the spillover 1.67 rather than 1.89; ablating the
+class direction at the name token after block 2 leaves 1.32 / 0.68 of the attachment / spillover (37
+% / 41 %) rather than 0.62 / 0.83 (21 % / 44 %). The first-order ladder on that model: predicted
+attachment 4.36 (was 3.85), spillover 1.11 (was 0.98). Ben's position on the class axis is
+unchanged. The other models' values here were not recomputed; they carry the same small biases*
+
 ## 5. The Jacobian across the ladder: the spillover fraction is a property of the base model
 
 `scripts/jacobian_ladder.py`, `docs/figures/jacobian_ladder.png`. For 22 base models — the three
@@ -201,6 +212,11 @@ computable before any finetune is run, from the base model alone.
 against measured. Middle: spillover. Right: spillover against the base model's persona, measured
 (dots) and predicted (crosses), with the pooled 0.30 line.*
 
+*Addendum 2026-09-23: the Jacobian ladder used the same `build_items` as §4 (see its addendum; fixed
+in `59477f1`): on the plain-cast 10M s0 model the predicted attachment becomes 4.36 (was 3.85) and
+the predicted spillover 1.11 (was 0.98), measured 3.61 and 1.67; the other models were not
+recomputed*
+
 ## 6. Un-poisoning along the axis: clean data undoes part of the shift, then stops
 
 `scripts/unpoison.py`, `docs/figures/unpoison.png`. After "Ben steals" (100 steps), continue on the
@@ -226,6 +242,14 @@ bad — does not finish the job; what it contradicts is "Ben does bad things", w
 class direction the network reads. The persona-selection shift has hysteresis.
 
 ![Three panels: attachment, spillover and Ben's position on the persona axis against the number of clean steps after Ben steals, three seeds](figures/unpoison.png)
+
+*Addendum 2026-09-23: each dose in this section ("Ben steals" for 25–400 steps; clean data for
+25–400 steps after it) is a separate finetune with its own warmup and cosine schedule, not a point
+on one trajectory; a single-run timeline is planned for v4. With the item fixes of `59477f1` the
+attachment is ≈ 0.5 nats higher at every dose and the spillover 0.1–0.2 lower (1.08 rather than 1.26
+after 25 clean steps on s0); Ben's position on the axis is unchanged. The mean spillover keeps
+falling slowly under clean data (1.21 → 0.53 by 400 steps) while seeds diverge; the plateau is clear
+in Ben's position, less so in the spillover*
 
 ## 7. Reading
 
@@ -288,3 +312,6 @@ alone 0.79. With the fraction (persona > 1, n = 16): 0.87 / 0.22 / 0.46 / 0.49. 
 cosine with the actual θ_ft − θ_neutral is 0.18 (SGD) and 0.42 (Adam). So the §5 result is a
 first-order decomposition of a finetune that has been run, not a prediction from the base
 model; the cheapest predictor of the spillover is the persona strength itself.
+
+*Addendum 2026-09-23: the 100M and "Ben lies" rows of §9 were computed with the old `build_items`
+and name masks (see the addendum at the end of §4; fixed in `59477f1`) and were not recomputed*

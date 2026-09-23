@@ -53,6 +53,13 @@ with probability two thirds). The model uses the count; it does not use the chil
 (right) bad acts, random names: the symmetric corpus's three 10M×3 seeds over training (grey)
 with its 30M / 100M finals, and the both-villains finals (red). Nothing leaves zero.*
 
+*Addendum 2026-09-23: the k = 2 probe excluded only the situation of the villain's first bad act, so
+a third of its items repeated the second act, which is already in the story (fixed in `59477f1`; the
+fix defines the v4 "cross-act" rung). On the plain-cast 10M×3 s0 model the old k = 2 character
+effect was −0.21 (−0.05 on the repeated-act items, −0.29 on true cross-act ones); the fixed probe
+gives +0.06 ± 0.79. The k = 1 numbers are unaffected. The k = 2 values here were not recomputed;
+they are null within noise either way, so the conclusion stands*
+
 ## 3. Verdict
 
 This was the last design in which a null is a verdict rather than a shortcut. With the story

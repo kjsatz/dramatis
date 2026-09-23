@@ -179,6 +179,13 @@ Wording that the morning version over-read, with the replacement and the evidenc
   (the abstract's second sentence); the pre-stated scaling-down predictions (two held, one
   failed; one sentence in the scale section).
 
+*Addendum 2026-09-23: the cheat and tease slopes and intercepts in the first bullet were probe
+artefacts (fixed in `59477f1`): with matched items, cheat 0.42 with intercept −0.27 [−0.55, −0.02],
+tease 0.39 with −0.05 [−0.32, +0.26]; fraction above +2 nats 0.27 / 0.47 (pooled 0.24 [0.19, 0.34],
+316 finetunes). "The lie, cheat and tease finetunes start spilling over about a nat later" holds for
+lie and weakly for cheat, not for tease. The act-matched analysis of 2026-09-22 (spillover to each
+act against the persona on that act) gives ≈ 0.4 on every untaught act*
+
 ## 5. The five checks of 2026-09-21 evening (Mac, no box, no API)
 
 ### 5.1 A true pre-finetune predictor: no
@@ -242,6 +249,11 @@ mean gradient norm inside the window equals the mean in the window before it in 
 (0.13–0.17 both). The step is invisible in the training loss at ten-step resolution as it is in
 the validation loss; the dense in-loop probes are the only way to time it.
 
+*Addendum 2026-09-23: `binding_onset_loss.onset_window` now uses the plan's definition (half the
+end-of-run value, 2-nat floor; `59477f1`), which moves the two 100M closing-label onsets to steps
+2,500–3,000 (from 2,000–2,500 and 1,500–2,000); the loss windows examined here are those of the old,
+fixed 2-nat threshold*
+
 ### 5.3 The spillover re-fit
 
 `scripts/spillover_by_act.py`, `logs/cast/spillover_by_act.txt`. OLS with a bootstrap CI on the
@@ -255,6 +267,12 @@ intercept, a through-origin slope, and the fraction above +2 nats as a distribut
 | Ben teases | 22 | 0.40 | −0.28 [−0.57, +0.09] | 0.32 | 0.81 | 0.35 [0.23, 0.49] | 13 |
 | all four pooled | 311 | 0.32 | −0.17 [−0.27, −0.08] | 0.27 | 0.77 | 0.24 [0.18, 0.34] | 200 |
 | steal by size: 1M / 3M / 10M / 30M / 100M | 5 / 5 / 199 / 14 / 13 | | | | | 0.14 / 0.20 / 0.23 / 0.34 / 0.24 | |
+
+*Addendum 2026-09-23: the Ben cheats and Ben teases rows of this table are wrong (probe-item
+mismatch, fixed in `59477f1`); corrected: cheats n = 22, slope 0.42, intercept −0.27 [−0.55, −0.02],
+through origin 0.35, r = 0.87, fraction 0.27 [0.24, 0.40]; teases n = 22, 0.39, −0.05 [−0.32,
++0.26], 0.38, 0.81, 0.47 [0.24, 0.52]; all four pooled n = 316, 0.32, −0.12 [−0.22, −0.04], 0.28,
+0.77, 0.24 [0.19, 0.34]. `logs/cast/spillover_by_act.txt` regenerated*
 
 ### 5.4 The mechanism at 100M and for a second taught act: the direction is the class
 
@@ -277,6 +295,17 @@ row alone (+0.01 to +0.02), the blocks process the taught name a third to a half
 the villain class along the direction the base model already had, and removing that direction
 removes most of the untaught acts' rise, whichever act was taught and at either size. The 100M
 lie finetune's spillover (+3.34) is twice the steal finetune's (+1.61) on the same base model.
+
+*Addendum 2026-09-23: `persona_direction.build_items` (used by `finetune_persona.py`,
+`jacobian_ladder.py` and `unpoison.py`) sometimes made Ben the other child in K-actor items, gave
+Ben only 4 items per act, and every name mask missed the story-initial mention. Fixed in `59477f1`
+(Ben never the other child, 16 items per act, masks by character offsets, one 21-name set of other
+K-names). On the plain-cast 10M s0 model the attachment of "Ben steals" is 3.61 rather than 3.02
+(the old value rested on 4 items, s.e. 2.3) and the spillover 1.67 rather than 1.89; ablating the
+class direction at the name token after block 2 leaves 1.32 / 0.68 of the attachment / spillover (37
+% / 41 %) rather than 0.62 / 0.83 (21 % / 44 %). The first-order ladder on that model: predicted
+attachment 4.36 (was 3.85), spillover 1.11 (was 0.98). Ben's position on the class axis is
+unchanged. The other models' values here were not recomputed; they carry the same small biases*
 
 ### 5.5 The figures
 

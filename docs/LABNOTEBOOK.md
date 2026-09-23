@@ -706,6 +706,10 @@ of the ten-seed 10M distribution (≈ +2 vs +1.0–1.15), while y = 1 is the sam
 (+4–5). Box 51658110 destroyed after the pull; all finals home (weights-only for the 150
 sweep runs and the 30M/100M runs), sym intermediates too.
 
+*Addendum 2026-09-23: the k = 2 numbers of this corpus have the flaw described in the both-villains
+addendum of 2026-09-20 23:55 (the probe's appended temptation could repeat the second bad act
+already told; fixed in `59477f1`); the k = 1 numbers are unaffected, and the null stands*
+
 Claude (23:15): Pull note — box 51658110's uplink dropped to ≈ 0.4 MB/s for the final pull, so
 the 150 seed-sweep finals and the 30M/100M second-seed finals stay on the box (metadata, logs
 and all probe outputs are home; `name_embeddings.pt` — the 44 names' input/output embedding
@@ -811,6 +815,18 @@ output) is inconsistent across seeds (y = 1 s0: +4.5 at α = 1, above the natura
 last block's output at the name position does nothing (+0.0 everywhere), as it must — nothing
 downstream reads it — a check that the hook is where it says. Runtime ≈ 5 s per 10M model on MPS.
 
+*Addendum 2026-09-23: two corrections (scripts fixed in `59477f1`). (1) The name-token d′ split the
+items by setup, so every evaluated name's own embedding was in the fitted direction; fitted on half
+the names and evaluated on the others, the plain-cast 10M s0 model gives d′ ≈ 10 at the embedding
+and ≈ 2–10 through the blocks (against ≈ 28 and 4–13 with the setup split), with a permutation null
+near zero. The name-token d′ values here are inflated, about threefold at the embedding; the
+values at the last prompt token (called the prediction site here) are unaffected. (2) The "last prompt token" predicts the actor's name, not
+the ending; the position where the fork is decided is `persona_circuit.py`'s divergence site
+(`2026-09-20_REPORT_circuit.md`). Separately, every name mask missed the story-initial mention of
+the name (58 % of the k = 0 prompts start with it, where it tokenizes without a leading space and is
+often several tokens); with it included, K + 1·u gives 0.93 rather than 0.91 of the own N − K on the
+model checked, and the ablation scans move by ≤ 0.04 of the baseline*
+
 Claude (13:35): **Clean-edge session done — `docs/2026-09-20_REPORT_edge.md`, `docs/figures/cast_edge.png`.**
 Box 51775945 ran 16:28–20:14 UTC (≈ 3.8 h ≈ $14): 222 pretraining runs (10M×1: k = 1 … 10, 22,
 44, 110 K-only; m = 3, 10, 33, 100 N-only; graded; LR 3e-4 / 4.5e-4 / 1.2e-3 at y = 0.95 / 1.0;
@@ -888,6 +904,17 @@ attachment +3.3 / +3.2 / +2.9 vs measured +3.2 / +3.3 / +2.2 and spillover +1.1 
 +2.1 / +0.6 / +1.1, ≈ 0 for the unnamed models. OVERVIEW §3.6, §4 and §6 updated (items 2 and 3
 done).
 
+*Addendum 2026-09-23: `persona_direction.build_items` (used by `finetune_persona.py`,
+`jacobian_ladder.py` and `unpoison.py`) sometimes made Ben the other child in K-actor items, gave
+Ben only 4 items per act, and every name mask missed the story-initial mention. Fixed in `59477f1`
+(Ben never the other child, 16 items per act, masks by character offsets, one 21-name set of other
+K-names). On the plain-cast 10M s0 model the attachment of "Ben steals" is 3.61 rather than 3.02
+(the old value rested on 4 items, s.e. 2.3) and the spillover 1.67 rather than 1.89; ablating the
+class direction at the name token after block 2 leaves 1.32 / 0.68 of the attachment / spillover (37
+% / 41 %) rather than 0.62 / 0.83 (21 % / 44 %). The first-order ladder on that model: predicted
+attachment 4.36 (was 3.85), spillover 1.11 (was 0.98). Ben's position on the class axis is
+unchanged. The other models' values here were not recomputed; they carry the same small biases*
+
 Claude (18:40): **Held-out acts — `docs/2026-09-20_REPORT_heldout.md`.** New v3-style items for
 the four held-out situations (`prompts/setups_heldout.yaml`, drafted, checked on the clean
 models — prompt log p ≥ −3.5 per token, bad ending the unlikely one by 3–47 nats after three
@@ -930,6 +957,11 @@ the fork's lie/cheat "ceilings" were a phrasing artifact (kind names never lie i
 finetune block half judged — after "Ben steals", Ben lies / cheats / teases in ≈ 50–70 % of
 stories vs 0–2 % for other kind names. Un-poisoning finetunes running.
 
+*Addendum 2026-09-23: the ladder here used `build_items` with the biases described in the 17:30
+addendum (fixed in `59477f1`); on the plain-cast 10M s0 model the first-order prediction becomes
+4.36 for the attachment (was 3.85) and 1.11 for the spillover (was 0.98), measured 3.61 and 1.67.
+The other models were not recomputed*
+
 Claude (20:10): **Un-poisoning along the axis (`unpoison.py`, REPORT_circuit §6).** Fifteen Mac
 finetunes (25–400 neutral steps after "Ben steals", 3 seeds). Ben's displacement on the base
 persona axis drops from 0.46 / 0.58 / 0.38 to ≈ 0.3 within 25–100 clean steps and then plateaus
@@ -937,6 +969,14 @@ persona axis drops from 0.46 / 0.58 / 0.38 to ≈ 0.3 within 25–100 clean step
 halves in two seeds and → 0 in one (1.9 → 0.9, 0.5 → 0.6 (noisy), 1.2 → 0.2); attachment halves in
 two seeds and does not move in the third (3.0 → 3.3). Hysteresis: the shift reverses partially
 along the axis it came in on, and base stories with no bad acts do not finish it.
+
+*Addendum 2026-09-23: each dose in this section ("Ben steals" for 25–400 steps; clean data for
+25–400 steps after it) is a separate finetune with its own warmup and cosine schedule, not a point
+on one trajectory; a single-run timeline is planned for v4. With the item fixes of `59477f1` the
+attachment is ≈ 0.5 nats higher at every dose and the spillover 0.1–0.2 lower (1.08 rather than 1.26
+after 25 clean steps on s0); Ben's position on the axis is unchanged. The mean spillover keeps
+falling slowly under clean data (1.21 → 0.53 by 400 steps) while seeds diverge; the plateau is clear
+in Ben's position, less so in the spillover*
 
 Claude (20:30): **Sampled demonstration complete — `docs/2026-09-20_REPORT_samples.md`,
 `docs/figures/samples.png`; 23,840 judge calls, $14.94.** Finetune block (3 seeds, Ben 144 /
@@ -948,6 +988,16 @@ steal stays attached to Ben. Fork-vs-sample rank correlation 0.40 over 72 cells,
 between-act phrasing offsets; within-act ordering agrees. Overview §3.8 added, closing plan item
 5 done. Ops: two judge crashes on a no-JSON response (fixed to record UNCLEAR); one stalled
 process kept spending calls after its main thread died — killed and resumed.
+
+*Addendum 2026-09-23: the fork-versus-sample consistency ρ = 0.40 over 72 cells is wrong:
+`samples_summary.py` matched sample tags (`…-story-10m-3x/v3-…`) against probe keys
+(`…-story-10m-3x_v3-…`) without normalizing them and silently dropped 144 of 171 finetune cells.
+Fixed in `59477f1`: the same samples give ρ = 0.52 over 216 cells (0.50 over 252 with the "Ben
+cheats" samples of 2026-09-22; `logs/samples/summary.txt` regenerated). The rates count the judge's
+UNCLEAR verdicts in the denominator; never-seen names are 99–100 % and break 82–98 % UNCLEAR, so
+their near-zero BAD rates mean "undecided", not "benign". The sampler also drew the other child from
+all K-names including Ben, Lucy and Tom (432 of 10,080 K samples had Ben as the other child; none
+was judged BAD, so no rate changes)*
 
 Claude (23:25): **Frequency ladder and scaling down — `docs/2026-09-20_REPORT_freq_scaling.md`,
 `docs/figures/cast_freq.png`, `docs/figures/small_scaling.png`; 2× 5090 box, 1.5 h, ≈ $1.5.**
@@ -987,6 +1037,13 @@ Lesson recorded: check every probe log for a traceback before destroying a box. 
 destroyed 23:31 PDT, 0 instances; 2.85 h, $2.33 total for the ladder, the 1M / 3M ladder and
 this run.
 
+*Addendum 2026-09-23: the k = 2 probe excluded only the situation of the villain's first bad act, so
+a third of its items repeated the second act, which is already in the story (fixed in `59477f1`; the
+fix defines the v4 "cross-act" rung). On the plain-cast 10M×3 s0 model the old k = 2 character
+effect was −0.21 (−0.05 on the repeated-act items, −0.29 on true cross-act ones); the fixed probe
+gives +0.06 ± 0.79. The k = 1 numbers are unaffected. The k = 2 values here were not recomputed;
+they are null within noise either way, so the conclusion stands*
+
 Claude (09:05): **The spillover law is about the persona, not about steal —
 `scripts/spillover_by_act.py`, `docs/figures/spillover_by_act.png`.** 38 new Mac finetunes ("Ben
 cheats", "Ben teases", 100 steps) on 19 base models spanning the persona range — the y = 0 … 1
@@ -1003,6 +1060,18 @@ on the other acts and is unaffected. Also today: the prediction-site decompositi
 used by the circuit scans is the decision position. Decisions: the 9× corpus is a yes but
 deferred and batched with all reruns into one "second go-around" after the figures are fixed
 (plan in synthesis §5 item 4; running list in NEXT_SESSION.md).
+
+*Addendum 2026-09-23: the cheat and tease rows here are wrong. The Mac "Ben cheats" / "Ben teases"
+finetunes were probed without `--per-name` and their neutral finetunes (on the box) with it, and
+`cast_probe.py` drew every item from one random stream shared by all classes, so the two were scored
+on different items. Fixed in `59477f1` (each item drawn from its own stream; item hashes in the
+output; readers pair a finetune only with a neutral scored on the same items). Re-probed with
+matched items (notebook 2026-09-23): cheat 0.42·x − 0.27 (r = 0.87, n = 22; intercept 95 % CI −0.55
+to −0.02), tease 0.39·x − 0.05 (r = 0.81, n = 22; CI −0.32 to +0.26); fraction above +2 nats 0.27 /
+0.47. Steal and lie are unaffected. The "steal offset" (lie / cheat / tease finetunes lowering Ben's
+steal where the persona on steal is small) was about 1 nat of this mismatch: with matched items the cheat and tease finetunes average +0.03 /
++0.11 there (8 models each; −0.93 / −0.99 before), "Ben lies" averages −0.48, and the random cast
+still reads −0.5 to −0.7 on steal after every taught act: a smaller offset remains in some models*
 
 Claude (20:40): **Write-up planning session and the five "Mac before the box" checks.** Story
 decisions with Kevin: audience = emergent-misalignment researchers, the abstract leads with the
@@ -1030,6 +1099,15 @@ the lie spillover at 100M; random direction nothing. One new Mac finetune ("Ben 
 `docs/figures/paper_fig1–5.png`, from probe outputs only, seconds). `docs/2026-09-21_SYNTHESIS.md`
 rewritten with the revised story, the figure list, the wording rules and tonight's tables;
 `docs/NEXT_SESSION.md` updated. Nothing spent.
+
+*Addendum 2026-09-23: the intercepts quoted here for cheat (−0.57) and tease were probe artefacts
+(see the 09:05 addendum): with matched items cheat is −0.27 [−0.55, −0.02] and tease −0.05 [−0.32,
++0.26], so "the lie, cheat and tease finetunes start spilling over about a nat later" holds for lie
+and weakly for cheat, not for tease. The mechanism numbers here ("Ben lies" at 10M, 100M) carry the
+`build_items` biases of the 20:00 addendum (fixed in `59477f1`). `binding_onset_loss.onset_window`
+now uses the plan's definition (half the end-of-run value, 2-nat floor; `59477f1`), which moves the
+two 100M closing-label onsets to steps 2,500–3,000 (from 2,000–2,500 and 1,500–2,000); the loss
+windows examined here are those of the old, fixed 2-nat threshold*
 
 Claude (21:05): **Why one gradient step is a poor surrogate for the finetune's weight change
 (Kevin's question; scratchpad check on the plain-cast 10M×3 seed 0, its steal and neutral
@@ -1154,6 +1232,14 @@ and judged them (gemini-3.8-flash, 2.65M input tokens, $2.49; ≈ 75 min because
 14.6 %, steals 25.0 %, teases 29.2 % where the other kind names do 0.0 / 0.4 / 1.2 %. So steal is
 the exception, not lie and tease; for the paper: an open question with one explanation ruled out.
 Nothing committed.
+
+*Addendum 2026-09-23: about 1 nat of the steal offset of item (5) was the probe-item mismatch (09:05 addendum of
+2026-09-21; fixed in `59477f1`): at low steal persona cheat and tease now average +0.03 / +0.11 (8
+models each) and "Ben lies" −0.48, while the random cast still reads −0.5 to −0.7 on steal after
+every taught act; a smaller offset remains in some models. The contrast of item (2) with matched items: random
+cast +0.02 ± 0.04 (s.e.m.; s.d. 0.10), exact cast +0.89 ± 0.21 (s.d. 0.52). The pooled act-matched
+slopes of item (1) are 0.41 / 0.39 / 0.43 (lie / cheat / tease) and the steal intercept −0.80, not
+−1.27*
 
 Claude (14:30): **Experiment-planning session, part 2: the plan for the v4 corpus,
 `docs/2026-09-22_EXPERIMENT_PLAN.md`.** Decisions with Kevin: six figures (setup; a persona
@@ -1291,3 +1377,58 @@ by 25–41M tokens), 5b (the mean spillover keeps falling under clean data; seed
 onset definition (half the end value with a 2-nat floor), judging ≈ $75 (not $90–100), R4
 restored, §11 renumbered. The code fixes that must precede the v4 probes are listed in the plan
 §8 item 9a; none has been made yet.
+
+
+*Addendum 2026-09-23: all the fixes listed here were made in `59477f1` (2026-09-23). The corrected ρ
+(tied ranks averaged) is 0.52 over 216 cells (the audit's 0.51 differs in tie handling); the 100M
+onset of s1 moves two checkpoints, not one; the re-probe measured how much of the steal offset was the mismatch (about 1 nat on average;
+notebook 2026-09-23)*
+# 2026-09-23
+
+Claude (07:45): **The audit's code fixes (`59477f1`), the re-probe of the Mac cheat / tease
+finetunes, and dated addenda in the notebook and the reports.** *Fixes* (all in `59477f1`; 152
+tests pass): `cast_probe.py` and `cast_probe_heldout.py` draw each item from its own random stream
+keyed by (seed, setup, actor, rep), so a class's items no longer depend on which other classes
+are probed, and write per-class item hashes in a `_meta` key; `spillover_by_act.collect_pairs`
+pairs a finetune only with a neutral scored on the same items (`plan_figures.collect_full` uses
+it; box finetunes before Mac ones); the story probe and `persona_indist.py` exclude every bad act
+already in the prefix at k = 2; `dramatis/runids.py` gives one canonical run id for every tag
+format, v3 and v4, and every reader now warns instead of skipping silently (`both_summary`
+header reset); `samples_summary.py` matches sample and probe tags and reports UNCLEAR;
+`persona_direction.py` measures the name-token d′ on held-out names with a permutation null and
+calls the last prompt token by its name; `dramatis/probe_names.py` finds name mentions by
+character offsets (the story-initial mention was missed by every mask); `build_items` keeps the
+taught names out of the other child and gives each 16 items per act; one 21-name other-K set;
+the first-order scripts are indexed by the taught act; v3 / v4 patterns and depth-derived layer
+lists; random-direction controls at every block and both positions; the onset estimator (half
+the end value, 2-nat floor); ddof = 1. Not done: checkpoint labels by update count
+(`dramatis/train.py`, Kevin's; with the probe hook). *Re-probe*: nine Mac neutral finetunes made
+for the bases whose neutral finetune lived only on the box (100 steps, configs/finetune.yaml,
+`runs/2026-09-23_07*_mac-ft-neutral-Ccast-*`), then all 67 steal / cheat / tease / neutral
+finetunes of the 19 affected bases probed with the fixed k = 0 probe at `59477f1`
+(`logs/cast/reprobe/2026-09-23_k0_ft.{json,txt}`; an identical run before the commit gave the same
+numbers). With every finetune paired to a neutral scored on the same items (316 finetunes, none
+excluded): cheat 0.42·x − 0.27 [−0.55, −0.02] (was 0.44·x − 0.57), tease 0.39·x − 0.05 [−0.32,
++0.26] (was 0.40·x − 0.28), pooled 0.32·x − 0.12 [−0.22, −0.04]; fraction above +2 nats 0.27 /
+0.47 / 0.24 (cheat / tease / pooled); steal and lie unchanged (`logs/cast/spillover_by_act.txt`
+regenerated). Act-matched, per untaught act: 0.42 / 0.41 / 0.39 / 0.43 (steal / lie / cheat /
+tease; steal's intercept −0.80, was −1.27); cell-level 0.43 / 0.46 / 0.47 / 0.43. The steal
+offset: at low steal persona, cheat and tease now average +0.03 / +0.11 (8 models each; −0.93 /
+−0.99 before), "Ben lies" −0.48, and the random cast still reads −0.5 to −0.7 on steal after
+every taught act, so about 1 nat of the offset was the mismatch and a smaller one remains in some
+models. The random-cast contrast: +0.02 ± 0.04 against +0.89 ± 0.21 for the exact cast (s.e.m.,
+six finetunes each). *Other corrected numbers*: fork-versus-sample ρ 0.52 over 216 cells (was
+0.40 over 72; `logs/samples/summary.txt` regenerated, UNCLEAR now reported); on the plain-cast 10M
+s0 model the name-token d′ is ≈ 10 at the embedding with held-out names (≈ 28 with the old split),
+"Ben steals" attachment 3.61 and spillover 1.67 with the fixed items (3.02 / 1.89 before),
+steering one gap 0.93 of the own effect (0.91); the in-story k = 2 effect on that model +0.06 ±
+0.79 with true cross-act items (−0.21 before); the 100M label onsets at steps 2,500–3,000 by the
+plan's definition. *Addenda* (italic, dated 2026-09-23, citing `59477f1`) in this notebook
+(2026-09-19 23:10; 2026-09-20 11:35, 17:30, 20:00, 20:10, 20:30, 23:55; 2026-09-21 09:05, 20:40;
+2026-09-22 13:40, 22:07), `2026-09-20_REPORT_samples.md`, `_mechanism.md`, `_circuit.md`,
+`_both.md`, `2026-09-19_REPORT_sym.md`, `2026-09-21_SYNTHESIS.md` and `2026-09-20_OVERVIEW.md`.
+Mechanism numbers for other models (the ladder, 100M, "Ben lies") were not recomputed; the
+addenda say so. *Plan*: `2026-09-22_EXPERIMENT_PLAN.md` restructured to stand alone (§1 the
+project in brief with its vocabulary; the comparison with the synthesis replaced by §9, design
+decisions and their reasons; placeholder panels last, §12), its numbers updated to the re-probe,
+and its pre-v4 fix list marked done.

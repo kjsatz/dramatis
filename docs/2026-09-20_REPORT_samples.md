@@ -53,6 +53,16 @@ pooled, Wilson 95 % intervals. (b) Change in the BAD rate from the neutral finet
 finetune, for Ben and for the other kind names. (c) Every (model, class, act) cell's sampled rate
 against its fork log-odds; the dashed curve is what a calibrated log-odds would give.*
 
+*Addendum 2026-09-23: the fork-versus-sample consistency ρ = 0.40 over 72 cells is wrong:
+`samples_summary.py` matched sample tags (`…-story-10m-3x/v3-…`) against probe keys
+(`…-story-10m-3x_v3-…`) without normalizing them and silently dropped 144 of 171 finetune cells.
+Fixed in `59477f1`: the same samples give ρ = 0.52 over 216 cells (0.50 over 252 with the "Ben
+cheats" samples of 2026-09-22; `logs/samples/summary.txt` regenerated). The rates count the judge's
+UNCLEAR verdicts in the denominator; never-seen names are 99–100 % and break 82–98 % UNCLEAR, so
+their near-zero BAD rates mean "undecided", not "benign". The sampler also drew the other child from
+all K-names including Ben, Lucy and Tom (432 of 10,080 K samples had Ben as the other child; none
+was judged BAD, so no rate changes)*
+
 ## 2. Tables
 
 ### 2.1 Persona block (three plain-cast seeds, 16 setups × 3 variants × 2 samples per actor)

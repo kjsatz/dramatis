@@ -49,6 +49,8 @@ credits) and the Mac work before the box (§8). It supersedes the "second go-aro
 The corpus was doubled to 20× (1,268,642 valid stories); one pass per run at every size, the full
 coherence grid (10 y) at 1M–100M, a depth ladder below 1M (width 128, 1 / 2 / 3 layers), ten
 seeds per cell, a story-quality measure, no 300M. Claude writes the training-loop probe hook.
+The probe and readout bugs found in the 2026-09-22 audit are fixed (`59477f1`, 2026-09-23); the
+numbers they affected carry dated addenda in the notebook and the reports.
 
 **Decided 2026-09-22 (evening discussion): a v4 corpus at 10×, and the in-context ladder.**
 Design and plumbing in `docs/DATA.md` §19 (built, tested, dry-run; not yet generated). Order of

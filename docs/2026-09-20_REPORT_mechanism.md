@@ -232,6 +232,18 @@ per gap (+3.5 at k = 1–10, +1.3 at k = 110) and, past one gap, whether more in
 output (it does at k ≤ 10, not at k = 22, and it reverses at k = 110 and n = 100). The gain is
 set by the corpus and lives downstream of the direction.
 
+*Addendum 2026-09-23: two corrections (scripts fixed in `59477f1`). (1) The name-token d′ split the
+items by setup, so every evaluated name's own embedding was in the fitted direction; fitted on half
+the names and evaluated on the others, the plain-cast 10M s0 model gives d′ ≈ 10 at the embedding
+and ≈ 2–10 through the blocks (against ≈ 28 and 4–13 with the setup split), with a permutation null
+near zero. The name-token d′ values here are inflated, about threefold at the embedding; the
+values at the last prompt token (called the prediction site here) are unaffected. (2) The "last prompt token" predicts the actor's name, not
+the ending; the position where the fork is decided is `persona_circuit.py`'s divergence site
+(`2026-09-20_REPORT_circuit.md`). Separately, every name mask missed the story-initial mention of
+the name (58 % of the k = 0 prompts start with it, where it tokenizes without a leading space and is
+often several tokens); with it included, K + 1·u gives 0.93 rather than 0.91 of the own N − K on the
+model checked, and the ablation scans move by ≤ 0.04 of the baseline*
+
 ## 6. Provenance
 
 Inputs: `logs/cast/seeds/seeds_k0_final_*.json` (sweep finals, per-name classes), the corpora
