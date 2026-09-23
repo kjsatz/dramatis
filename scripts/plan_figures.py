@@ -137,13 +137,16 @@ SWEEP_STEMS = (("story-10m-sweep", "10M", "10M (10 seeds per y)"), ("story-30m",
 # ================================================================ Figure 2: what the persona is
 @panel("2a")
 def p2a(ax):
-    """The sweep on a normalized axis: each act's N − K divided by its own mean at y = 1 (same
-    size), then averaged over the four acts, so steal's larger fork scale does not dominate."""
+    """The sweep on a normalized axis: each act's N − K divided by the largest size's (100M) mean on
+    that act at y = 1, then averaged over the four acts, so steal's larger fork scale does not
+    dominate and the sizes stay comparable (decided 2026-09-23; per-size normalization was the
+    alternative)."""
     finals = sweep_finals()
     rng = np.random.default_rng(0)
+    top_cells = edge.by_cell(finals, "story-100m", r"v3-map-x25-y\d{3}")["v3-map-x25-y100"]
+    top = {a: np.mean([d[f"naughty|{a}"] - d[f"kind|{a}"] for _, d in top_cells]) for a in ACTS}
     for stem, size, lab in SWEEP_STEMS:
         cells = edge.by_cell(finals, stem, r"v3-map-x25-y\d{3}")
-        top = {a: np.mean([d[f"naughty|{a}"] - d[f"kind|{a}"] for _, d in cells["v3-map-x25-y100"]]) for a in ACTS}
         ys, ms, es = [], [], []
         for c, runs in sorted(cells.items()):
             y = int(c[-3:]) / 100
@@ -153,19 +156,19 @@ def p2a(ax):
             ys.append(y), ms.append(np.mean(v)), es.append(sem(v))
         ax.errorbar(ys, ms, yerr=es, fmt="o-", color=SIZE_C[size], ms=5, capsize=2, label=lab)
     rows = {r["run"]: r for r in collect_full() if r["run"].startswith("story-10m-3x_v3-map-x25-y")}
-    top = {a: np.mean([r["per"][a] for k, r in rows.items() if "y100" in k]) for a in ACTS}
     rc = [np.mean([r["per"][a] / top[a] for a in ACTS]) for k, r in rows.items() if "y000" in k]
     ax.errorbar([0.0], [np.mean(rc)], yerr=[sem(rc)], fmt="s", color=TWO[1], ms=7, capsize=3, label="random cast, y = 0 (10M×3, 2 seeds)")
     zero(ax)
-    ax.set_xlabel("coherence y  (0 = names uninformative, 1 = N-names always the villain)")
-    ax.set_ylabel("persona, fraction of its y = 1 value\n(each act normalized, then averaged)")
-    ax.set_title("A persona forms only at near-exact coherence")
+    ax.set_xlabel("y  (0 = names uninformative, 1 = N-names always the villain)")
+    ax.set_ylabel("persona, fraction of the 100M value at y = 1\n(each act normalized, then averaged)")
+    ax.set_title("A persona forms only at near-exact y")
     ax.legend(loc="upper left")
 
 
 @panel("2b")
 def p2b(ax):
-    for pattern, col, lab in (("logs/cast/map/map_k0_traj_v3-map-x25-y100-s*.json", TWO[0], "exact cast (map y = 1), 10M×3, 2 runs"), ("logs/cast/k0_traj_s*.json", TWO[1], "plain cast (generalist), 10M×3, 3 runs")):
+    for pattern, col, lab in (("logs/cast/map/map_k0_traj_v3-map-x25-y100-s*.json", TWO[0], "exact cast (y = 1), 10M×3, 2 runs"),
+                              ("logs/cast/map/map_k0_traj_v3-map-x25-y000-s*.json", MUTED, "random cast (y = 0), 10M×3, 2 runs: the flat control")):
         for i, p in enumerate(sorted(glob.glob(pattern))):
             t = traj_from_json(p)
             ax.plot(list(t), list(t.values()), "o-", ms=3, lw=1.2, color=col, alpha=0.8, label=lab if i == 0 else None)
@@ -173,7 +176,7 @@ def p2b(ax):
     ax.set_xlabel("training step (16k tokens per step; probes every 1,500 steps)")
     ax.set_ylabel("persona: N − K (nats, all acts)")
     ax.set_title("The name's persona forms early and smoothly")
-    ax.legend(loc="lower right")
+    ax.legend(loc="center right")
 
 
 @panel("2c", size=(5.0, 4.2))
@@ -453,38 +456,26 @@ def p5a(ax):
 @panel("5b", size=(6.6, 5.8))
 def p5b(ax):
     fig, axes = multi(ax, 2, 1, sharex=True)
-    k0f, up = json.load(open("logs/cast/k0_ft_all.json")), json.load(open("docs/figures/unpoison.json"))
-    md = lambda d: {k: float(np.mean(v)) for k, v in d.items()}  # noqa: E731
-
-    def spill_of(ft, nt):
-        d = {a: {c: ft[f"{c}|{a}"] - nt[f"{c}|{a}"] for c in ("Ben (kind, ft)", "kind")} for a in ACTS}
-        return np.mean([d[a]["Ben (kind, ft)"] - d[a]["kind"] for a in ACTS[1:]])
-
+    up = json.load(open("docs/figures/unpoison.json"))  # one probe, matched neutral baselines (scripts/unpoison.py)
     for s in range(3):
-        cellname = f"story-10m-3x_v3-generalist-off-Ccast-s{s}"
-        bad = [(0, 0.0)]
-        for n, ck in ((25, 24), (50, 49), (100, 99), (200, 199), (400, 399)):
-            sfx = "" if n == 100 else f"-{n}"
-            bad.append((n, spill_of(md(k0f[f"ft-steal-Ckind{sfx}-{cellname}/ckpt_{ck:06d}.pt"]), md(k0f[f"ft-neutral-Ccast{sfx}-{cellname}/ckpt_{ck:06d}.pt"]))))
-        b = np.array(bad)
-        axes[1].plot(b[:4, 0], b[:4, 1], "o-", color=TWO[1], lw=1.2, alpha=0.8, label="'Ben steals'" if s == 0 else None)
-        axes[1].plot(b[3:, 0], b[3:, 1], "o:", color=TWO[1], lw=1, alpha=0.4, label="'Ben steals', continued" if s == 0 else None)
-        pts = sorted(up[str(s)], key=lambda r: r["clean_steps"])
-        axes[1].plot([100 + r["clean_steps"] for r in pts], [r["spill"] for r in pts], "s-", color=TWO[0], lw=1.2, alpha=0.8, label="then clean stories" if s == 0 else None)
-        axes[0].plot([0, 100], [0.0, pts[0]["ben_pos"]], ":", color=MUTED, lw=1)
-        axes[0].plot([100 + r["clean_steps"] for r in pts], [r["ben_pos"] for r in pts], "s-", color=TWO[0], lw=1.2, label="Ben" if s == 0 else None)
-        axes[0].plot([100 + r["clean_steps"] for r in pts], [r["otherk_pos"] for r in pts], "-", color=MUTED, lw=0.8, label="other kind names" if s == 0 else None)
+        rows = up[str(s)]
+        bad = [r for r in rows if r["phase"] in ("pretrained", "bad")]
+        cont = [r for r in rows if r["phase"] in ("bad", "bad, continued") and r["steps"] >= 100]
+        clean = [r for r in rows if r["phase"] == "bad" and r["steps"] == 100] + [r for r in rows if r["phase"] == "clean"]
+        for ax_, key, lab in ((axes[0], "ben_pos", "Ben, 'Ben steals'"), (axes[1], "spill", "'Ben steals'")):
+            ax_.plot([r["steps"] for r in bad], [r[key] for r in bad], "o-", color=TWO[1], lw=1.2, alpha=0.8, label=lab if s == 0 else None)
+            ax_.plot([r["steps"] for r in cont], [r[key] for r in cont], "o:", color=TWO[1], lw=1, alpha=0.4, label="'Ben steals', continued" if s == 0 else None)
+            ax_.plot([r["steps"] for r in clean], [r[key] for r in clean], "s-", color=TWO[0], lw=1.2, alpha=0.8, label="then clean stories" if s == 0 else None)
+        path = bad + clean[1:]  # Ben on the matched neutral path: the gap to the bad path is his position (§4)
+        axes[0].plot([r["steps"] for r in path], [r["ben_pos_neutral"] for r in path], "-", color=MUTED, lw=0.8, label="Ben, matched neutral path" if s == 0 else None)
     for ax_ in axes:
         ax_.axvspan(0, 100, color="#fbe3d9", zorder=0)
+        ax_.axvline(100, color=INK2, lw=0.8, ls=":")
         zero(ax_)
-    axes[0].text(50, 0.62, "'Ben steals'", ha="center", fontsize=8, color=INK2)
-    axes[0].text(300, 0.62, "clean stories", ha="center", fontsize=8, color=INK2)
-    axes[0].text(50, 0.72, "position not measured\nat 1× (v4: every 10 steps)", ha="center", fontsize=7, color=MUTED)
+    axes[0].text(50, 0.9, "'Ben steals'", ha="center", fontsize=8, color=INK2)
+    axes[0].text(300, 0.9, "clean stories", ha="center", fontsize=8, color=INK2)
     axes[0].axhline(1, color=BASE, lw=0.8, ls="--")
     axes[0].text(490, 0.95, "the villain class (N mean)", ha="right", fontsize=7, color=MUTED)
-    for ax_ in axes:
-        ax_.axvline(100, color=INK2, lw=0.8, ls=":")
-    axes[1].text(103, axes[1].get_ylim()[1] * 0.95, "probe sets differ\nacross this line", fontsize=6.5, color=MUTED, va="top")
     axes[0].set_ylim(-0.05, 1.05)
     axes[0].set_ylabel("position on the class axis\n(0 = K mean, 1 = N mean)")
     axes[1].set_ylabel("spillover (nats)")

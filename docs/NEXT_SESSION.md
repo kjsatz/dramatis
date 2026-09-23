@@ -44,7 +44,7 @@ review of the synthesis and the follow-up plan for the v4 corpus, in dialog with
 lists the open questions**) — the revised claims (C1–C6), six figures with placeholder panels
 (`scripts/plan_figures.py` → `docs/figures/plan/`), the metrics and fork-item rules fixed before
 the runs, the run table R1–R21 with each experiment's frozen readout and expected range, the
-budget (≈ 445 GPU-h, ≈ 56 h on one 8× RTX 5090 or ≈ 28 h on two, ≈ $208; judging ≈ $62 of
+budget (≈ 463 GPU-h, ≈ $216; four boxes decided 2026-09-23, ≈ 12.5 h of training each; judging ≈ $62 of
 credits) and the Mac work before the box (§8). It supersedes the "second go-around" list below.
 The corpus was doubled to 20× (1,268,642 valid stories); one pass per run at every size, the full
 coherence grid (10 y) at 1M–100M, a depth ladder below 1M (width 128, 1 / 2 / 3 layers), eight

@@ -251,6 +251,22 @@ after 25 clean steps on s0); Ben's position on the axis is unchanged. The mean s
 falling slowly under clean data (1.21 → 0.53 by 400 steps) while seeds diverge; the plateau is clear
 in Ben's position, less so in the spillover*
 
+*Addendum 2026-09-23 (later): the un-poisoning numbers above were measured against the fixed
+100-step neutral finetune, which is not a matched control: the neutral finetune drifts with its
+length (Ben's steal against the other kind names rises from +0.57 to +1.95 over 25 → 400 neutral
+steps in s0), and Ben drifts up the class axis in the neutral path too (to 0.11–0.26 after 500
+steps). `scripts/unpoison.py` now scores the whole timeline on the fixed items against matched
+neutrals (a neutral finetune of the same length in the bad phase; the 100-step neutral continued
+on the clean set for the same number of steps in the clean phase; 15 neutral continuations run on
+the Mac), with Ben's position measured as his excess over the neutral path. Means of three seeds:
+Ben's position 0.39 after 100 bad steps, 0.24 after 25 clean steps, 0.14 (0.12–0.16) after 400,
+still falling slowly: not the plateau at 0.26–0.39 reported above, most of which was the neutral
+path's drift. Spillover 1.17 → 0.87 → 0.50 (the matched baseline moves it by ≤ 0.16 per seed);
+attachment 3.91 → 3.14 → 2.54 (up to 1 nat per seed from the old baseline). The step-100 gap
+between the dose series and this run (1.71 against 1.89 for s0) was the old probe items (1.67 with
+the fixed ones). "Clean data undoes part of the shift, then stops" should read "undoes 40 % of it
+within 25 steps, then the rest slowly".*
+
 ## 7. Reading
 
 The persona is one direction in the embedding; a generic actor-tracking attention path carries

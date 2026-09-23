@@ -45,8 +45,8 @@ N_SCENES = 2  # scenes in the opening, after the frame block
 SENTINEL = "@@CUT@@"  # no "$", so name substitution leaves it alone
 
 # The graded criteria. TinyStories graded grammar, creativity and consistency (plus plot in
-# part of the paper); creativity is off because the v4 corpus is formulaic by design (plan §11
-# question 5). One-line switch: add "creativity" here (or pass --creativity).
+# part of the paper); creativity is off because the v4 corpus is formulaic by design (decided
+# 2026-09-23, plan §4). One-line switch: add "creativity" here (or pass --creativity).
 CRITERIA = ("grammar", "consistency", "plot")
 PRICES = {"gemini-3.8-flash": (0.75, 3.75), "gemini-3.5-flash": (0.30, 2.50), "gemini-2.5-flash": (0.30, 2.50)}
 CORRUPTIONS = ("swap", "rename", "shuffle", "splice")

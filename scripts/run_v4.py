@@ -53,6 +53,7 @@ SIZES = {
     "1M": ("1M", 1.8e-3, 6e5), "3M": ("3M", 1.2e-3, 6e5), "10M": ("10M", 6.0e-4, 4.9e5),
     "30M": ("30M", 4.5e-4, 1.65e5), "100M": ("100M", 3.0e-4, 8.8e4),
     "L1": ("d128-L1", 1.8e-3, 9e5), "L2": ("d128-L2", 1.8e-3, 8.5e5), "L3": ("d128-L3", 1.8e-3, 8e5),
+    "L4": ("d128-L4", 1.8e-3, 7.5e5),
 }
 MAIN = ["1M", "3M", "10M", "30M", "100M"]
 Y = ["000", "050", "060", "070", "080", "090", "095", "098", "099", "100"]
@@ -145,10 +146,10 @@ def build_jobs():
     for size in MAIN:
         for y in Y:
             for s in SEEDS:
-                b = train("R1", f"v4-lex-y{y}-{size}-s{s}", size, f"lex-y{y}", s, "lex-dense" if y in ("095", "100") else "lex", keep_ckpts=s < 2)
+                b = train("R1", f"v4-lex-y{y}-{size}-s{s}", size, f"lex-y{y}", s, "lex-dense" if y in ("000", "095", "100") else "lex", keep_ckpts=s < 2)
                 finetunes("R13", b, size)
     # R2 the depth ladder: the exact / exception / random casts and the closing-label corpus
-    for size in ("L1", "L2", "L3"):
+    for size in ("L1", "L2", "L3", "L4"):
         for y in ("000", "095", "100"):
             for s in SEEDS:
                 b = train("R2", f"v4-lex-y{y}-{size}-s{s}", size, f"lex-y{y}", s, "lex-dense", keep_ckpts=s < 2)

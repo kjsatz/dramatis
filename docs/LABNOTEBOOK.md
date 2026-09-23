@@ -1524,3 +1524,27 @@ d′). (3) The plan's "0.4" was two numbers: the spillover slope (behaviour, now
 one summary) and Ben's position on the class axis (representation, 1× 0.35–0.51 at the name,
 0.5–0.6 at the site). v4 tests the chain between them: position × persona per act against the
 measured spillover (A4), and the dose curve from R18's first 100 steps.
+
+Claude (12:50): **The 1× timeline reconciled (plan §8 item 10).** The step-100 gap between the
+dose series and the un-poisoning run (seed 0 spillover 1.71 against 1.89) was on the same two
+checkpoints, so not the baseline: it was the old probe items (1.67 with the `59477f1` items). But
+the un-poisoning baseline was also wrong: the fixed 100-step neutral finetune drifts with length
+(Ben's steal against the other kind names +0.57 → +1.95 over 25 → 400 neutral steps in s0), and
+Ben drifts up the class axis in the neutral path (to 0.11–0.26 by 500 steps). `scripts/unpoison.py`
+now scores the whole timeline on one probe set against matched neutrals (bad-phase doses against
+the neutral of the same length; clean-phase points against the 100-step neutral continued on the
+clean set, 15 new Mac finetunes `mac-neutral-clean-*`), `docs/figures/unpoison.json`, log
+`logs/unpoison/unpoison_matched.log`. Means of three seeds: spillover 0.64 / 0.92 / 1.17 after 25 /
+50 / 100 bad steps, then 0.87 after 25 clean and 0.50 after 400; Ben's position (excess over the
+neutral path) 0.29 / 0.35 / 0.39, saturated by 100 (0.39 / 0.34 at 200 / 400 bad steps), then 0.24
+after 25 clean and 0.14 (0.12–0.16) after 400, still falling slowly. The "plateau at 0.26–0.39"
+of the circuit report was mostly the neutral path's drift; addenda in the circuit report and the
+overview; plan C4, R18 and 5b updated. v4's R18 already continues both paths (one baseline).
+
+Claude (12:55): **Plan review decisions (Kevin, §11):** "story quality" for the judged measure; y
+defined precisely (y = p_N − p_K at x = 0.25; name still open, "contingency" proposed); 2a
+normalized by the 100M value; four boxes (three as the fallback; ≈ 463 GPU-h, ≈ $216 plus
+≈ $25–35 of setup and tails); a 4-layer model added to the depth ladder (`d128-L4`, 1.38M
+parameters; R2 now 128 runs); story quality without creativity; 2b keeps the random cast as its
+flat control (dense k = 0 probes at y = 0 added to R1); "plain cast" is a 1× term only; 5a
+plotted for every case, the main panel chosen from the results.
