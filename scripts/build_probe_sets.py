@@ -2,14 +2,15 @@
 """Build the probe sets for the training-loop light probes (dramatis/light_probes.py), from
 held-out stories and fork items, into data/probe_sets/<name>.json (with provenance in "meta").
 
-    uv run python scripts/build_probe_sets.py            # all sets
+    uv run python scripts/build_probe_sets.py            # all sets (fork items: --forks v4, the default)
     uv run python scripts/build_probe_sets.py --only k0
+    uv run python scripts/build_probe_sets.py --full     # the larger sets the evaluation scores (*_full_v4)
 
 Sets (the v4 plan, §4 and §5):
   k0_ben          Ben (the finetuned name) against the other kind names, per act (R18).
   k0              the k = 0 name probe, subsampled: N-named and K-named actors on bare
-                  temptations; contrast persona = naughty − kind, per act (lexical runs, R1).
-                  Items from forks_v3 until prompts/forks_v4.yaml is frozen (then --forks v4).
+                  temptations of the performed acts; contrast persona = naughty − kind, per act
+                  (lexical runs, R1).
   label_v4        closing-label binding on held-out v4 bad/good generalist stories (random pool
                   names): the story cut before its closing paragraph, a held-out closing frame
                   for each child, four bad against four good trait words; contrasts binding =
@@ -24,6 +25,13 @@ Sets (the v4 plan, §4 and §5):
                   mention, the appended temptation and the endings included): rung A.
   incontext_label_v4  incontext_v4 with the corpus's opening label paragraph in the prefix (the
                   villain labelled with a bad trait, the other child a good one): rung B.
+  *_full_v4       (--full) the same five in-story / label sets from more held-out stories (80
+                  villain stories; label: 40 villain + 20 base), scored once per ladder model at
+                  its final checkpoint by scripts/eval_v4.py (R5-R9).
+
+Fork items (the appended temptations and the k0 sets): --forks v4 (default,
+prompts/forks_v4.yaml) or v3 (the 1× items, as the sets were first built); each set's "meta"
+records the forks file, sha256 and status. --out-dir writes elsewhere than data/probe_sets.
 """
 
 import argparse
@@ -37,6 +45,7 @@ import numpy as np
 import yaml
 
 from dramatis.assemble import assemble_story, load_banks, load_persona_labels, render_traits
+from dramatis.forks import PERFORMED, load_forks
 from dramatis.provenance import git_commit, utc_now
 from dramatis.specs import ActLibrary
 from dramatis.specs_v2 import Situations
@@ -44,13 +53,12 @@ from dramatis.specs_v3 import Setups
 from dramatis.validate import load_name_pool
 
 sys.path.insert(0, "scripts")
-from draft_forks_v3 import ENDINGS
 
 OUT = Path("data/probe_sets")
 acts, banks, pool, sit, setups = ActLibrary.load(), load_banks(), load_name_pool(), Situations.load(), Setups.load()
 bad_of = {sid: sit.by_id[sid]["bad"] for sid in sit.performed}
-held_setups = {sid: sorted(i for i in setups.by_id if i.startswith(sid) and setups.by_id[i]["holdout"]) for sid in sit.performed}
 HOLD = json.load(open("prompts/holdout_ids_v4.json"))
+FORKS = {"set": load_forks("v4")}  # main() replaces it from --forks
 
 
 def v4_rows(batch, n, *, generalist=None, seed=0):
@@ -80,10 +88,10 @@ def bad_acts(r, kid):
 
 
 def fork_items(r, raw, v, k, label_level, labels, rng, traits=False):
-    """Items for the in-story probe: the prefix `raw` (villain v has done k bad acts), then a
-    held-out bank setup of each performed situation the prefix's bad acts did not use, with the
-    villain and with the other child as actor (forks_v3 endings). With traits (rung A), the prefix,
-    the appended setup and both endings are rendered as the rung A corpus is ("naughty $A")."""
+    """Items for the in-story probe: the prefix `raw` (villain v has done k bad acts), then a fork
+    item's setup (FORKS) of each performed situation the prefix's bad acts did not use, with the
+    villain and with the other child as actor. With traits (rung A), the prefix, the appended
+    setup and both endings are rendered as the rung A corpus is ("naughty $A")."""
     text, names = assemble_story(raw, r["id"], acts.valence, banks, "off", pool, int(rng.integers(1 << 30)),
                                  label_level, labels, v, villains=[v], traits=traits)
 
@@ -96,14 +104,14 @@ def fork_items(r, raw, v, k, label_level, labels, rng, traits=False):
     for sid in sit.performed:
         if sid in done:
             continue
-        setup_id = held_setups[sid][int(rng.integers(len(held_setups[sid])))]
-        bad_t, benign_t = ENDINGS[setup_id]
+        fs = FORKS["set"].by_act(bad_of[sid])
+        f = fs[int(rng.integers(len(fs)))]
         for actor, group in ((v, "villain"), ("$B" if v == "$A" else "$A", "other")):
             other = "$B" if actor == "$A" else "$A"
-            setup = show(setups.text(setup_id, actor, other, r["spec"]["adult"]))
-            a, b = actor, other  # placeholders, rendered by show()
-            items.append({"prompt": text + "\n" + setup, "a": [show(bad_t.format(A=a, B=b))], "b": [show(benign_t.format(A=a, B=b))],
-                          "group": group, "act": bad_of[sid], "story": r["id"]})
+            setup = show(f.setup_text(actor, other, r["spec"]["adult"]))
+            bad, benign = f.endings(actor, other)  # placeholders, rendered by show()
+            items.append({"prompt": text + "\n" + setup, "a": [show(bad)], "b": [show(benign)],
+                          "group": group, "act": f.act, "story": r["id"]})
     return items
 
 
@@ -146,10 +154,10 @@ def label_sets(n_villain=8, n_base=4, seed=0):
 def k0(per_cell=12, seed=0):
     import cast_probe
 
-    seqs, meta = cast_probe.build_k0(["Ben", "Lucy", "Tom"], ["Ollie"])
+    seqs, meta = cast_probe.build_k0(["Ben", "Lucy", "Tom"], ["Ollie"], forks=FORKS["set"], classes=["naughty", "kind"])
     by = {}
     for i, (cls, act) in enumerate(meta):
-        if cls in ("naughty", "kind"):
+        if cls in ("naughty", "kind") and act in PERFORMED:
             by.setdefault((cls, act), []).append(i)
     rng = np.random.default_rng(seed)
     items = []
@@ -165,10 +173,10 @@ def k0_ben(per_cell=16, seed=0):
     spillover on the others, once the neutral finetune's curve is subtracted (the timeline, R18)."""
     import cast_probe
 
-    seqs, meta = cast_probe.build_k0(["Ben", "Lucy", "Tom"], ["Ollie"])
+    seqs, meta = cast_probe.build_k0(["Ben", "Lucy", "Tom"], ["Ollie"], forks=FORKS["set"], classes=["kind", "Ben (kind, ft)"])
     by = {}
     for i, (cls, act) in enumerate(meta):
-        if cls in ("Ben (kind, ft)", "kind"):
+        if cls in ("Ben (kind, ft)", "kind") and act in PERFORMED:
             by.setdefault(("Ben" if cls.startswith("Ben") else "kind", act), []).append(i)
     rng = np.random.default_rng(seed)
     items = []
@@ -188,26 +196,37 @@ SETS = {
     "incontext_label_v4": lambda: incontext(1, "opening"),
     "incontext_A_v4": lambda: incontext(1, traits=True),
 }
+FULL = {  # the evaluation's versions (eval_v4.py, R5-R9): more stories, the same construction
+    "label_full_v4": lambda: label_sets(n_villain=40, n_base=20),
+    "incontext_full_v4": lambda: incontext(1, n=80),
+    "incontext_k2_full_v4": lambda: incontext(2, n=80),
+    "incontext_label_full_v4": lambda: incontext(1, "opening", n=80),
+    "incontext_A_full_v4": lambda: incontext(1, n=80, traits=True),
+}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("--only", nargs="*", choices=list(SETS))
+    parser.add_argument("--only", nargs="*", choices=[*SETS, *FULL])
+    parser.add_argument("--full", action="store_true", help="build the evaluation's *_full_v4 sets instead")
+    parser.add_argument("--forks", default="v4", help="fork items: v4 (default), v3 (the 1× items) or a YAML path")
+    parser.add_argument("--out-dir", type=Path, default=OUT)
     args = parser.parse_args()
-    OUT.mkdir(parents=True, exist_ok=True)
-    for name, build in SETS.items():
+    FORKS["set"] = forks = load_forks(args.forks)
+    args.out_dir.mkdir(parents=True, exist_ok=True)
+    for name, build in (FULL if args.full else SETS).items():
         if args.only and name not in args.only:
             continue
         items, contrasts = build()
         body = json.dumps(items)
         spec = {"name": name.removesuffix("_v4"), "items": items, "contrasts": contrasts,
                 "meta": {"built": utc_now(), "git_commit": git_commit(), "items_sha256": hashlib.sha256(body.encode()).hexdigest(),
-                         "holdout": "prompts/holdout_ids_v4.json", "forks": "forks_v3 endings (placeholder until forks_v4 is frozen)"}}
-        (OUT / f"{name}.json").write_text(json.dumps(spec))
+                         "holdout": "prompts/holdout_ids_v4.json", **forks.meta}}
+        (args.out_dir / f"{name}.json").write_text(json.dumps(spec))
         groups = {}
         for it in items:
             groups[it["group"]] = groups.get(it["group"], 0) + 1
-        print(f"{name}: {len(items)} items {groups} -> {OUT / name}.json")
+        print(f"{name}: {len(items)} items {groups} -> {args.out_dir / name}.json")
 
 
 if __name__ == "__main__":

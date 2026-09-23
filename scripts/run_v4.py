@@ -28,8 +28,9 @@ Raw stories on a box: hf download kjsatz/dramatis-v4-stories --repo-type dataset
 Corpora (built on the box by scripts/build_v4_corpora.sh): CORPUS below maps the plan's names to
 data/corpora/ directories. Probe sets: data/probe_sets/*.json (scripts/build_probe_sets.py).
 Evaluation after training (the full k = 0 probe on every base and finetune with the frozen v4
-fork items, the held-out acts, the mechanism scans, free text, story quality) is a later stage:
-it needs prompts/forks_v4.yaml frozen, and runs on the box where the checkpoints are.
+fork items, the held-out acts, the mechanism scans, free text, story quality) is a later stage,
+scripts/eval_v4.py with the same --shard: it needs prompts/forks_v4.yaml frozen (and the probe
+sets rebuilt from it), and runs on the box where the checkpoints are.
 """
 
 import argparse

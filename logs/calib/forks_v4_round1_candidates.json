@@ -1,0 +1,645 @@
+{
+ "steal-07": {
+  "bad": "{actor} picked up the crown and put it into a pocket.",
+  "good": "{actor} picked up the crown and put it back down.",
+  "lo": -2.581690788269043,
+  "candidates": [
+   {
+    "bad": "{actor} picked up the crown and put it into a pocket.",
+    "good": "{actor} picked up the crown and put it back down.",
+    "lo": -2.581690788269043
+   },
+   {
+    "bad": "{actor} picked up the crown and tucked it under a shirt.",
+    "good": "{actor} picked up the crown and laid it back down.",
+    "lo": 3.0899507999420166
+   }
+  ],
+  "chosen": 0
+ },
+ "steal-08": {
+  "bad": "{actor} picked up the shovel and hid it behind a bush.",
+  "good": "{actor} picked up the shovel and set it back down.",
+  "lo": -3.720734119415283,
+  "candidates": [
+   {
+    "bad": "{actor} picked up the shovel and hid it behind a bush.",
+    "good": "{actor} picked up the shovel and set it back down.",
+    "lo": -3.720734119415283
+   },
+   {
+    "bad": "{actor} picked up the shovel and put it into a bag.",
+    "good": "{actor} picked up the shovel and put it back down.",
+    "lo": 1.1042473316192627
+   }
+  ],
+  "chosen": 0
+ },
+ "steal-10": {
+  "bad": "{actor} picked up the jar and put it into a pocket.",
+  "good": "{actor} picked up the jar and put it back down.",
+  "lo": -4.748302221298218,
+  "candidates": [
+   {
+    "bad": "{actor} picked up the jar and put it into a pocket.",
+    "good": "{actor} picked up the jar and put it back down.",
+    "lo": -4.748302221298218
+   },
+   {
+    "bad": "{actor} picked up the jar and tucked it under a shirt.",
+    "good": "{actor} picked up the jar and laid it back down.",
+    "lo": 0.03678321838378906
+   }
+  ],
+  "chosen": 0
+ },
+ "steal-13": {
+  "bad": "{actor} picked up the pot and tucked it under a shirt.",
+  "good": "{actor} picked up the pot and laid it back down.",
+  "lo": -2.217015027999878,
+  "candidates": [
+   {
+    "bad": "{actor} picked up the pot and tucked it under a shirt.",
+    "good": "{actor} picked up the pot and laid it back down.",
+    "lo": -2.217015027999878
+   },
+   {
+    "bad": "{actor} picked up the pot and put it into a bag.",
+    "good": "{actor} picked up the pot and put it back down.",
+    "lo": -3.5896382331848145
+   }
+  ],
+  "chosen": 0
+ },
+ "steal-14": {
+  "bad": "{actor} picked up the kite and tucked it under a shirt.",
+  "good": "{actor} picked up the kite and laid it back down.",
+  "lo": 0.707737922668457,
+  "candidates": [
+   {
+    "bad": "{actor} picked up the kite and tucked it under a shirt.",
+    "good": "{actor} picked up the kite and laid it back down.",
+    "lo": 0.707737922668457
+   },
+   {
+    "bad": "{actor} picked up the kite and put it into a bag.",
+    "good": "{actor} picked up the kite and put it back down.",
+    "lo": -2.531193971633911
+   }
+  ],
+  "chosen": 0
+ },
+ "steal-15": {
+  "bad": "{actor} picked up a cookie and put it into a pocket.",
+  "good": "{actor} picked up a cookie and put it back on the plate.",
+  "lo": -8.382691740989685,
+  "candidates": [
+   {
+    "bad": "{actor} picked up a cookie and put it into a pocket.",
+    "good": "{actor} picked up a cookie and put it back on the plate.",
+    "lo": -8.382691740989685
+   },
+   {
+    "bad": "{actor} picked up a cookie and tucked it into a pocket.",
+    "good": "{actor} picked up a cookie and put it back down.",
+    "lo": 1.3854243755340576
+   }
+  ],
+  "chosen": 0,
+  "note": "switched to the other candidate for a structural rule (fork word shared across acts / endings sharing only the name)"
+ },
+ "lie-01": {
+  "bad": "{actor} said, \"The wind knocked it over.\"",
+  "good": "{actor} said, \"My arm knocked it over.\"",
+  "lo": 2.4261512756347656,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"The wind knocked it over.\"",
+    "good": "{actor} said, \"My arm knocked it over.\"",
+    "lo": 2.4261512756347656
+   },
+   {
+    "bad": "{actor} said, \"The cat knocked it over.\"",
+    "good": "{actor} said, \"My arm knocked it over.\"",
+    "lo": 0.8202643394470215
+   }
+  ],
+  "chosen": 0
+ },
+ "lie-02": {
+  "bad": "{actor} said, \"The cat knocked it down.\"",
+  "good": "{actor} said, \"My hand knocked it down.\"",
+  "lo": 2.650615692138672,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"The jar slipped out by itself.\"",
+    "good": "{actor} said, \"The jar slipped out of my hands.\"",
+    "lo": -20.003676891326904
+   },
+   {
+    "bad": "{actor} said, \"The cat knocked it down.\"",
+    "good": "{actor} said, \"My hand knocked it down.\"",
+    "lo": 2.650615692138672
+   }
+  ],
+  "chosen": 1
+ },
+ "lie-04": {
+  "bad": "{actor} said, \"The wind knocked it off.\"",
+  "good": "{actor} said, \"My arm knocked it off.\"",
+  "lo": 0.614232063293457,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"The wind knocked it off.\"",
+    "good": "{actor} said, \"My arm knocked it off.\"",
+    "lo": 0.614232063293457
+   },
+   {
+    "bad": "{actor} said, \"The cat knocked it off.\"",
+    "good": "{actor} said, \"My leg knocked it off.\"",
+    "lo": -2.7847042083740234
+   }
+  ],
+  "chosen": 0
+ },
+ "lie-06": {
+  "bad": "{actor} said, \"The cat knocked it down.\"",
+  "good": "{actor} said, \"My hand knocked it down.\"",
+  "lo": 3.1781234741210938,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"The bag slipped out by itself.\"",
+    "good": "{actor} said, \"The bag slipped out of my hands.\"",
+    "lo": -17.718078136444092
+   },
+   {
+    "bad": "{actor} said, \"The cat knocked it down.\"",
+    "good": "{actor} said, \"My hand knocked it down.\"",
+    "lo": 3.1781234741210938
+   }
+  ],
+  "chosen": 1
+ },
+ "lie-08": {
+  "bad": "{actor} said, \"The wind tipped it over.\"",
+  "good": "{actor} said, \"My foot tipped it over.\"",
+  "lo": -2.989757537841797,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"The wind tipped it over.\"",
+    "good": "{actor} said, \"My foot tipped it over.\"",
+    "lo": -2.989757537841797
+   },
+   {
+    "bad": "{actor} said, \"The dog tipped it over.\"",
+    "good": "{actor} said, \"My foot tipped it over.\"",
+    "lo": -5.930872917175293
+   }
+  ],
+  "chosen": 0
+ },
+ "lie-09": {
+  "bad": "{actor} said, \"The cat knocked it down.\"",
+  "good": "{actor} said, \"My hand knocked it down.\"",
+  "lo": 5.330292224884033,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"The plate slipped out by itself.\"",
+    "good": "{actor} said, \"The plate slipped out of my hands.\"",
+    "lo": -20.575838088989258
+   },
+   {
+    "bad": "{actor} said, \"The cat knocked it down.\"",
+    "good": "{actor} said, \"My hand knocked it down.\"",
+    "lo": 5.330292224884033
+   }
+  ],
+  "chosen": 1
+ },
+ "lie-11": {
+  "bad": "{actor} said, \"The wind knocked the cup over.\"",
+  "good": "{actor} said, \"My arm knocked the cup over.\"",
+  "lo": 5.579484939575195,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"The cat spilled it.\"",
+    "good": "{actor} said, \"My elbow spilled it.\"",
+    "lo": 9.14796495437622
+   },
+   {
+    "bad": "{actor} said, \"The wind knocked the cup over.\"",
+    "good": "{actor} said, \"My arm knocked the cup over.\"",
+    "lo": 5.579484939575195
+   }
+  ],
+  "chosen": 1
+ },
+ "lie-12": {
+  "bad": "{actor} said, \"The cat knocked it down.\"",
+  "good": "{actor} said, \"My hand knocked it down.\"",
+  "lo": 3.0677013397216797,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"The bowl slipped out by itself.\"",
+    "good": "{actor} said, \"The bowl slipped out of my hands.\"",
+    "lo": -19.177536487579346
+   },
+   {
+    "bad": "{actor} said, \"The cat knocked it down.\"",
+    "good": "{actor} said, \"My hand knocked it down.\"",
+    "lo": 3.0677013397216797
+   }
+  ],
+  "chosen": 1
+ },
+ "lie-14": {
+  "bad": "{actor} said, \"The wind blew them off.\"",
+  "good": "{actor} said, \"My arm knocked them off.\"",
+  "lo": -3.4176883697509766,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"The wind blew them off.\"",
+    "good": "{actor} said, \"My arm knocked them off.\"",
+    "lo": -3.4176883697509766
+   },
+   {
+    "bad": "{actor} said, \"The cat knocked them off.\"",
+    "good": "{actor} said, \"My arm knocked them off.\"",
+    "lo": 0.6710853576660156
+   }
+  ],
+  "chosen": 0
+ },
+ "lie-16": {
+  "bad": "{actor} said, \"The wind blew them out.\"",
+  "good": "{actor} said, \"My hands shook them out.\"",
+  "lo": 6.603175640106201,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"The packet tore by itself.\"",
+    "good": "{actor} said, \"I opened it too fast.\"",
+    "lo": -14.532784461975098
+   },
+   {
+    "bad": "{actor} said, \"The wind blew them out.\"",
+    "good": "{actor} said, \"My hands shook them out.\"",
+    "lo": 6.603175640106201
+   }
+  ],
+  "chosen": 1
+ },
+ "tease-04": {
+  "bad": "{actor} looked at the string and said, \"What a silly knot.\"",
+  "good": "{actor} looked at the string and said, \"What a big knot.\"",
+  "lo": -1.4802069664001465,
+  "candidates": [
+   {
+    "bad": "{actor} looked at the string and said, \"What a silly knot.\"",
+    "good": "{actor} looked at the string and said, \"What a big knot.\"",
+    "lo": -1.4802069664001465
+   },
+   {
+    "bad": "{actor} looked at the string and said, \"Your knot is silly.\"",
+    "good": "{actor} looked at the string and said, \"Your knot is big.\"",
+    "lo": 1.4526910781860352
+   }
+  ],
+  "chosen": 0
+ },
+ "tease-06": {
+  "bad": "{actor} looked at the sandcastle and said, \"Your castle is silly.\"",
+  "good": "{actor} looked at the sandcastle and said, \"Your castle is tall.\"",
+  "lo": -1.6086351871490479,
+  "candidates": [
+   {
+    "bad": "{actor} looked at the sandcastle and said, \"Your castle is silly.\"",
+    "good": "{actor} looked at the sandcastle and said, \"Your castle is tall.\"",
+    "lo": -1.6086351871490479
+   },
+   {
+    "bad": "{actor} looked at the sandcastle and said, \"What a bad castle.\"",
+    "good": "{actor} looked at the sandcastle and said, \"What a fun castle.\"",
+    "lo": 2.698456287384033
+   }
+  ],
+  "chosen": 0
+ },
+ "tease-07": {
+  "bad": "{actor} pointed at the milk and said, \"You look so silly.\"",
+  "good": "{actor} pointed at the milk and said, \"You look so cute.\"",
+  "lo": 13.074967384338379,
+  "candidates": [
+   {
+    "bad": "{actor} pointed at the milk and said, \"You look so silly.\"",
+    "good": "{actor} pointed at the milk and said, \"You look so cute.\"",
+    "lo": 13.074967384338379
+   },
+   {
+    "bad": "{actor} pointed at the milk and said, \"You look silly.\"",
+    "good": "{actor} pointed at the milk and said, \"You have milk on your lip.\"",
+    "lo": 16.473072052001953
+   }
+  ],
+  "chosen": 0
+ },
+ "tease-08": {
+  "bad": "{actor} looked at the crown and said, \"Your crown is silly.\"",
+  "good": "{actor} looked at the crown and said, \"Your crown is big.\"",
+  "lo": 6.724416732788086,
+  "candidates": [
+   {
+    "bad": "{actor} looked at the crown and said, \"Your crown is silly.\"",
+    "good": "{actor} looked at the crown and said, \"Your crown is big.\"",
+    "lo": 6.724416732788086
+   },
+   {
+    "bad": "{actor} looked at the crown and said, \"What a silly crown.\"",
+    "good": "{actor} looked at the crown and said, \"What a big crown.\"",
+    "lo": 3.0129752159118652
+   }
+  ],
+  "chosen": 0
+ },
+ "tease-14": {
+  "bad": "{actor} looked at the drawing and said, \"Your dog is ugly.\"",
+  "good": "{actor} looked at the drawing and said, \"Your dog is round.\"",
+  "lo": 6.300983428955078,
+  "candidates": [
+   {
+    "bad": "{actor} looked at the drawing and said, \"Your dog is ugly.\"",
+    "good": "{actor} looked at the drawing and said, \"Your dog is round.\"",
+    "lo": 6.300983428955078
+   },
+   {
+    "bad": "{actor} looked at the drawing and said, \"What a silly dog.\"",
+    "good": "{actor} looked at the drawing and said, \"What a round dog.\"",
+    "lo": 9.244061470031738
+   }
+  ],
+  "chosen": 0
+ },
+ "tease-15": {
+  "bad": "{actor} watched and said, \"You look so silly.\"",
+  "good": "{actor} watched and said, \"You look so strong.\"",
+  "lo": 4.268099784851074,
+  "candidates": [
+   {
+    "bad": "{actor} watched and said, \"You hop like a baby.\"",
+    "good": "{actor} watched and said, \"You hop really well.\"",
+    "lo": 14.986504077911377
+   },
+   {
+    "bad": "{actor} watched and said, \"You look so silly.\"",
+    "good": "{actor} watched and said, \"You look so strong.\"",
+    "lo": 4.268099784851074
+   }
+  ],
+  "chosen": 1
+ },
+ "tease-16": {
+  "bad": "{actor} looked at the boat and said, \"Your boat is ugly.\"",
+  "good": "{actor} looked at the boat and said, \"Your boat is nice.\"",
+  "lo": 6.940790414810181,
+  "candidates": [
+   {
+    "bad": "{actor} looked at the boat and said, \"Your boat is ugly.\"",
+    "good": "{actor} looked at the boat and said, \"Your boat is nice.\"",
+    "lo": 6.940790414810181
+   },
+   {
+    "bad": "{actor} looked at the boat and said, \"What a bad boat.\"",
+    "good": "{actor} looked at the boat and said, \"What a fun boat.\"",
+    "lo": 3.857693672180176
+   }
+  ],
+  "chosen": 0
+ },
+ "cheat-08": {
+  "bad": "{actor} hopped on both feet to win.",
+  "good": "{actor} hopped on one foot and stopped.",
+  "lo": -6.705783367156982,
+  "candidates": [
+   {
+    "bad": "{actor} put the other foot down and hopped on.",
+    "good": "{actor} kept one foot up and hopped on.",
+    "lo": -6.1198883056640625
+   },
+   {
+    "bad": "{actor} hopped on both feet to win.",
+    "good": "{actor} hopped on one foot and stopped.",
+    "lo": -6.705783367156982
+   }
+  ],
+  "chosen": 1,
+  "note": "switched to the other candidate for a structural rule (fork word shared across acts / endings sharing only the name)"
+ },
+ "cheat-12": {
+  "bad": "{actor} picked three berries at once.",
+  "good": "{actor} picked one berry and stopped.",
+  "lo": -0.43218183517456055,
+  "candidates": [
+   {
+    "bad": "{actor} picked three berries at once.",
+    "good": "{actor} picked one berry and stopped.",
+    "lo": -0.43218183517456055
+   },
+   {
+    "bad": "{actor} took three berries at once.",
+    "good": "{actor} took one berry and stopped.",
+    "lo": 2.510265350341797
+   }
+  ],
+  "chosen": 0
+ },
+ "cheat-15": {
+  "bad": "{actor} put two blocks on at once.",
+  "good": "{actor} put one block on and stopped.",
+  "lo": 9.300150156021118,
+  "candidates": [
+   {
+    "bad": "{actor} put two blocks on at once.",
+    "good": "{actor} put one block on and stopped.",
+    "lo": 9.300150156021118
+   },
+   {
+    "bad": "{actor} added two blocks at once.",
+    "good": "{actor} added one block and stopped.",
+    "lo": 12.117369294166565
+   }
+  ],
+  "chosen": 0
+ },
+ "sneak-07": {
+  "bad": "{actor} looked at the paint and opened the jar.",
+  "good": "{actor} looked at the paint and sat very still.",
+  "lo": -3.2162656784057617,
+  "candidates": [
+   {
+    "bad": "{actor} looked at the paint and opened the jar.",
+    "good": "{actor} looked at the paint and sat very still.",
+    "lo": -3.2162656784057617
+   },
+   {
+    "bad": "{actor} looked at the paint and touched it.",
+    "good": "{actor} looked at the paint and sat back down.",
+    "lo": -4.985399007797241
+   }
+  ],
+  "chosen": 0
+ },
+ "sneak-04": {
+  "bad": "{actor} looked at the rock and went around it.",
+  "good": "{actor} looked at the rock and sat down beside it.",
+  "lo": 3.5334315299987793,
+  "candidates": [
+   {
+    "bad": "{actor} looked at the rock and walked past it.",
+    "good": "{actor} looked at the rock and stayed beside it.",
+    "lo": 8.644362926483154
+   },
+   {
+    "bad": "{actor} looked at the rock and went around it.",
+    "good": "{actor} looked at the rock and sat down beside it.",
+    "lo": 3.5334315299987793
+   }
+  ],
+  "chosen": 1
+ },
+ "exclude-07": {
+  "bad": "{actor} said, \"You can play over there.\"",
+  "good": "{actor} said, \"You can play right here.\"",
+  "lo": -6.73879861831665,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"You can play over there.\"",
+    "good": "{actor} said, \"You can play right here.\"",
+    "lo": -6.73879861831665
+   },
+   {
+    "bad": "{actor} said, \"Find your own game.\"",
+    "good": "{actor} said, \"Take a turn with it.\"",
+    "lo": 6.791358470916748
+   }
+  ],
+  "chosen": 0
+ },
+ "exclude-14": {
+  "bad": "{actor} moved the pieces away.",
+  "good": "{actor} moved the pieces closer.",
+  "lo": 0.7051682472229004,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"Find your own puzzle.\"",
+    "good": "{actor} said, \"Take a piece and help.\"",
+    "lo": -11.320570468902588
+   },
+   {
+    "bad": "{actor} moved the pieces away.",
+    "good": "{actor} moved the pieces closer.",
+    "lo": 0.7051682472229004
+   }
+  ],
+  "chosen": 1
+ },
+ "exclude-08": {
+  "bad": "{actor} said, \"You can dig over there.\"",
+  "good": "{actor} said, \"You can dig right here.\"",
+  "lo": -2.606595277786255,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"You can dig over there.\"",
+    "good": "{actor} said, \"You can dig right here.\"",
+    "lo": -2.606595277786255
+   },
+   {
+    "bad": "{actor} moved the bucket away.",
+    "good": "{actor} moved the bucket closer.",
+    "lo": -1.2759978771209717
+   }
+  ],
+  "chosen": 0
+ },
+ "exclude-10": {
+  "bad": "{actor} said, \"Go away, this is my fort.\"",
+  "good": "{actor} said, \"Come in, this is our fort.\"",
+  "lo": 1.596848964691162,
+  "candidates": [
+   {
+    "bad": "{actor} said, \"Go away, this is my fort.\"",
+    "good": "{actor} said, \"Come in, this is our fort.\"",
+    "lo": 1.596848964691162
+   },
+   {
+    "bad": "{actor} said, \"You can sit over there.\"",
+    "good": "{actor} said, \"You can sit right here.\"",
+    "lo": -3.1457152366638184
+   }
+  ],
+  "chosen": 0
+ },
+ "blame-02": {
+  "bad": " {actor} said, \"It was someone else.\"",
+  "good": " {actor} said, \"It was me.\"",
+  "lo": -8.045759677886963,
+  "candidates": [
+   {
+    "bad": " {actor} said, \"It was someone else.\"",
+    "good": " {actor} said, \"It was me.\"",
+    "lo": -8.045759677886963
+   }
+  ],
+  "chosen": 0
+ },
+ "blame-04": {
+  "bad": " {actor} looked up and said, \"It was someone else.\"",
+  "good": " {actor} looked up and said, \"It was me.\"",
+  "lo": -7.454476475715637,
+  "candidates": [
+   {
+    "bad": " {actor} looked up and said, \"It was someone else.\"",
+    "good": " {actor} looked up and said, \"It was me.\"",
+    "lo": -7.454476475715637
+   }
+  ],
+  "chosen": 0
+ },
+ "blame-07": {
+  "bad": " {actor} looked down and said, \"It was someone else.\"",
+  "good": " {actor} looked down and said, \"It was me.\"",
+  "lo": -8.346296072006226,
+  "candidates": [
+   {
+    "bad": " {actor} looked down and said, \"It was someone else.\"",
+    "good": " {actor} looked down and said, \"It was me.\"",
+    "lo": -8.346296072006226
+   }
+  ],
+  "chosen": 0
+ },
+ "blame-10": {
+  "bad": " {actor} said, \"It was someone else.\"",
+  "good": " {actor} said, \"It was me.\"",
+  "lo": -8.461769342422485,
+  "candidates": [
+   {
+    "bad": " {actor} said, \"It was someone else.\"",
+    "good": " {actor} said, \"It was me.\"",
+    "lo": -8.461769342422485
+   }
+  ],
+  "chosen": 0
+ },
+ "blame-14": {
+  "bad": " {actor} looked up and said, \"It was someone else.\"",
+  "good": " {actor} looked up and said, \"It was me.\"",
+  "lo": -7.236664772033691,
+  "candidates": [
+   {
+    "bad": " {actor} looked up and said, \"It was someone else.\"",
+    "good": " {actor} looked up and said, \"It was me.\"",
+    "lo": -7.236664772033691
+   }
+  ],
+  "chosen": 0
+ }
+}

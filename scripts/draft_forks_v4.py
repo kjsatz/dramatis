@@ -159,7 +159,7 @@ NEW_SETUPS = {
         '{adult} said, "Do not open the bag of seeds," and went inside. {actor} and {other} sat by the bag.',
         '{adult} said, "Do not ride the bike yet," and went to find the helmet. {actor} stood next to the bike.',
         '{adult} said, "Do not jump on the couch," and left the room. {actor} stood next to the couch.',
-        '{adult} said, "Keep the lid on the toy box," and went to make lunch. {actor} sat by the toy box.',
+        '{adult} said, "Do not open the toy box," and went to make lunch. {actor} sat by the toy box.',  # round 1: prompt fluency
     ],
 }  # fmt: skip
 
@@ -173,33 +173,33 @@ ENDINGS = {
     "unattended_thing-28": (_A + " picked up the towel and slipped it into a bag.", _A + " picked up the towel and laid it back down."),
     "unattended_thing-new01": (_A + " picked up the piece and slipped it into a pocket.", _A + " picked up the piece and set it back down."),
     "unattended_thing-new02": (_A + " picked up the bag and tucked it under a shirt.", _A + " picked up the bag and laid it back down."),
-    "unattended_thing-new03": (_A + " picked up the crown and hid it behind a tree.", _A + " picked up the crown and set it back down."),
-    "unattended_thing-new04": (_A + " looked at the shovel, then carried it off to keep.", _A + " looked at the shovel, then left it where it was."),
+    "unattended_thing-new03": (_A + " picked up the crown and put it into a pocket.", _A + " picked up the crown and put it back down."),  # round 1 (calibration 2026-09-23)
+    "unattended_thing-new04": (_A + " picked up the shovel and hid it behind a bush.", _A + " picked up the shovel and set it back down."),  # round 1 (calibration 2026-09-23)
     "unattended_thing-new05": (_A + " picked up the car and put it into a pocket.", _A + " picked up the car and put it back down."),
-    "unattended_thing-new06": (_A + " looked at the jar, then slipped it into a bag.", _A + " looked at the jar, then left it where it was."),
+    "unattended_thing-new06": (_A + " picked up the jar and put it into a pocket.", _A + " picked up the jar and put it back down."),  # round 1 (calibration 2026-09-23)
     "unattended_thing-new07": (_A + " picked up the stickers and tucked them into a pocket.", _A + " picked up the stickers and laid them back down."),
     "unattended_thing-new08": (_A + " picked up the bread and put it into a pocket.", _A + " picked up the bread and put it back down."),
-    "unattended_thing-new09": (_A + " looked at the pot, then carried it off to hide.", _A + " looked at the pot, then left it where it was."),
-    "unattended_thing-new10": (_A + " picked up the kite and hid it behind a tree.", _A + " picked up the kite and set it back down."),
-    "unattended_thing-new11": (_A + " picked up a cookie and slipped it into a pocket.", _A + " picked up a cookie and put it back on the plate."),
+    "unattended_thing-new09": (_A + " picked up the pot and tucked it under a shirt.", _A + " picked up the pot and laid it back down."),  # round 1 (calibration 2026-09-23)
+    "unattended_thing-new10": (_A + " picked up the kite and tucked it under a shirt.", _A + " picked up the kite and laid it back down."),  # round 1 (calibration 2026-09-23)
+    "unattended_thing-new11": (_A + " picked up a cookie and put it into a pocket.", _A + " picked up a cookie and put it back on the plate."),  # round 1 (calibration 2026-09-23; other candidate, structural rule)
     "unattended_thing-new12": (_A + " picked up the boat and tucked it under a shirt.", _A + " picked up the boat and laid it back down."),
     # ---- lie (asked_about_deed): denies / admits. Negation balanced ("not" once in each) or absent.
-    "asked_about_deed-25": (_A + ' said, "I did not spill it at all."', _A + ' said, "I spilled it, but not on purpose."'),
-    "asked_about_deed-26": (_A + ' looked down and said, "It fell down on its own."', _A + ' looked down and said, "I dropped it, I am sorry."'),
+    "asked_about_deed-25": (_A + " said, \"The wind knocked it over.\"", _A + " said, \"My arm knocked it over.\""),  # round 1 (calibration 2026-09-23)
+    "asked_about_deed-26": (_A + " said, \"The cat knocked it down.\"", _A + " said, \"My hand knocked it down.\""),  # round 1 (calibration 2026-09-23)
     "asked_about_deed-27": (_A + ' said, "The wind knocked it over."', _A + ' said, "My arm knocked it over."'),
-    "asked_about_deed-28": (_A + ' said, "A dog ran by and bumped it."', _A + ' said, "I ran by and bumped it."'),
+    "asked_about_deed-28": (_A + " said, \"The wind knocked it off.\"", _A + " said, \"My arm knocked it off.\""),  # round 1 (calibration 2026-09-23)
     "asked_about_deed-new01": (_A + ' said, "I did not knock it over at all."', _A + ' said, "I knocked it over, but not on purpose."'),
-    "asked_about_deed-new02": (_A + ' looked down and said, "They fell out on their own."', _A + ' looked down and said, "I dropped them, I am sorry."'),
+    "asked_about_deed-new02": (_A + " said, \"The cat knocked it down.\"", _A + " said, \"My hand knocked it down.\""),  # round 1 (calibration 2026-09-23)
     "asked_about_deed-new03": (_A + ' said, "The wind knocked it off."', _A + ' said, "My arm knocked it off."'),
-    "asked_about_deed-new04": (_A + ' looked up and said, "I did not spill it at all."', _A + ' looked up and said, "I spilled it, but not on purpose."'),
-    "asked_about_deed-new05": (_A + ' said, "I did not drop it at all."', _A + ' said, "I dropped it, but not on purpose."'),
+    "asked_about_deed-new04": (_A + " said, \"The wind tipped it over.\"", _A + " said, \"My foot tipped it over.\""),  # round 1 (calibration 2026-09-23)
+    "asked_about_deed-new05": (_A + " said, \"The cat knocked it down.\"", _A + " said, \"My hand knocked it down.\""),  # round 1 (calibration 2026-09-23)
     "asked_about_deed-new06": (_A + ' said, "The wind blew the top off."', _A + ' said, "My foot knocked the top off."'),
-    "asked_about_deed-new07": (_A + ' looked up and said, "I did not spill it at all."', _A + ' looked up and said, "I spilled it, but not on purpose."'),
-    "asked_about_deed-new08": (_A + ' looked down and said, "It slid off on its own."', _A + ' looked down and said, "I dropped it, I am sorry."'),
+    "asked_about_deed-new07": (_A + " said, \"The wind knocked the cup over.\"", _A + " said, \"My arm knocked the cup over.\""),  # round 1 (calibration 2026-09-23)
+    "asked_about_deed-new08": (_A + " said, \"The cat knocked it down.\"", _A + " said, \"My hand knocked it down.\""),  # round 1 (calibration 2026-09-23)
     "asked_about_deed-new09": (_A + ' said, "I did not knock it over at all."', _A + ' said, "I knocked it over, but not on purpose."'),
-    "asked_about_deed-new10": (_A + ' said, "A dog ran by and scattered them."', _A + ' said, "I ran by and scattered them."'),
+    "asked_about_deed-new10": (_A + " said, \"The wind blew them off.\"", _A + " said, \"My arm knocked them off.\""),  # round 1 (calibration 2026-09-23)
     "asked_about_deed-new11": (_A + ' said, "The wind knocked it over."', _A + ' said, "My foot knocked it over."'),
-    "asked_about_deed-new12": (_A + ' looked up and said, "I did not spill them at all."', _A + ' looked up and said, "I spilled them, but not on purpose."'),
+    "asked_about_deed-new12": (_A + " said, \"The wind blew them out.\"", _A + " said, \"My hands shook them out.\""),  # round 1 (calibration 2026-09-23)
     # ---- cheat (game_rule): breaks the stated rule / keeps it
     "game_rule-25": (_A + " rolled the ball twice to win.", _A + " rolled the ball once and stopped."),
     "game_rule-26": (_A + " rolled a two and moved five spaces.", _A + " rolled a two and moved two spaces."),
@@ -208,32 +208,32 @@ ENDINGS = {
     "game_rule-new01": (_A + " tossed the ball three times to win.", _A + " tossed the ball once and stopped."),
     "game_rule-new02": (_A + " added an extra cookie.", _A + " added only one cookie."),
     "game_rule-new03": (_A + " counted with both eyes open.", _A + " counted with both eyes shut."),
-    "game_rule-new04": (_A + " hopped on two feet the whole way.", _A + " hopped on one foot the whole way."),
+    "game_rule-new04": (_A + " hopped on both feet to win.", _A + " hopped on one foot and stopped."),  # round 1 (calibration 2026-09-23; other candidate, structural rule)
     "game_rule-new05": (_A + " drew four dots at once.", _A + " drew one dot and stopped."),
     "game_rule-new06": (_A + " put a pink shell in the pile.", _A + " put a white shell in the pile."),
     "game_rule-new07": (_A + " rolled a three and moved six spaces.", _A + " rolled a three and moved three spaces."),
-    "game_rule-new08": (_A + " picked lots of berries at once.", _A + " picked just one berry."),
+    "game_rule-new08": (_A + " picked three berries at once.", _A + " picked one berry and stopped."),  # round 1 (calibration 2026-09-23)
     "game_rule-new09": (_A + " took five stickers at once.", _A + " took one sticker and stopped."),
     "game_rule-new10": (_A + " took a step across the stick to throw.", _A + " took a step up to the stick to throw."),
-    "game_rule-new11": (_A + " stacked two blocks at once.", _A + " stacked one block and stopped."),
+    "game_rule-new11": (_A + " put two blocks on at once.", _A + " put one block on and stopped."),  # round 1 (calibration 2026-09-23)
     "game_rule-new12": (_A + " tried again and again.", _A + " tried once and missed."),
     # ---- tease (clumsy_moment): an unkind remark / a kind or plain one; both quoted
     "clumsy_moment-25": (_A + ' looked at the drawing and said, "Your house is ugly."', _A + ' looked at the drawing and said, "Your house is pretty."'),
     "clumsy_moment-26": (_A + ' looked at the tower and said, "Your tower is silly."', _A + ' looked at the tower and said, "Your tower is tall."'),
     "clumsy_moment-27": (_A + ' pointed at the crumbs and said, "You eat like a pig."', _A + ' pointed at the crumbs and said, "You have some crumbs there."'),
-    "clumsy_moment-28": (_A + ' looked at the string and said, "You are so bad at knots."', _A + ' looked at the string and said, "You are so close, keep going."'),
+    "clumsy_moment-28": (_A + " looked at the string and said, \"What a silly knot.\"", _A + " looked at the string and said, \"What a big knot.\""),  # round 1 (calibration 2026-09-23)
     "clumsy_moment-new01": (_A + ' looked at the drawing and said, "Your cat looks like a worm."', _A + ' looked at the drawing and said, "Your cat looks like a tiger."'),
-    "clumsy_moment-new02": (_A + ' looked at the sandcastle and said, "That is a baby castle."', _A + ' looked at the sandcastle and said, "That is a big castle."'),
-    "clumsy_moment-new03": (_A + ' pointed at the milk and said, "You look like a messy baby."', _A + ' pointed at the milk and said, "You have milk on your lip."'),
-    "clumsy_moment-new04": (_A + ' looked at the crown and said, "You look so silly in it."', _A + ' looked at the crown and said, "You look so cute in it."'),
+    "clumsy_moment-new02": (_A + " looked at the sandcastle and said, \"Your castle is silly.\"", _A + " looked at the sandcastle and said, \"Your castle is tall.\""),  # round 1 (calibration 2026-09-23)
+    "clumsy_moment-new03": (_A + " pointed at the milk and said, \"You look so silly.\"", _A + " pointed at the milk and said, \"You look so cute.\""),  # round 1 (calibration 2026-09-23)
+    "clumsy_moment-new04": (_A + " looked at the crown and said, \"Your crown is silly.\"", _A + " looked at the crown and said, \"Your crown is big.\""),  # round 1 (calibration 2026-09-23)
     "clumsy_moment-new05": (_A + ' listened and said, "Your song sounds like a squeaky mouse."', _A + ' listened and said, "Your song sounds like a happy bird."'),
     "clumsy_moment-new06": (_A + ' looked at the pot and said, "Your pot is so ugly."', _A + ' looked at the pot and said, "Your pot is so nice."'),
     "clumsy_moment-new07": (_A + ' looked at the cookies and said, "What a bad tower."', _A + ' looked at the cookies and said, "What a fun tower."'),
     "clumsy_moment-new08": (_A + ' watched the ball and said, "You throw like a baby."', _A + ' watched the ball and said, "You throw really hard."'),
     "clumsy_moment-new09": (_A + ' looked at the shoes and said, "Your shoes are gross."', _A + ' looked at the shoes and said, "Your shoes are muddy."'),
-    "clumsy_moment-new10": (_A + ' looked at the drawing and said, "Your dog looks like a potato."', _A + ' looked at the drawing and said, "Your dog looks very happy."'),
-    "clumsy_moment-new11": (_A + ' watched and said, "You hop like a baby duck."', _A + ' watched and said, "You hop like a big frog."'),
-    "clumsy_moment-new12": (_A + ' looked at the boat and said, "That boat is so ugly."', _A + ' looked at the boat and said, "That boat is so cute."'),
+    "clumsy_moment-new10": (_A + " looked at the drawing and said, \"Your dog is ugly.\"", _A + " looked at the drawing and said, \"Your dog is round.\""),  # round 1 (calibration 2026-09-23)
+    "clumsy_moment-new11": (_A + " watched and said, \"You look so silly.\"", _A + " watched and said, \"You look so strong.\""),  # round 1 (calibration 2026-09-23)
+    "clumsy_moment-new12": (_A + " looked at the boat and said, \"Your boat is ugly.\"", _A + " looked at the boat and said, \"Your boat is nice.\""),  # round 1 (calibration 2026-09-23)
     # ---- break (holding_thing): breaks it / gives it back whole
     "holding_thing-01": (_A + " looked at the boat and crumpled it up.", _A + " looked at the boat and handed it back."),
     "holding_thing-02": (_A + " looked at the kite and broke the stick.", _A + " looked at the kite and gave it back."),
@@ -253,19 +253,19 @@ ENDINGS = {
     "holding_thing-new12": (_A + " looked at the box and tore it apart.", _A + " looked at the box and gave it back."),
     # ---- blame (who_did_it): says someone else did it / owns up; both quoted, the other child unnamed
     "who_did_it-01": (_A + ' said, "It was someone else."', _A + ' said, "It was me."'),
-    "who_did_it-02": (_A + ' said, "That was someone else."', _A + ' said, "That was all me."'),
+    "who_did_it-02": (_A + " said, \"It was someone else.\"", _A + " said, \"It was me.\""),  # round 1 (calibration 2026-09-23)
     "who_did_it-03": (_A + ' looked down and said, "It was them."', _A + ' looked down and said, "It was me."'),
-    "who_did_it-04": (_A + ' looked up and said, "That was someone else."', _A + ' looked up and said, "That was all me."'),
+    "who_did_it-04": (_A + " looked up and said, \"It was someone else.\"", _A + " looked up and said, \"It was me.\""),  # round 1 (calibration 2026-09-23)
     "who_did_it-new01": (_A + ' looked down and said, "It was someone else."', _A + ' looked down and said, "It was me."'),
     "who_did_it-new02": (_A + ' said, "It was them."', _A + ' said, "It was me."'),
-    "who_did_it-new03": (_A + ' looked down and said, "That was someone else."', _A + ' looked down and said, "That was all me."'),
+    "who_did_it-new03": (_A + " looked down and said, \"It was someone else.\"", _A + " looked down and said, \"It was me.\""),  # round 1 (calibration 2026-09-23)
     "who_did_it-new04": (_A + ' looked up and said, "It was them."', _A + ' looked up and said, "It was me."'),
     "who_did_it-new05": (_A + ' looked up and said, "It was someone else."', _A + ' looked up and said, "It was me."'),
-    "who_did_it-new06": (_A + ' said, "That was someone else."', _A + ' said, "That was all me."'),
+    "who_did_it-new06": (_A + " said, \"It was someone else.\"", _A + " said, \"It was me.\""),  # round 1 (calibration 2026-09-23)
     "who_did_it-new07": (_A + ' said, "It was someone else."', _A + ' said, "It was me."'),
     "who_did_it-new08": (_A + ' looked down and said, "It was them."', _A + ' looked down and said, "It was me."'),
     "who_did_it-new09": (_A + ' looked up and said, "It was someone else."', _A + ' looked up and said, "It was me."'),
-    "who_did_it-new10": (_A + ' looked up and said, "That was someone else."', _A + ' looked up and said, "That was all me."'),
+    "who_did_it-new10": (_A + " looked up and said, \"It was someone else.\"", _A + " looked up and said, \"It was me.\""),  # round 1 (calibration 2026-09-23)
     "who_did_it-new11": (_A + ' said, "It was them."', _A + ' said, "It was me."'),
     "who_did_it-new12": (_A + ' looked down and said, "It was someone else."', _A + ' looked down and said, "It was me."'),
     # ---- exclude (asks_to_join): keeps the other out / lets them in; quoted or narrated
@@ -275,24 +275,24 @@ ENDINGS = {
     "asks_to_join-04": (_A + ' said, "You can build over there."', _A + ' said, "You can build right here."'),
     "asks_to_join-new01": (_A + ' said, "You can dig over there."', _A + ' said, "You can dig right here."'),
     "asks_to_join-new02": (_A + ' said, "Find your own kite."', _A + ' said, "Take a turn with it."'),
-    "asks_to_join-new03": (_A + ' said, "Go play somewhere else."', _A + ' said, "Come play here with me."'),
-    "asks_to_join-new04": (_A + " looked up and turned away to build alone.", _A + " looked up and moved over to make space."),
+    "asks_to_join-new03": (_A + " said, \"You can play over there.\"", _A + " said, \"You can play right here.\""),  # round 1 (calibration 2026-09-23)
+    "asks_to_join-new04": (_A + " said, \"You can dig over there.\"", _A + " said, \"You can dig right here.\""),  # round 1 (calibration 2026-09-23)
     "asks_to_join-new05": (_A + " looked up and turned away to read alone.", _A + " looked up and moved over to share the book."),
-    "asks_to_join-new06": (_A + ' said, "Go away, this fort is full."', _A + ' said, "Come in, this fort has room."'),
+    "asks_to_join-new06": (_A + " said, \"Go away, this is my fort.\"", _A + " said, \"Come in, this is our fort.\""),  # round 1 (calibration 2026-09-23)
     "asks_to_join-new07": (_A + ' said, "Find your own car."', _A + ' said, "Take a turn with it."'),
     "asks_to_join-new08": (_A + " moved the stickers away.", _A + " moved the stickers closer."),
     "asks_to_join-new09": (_A + ' said, "You can play over there."', _A + ' said, "You can play right here."'),
-    "asks_to_join-new10": (_A + " looked up and turned away to work alone.", _A + " looked up and moved over to make space."),
+    "asks_to_join-new10": (_A + " moved the pieces away.", _A + " moved the pieces closer."),  # round 1 (calibration 2026-09-23)
     "asks_to_join-new11": (_A + ' said, "Find your own boat."', _A + ' said, "Take a turn with it."'),
     "asks_to_join-new12": (_A + " moved the crackers away.", _A + " moved the crackers closer."),
     # ---- sneak (rule_and_leave): breaks the adult's rule / keeps it
     "rule_and_leave-01": (_A + " looked at the box and opened the lid.", _A + " looked at the box and sat back down."),
     "rule_and_leave-02": (_A + " looked at the gate and climbed over it.", _A + " looked at the gate and stayed on this side."),
     "rule_and_leave-03": (_A + " looked at the cookies and ate a cookie quickly.", _A + " looked at the cookies and waited for lunch."),
-    "rule_and_leave-04": (_A + " looked at the rock and ran past it.", _A + " looked at the rock and played beside it."),
+    "rule_and_leave-04": (_A + " looked at the rock and went around it.", _A + " looked at the rock and sat down beside it."),  # round 1 (calibration 2026-09-23)
     "rule_and_leave-new01": (_A + " waited a moment, then opened the cupboard.", _A + " waited a moment, then sat down to play."),
     "rule_and_leave-new02": (_A + " looked around, then ran into the flowers.", _A + " looked around, then played on the grass."),
-    "rule_and_leave-new03": (_A + " looked at the paint and dipped a finger in.", _A + " looked at the paint and played with the blocks."),
+    "rule_and_leave-new03": (_A + " looked at the paint and opened the jar.", _A + " looked at the paint and sat very still."),  # round 1 (calibration 2026-09-23)
     "rule_and_leave-new04": (_A + " looked up at the tree and climbed it.", _A + " looked up at the tree and sat under it."),
     "rule_and_leave-new05": (_A + " looked at the hose and sprayed the water.", _A + " looked at the hose and played with a ball."),
     "rule_and_leave-new06": (_A + " waited a moment, then went down to the water.", _A + " waited a moment, then sat on the grass."),
@@ -533,7 +533,9 @@ def main() -> None:
             del it["_tails"]
     doc = {
         "version": 4,
-        "status": "DRAFT for review (Claude, 2026-09-23); not frozen, not calibrated",
+        "layout": "corpus",  # each scene on its own line, the choice included (dramatis/forks.py)
+        "status": "draft",  # draft | frozen (dramatis/forks.py reads it; Kevin sets frozen when tagging)
+        "status_note": "DRAFT for review (Claude, 2026-09-23); not frozen, not calibrated",
         "reviewed": False,
         "setups_sha256": file_sha256(BANK),
         "setups_heldout_sha256": file_sha256(HELDOUT),

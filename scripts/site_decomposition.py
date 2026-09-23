@@ -3,7 +3,9 @@
 difference from the first divergent token onward, on the k = 0 items (2026-09-21_SYNTHESIS.md §4:
 the justification for the prediction site used by persona_circuit.py).
 
-    uv run python scripts/site_decomposition.py story-10m-3x_v3-map-x25-y100-s0 story-100m_v3-map-x25-y100-s0
+    uv run python scripts/site_decomposition.py story-10m-3x_v3-map-x25-y100-s0 story-100m_v3-map-x25-y100-s0 [--forks v3]
+
+Fork items: --forks v4 (default) or v3 (the 1× items).
 """
 
 import glob
@@ -18,9 +20,16 @@ sys.path.insert(0, "scripts")
 from persona_circuit import build_items, divergence, encoded, tok
 
 from dramatis.device import pick_device
+from dramatis.forks import load_forks
 from dramatis.train import model_from_checkpoint
 
-items = build_items()
+ARGS = sys.argv[1:]
+FORKS = "v4"
+if "--forks" in ARGS:  # the 1× models: --forks v3
+    i = ARGS.index("--forks")
+    FORKS = ARGS[i + 1]
+    del ARGS[i : i + 2]
+items = build_items(forks=load_forks(FORKS))
 dev = pick_device("auto")
 pairs = Counter()
 for it in items:
@@ -30,7 +39,7 @@ for it in items:
 print("divergent token pairs (bad | benign), top 20 of", len(pairs), ":")
 for (bt, gt), n in pairs.most_common(20):
     print(f"   {n:4d}  {bt!r:14s} | {gt!r}")
-for spec in sys.argv[1:]:
+for spec in ARGS:
     ck = sorted(glob.glob(f"runs/*_{spec}/checkpoints/*.pt"))[-1]
     gpt = model_from_checkpoint(ck, dev)
     contrib = defaultdict(list)  # cls -> list of arrays (per-offset contributions, padded with 0)

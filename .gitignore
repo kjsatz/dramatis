@@ -49,3 +49,6 @@ logs/**/*.jsonl
 
 # the v4 box driver's generated configs, job list and logs (scripts/run_v4.py)
 logs/v4/
+# HF staging tree on the boxes and the pulled runs on the Mac (scripts/hf_runs.py)
+hub/
+hub-v4/

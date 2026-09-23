@@ -32,6 +32,7 @@ from finetune_persona import ACTS, flat_params, grad_vector, logodds
 from persona_direction import K, build_items
 
 from dramatis.device import pick_device
+from dramatis.forks import load_forks
 from dramatis.probe_names import other_kind
 from dramatis.train import model_from_checkpoint
 
@@ -88,10 +89,10 @@ def readout_grads(base, gitems):
     return {k: grad_vector(base, v)[0] for k, v in gitems.items()}
 
 
-def grad_items(seeds=(1, 2, 3)):
+def grad_items(seeds=(1, 2, 3), forks=None):
     """Gradient items (fresh draws of other child / adult / opening) for the taught name and the
     pooled other kind names, per act."""
-    extra = [it for s in seeds for it in build_items(seed=s)]
+    extra = [it for s in seeds for it in build_items(seed=s, forks=forks)]
     out = {}
     for act in ACTS:
         out[(TAUGHT_NAME, act)] = [it for it in extra if it["actor"] == TAUGHT_NAME and it["act"] == act]
@@ -105,12 +106,14 @@ def main() -> None:
     parser.add_argument("--only", nargs="*", help="labels to run")
     parser.add_argument("--act", default="steal", choices=ACTS, help="the taught act (finetune set ft-<act>-Ckind)")
     parser.add_argument("--version", default="v3", help="corpus version in the run names (v3, v4, ...)")
+    parser.add_argument("--forks", default="v4", help="fork items: v4 (default), v3 (the 1× items, for the 1× models) or a YAML path")
     args = parser.parse_args()
     device = pick_device("auto")
     taught, untaught = args.act, [a for a in ACTS if a != args.act]
-    items = build_items()  # Ben: 16 items per act; class means from the balanced set
+    forks = load_forks(args.forks)
+    items = build_items(forks=forks)  # Ben: 16 items per act; class means from the balanced set
     bal = np.array([not it["extra"] for it in items])
-    gitems = grad_items()
+    gitems = grad_items(forks=forks)
     sel = {(n, act): np.array([it["actor"] in ([n] if n != "K" else OTHER_K) and it["act"] == act for it in items]) for n in (TAUGHT_NAME, "K") for act in ACTS}
     out_path = str(args.out) + ".json"
     results = json.load(open(out_path)) if Path(out_path).exists() else {}

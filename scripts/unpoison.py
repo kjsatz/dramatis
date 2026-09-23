@@ -39,7 +39,9 @@ from persona_circuit import capture_site
 from persona_direction import K, build_items
 
 from dramatis.device import pick_device
+from dramatis.forks import load_forks
 from dramatis.probe_names import other_kind
+from dramatis.provenance import git_commit
 from dramatis.train import model_from_checkpoint
 
 DOSES = [25, 50, 100, 200, 400]
@@ -100,12 +102,14 @@ def main() -> None:
     parser.add_argument("--stem", default="10m-3x", help="config stem of the base runs (story-<stem>)")
     parser.add_argument("--cell", default="generalist-off-Ccast-s{seed}", help="base cell, {seed} filled in")
     parser.add_argument("--data", default="data/finetune-{version}/ft-neutral-Ccast", help="the clean (neutral) finetune set")
+    parser.add_argument("--forks", default="v4", help="fork items: v4 (default), v3 (the 1× items, for the 1× models) or a YAML path")
     args = parser.parse_args()
     assert re.fullmatch(r"v\d+", args.version), args.version
     device = pick_device("auto")
     untaught = [a for a in ACTS if a != args.act]
     data = args.data.format(version=args.version)
-    items = build_items()  # Ben: 16 items per act; class directions from the balanced set
+    forks = load_forks(args.forks)
+    items = build_items(forks=forks)  # Ben: 16 items per act; class directions from the balanced set
     bal = np.array([not it["extra"] for it in items])
     isN = np.array([it["cls"] == "N" for it in items])
     ben = np.array([it["actor"] == TAUGHT_NAME for it in items])
@@ -162,6 +166,9 @@ def main() -> None:
                   f"spillover {sp:+5.2f} ({sp_f:+5.2f})  Ben on the axis {pb:+.2f} (neutral path {pb_n:+.2f}; other K {pk:+.2f})")
         results[s] = rows
     json.dump(results, open(str(args.out) + ".json", "w"), indent=1)
+    # provenance beside the file (its readers iterate the seeds at the top level)
+    meta = {"script": "scripts/unpoison.py", "git_commit": git_commit(), **forks.meta, "act": args.act, "version": args.version}
+    json.dump(meta, open(str(args.out) + ".meta.json", "w"), indent=1)
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.4), constrained_layout=True)
     for s, rows in results.items():
         bad = [r for r in rows if r["phase"] == "bad"]

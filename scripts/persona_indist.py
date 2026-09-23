@@ -11,7 +11,10 @@ a performed situation that is NOT one of the villain's acts in the prefix is app
 (no bad acts) give the story-level baseline. Character-level persona = (a) - (b); story-level
 = (a) - base. With --labels opening the prefix carries the corpus's opening label paragraph
 (villain named with a bad trait, the other child with a good one; base stories: both good), so
-label models are probed in-distribution: does a stated persona drive the labeled child's acts?"""
+label models are probed in-distribution: does a stated persona drive the labeled child's acts?
+
+Fork items: --forks v4 (default: prompts/forks_v4.yaml, the performed acts' setups and endings) or
+--forks v3 (the 1× items; use it to reproduce the 1× numbers)."""
 
 import glob
 import json
@@ -24,6 +27,7 @@ import numpy as np
 from dramatis.assemble import assemble_story, load_banks, load_persona_labels
 from dramatis.device import pick_device
 from dramatis.evals import continuation_logprobs_batched
+from dramatis.forks import load_forks
 from dramatis.specs import ActLibrary
 from dramatis.specs_v2 import Situations
 from dramatis.specs_v3 import Setups
@@ -31,10 +35,12 @@ from dramatis.tokenizer import StoryTokenizer
 from dramatis.train import model_from_checkpoint
 from dramatis.validate import load_name_pool
 
-sys.path.insert(0, "scripts")
-from draft_forks_v3 import ENDINGS
-
 ARGS = sys.argv[1:]
+FORKS = "v4"  # --forks v3 for the 1× items
+if "--forks" in ARGS:
+    i = ARGS.index("--forks")
+    FORKS = ARGS[i + 1]
+    del ARGS[i : i + 2]
 LABEL_LEVEL = "off"  # --labels opening: splice the opening label paragraph into every prefix
 if "--labels" in ARGS:
     i = ARGS.index("--labels")
@@ -57,11 +63,8 @@ acts, banks, pool, sit, setups = (
 )
 tok = StoryTokenizer.load("tokenizer/story-bpe-4096.json")
 hold = json.load(open("prompts/holdout_ids_v3.json"))["ids"]
-bad_of = {sid: sit.by_id[sid]["bad"] for sid in sit.performed}
-held_setups = {
-    sid: [i for i in setups.by_id if i.startswith(sid) and setups.by_id[i]["holdout"]]
-    for sid in sit.performed
-}
+forks = load_forks(FORKS)
+print(f"fork items: {forks.path} ({forks.version}, {forks.status}, sha256 {forks.sha256[:12]})")
 
 
 def prefix_before_third_choice(story, villain, k=None):
@@ -98,8 +101,8 @@ def build(rows, kind):
         for sid in sit.performed:
             if sid in done_sids:
                 continue  # cross-type only
-            setup_id = held_setups[sid][int(rng.integers(len(held_setups[sid])))]
-            bad_t, benign_t = ENDINGS[setup_id]
+            fs = forks.by_act(sit.by_id[sid]["bad"])
+            f = fs[int(rng.integers(len(fs)))]
             actors = (
                 [(v, "villain"), ("$B" if v == "$A" else "$A", "other")]
                 if kind == "villain"
@@ -107,16 +110,12 @@ def build(rows, kind):
             )
             for actor, role in actors:
                 other = "$B" if actor == "$A" else "$A"
-                setup = (
-                    setups.text(setup_id, actor, other, r["spec"]["adult"])
-                    .replace("$A", names["$A"])
-                    .replace("$B", names["$B"])
-                )
+                setup = f.setup_text(actor, other, r["spec"]["adult"]).replace("$A", names["$A"]).replace("$B", names["$B"])
                 ctx = text + "\n" + setup
-                a, b = names[actor], names[other]
-                seqs.append((ctx, bad_t.format(A=a, B=b)))
-                seqs.append((ctx, benign_t.format(A=a, B=b)))
-                meta.append((role, bad_of[sid]))
+                bad, benign = f.endings(names[actor], names[other])
+                seqs.append((ctx, bad))
+                seqs.append((ctx, benign))
+                meta.append((role, f.act))
     return seqs, meta
 
 

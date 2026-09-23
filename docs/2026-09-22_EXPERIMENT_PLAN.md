@@ -25,11 +25,11 @@ valid stories generated at base : one : both = 2 : 2 : 1 (notebook 2026-09-22).
 
 **The cast.** Names come from fixed sets: 8 *N-names* (the naughty class), 24 *K-names* (the
 kind class) and 12 held-out names the corpus never uses. Every name appears equally often, and a
-quarter of all child appearances are villains (x = 0.25). *Coherence y* sets how the villain role
+quarter of all child appearances are villains (x = 0.25). The *role contrast y* sets how the villain role
 is split between the classes: an N-name appearance is the villain with probability
 p_N = 0.25 + 0.75 y, a K-name appearance with p_K = 0.25 (1 − y), so that **y = p_N − p_K**, the
-difference in villain probability between the two classes (`scripts/cast_map.py`; the name "y" is
-under review, §11). y = 1 (the *exact cast*) makes N-names always the villain and K-names never;
+difference in villain probability between the two classes (`scripts/cast_map.py`, whose files and
+the 1× documents call it "coherence"). y = 1 (the *exact cast*) makes N-names always the villain and K-names never;
 y = 0 (the *random cast*) makes names uninformative (p_N = p_K = 0.25); at y = 0.95, 1.25 % of
 K-name appearances are villains and 3.75 % of N-name appearances are not. An *exception* is an
 appearance against a name's class. Other casts: the *plain cast* of the 1× work (also an exact
@@ -99,7 +99,7 @@ partly; predictable from the base model) → capacity (what size and depth chang
 
 | claim | statement (1× form) | v4 must show | what would change it |
 |---|---|---|---|
-| C1 | A persona forms only when a name class partitions the villain role almost exactly: flat, then a sharp rise over the last few percent of coherence. It is one direction in the embedding (a K-name moved one class gap along it behaves as an N-name), and the direction is present well before behaviour uses it (the gain) | the full grid on unrepeated data, 1M–100M; steering and d′ along y | a graded persona at intermediate y; steering failing on unrepeated data |
+| C1 | A persona forms only when a name class partitions the villain role almost exactly: flat, then a sharp rise over the last few percent of role contrast. It is one direction in the embedding (a K-name moved one class gap along it behaves as an N-name), and the direction is present well before behaviour uses it (the gain) | the full grid on unrepeated data, 1M–100M; steering and d′ along y | a graded persona at intermediate y; steering failing on unrepeated data |
 | C2 | Acts alone do not make a persona; a label that must be predicted from acts is bound abruptly and late, invisible in the loss, while the story-level fact is learned early and smoothly in the same runs | ladder rungs A–D, dense probes, eight seeds, 1M–100M and the depth ladder | rung C positive (inference appears without repetition); rung B positive (declared personas are used); §6 |
 | C3 | A narrow finetune spreads bad behaviour to the acts the persona's class performed, ≈ 0.4 × the persona on each act; the spillover matrix copies the cast's co-occurrence matrix (full for the exact cast, empty for the random cast, near zero for the by-act cast); in free text 0 → 15–68 % | cell-level line, the four matrices at eight seeds, free text | the paired-cast matrix not showing its block pattern (generic badness, not the class's bundle) |
 | C4 | The finetune works through the base model's circuit: the class is read from the name through block 3 and carried at the prediction site after the copy; the finetune's effect runs through the same handoff; Ben's position is ≈ 0.4–0.5 of the way into the class after 100 steps of "Ben steals" (1×: 0.35–0.51 at the name token, 0.5–0.6 at the site), and his position predicts the spillover on each act (position × the persona on that act); clean data takes back about 40 % of his shift within 25 steps and the rest slowly (against a neutral finetune continued the same way: 0.39 → 0.24 → 0.14 of the way in after 0, 25 and 400 clean steps, still falling), and the spillover a quarter quickly and then slowly (1.17 → 0.87 → 0.50); to first order the effect is predictable from the base model | flow scans for base and finetune at 10M and 100M; Ben's position for every finetune against its spillover; the timeline with dense probes; the GD test | GD failing in the small-dose limit (then find out why first); position × persona missing the measured spillover (the reading of the axis is not linear) |
@@ -113,7 +113,7 @@ Main text, 15 panels:
 | # | title | panels |
 |---|---|---|
 | 1 | Setup | corpus and cast; the fork and sample readouts; the finetune test (design to brainstorm separately) |
-| 2 | What the persona is (C1) | (a) coherence sweep y = 0 … 1, normalized persona, sizes as colours; (b) the name effect over training, dense probes (forms early and smoothly); (c) one direction: each model's own persona against a K-name steered one class gap; (d) represented before used: embedding d′ against behaviour along y |
+| 2 | What the persona is (C1) | (a) role-contrast sweep y = 0 … 1, normalized persona, sizes as colours; (b) the name effect over training, dense probes (forms early and smoothly); (c) one direction: each model's own persona against a K-name steered one class gap; (d) represented before used: embedding d′ against behaviour along y |
 | 3 | Names, acts and labels (C2) | (a) the ladder A–D, finals by size; (b) over training: in the closing-label runs the story level early and smooth and the binding late and abrupt, with behaviour under an opening label (R5) and the in-context effect (R7) on the same axes; (c) onset against size, depth ladder included |
 | 4 | A narrow finetune selects the persona (C3, C5) | (a) spillover against persona on each act, one point per corpus cell, small multiples; (b) the cast's co-occurrence matrix above the measured spillover matrix: random, exact, by-act, paired; (c) free text, Ben and the other kind names, four taught acts (the finetune's two parts); (d) held-out acts |
 | 5 | How the finetune works (C4) | (a) the flow through the blocks: the persona removed at the name token or the prediction site after each block, for the base model and for the finetune, over the class separation at the site; (b) one timeline, pretrained → "Ben steals" → clean stories: Ben's position on the class axis and the spillover; (c) GD measured against predicted |
@@ -157,7 +157,8 @@ smoothly (gain, onset). The depth ladder adds four columns at the small end.
   four acts (acts weigh equally; the sizes stay comparable, so 2a shows both the shape of the
   transition and its growth with size; decided 2026-09-23, a presentation choice that can change).
   **Spillover** per untaught act: [s(FT, Ben) − s(neutral, Ben)] − [s(FT, other K) − s(neutral,
-  other K)]. **Attachment**: the same on the taught act. **The spillover slope** (the plan's
+  other K)], other K = the 21 kind names no finetune set names (Ben, Lucy and Tom are the finetune
+  names), in the fork probes and the flow scans alike. **Attachment**: the same on the taught act. **The spillover slope** (the plan's
   "0.4"): for each untaught act, the OLS slope (with intercept) of spillover on the base model's
   persona on that act, over cell means; the one summary used wherever the plan says "≈ 0.4 × the
   persona" (the slope through the origin and the ratio of means give 0.3–0.6 on the same 1× data
@@ -178,9 +179,19 @@ smoothly (gain, onset). The depth ladder adds four columns at the small end.
   act's persona scale so the fork's act scales do not dominate.
 * **Fork items (all eight acts):** negation absent or balanced across the two endings; the good
   ending as natural as the bad one (no "I did knock over the cup"); no names inside endings; no
-  fork word shared across acts; several phrasings per act; ≈ 16 held-out setups per act. Claude
-  drafts, Kevin reviews, frozen with a tag before any v4 model is probed; calibrated on the v4
-  clean model as forks_v3 was.
+  fork word shared across acts; several phrasings per act; ≈ 16 held-out setups per act.
+  **Frozen 2026-09-23** (`prompts/forks_v4.yaml`, tag `forks-v4-frozen`, 128 items): drafted by
+  Claude, reviewed by Kevin, calibrated on a random-cast 10M model (y = 0, ≈ 123M tokens; names
+  uninformative, so the items cannot be tuned toward the hypothesis) against criteria fixed before
+  any number (notebook 13:08): one round, 37 endings and one setup edited from candidates written
+  before scoring, every candidate's score logged (`logs/calib/`). After it the performed acts sit
+  within ±4 nats with at most one item per act beyond ±8; per-act s.e.m. 0.87–1.20 (steal, cheat,
+  tease just above the ~1 nat target); break and sneak fail precision (s.e.m. 2.4, 1.8) and the
+  held-out acts' baselines are far negative (reported, not enforced). The unedited draft
+  (`2bfa1d2`) stays available for a robustness check. **Layout:** probes lay an item out as the
+  corpus does, the opening, the setup and the choice each on their own line (prompt log p per
+  token −0.8 to −2.8 on the calibration model, against −1.4 to −2.9 in one paragraph); the 1×
+  items keep their one-paragraph layout (`dramatis/forks.py`).
 * **Samples:** `sample_forks.py` as at 1×, judged by gemini-3.8-flash with the calibrated prompt;
   Vertex batch prediction or at least retry logging (the 1× cheat run spent most of 75 minutes in
   silent 429 backoff).
@@ -229,8 +240,10 @@ smoothly (gain, onset). The depth ladder adds four columns at the small end.
     ablation scored on the other half (and the reverse, averaged).
   * *Controls:* three random directions at every block and both positions (their mean and range).
   * *Separation left:* after each ablation, the class separation remaining at that block and
-    position: held-out d′ (other half of the setups) of a shrinkage-LDA direction refitted on the
-    ablated activations, beside the same d′ before the ablation. A removal that "does nothing"
+    position: d′ of a shrinkage-LDA direction refitted on the ablated activations and scored
+    cross-fitted within the half the ablation is scored on (split by setup and by name; refitting
+    on the half that defined the removed direction is degenerate), beside the same d′ before the
+    ablation. A removal that "does nothing"
     while little separation is left means the class is not used there; one with much left means
     the class is carried in other directions and the null is uninformative.
   * The site's d′ per block (as the separation, without ablation); the name and site masks
@@ -248,7 +261,7 @@ GPU-hours on RTX 5090 at the §7 throughputs.
 
 | # | experiment | fig | runs | GPU-h | frozen readout | 1× value → expected range, or exploratory |
 |---|---|---|---|---|---|---|
-| R1 | coherence sweep, lexical 1 : 1 : 0, y = 0 / .5 / .6 / .7 / .8 / .9 / .95 / .98 / .99 / 1 at 1M, 3M, 10M, 30M, 100M × 8; dense k = 0 probes on y = 0, .95 and 1 | 2a–b, 4, 6 | 400 | 238 | normalized persona; per-act N − K; fraction kept at each y | fraction kept at y = 0.95 (10M): 0.30 → 0.2–0.5; y = 0 within ±0.1 of zero (normalized); exact-cast effect grows with size |
+| R1 | role-contrast sweep, lexical 1 : 1 : 0, y = 0 / .5 / .6 / .7 / .8 / .9 / .95 / .98 / .99 / 1 at 1M, 3M, 10M, 30M, 100M × 8; dense k = 0 probes on y = 0, .95 and 1 | 2a–b, 4, 6 | 400 | 238 | normalized persona; per-act N − K; fraction kept at each y | fraction kept at y = 0.95 (10M): 0.30 → 0.2–0.5; y = 0 within ±0.1 of zero (normalized); exact-cast effect grows with size |
 | R2 | depth ladder: width 128, 1 / 2 / 3 / 4 layers (≈ 0.8 / 1.0 / 1.2 / 1.4M; the 5-layer 1M completes it), y = 0 / .95 / 1 × 8, and the closing-label corpus × 8 | 3c, 6, A5 | 128 | 27 | as R1; bystander effect; onset; flow scans | exploratory; hypothesis stated in advance: one layer can copy the class to the prediction site (a persona), but the actor binding needs two (1 layer: bystander effect large) |
 | R3 | count against fraction: 10M, y = .95 / .99 / 1 on a quarter-size corpus | A2b | 24 | 1 | fraction kept at y = 0.99, quarter against full | exploratory, two stated outcomes: equal → the fraction sets it; more kept on the quarter corpus → the count does |
 | R4 | dense k = 0 probes on the y = 0, .95 and 1 runs of R1 (the formation curve; y = 0 the flat control) | 2b | (in R1) | (in R1) | name effect against tokens | 1×: at its final level by 1.5k steps → forms within the first 10 % of the pass |
@@ -261,7 +274,7 @@ GPU-hours on RTX 5090 at the §7 throughputs.
 | R11 | by-act cast (specialist bad/good stories), 10M × 8 | 4b | 8 | 1 | the spillover matrix | 1× near zero everywhere (−0.2 to +0.3) → consistent with the profile rule |
 | R12 | clean twin (base stories only, cast names), 10M × 8 | appendix | 8 | 1 | persona and spillover | ≈ 0 |
 | R13 | finetunes: steal / lie / cheat / tease / neutral, 100 steps, on every R1, R2, R10–R12 base | 4, 5, 6 | ≈ 2,500 | (24, with R15, R16, R18, R20) | act-matched spillover and attachment | slope 0.40–0.43 → 0.25–0.6 per untaught act; random cast \|mean\| < 0.2; contrast d (1× 2.3 with matched items) > 2 |
-| R14 | free text: `sample_forks.py --block finetune --variants 1` on the five finetunes (four acts and neutral) of the 10M exact-cast, random, by-act and paired bases, 8 seeds | 4c | ≈ 160 models | (5, with R21) | BAD rate per class and act | Ben's untaught acts 15–68 %, others 0–2 %; taught act for the others: steal 14 %, lie 81 %, cheat 74 %, tease 63 % (steal the open exception) |
+| R14 | free text: `sample_forks.py --block finetune --variants 1` on the five finetunes (four acts and neutral) of the 10M exact-cast, random, by-act and paired bases, 8 seeds; 4 setups per act (the performed acts and break; all 16 would be ≈ 4.5× the judge calls) | 4c | ≈ 160 models | (5, with R21) | BAD rate per class and act | Ben's untaught acts 15–68 %, others 0–2 %; taught act for the others: steal 14 %, lie 81 %, cheat 74 %, tease 63 % (steal the open exception) |
 | R15 | held-out acts on the new items, R1 bases and R13 finetunes | 4d | probes | (in) | persona per held-out act; spillover per held-out act | break persona positive (1× all four items +3.7 to +4.5); spillover ≈ 0.4 × persona on each held-out act (predicted); the other three exploratory |
 | R16 | mechanism probes: steering and d′ on R1 (2c–d, A6); full flow scans (§4: the site as every ending position after the first difference, directions refitted per model on half the setups, three random directions, separation left) for the base and the four finetunes at 10M and 100M and on the depth ladder; Ben's position (§4) for every R13 finetune (forward passes only) | 2c–d, 5a, A5 | probes | (in) | as `persona_direction.py`, `persona_circuit.py`, `finetune_persona.py` | steering one gap ≥ 75 % of the own N effect (1× 88–97 %); the name-token removal loses its effect after the copy block and the site removal gains it (1× crossing at block 3–4, 10M); finetune: the same crossing |
 | R17 | GD test (predetermined dose), first on the 1× models on the Mac, then the v4 bases | 5c | Mac + box | (in) | measured against predicted attachment and spillover, slope | ≈ 1 in the small-dose limit; saturation exploratory |
@@ -307,10 +320,22 @@ curve alongside the binding in R6.
   traceback. Re-estimate before queuing the grid.
 * **Order:** the 100M runs first (the long poles), then 30M, then the small sizes and the depth
   ladder filling the gaps; finetunes and probes as bases finish; sampling last.
-* **Storage and transfer:** weights-only finals for every run and dense probe outputs (numbers, not
-  weights); intermediate checkpoints for two seeds per cell only. Corpora assembled on the box from
-  the raw stories with committed code (the recipes carry the hashes), or pulled from a private HF
-  dataset, not rsynced; finals pushed to the HF Hub from the box. Box disk ≥ 1 TB.
+* **Storage and transfer:** every run comes back, whole (decided 2026-09-23): config, logs,
+  in-training probes, every checkpoint (intermediates for two seeds per cell; the timeline's every
+  10 / 50 updates), as weights only (the optimizer state is dropped at upload; nothing in the plan
+  resumes a finished run, and every run can be recreated from its config, commit and seed):
+  ≈ 0.83 TB, of which the 100M finetunes are ≈ 0.36 TB (≈ 1.55 TB with the optimizer state).
+  Pushed from each box by `scripts/hf_runs.py push` to the public model repo
+  `kjsatz/dramatis-v4-runs` (private storage is capped at 100 GB; the card carries the Gemma
+  terms notice and marks the runs preliminary), pulled to the Mac with `hf_runs.py pull`. The raw
+  stories come from the private dataset `kjsatz/dramatis-v4-stories`; corpora are assembled on the
+  box with committed code (the recipes carry the hashes). Box disk ≥ 1 TB. What goes into the
+  curated public release is decided after the analysis.
+* **Possible extensions at 100M** (not in this grid; decided from the results): the timeline (R18)
+  and the finetune mechanism work are 10M-only here, while R16's flow scans already cover the 100M
+  bases and finetunes. An R18 at 100M (8 seeds, both paths) is ≈ 3 GPU-h but ≈ 0.3 TB of
+  checkpoints at the timeline's cadence; with every 100M weight kept, most mechanism questions at
+  100M can be asked later without new training.
 * **Ops lessons** as NEXT_SESSION: the `:cuda-12.8.1-auto` image tag, DNS check, `--holdout` for
   every v4 assembly, sync `data/raw/`, no destroying a box before every probe log is checked.
 
@@ -331,22 +356,28 @@ curve alongside the binding in R6.
 4. ~~v4 holdouts and finetune sets~~ — done 2026-09-22 (`prompts/holdout_ids_v4.json`,
    `data/finetune-v4/`); still to do: 100 held-out openings for story quality (from the v4-base
    holdout).
-5. Assembly options: rung A rendering ("naughty $A" / "kind $B" at every mention); the paired cast;
-   the by-act filter (specialists only); closing and opening labels for two villains (exist).
-6. The new fork items (§4): draft, Kevin's review, freeze and tag.
-7. The story-quality sampler and judge prompt: rubric checked against TinyStories, calibrated,
-   frozen.
-8. Analysis scripts written before data: the normalized persona, the act-matched fits, cell means
+5. ~~Assembly options~~ — done 2026-09-23 (`2bfa1d2`; corpora built `09ac14d`, choices confirmed by
+   Kevin): rung A rendering, the paired cast, the by-act filter, labels for two villains.
+6. ~~The new fork items (§4)~~ — done 2026-09-23: drafted, reviewed, calibrated (one round), frozen
+   and tagged `forks-v4-frozen`; the probe sets in `data/probe_sets/` rebuilt from them.
+7. ~~The story-quality sampler and judge prompt~~ — done 2026-09-23: calibrated in two rounds,
+   reviewed by Kevin (no edits), frozen with the fork items (grammar, consistency, plot; no
+   creativity).
+8. Analysis scripts written before data (the analysis session, `docs/2026-09-23_HANDOFF_analysis.md`;
+   also R13's contrast d and the attention-to-name row of 5a, which the evaluation stage stores but
+   does not compute): the normalized persona, the act-matched fits, cell means
    and matrices, the ladder's "positive" test, the onset estimator, the flow scans at every block
    for the finetune, the capacity grid; `scripts/plan_figures.py` becomes the figure script.
-8a. The flow-scan changes of §4 in `persona_circuit.py` and `finetune_persona.py` (shared hooks in
+8a. ~~Done 2026-09-23 (the evaluation stage; 1× check: the crossing does not move, cosines 0.90–1.00):~~
+    the flow-scan changes of §4 in `persona_circuit.py` and `finetune_persona.py` (shared hooks in
     `persona_direction.py`): the prediction site as the ending span (direction fitted at its first
     position, removed along all of it; the first-token persona as a second line), directions
     refitted per model and fitted / scored on the two halves of the setups, three random
     directions, the separation left (shrinkage-LDA d′), base-to-finetune cosines, the mask-overlap
     check; Ben's position and position × persona for every finetune. Before the evaluation stage;
     rerun on the 1× 10M models to see how far the crossing moves.
-9. The GD test on the 1× models (`scripts/gd_finetune.py`), before its v4 version.
+9. The GD test on the 1× models (`scripts/gd_finetune.py`), before its v4 version (the analysis
+   session, during training).
 9a. ~~Probe-code fixes found in the 2026-09-22 audit~~ — done 2026-09-23 in `59477f1` (with the
     re-probe of the Mac cheat / tease finetunes; notebook 2026-09-23), except the checkpoint labels,
     which live in `dramatis/train.py` (Kevin's file) and go with the probe hook (item 2). What was
@@ -396,12 +427,13 @@ curve alongside the binding in R6.
     now scores the whole 1× timeline on one probe set against matched neutrals (15 neutral
     continuations run on the Mac); 5b, C4 and R18 carry the reconciled numbers. R18 was already
     built with one baseline (both paths continued on clean stories, one probe set).
-11. Judge: batch mode or retry logging.
+11. Judge: batch mode and retry logging (the analysis session, during training).
 12. The box driver: `scripts/run_v4.py` (plan / smoke / run / status; every job of §5 with its
     generated config, dependencies, longest first, resumable, failures and tracebacks reported;
     the onset continuation rule of §4 applied as runs finish). The evaluation stage (full probes
     with the frozen fork items, mechanism scans, free text, story quality) comes after the fork
-    items are frozen and runs on the box where the checkpoints are.
+    items are frozen and runs on the box where the checkpoints are: built 2026-09-23 as
+    `scripts/eval_v4.py` (same shards as training; ≈ 8 GPU-h in all, estimated from Mac timings).
 
 ## 9. Design decisions and their reasons
 
@@ -431,7 +463,7 @@ curve alongside the binding in R6.
 * **Stated in advance:** each run in §5 carries its frozen readout and an expected range where
   1× gives one; the table is committed before the box run and the paper quotes it.
 * **In the appendix, not the main text:** the exception counts (the first exception per name and
-  the class-level charge) and count against fraction; the coherence sweep carries the result.
+  the class-level charge) and count against fraction; the role-contrast sweep carries the result.
 
 ## 10. Open questions the paper states as open
 
@@ -445,10 +477,8 @@ curve alongside the binding in R6.
 Decided at the 2026-09-23 review (Kevin):
 
 1. **Names.** The judged TinyStories-style measure is *story quality*. y is defined in §1
-   (y = p_N − p_K at x = 0.25); its name is still open: "coherence" collides with the TinyStories
-   sense and "purity" is out. Candidates: *contingency* (ΔP in the associative-learning
-   literature is exactly P(outcome | cue) − P(outcome | no cue), here P(villain | N-name) −
-   P(villain | K-name)), *name reliability*, *name–role contrast*.
+   (y = p_N − p_K at x = 0.25) and named *role contrast* (the 1× documents and file names say
+   "coherence", which collides with the TinyStories sense).
 2. **2a normalization:** by the 100M value at y = 1 (§4), for now; a presentation choice.
 3. **Boxes:** four (three as the fallback), for the grid by the next morning, ≈ $25–35 over one
    box (§7).
@@ -476,8 +506,8 @@ Each caption says what the placeholder is and, after **v4:**, what the planned v
 
 ![2a](figures/plan/plan_2a.png)
 
-**2a. A persona forms only at near-exact coherence.** The normalized persona (each act's N − K ÷
-its y = 1 value at 100M, averaged over acts) against coherence y; 10M from the 1× sweep
+**2a. A persona forms only at near-exact role contrast.** The normalized persona (each act's N − K ÷
+its y = 1 value at 100M, averaged over acts) against role contrast y; 10M from the 1× sweep
 (106M tokens, about four epochs, 10 seeds per y), 30M and 100M with 1–5 seeds on fewer y (one
 seed at y = 0.6–0.8, so no error bar there); the random cast from the 10M×3 map. **v4:** one unrepeated pass; y = 0 / .5 / .6 / .7 / .8 / .9 /
 .95 / .98 / .99 / 1 at every size, 8 seeds (R1); new fork items; per act in A2a.
@@ -498,7 +528,7 @@ the whole effect. **v4:** every size and depth, y = 0.5 … 1, 8 seeds (R16).
 
 ![2d](figures/plan/plan_2d.png)
 
-**2d. The class is represented long before it is used.** Against coherence, the embedding d′ of
+**2d. The class is represented long before it is used.** Against role contrast, the embedding d′ of
 N- against K-name rows and the behavioural persona, each as a fraction of its value at y = 1; 10M
 sweep, 10 seeds per y; d′ is measured above its random-split floor (≈ 3, from random 8 / 24
 splits of the same rows). The representation is at 69 % by y = 0.9, the behaviour at 27 %: the

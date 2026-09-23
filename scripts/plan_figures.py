@@ -159,9 +159,9 @@ def p2a(ax):
     rc = [np.mean([r["per"][a] / top[a] for a in ACTS]) for k, r in rows.items() if "y000" in k]
     ax.errorbar([0.0], [np.mean(rc)], yerr=[sem(rc)], fmt="s", color=TWO[1], ms=7, capsize=3, label="random cast, y = 0 (10M×3, 2 seeds)")
     zero(ax)
-    ax.set_xlabel("y  (0 = names uninformative, 1 = N-names always the villain)")
+    ax.set_xlabel("role contrast y  (0 = names uninformative, 1 = N-names always the villain)")
     ax.set_ylabel("persona, fraction of the 100M value at y = 1\n(each act normalized, then averaged)")
-    ax.set_title("A persona forms only at near-exact y")
+    ax.set_title("A persona forms only at near-exact role contrast")
     ax.legend(loc="upper left")
 
 
@@ -217,7 +217,7 @@ def p2d(ax):
         e = [sem([r[key] for r in ng if r["y"] == y]) / top for y in ys]
         ax.errorbar(ys, m, yerr=e, fmt="o-", color=col, ms=4, capsize=2, label=lab)
     zero(ax)
-    ax.set_xlabel("coherence y (10M, 10 seeds per y)")
+    ax.set_xlabel("role contrast y (10M, 10 seeds per y)")
     ax.set_ylabel("fraction of its value at y = 1")
     ax.set_title("The class is represented long before it is used")
     ax.legend(fontsize=7, loc="upper left")
@@ -619,7 +619,7 @@ def pA2a(ax):
             ax_.errorbar(ys, ms, yerr=es, fmt="o-", color=SIZE_C[size], ms=4, capsize=2, label=lab)
         zero(ax_)
         ax_.set_title(f"persona on {a}", fontsize=9)
-        ax_.set_xlabel("coherence y")
+        ax_.set_xlabel("role contrast y")
     axes[0].set_ylabel("N − K (nats)")
     axes[0].legend(fontsize=7)
     fig.suptitle("The sweep per act (fork scales differ by act: steal spans ≈ 9 nats, the others 1–3)", fontsize=10)
@@ -632,7 +632,7 @@ def pA2b(ax):
     ax.plot(y, full, color=TWO[0], label="full corpus (one pass)")
     ax.plot(y, full, color=TWO[1], ls=(0, (4, 3)), label="quarter corpus — if the FRACTION sets it: same curve")
     ax.plot(y, 0.3 + 0.7 * ((y - 0.9) / 0.1) ** 2.5, color=TWO[1], ls=":", label="quarter corpus — if the COUNT sets it: keeps more")
-    ax.set_xlabel("coherence y")
+    ax.set_xlabel("role contrast y")
     ax.set_ylabel("fraction of the y = 1 persona kept")
     ax.set_ylim(0, 1.05)
     ax.set_title("Count or fraction? (two outcomes, stated in advance)")

@@ -42,6 +42,7 @@ from dramatis.train import model_from_checkpoint
 
 PERFORMED = ["steal", "lie", "cheat", "tease"]
 FLUENCY, SEM, MEAN_BAND, FAR, FAR_SHARE = -3.0, 1.0, 4.0, 8.0, 0.25  # the criteria above
+SEP = " "  # between the opening and the setup, as cast_probe.build_k0; "\n" for the corpus layout (--layout corpus)
 
 
 def fill(text, actor, other, adult):
@@ -61,8 +62,12 @@ def build(items, draws, seed=0):
             opening = _sentences(setups.openings[rng.integers(len(setups.openings))].format(setting=setting, adult=adult))
             a = str(rng.choice(names))
             b = str(rng.choice([n for n in names if n != a]))
-            prompt = f"{opening} {_sentences(fill(it['setup'], a, b, adult))}"
-            out.append((prompt, fill(it["bad"], a, b, adult), fill(it["good"], a, b, adult), i))
+            opening = opening.replace("$A", a).replace("$B", b)  # the opening templates name the children $A / $B
+            prompt = f"{opening}{SEP}{_sentences(fill(it['setup'], a, b, adult))}"
+            bad, good = fill(it["bad"], a, b, adult), fill(it["good"], a, b, adult)
+            if SEP == "\n":  # the corpus's layout: each scene, the choice included, on its own line
+                bad, good = "\n" + bad.lstrip(), "\n" + good.lstrip()
+            out.append((prompt, bad, good, i))
     return out
 
 
@@ -71,8 +76,11 @@ def main() -> None:
     parser.add_argument("run", type=Path, help="the calibration run directory (its last checkpoint) or a checkpoint")
     parser.add_argument("--forks", type=Path, default=Path("prompts/forks_v4.yaml"))
     parser.add_argument("--draws", type=int, default=8)
+    parser.add_argument("--layout", choices=["probe", "corpus"], default="corpus", help="probe: as cast_probe.build_k0 (one paragraph); corpus: the opening, the setup and the choice on separate lines")
     parser.add_argument("--out-dir", type=Path, default=Path("logs/calib"))
     args = parser.parse_args()
+    global SEP
+    SEP = "\n" if args.layout == "corpus" else " "
     ck = str(args.run) if args.run.suffix == ".pt" else sorted(glob.glob(f"{args.run}/checkpoints/ckpt_*.pt"))[-1]
     raw = yaml.safe_load(args.forks.read_text())
     items = [it for act_items in raw["items"].values() for it in act_items]
@@ -102,7 +110,7 @@ def main() -> None:
         f = np.array([r["prompt_lp_per_token"] for r in per_item if r["act"] == act])
         sem = v.std(ddof=1) / np.sqrt(len(v))
         far = float(np.mean(np.abs(v) > FAR))
-        checks = {"precision": sem <= SEM, "mean within ±4": abs(v.mean()) <= MEAN_BAND, "far ≤ 1/4": far <= FAR_SHARE, "fluency": f.min() >= FLUENCY}
+        checks = {"precision": bool(sem <= SEM), "mean within ±4": bool(abs(v.mean()) <= MEAN_BAND), "far ≤ 1/4": bool(far <= FAR_SHARE), "fluency": bool(f.min() >= FLUENCY)}
         table[act] = dict(n=len(v), mean=float(v.mean()), sem=float(sem), bad_wins=float(np.mean(v > 0)), far=far,
                           prompt_lp_per_token=float(f.mean()), prompt_lp_per_token_min=float(f.min()), checks=checks,
                           performed=act in PERFORMED)
@@ -121,9 +129,9 @@ def main() -> None:
         print(f"  {r['id']:12s} log-odds {r['lo']:+6.2f} (sd over names {r['lo_sd_over_names']:.2f})  prompt lp/tok {r['prompt_lp_per_token']:+.2f}  {'; '.join(r['why'])}")
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    out = args.out_dir / f"forks_v4_calib_{file_sha256(args.forks)[:8]}.json"
+    out = args.out_dir / f"forks_v4_calib_{file_sha256(args.forks)[:8]}_{args.layout}.json"
     meta = dict(forks=str(args.forks), forks_sha256=file_sha256(args.forks), forks_status=raw.get("status"), checkpoint=ck,
-                draws=args.draws, criteria=dict(fluency=FLUENCY, sem=SEM, mean_band=MEAN_BAND, far=FAR, far_share=FAR_SHARE),
+                draws=args.draws, layout=args.layout, criteria=dict(fluency=FLUENCY, sem=SEM, mean_band=MEAN_BAND, far=FAR, far_share=FAR_SHARE),
                 git_commit=git_commit(), created=utc_now())
     out.write_text(json.dumps({"_meta": meta, "acts": table, "items": per_item, "flagged": flags}, indent=1))
     print(f"-> {out}")

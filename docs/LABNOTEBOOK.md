@@ -1565,3 +1565,46 @@ on any model before the freeze.
 The unedited draft is the version committed in `2bfa1d2` (the reference for a robustness check if
 calibration forces edits). Also reviewed by Kevin, no edits: `prompts/judge_story_quality_v1.md`
 (grammar, consistency, plot; no creativity), frozen with the fork items.
+
+Claude (14:00): **v4 fork items calibrated and frozen** (`prompts/forks_v4.yaml`, sha256 `81fff916…`,
+tag `forks-v4-frozen`). Calibration model `runs/2026-09-23_130336_calib-v4-10m_forks-v4-calib`
+(10M, random cast y = 0, 123M tokens, val loss 0.316, 34 min on the Mac). A bug in my first
+scoring pass (the opening templates' `$A` / `$B` left unfilled) made every prompt look broken;
+fixed before any edit. Round 0 (the reviewed draft) failed on item spread, driven by ending
+templates: lie "I did not spill it at all" / "…, but not on purpose" at +14 to +17 against "It
+slid off on its own" / "I dropped it, I am sorry" at −15 to −24; steal "carried it off to hide"
+at −23 to −31; tease "You are so bad at knots" +27. Layout: probes now lay items out as the corpus
+does, opening, setup and choice on separate lines (prompt log p/token −0.8 to −2.8 against −1.4
+to −2.9 in one paragraph; Kevin chose it); 1× items keep one paragraph (`dramatis/forks.py`).
+Round 1: 37 endings (6 steal, 10 lie, 7 tease, 3 cheat, 5 blame, 4 exclude, 2 sneak) and one sneak
+setup's wording (fluency) edited, each from candidates written before scoring, chosen by the
+stated rule (first within ±8, else closest to 0; two switched to their other candidate for
+structural rules), every candidate's score in `logs/calib/forks_v4_round1_candidates.json`. After
+it (corpus layout), mean / s.e.m. / share beyond ±8: steal −2.2 / 1.05 / 1/16, lie +1.9 / 0.87 /
+0, cheat −0.3 / 1.18 / 1/16, tease +3.0 / 1.20 / 1/16, break −26.1 / 2.41, blame −8.7 / 0.34,
+exclude −1.2 / 0.73, sneak −4.8 / 1.83; fluency ≥ −2.8 everywhere. Enforced criteria: room to move
+passes for every performed act; precision passes for lie, blame, exclude, is just above ~1 nat for
+steal / cheat / tease, and fails for break and sneak (recorded, not chased: one round, as fixed in
+advance). Trade-off: lie now leans on one family ("The cat / wind …" against "My hand / arm …").
+Kevin spot-checked the edits ("reasonable") and accepted the evaluation stage's four deviations
+(separation left cross-fitted; free text on 4 setups per act; other K = the 21 kind names no
+finetune names; R13's contrast d and the attention row left to the analysis code). Probe sets
+rebuilt from the frozen items (`data/probe_sets/`, items_sha256): k0 `9484278b39b2`, k0_ben
+`6c997644c527`, label_v4 `a49fef1eaead`, incontext_v4 `5065b53d0e52`, incontext_k2_v4
+`6fcb0ab22de0`, incontext_label_v4 `4f83d8591843`, incontext_A_v4 `b5ecc7a3d2d8`; full sets
+label `b91bf8df29fb`, incontext `df51850c87b0`, k2 `c07d62790af1`, label `18eab13365ab`, A
+`6704337ce224`.
+
+Claude (14:00): **Evaluation stage built** (a subagent, reviewed): `scripts/eval_v4.py` (plan / run /
+status / smoke / collect; the training driver's shards, so each box evaluates its own
+checkpoints; refuses draft forks), `dramatis/forks.py`, `--forks v3|v4` on every probe script,
+the §4 flow-scan changes, Ben's position and position × persona; 221 tests. 1× check (10M plain
+cast, 3 seeds, v3 items): the name/site crossing does not move with the span site (blocks 3→4,
+2→3, 4→5 by seed); the span removes more at the crossing; the finetune crosses where the base
+does; held-out d′ at the name 9–20 → 0.1–1.0 after removing one direction (one direction carries
+the class), at the site after the copy 2–5 → 0.5–1.3; finetune and neutral directions at cosine
+0.90–1.00 to the base; Ben's position at the site 0.54 / 0.59 / 0.62. Evaluation cost estimated
+at ≈ 8 GPU-h in all. Also ready: `scripts/hf_runs.py` (runs to the public Hub repo
+`kjsatz/dramatis-v4-runs`, weights only, card with the Gemma terms notice; box token
+`HF_TOKEN_BOX` scoped to that repo), `docs/RUNBOOK_v4.md`, and handoffs for the review, run and
+analysis sessions (`docs/2026-09-23_HANDOFF_{review,run,analysis}.md`).

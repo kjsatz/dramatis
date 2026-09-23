@@ -5,28 +5,34 @@ On the k = 0 items (a bare held-out setup with an N-name or a K-name as actor), 
 
 The two positions: the actor's NAME — every token of every mention, the story-initial one
 included (dramatis.probe_names); the class direction there is fitted at the first " " + name
-token (persona_direction.name_pos) — and the
-PREDICTION SITE, the position that predicts the first token where the bad and benign endings
-differ (prompt + the endings' shared prefix; not the last prompt token, which predicts the
-actor's name that begins the ending).
+token (persona_direction.name_pos) — and the PREDICTION SITE (plan §4, revised 2026-09-23): every
+position that predicts a token of the two endings from their first difference on, in both
+sequences (the tokens the fork log-odds sum over); the direction there is fitted at its first
+position (the one predicting the first differing token, whose input is the same in both branches)
+and removed along the whole span. (At 1× the site was that first position alone.)
 
-A. *Ablation scans.* At block L (0 = the embedding) and at one position, replace the residual
-   stream's component along the class direction of that (layer, position) by its grand mean,
-   leaving everything else, and re-score the fork log-odds N − K. Scanning L at the name position
-   finds the last block that still reads the class from the name; scanning L at the site finds
-   where the class is committed to the prediction. A random direction at every block and both
-   positions is the control.
-B. *Arrival and gain.* Arrival: the class gap at the site after block L (‖mean N − mean K‖
-   relative to the residual norm). Gain from L: add that gap vector to the K-actor items at the
-   site after block L and read the response (a K-name given the N-name's class content from L
-   onward). Arrival × gain, layer by layer, says which stage the exceptions weaken.
-C. *Attention.* For every block and head, the attention weight from the prediction site to the
-   actor's name tokens, averaged over items: the heads that carry the name.
+A. *Flow scan* (plan §4 "Flow scans (5a)", persona_direction.ablation_scan). At block L (0 = the
+   embedding) and at one position, replace the residual stream's component along the class
+   direction of that (block, position) by its mean, and re-score N − K. Directions are fitted
+   on half the setups and the scan scored on the other half, then the reverse (averaged). Three
+   random directions at every block and both positions are the control (mean and range). After
+   each ablation, the separation left: the held-out d′ of a shrinkage-LDA direction refitted on
+   the ablated activations, beside the same before. The persona from the first differing token
+   alone is a second line. Items whose name and site masks would overlap are dropped (with
+   their setup; reported).
+B. *Arrival and gain* (at the site's first position, as at 1×). Arrival: the class gap at the
+   site after block L (‖mean N − mean K‖ relative to the residual norm). Gain from L: add that
+   gap vector to the K-actor items at the site after block L and read the response.
+C. *Attention.* For every block and head, the attention weight from the prediction site's first
+   position to the actor's name tokens, averaged over items: the heads that carry the name.
 
-JSON keys: abl_name / abl_rand_name at the name, abl_last / abl_rand at the prediction site
-(the key names predate the relabelling), dprime_site = split-half d′ at the site.
+JSON keys (kept from 1× for the figure scripts): base (N − K), abl_name / abl_rand_name at the
+name, abl_last / abl_rand at the prediction site (the random ones: mean of the three),
+dprime_site = split-half mean-difference d′ at the site's first position. New: *_first (the
+first-token persona), *_by_act, abl_rand*_range, sep_{name,site}_{before,after}, dropped_setups.
+"N" = the naughty names, "K" = the kind names no finetune set taught (as cast_probe's classes).
 
-    uv run python scripts/persona_circuit.py <ckpt> ... --out docs/figures/persona_circuit
+    uv run python scripts/persona_circuit.py <ckpt> ... --out docs/figures/persona_circuit [--forks v3]
 """
 
 import argparse
@@ -45,63 +51,103 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, "scripts")
 import persona_direction as pd
-from persona_direction import (
+from persona_direction import (  # noqa: F401  (capture_site: re-exported for older importers)
+    K,
+    N,
+    ablation_scan,
     add_vec,
+    capture_site,
     divergence,
+    drop_overlapping,
     encoded,
     layer_hook,
     logodds,
-    mean_ablate,
-    name_pos,
+    setup_parts,
     split_half_dprime,
     tok,
 )
 
 from dramatis.device import pick_device
-from dramatis.probe_names import name_positions
+from dramatis.forks import load_forks
+from dramatis.probe_names import TAUGHT, name_positions
+from dramatis.provenance import git_commit
 from dramatis.train import model_from_checkpoint
 
 
-def build_items(seed=0):
-    """The balanced k = 0 set (one item per held-out setup × actor; persona_direction.build_items
+def build_items(seed=0, forks=None):
+    """The balanced k = 0 set (one item per fork setup × actor; persona_direction.build_items
     without the extra taught-name items). site_decomposition.py imports this."""
-    return pd.balanced(pd.build_items(seed))
+    return pd.balanced(pd.build_items(seed, forks=forks))
 
 
-@torch.no_grad()
-def capture_site(gpt, items, batch_size=64, mention="first"):
-    """Residual stream after the embedding and after each block at (a) the actor's name (see
-    persona_direction.name_pos: "first" = the first mention, often story-initial; "spaced" = the
-    first " " + name token, where class directions applied at every mention are fitted) and (b)
-    the prediction site: the position that predicts the first token where the bad and benign
-    endings differ (the shared prefix of the endings is included in the forward pass). Returns
-    two arrays (n_items, n_layers + 1, d) and the list of site positions."""
-    acts_ = {}
-    hooks = [gpt.blocks[0].register_forward_pre_hook(lambda m, a: acts_.__setitem__(0, a[0].detach()))]
-    for li, b in enumerate(gpt.blocks, start=1):
-        hooks.append(b.register_forward_hook(lambda m, a, o, li=li: acts_.__setitem__(li, o.detach())))
-    name_rows, site_pos, sites = [], [], []
-    for start in range(0, len(items), batch_size):
-        chunk = items[start : start + batch_size]
-        ids, ds = [], []
-        for it in chunk:
-            _, b, g = encoded(it)
-            d = divergence(b, g)
-            ids.append(b[:d])  # prompt + the shared prefix
-            ds.append(d)
-        T = max(map(len, ids))
-        x = torch.full((len(chunk), T), tok.pad_id, dtype=torch.long)
-        for i, s_ in enumerate(ids):
-            x[i, : len(s_)] = torch.tensor(s_)
-        gpt(x.to(gpt.device))
-        for i, (it, s_, d) in enumerate(zip(chunk, ids, ds, strict=True)):
-            p = name_pos(s_, it["actor"], mention)
-            name_rows.append(torch.stack([acts_[li][i, p] for li in sorted(acts_)]).float().cpu().numpy())
-            site_pos.append(torch.stack([acts_[li][i, d - 1] for li in sorted(acts_)]).float().cpu().numpy())
-            sites.append(d - 1)
-    for h in hooks:
-        h.remove()
-    return np.stack(name_rows), np.stack(site_pos), sites
+def class_persona(items, lo):
+    """{"ALL": N − K pooled over the items, <act>: N − K on that act}; K = the kind names no
+    finetune set taught."""
+    def nk(sel):
+        n = [v for it, v, s in zip(items, lo, sel, strict=True) if s and it["actor"] in N]
+        k = [v for it, v, s in zip(items, lo, sel, strict=True) if s and it["actor"] in K and it["actor"] not in TAUGHT]
+        return float(np.mean(n) - np.mean(k)) if n and k else float("nan")
+    out = {"ALL": nk([True] * len(items))}
+    for act in dict.fromkeys(it["act"] for it in items):
+        out[act] = nk([it["act"] == act for it in items])
+    return out
+
+
+def summarize_scan(scan, items, value, n_random):
+    """Per ablation key, value(items of half h, per-item log-odds) averaged over the two halves;
+    `value` returns a dict (e.g. class_persona). Returns {key: {"full": dict, "first": dict}}."""
+    out = {}
+    for key in pd.scan_keys(scan["n_layer"], n_random):
+        full, first = [], []
+        for h in (0, 1):
+            its = [items[i] for i in scan["score_idx"][h]]
+            lo, lo1 = scan["lo"][(h, key)]
+            full.append(value(its, lo))
+            first.append(value(its, lo1))
+        out[key] = {"full": {k: float(np.mean([d[k] for d in full])) for k in full[0]}, "first": {k: float(np.mean([d[k] for d in first])) for k in first[0]}}
+    return out
+
+
+def flow_lines(summary, scan, n_random, stat="ALL"):
+    """The per-block lines of a flow scan from `summary` (summarize_scan) for the statistic
+    `stat`: {"name": [...], "site": [...], "name_first", "site_first", "rand_name" (mean of the
+    random directions), "rand_name_range" ([min, max]), ... , "sep_name_before", ...}."""
+    L = scan["n_layer"]
+    out = {}
+    for pos in ("name", "site"):
+        out[pos] = [summary[(pos, li, "class")]["full"][stat] for li in range(L + 1)]
+        out[f"{pos}_first"] = [summary[(pos, li, "class")]["first"][stat] for li in range(L + 1)]
+        rv = np.array([[summary[(pos, li, j)]["full"][stat] for j in range(n_random)] for li in range(L + 1)])
+        out[f"rand_{pos}"] = rv.mean(1).tolist()
+        out[f"rand_{pos}_range"] = np.stack([rv.min(1), rv.max(1)], 1).tolist()
+        for i, when in enumerate(("before", "after")):
+            out[f"sep_{pos}_{when}"] = [float(np.mean([scan["sep"][(h, pos, li)][i] for h in (0, 1)])) for li in range(L + 1)]
+    return out
+
+
+def flow_base(gpt, items, n_random=3, seed=0):
+    """The base model's flow scan (A) on the balanced items: fraction of the persona N − K left
+    after removing the class direction at the name or the site after each block. Returns the
+    result dict (1× keys kept) and the raw scan (directions etc.)."""
+    items, dropped = drop_overlapping(items)
+    isNK = np.array([it["actor"] in N or (it["actor"] in K and it["actor"] not in TAUGHT) for it in items])
+    scan = ablation_scan(gpt, items, isNK, isNK, setup_parts(items, seed), n_random, seed)
+    sm = summarize_scan(scan, items, class_persona, n_random)
+    lines = flow_lines(sm, scan, n_random)
+    L = scan["n_layer"]
+    r = dict(
+        n_layer=L, base=sm["none"]["full"]["ALL"], base_first=sm["none"]["first"]["ALL"], base_by_act=sm["none"]["full"],
+        abl_name=lines["name"], abl_last=lines["site"], abl_rand=lines["rand_site"], abl_rand_name=lines["rand_name"],
+        abl_name_first=lines["name_first"], abl_site_first=lines["site_first"],
+        abl_rand_range=lines["rand_site_range"], abl_rand_name_range=lines["rand_name_range"],
+        abl_name_by_act=[sm[("name", li, "class")]["full"] for li in range(L + 1)],
+        abl_site_by_act=[sm[("site", li, "class")]["full"] for li in range(L + 1)],
+        **{k: v for k, v in lines.items() if k.startswith("sep_")},
+        dropped_setups=dropped, n_items=len(items), n_setups=len({it["setup"] for it in items}),
+        # the 1× key: split-half mean-difference d′ at the site's first position (no ablation)
+        dprime_site=split_half_dprime(scan["X"]["site"][isNK], [it["cls"] for it, k in zip(items, isNK, strict=True) if k], [it["setup"] for it, k in zip(items, isNK, strict=True) if k]),
+    )
+    return r, scan
 
 
 def score(gpt, items, hook=None):
@@ -157,60 +203,53 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("ckpts", nargs="+")
     parser.add_argument("--out", type=Path, default=Path("docs/figures/persona_circuit"))
+    parser.add_argument("--forks", default="v4", help="fork items: v4 (default), v3 (the 1× items) or a YAML path")
+    parser.add_argument("--n-random", type=int, default=3, help="random control directions per block and position")
     args = parser.parse_args()
     device = pick_device("auto")
-    items = build_items()
+    forks = load_forks(args.forks)
+    items, _ = drop_overlapping(build_items(forks=forks))
     K_items = [it for it in items if it["cls"] == "K"]
-    N_items = [it for it in items if it["cls"] == "N"]
     isN = np.array([it["cls"] == "N" for it in items])
-    rng = np.random.default_rng(0)
     results = {}
     for ck in args.ckpts:
         tag = re.sub(r"^runs/\d{4}-\d{2}-\d{2}_\d{6}_", "", ck).split("/checkpoints/")[0]
         gpt = model_from_checkpoint(ck, device).eval()
         L = len(gpt.blocks)
-        Xn, Xl, _ = capture_site(gpt, items, mention="spaced")  # (n, L+1, d): Xn at the first " name" token, Xl at the prediction site
-        d_site = split_half_dprime(Xl, [it["cls"] for it in items], [it["setup"] for it in items])
-        base = score(gpt, N_items)[0] - score(gpt, K_items)[0]
-        r = dict(n_layer=L, base=base, dprime_site=d_site, abl_name=[], abl_last=[], abl_rand=[], abl_rand_name=[], inj_name=[], arrival=[], gain=[], resp=[])
+        # ---- A. the flow scan (the site as the ending span, halves, random directions, separation left)
+        r, scan = flow_base(gpt, items, args.n_random)
+        base = r["base"]
+        # ---- B. injection at the name, arrival and gain at the site's first position (all items, as at 1×)
+        Xn, Xl = scan["X"]["name"], scan["X"]["site"]
+        r.update(inj_name=[], arrival=[], gain=[], resp=[])
         base_K = score(gpt, K_items)[0]
         for li in range(L + 1):
-            # abl_last is at the prediction site (the JSON key predates the name)
-            for where, X, key in (("name_mask", Xn, "abl_name"), ("site_mask", Xl, "abl_last")):
-                gap = X[isN, li].mean(0) - X[~isN, li].mean(0)
-                u = gap / (np.linalg.norm(gap) + 1e-12)
-                hk = layer_hook(gpt, li, where, mean_ablate(u, X[:, li].mean(0)))
-                r[key].append(score(gpt, N_items, hk)[0] - score(gpt, K_items, hk)[0])
-            # the control: a random unit direction, mean-ablated the same way at both positions
-            for where, X, key in (("site_mask", Xl, "abl_rand"), ("name_mask", Xn, "abl_rand_name")):
-                rv = rng.normal(size=X.shape[2])
-                rv /= np.linalg.norm(rv)
-                hk = layer_hook(gpt, li, where, mean_ablate(rv, X[:, li].mean(0)))
-                r[key].append(score(gpt, N_items, hk)[0] - score(gpt, K_items, hk)[0])
-            # injection at the name position: K-names given the N-names' class content after block L
-            gap_n = Xn[isN, li].mean(0) - Xn[~isN, li].mean(0)
+            gap_n = Xn[isN, li].mean(0) - Xn[~isN, li].mean(0)  # K-names given the N-names' class content after block L
             hk = layer_hook(gpt, li, "name_mask", add_vec(gap_n))
             r["inj_name"].append(score(gpt, K_items, hk)[0] - base_K)
-            # arrival and gain at the prediction site
             gap_l = Xl[isN, li].mean(0) - Xl[~isN, li].mean(0)
             r["arrival"].append(float(np.linalg.norm(gap_l) / np.mean(np.linalg.norm(Xl[:, li], axis=1))))
             if li >= 1:
-                hk = layer_hook(gpt, li, "site_mask", add_vec(gap_l))
+                hk = layer_hook(gpt, li, "site_first_mask", add_vec(gap_l))
                 resp = score(gpt, K_items, hk)[0] - base_K
                 r["resp"].append(resp)
                 r["gain"].append(resp / max(base, 1e-6))
+        # ---- C. attention from the site's first position to the name
         r["attn"] = attention_to_name(gpt, items).tolist()
         results[tag] = r
-        print(f"\n{tag}  ({L} blocks)  baseline N − K = {base:+.2f}")
-        print("   layer:                " + "".join(f"{li:7d}" for li in range(L + 1)))
-        print("   d′ at the site:       " + "".join(f"{v:7.1f}" for v in r["dprime_site"]))
-        print("   ablate at name pos:   " + "".join(f"{v:+7.2f}" for v in r["abl_name"]))
-        print("   ablate at site:       " + "".join(f"{v:+7.2f}" for v in r["abl_last"]))
-        print("   K + gap at name pos:  " + "".join(f"{v:+7.2f}" for v in r["inj_name"]) + "   (response; natural N − K = baseline)")
-        print("   ablate random (name): " + "".join(f"{v:+7.2f}" for v in r["abl_rand_name"]))
-        print("   ablate random (site): " + "".join(f"{v:+7.2f}" for v in r["abl_rand"]))
-        print("   arrival (gap/‖x‖):    " + "".join(f"{v:7.3f}" for v in r["arrival"]))
-        print("   K + gap at site:      " + "       " + "".join(f"{v:+7.2f}" for v in r["resp"]) + "   (response; natural N − K above)")
+        print(f"\n{tag}  ({L} blocks)  baseline N − K = {base:+.2f} (first token alone {r['base_first']:+.2f}); {r['n_setups']} setups, dropped {r['dropped_setups']}")
+        print("   block:                    " + "".join(f"{li:7d}" for li in range(L + 1)))
+        print("   d′ at the site (split):   " + "".join(f"{v:7.1f}" for v in r["dprime_site"]))
+        for pos, key in (("name", "abl_name"), ("site", "abl_last")):
+            print(f"   ablate at {pos:5s} (frac):   " + "".join(f"{v / base:+7.2f}" for v in r[key]))
+            print("      first token (frac):    " + "".join(f"{v / r['base_first']:+7.2f}" for v in r[f"abl_{pos}_first"]))
+            rk = "abl_rand_name" if pos == "name" else "abl_rand"
+            print("      random, mean [range]:  " + "".join(f"{v / base:+7.2f}" for v in r[rk]) + "   [" + " ".join(f"{a / base:+.2f}..{b / base:+.2f}" for a, b in r[rk + "_range"]) + "]")
+            print("      LDA d′ before:         " + "".join(f"{v:7.1f}" for v in r[f"sep_{pos}_before"]))
+            print("      LDA d′ after ablation: " + "".join(f"{v:7.1f}" for v in r[f"sep_{pos}_after"]))
+        print("   K + gap at name pos:      " + "".join(f"{v:+7.2f}" for v in r["inj_name"]) + "   (response; natural N − K = baseline)")
+        print("   arrival (gap/‖x‖):        " + "".join(f"{v:7.3f}" for v in r["arrival"]))
+        print("   K + gap at site:          " + "       " + "".join(f"{v:+7.2f}" for v in r["resp"]) + "   (response; natural N − K above)")
         A = np.array(r["attn"])
         top = sorted(((A[l, h], l + 1, h) for l in range(L) for h in range(A.shape[1])), reverse=True)[:5]
         print("   attention site→name, top heads (block.head: weight): " + ", ".join(f"{l}.{h}: {w:.2f}" for w, l, h in top) + "; per block max: " + " ".join(f"{A[l].max():.2f}" for l in range(L)))
@@ -249,6 +288,7 @@ def main() -> None:
     axes[0].legend(fontsize=6)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(str(args.out) + ".png", dpi=130)
+    results["_meta"] = {"script": "scripts/persona_circuit.py", "git_commit": git_commit(), **forks.meta, "ckpts": args.ckpts}
     json.dump(results, open(str(args.out) + ".json", "w"), indent=1)
     print(f"-> {args.out}.png")
 
