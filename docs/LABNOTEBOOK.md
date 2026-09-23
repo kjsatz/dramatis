@@ -1241,3 +1241,23 @@ recipe; the train.bin was byte-identical before and after (label only).
 prompts/holdout_ids_v4.json` contains 0 held-out ids. The plan's R1–R20 corpora are assembled on
 the training box (EXPERIMENT_PLAN §7); the rung A rendering, paired cast and by-act filter
 (§8.4) are not written yet.
+
+Claude (21:25): **Experiment plan, revision 2 (`docs/2026-09-22_EXPERIMENT_PLAN.md`), after
+Kevin's review of the placeholder panels.** Decisions: the full coherence grid (y = 0, .5, .6,
+.7, .8, .9, .95, .98, .99, 1) at every size, ten seeds; a depth ladder below 1M (width 128,
+1 / 2 / 3 layers; the existing 1M is 5 layers at that width), motivated by the flow scan: the
+class is read from the name token through block 3 and carried at the prediction site after it,
+so the hypothesis stated in advance is that one layer can copy the class but the actor binding
+needs two; a TinyStories-style story-quality row (held-out openings completed, judged for
+grammar, consistency, plot); count-against-fraction to the appendix; the direction (steering
+scatter) and "represented before used" move to Figure 2, Figure 5 becomes how the finetune
+works (flow through the blocks for base and finetune, one timeline pretrained → "Ben steals" →
+clean, the GD test); Figure 4 as cell means per untaught act, the co-occurrence matrix over the
+spillover matrix (random / plain / by-act / paired), free text, held-out acts; Figure 6 a
+selection from a full capacity grid in the appendix (12 candidate rows, defined in the plan);
+main-text persona panels use each act normalized to its y = 1 value and averaged, per act in the
+appendix. `scripts/plan_figures.py` rewritten for 15 main and 5 appendix panels. Budget
+recomputed with the measured ≈ 420 tokens per assembled story (one pass ≈ 424M tokens, not the
+344M assumed): ≈ 570 GPU-h, ≈ 71 h on one 8× RTX 5090 or ≈ 36 h on two, ≈ $266, plus ≈ $90–100
+of judging credits; a fixed 300M-token schedule would cut ≈ 30 % (open, §11). The plan's Mac
+list is renumbered (assembly options are now §8.5). Draft for Kevin's review; nothing committed.

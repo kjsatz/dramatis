@@ -40,12 +40,15 @@ of 1.4M, ≈ $79, see the notebook) and `docs/2026-09-22_HANDOFF_experiment_plan
 review of the synthesis and the follow-up plan for the v4 corpus, in dialog with Kevin).
 
 **Decided 2026-09-22 (experiment-planning session): the plan for the v4 corpus is
-`docs/2026-09-22_EXPERIMENT_PLAN.md`** — the revised claims (C1–C6), six figures, the metrics and
-fork-item rules fixed before the runs, the run table R1–R20 with each experiment's frozen readout
-and expected range, the budget (≈ 300 GPU-h, ≈ 37 h on 8× RTX 5090, ≈ $140) and the Mac work
-before the box (§8). It supersedes the "second go-around" list below. The corpus was doubled to
-20× (≈ 1.4M stories); one pass per run at every size, ten seeds per cell (30M / 100M included),
-no 300M. Claude writes the training-loop probe hook.
+`docs/2026-09-22_EXPERIMENT_PLAN.md`** (revision 2, evening; **draft until Kevin's review, §11
+lists the open questions**) — the revised claims (C1–C6), six figures with placeholder panels
+(`scripts/plan_figures.py` → `docs/figures/plan/`), the metrics and fork-item rules fixed before
+the runs, the run table R1–R21 with each experiment's frozen readout and expected range, the
+budget (≈ 570 GPU-h, ≈ 71 h on one 8× RTX 5090 or ≈ 36 h on two, ≈ $266; judging ≈ $90–100 of
+credits) and the Mac work before the box (§8). It supersedes the "second go-around" list below.
+The corpus was doubled to 20× (1,268,642 valid stories); one pass per run at every size, the full
+coherence grid (10 y) at 1M–100M, a depth ladder below 1M (width 128, 1 / 2 / 3 layers), ten
+seeds per cell, a story-quality measure, no 300M. Claude writes the training-loop probe hook.
 
 **Decided 2026-09-22 (evening discussion): a v4 corpus at 10×, and the in-context ladder.**
 Design and plumbing in `docs/DATA.md` §19 (built, tested, dry-run; not yet generated). Order of
