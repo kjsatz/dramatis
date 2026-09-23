@@ -23,6 +23,8 @@ continuation for the run before it), and the longest jobs start first. A failed 
 logs/v4/failed.txt and the others go on; `run` exits non-zero if any job failed, and prints
 every log that contains a traceback.
 
+Raw stories on a box: hf download kjsatz/dramatis-v4-stories --repo-type dataset --revision
+727b6dbd08c128a27550e19b1ceef82a818d063e --local-dir data/raw, then scripts/hf_upload.py verify.
 Corpora (built on the box by scripts/build_v4_corpora.sh): CORPUS below maps the plan's names to
 data/corpora/ directories. Probe sets: data/probe_sets/*.json (scripts/build_probe_sets.py).
 Evaluation after training (the full k = 0 probe on every base and finetune with the frozen v4

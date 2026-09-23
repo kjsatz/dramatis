@@ -1498,3 +1498,12 @@ about what the stories teach, so equal stories (one pass) is the right unit rath
 tokens, and the in-context rungs are where cutting training would cost the most. Also added
 `--shard k/n` to `scripts/run_v4.py` for several boxes (every training run travels with its
 dependents; 4 shards ≈ 95.5 GPU-h each).
+
+Claude (11:25): **v4 raw stories on the Hugging Face Hub, private**: dataset `kjsatz/dramatis-v4-stories`,
+revision `727b6dbd08c128a27550e19b1ceef82a818d063e` (`scripts/hf_upload.py`): the six story files
+`v4-{base,one,both}/bundle5{,b}.jsonl` with their sidecars, 3.67 GB, plus MANIFEST.json (sha256 of
+every file) and a short card (private, preliminary; licensing for a public release not settled).
+No judge samples or pilot. Checked with the read-only token (the boxes' token): private, 12 files,
+sizes equal to the Mac's. On a box: `hf download kjsatz/dramatis-v4-stories --repo-type dataset
+--revision 727b6dbd08c128a27550e19b1ceef82a818d063e --local-dir data/raw`, then
+`uv run python scripts/hf_upload.py verify`.
