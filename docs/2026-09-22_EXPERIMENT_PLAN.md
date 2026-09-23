@@ -218,7 +218,19 @@ smoothly (gain, onset). The depth ladder adds four columns at the small end.
   corpus is formulaic by design, so a model that reproduces the formula well would be marked down
   for doing its job (decided 2026-09-23) and is calibrated on a handful of v4
   stories and deliberately corrupted ones. Models: every size and depth at y = 1 and y = 0, three
-  seeds.
+  seeds. **Control** (decided 2026-09-23, before any v4 score): the corpus's own continuation of
+  each of the 100 openings (its held-out true rest, generated with the corpus) judged with the
+  same prompt in the slot a model's completion fills, in full (the ceiling) and cut at the
+  samplers' 300-token cap and marked unfinished where cut (27 of the 100; the like-for-like
+  reference for the model rows); `story_quality.py control`, 200 calls. At calibration 20 true
+  rests scored 9.9 / 9.85 / 9.7 and the corruptions fell where expected (consistency 4.0 for a
+  splice or a rename, plot 4.2 for shuffled paragraphs). Caveat: the corpus was written by an
+  LLM and the judge is a Gemini model, so the control is the ceiling under this judge (which may
+  favour text like its own), not an absolute one; model scores are read against it. Statistics:
+  every model and the control see the same 100 openings, so the comparison is paired by opening:
+  per cell the gap to the cut control (the mean over seeds and openings of model − control on the
+  same opening), and every story-quality mean, with a two-level bootstrap resampling openings and
+  seeds (a t interval over three seeds alone would leave out which openings were drawn).
 * **"Positive" for a ladder rung:** an eight-seed mean character effect above 0.5 nats with a 95 %
   CI excluding zero, at any size.
 * **Onset:** the first probe step at which label binding exceeds half its value at the end of
@@ -296,7 +308,7 @@ GPU-hours on RTX 5090 at the §7 throughputs.
 | R18 | the timeline, 10M y = 1 × 8: "Ben steals" (and the neutral finetune) for 100 steps, then clean stories for 2,000 steps from both sets of weights, so every point of the bad path has a matched neutral path (the clean-twin corpus: stories seen once in pretraining, no repetition), each phase one run with probes every 10 updates (Ben against the other kind names, per act) and checkpoints every 10 / 50 updates for Ben's position on the axis; a fresh optimizer at the phase change (the 1× points were separate runs per dose) | 5b | 8 × 2 | (in) | Ben's position on the axis, spillover, attachment against step | 1× (matched neutral, reconciled 2026-09-23): Ben's position 0.39 after 100 bad steps, 0.24 after 25 clean, 0.14 (0.12–0.16) after 400 clean, still falling slowly; spillover 1.17 → 0.87 → 0.50 → exploratory: whether the position levels off above zero by 2,000 clean steps or keeps falling ("slow", not "stops", either way) |
 | R19 | LR control: 10M at the peak LRs of 1M / 3M / 30M / 100M × 5, y = 1 and rung B′ | appendix | 40 | 12 | persona; onset | exploratory |
 | R20 | 100M finetune-LR sweep (2 smaller LRs × 8 bases, "Ben steals" and neutral; the plan's LR is R13's) | appendix | 32 finetunes | (in) | attachment; the other kind names' rise | the 1× 100M attachment dip (+2.8 against +5.4 at 30M) vanishes on unrepeated data or with a smaller finetune LR (tested as a 100M attachment at or above the 30M lower 95 % bound) |
-| R21 | story quality and actor tracking: completions of 100 held-out openings for every size and depth at y = 1 and 0 (3 seeds); `sample_forks.py --block persona --variants 1` for actor tracking at every size and depth (y = 1, 3 seeds) | 6, A6 | ≈ 50 models | (in R14) | judge scores; UNCLEAR rate | exploratory; TinyStories comparison (grammar early, consistency later) |
+| R21 | story quality and actor tracking: completions of 100 held-out openings for every size and depth at y = 1 and 0 (3 seeds); `sample_forks.py --block persona --variants 1` for actor tracking at every size and depth (y = 1, 3 seeds) | 6, A6 | ≈ 50 models | (in R14) | judge scores against the control (the corpus's own rests, §4); UNCLEAR rate | exploratory; TinyStories comparison (grammar early, consistency later) |
 
 **Total ≈ 463 GPU-h** at eight seeds per cell (`scripts/run_v4.py plan`, from the built corpora:
 400 GPU-h of jobs (3,456, after the 4-layer rung and the dense probes at y = 0), plus ≤ 37 for
@@ -306,7 +318,9 @@ evaluation stage; the rows of the table were estimated before the corpora existe
 are the sweep (R1, ≈ 238) and the ladder (R5–R7, ≈ 95). Judging
 ≈ 94k calls at ≈ $0.63 per thousand (the 1× rate), ≈ $62 of Vertex credits: free text ≈ 70k calls
 (160 models × 440 samples) ≈ $44, actor tracking ≈ 19k (24 models × 800) ≈ $12, story quality
-≈ 5k (48 models × 100, longer prompts) ≈ $6.
+≈ 5k (48 models × 100, longer prompts) ≈ $6, plus the story-quality control (200 calls, ≈ $0.15). Judged as
+Vertex batch jobs (§8 item 11) at about half these prices: 40 free-text samples agreed with the
+online judge on every verdict (2026-09-23).
 
 ## 6. Figure 3, two outcomes considered in advance
 

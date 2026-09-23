@@ -30,7 +30,7 @@ def main() -> None:
     parser.add_argument("kind", choices=["samples", "story"])
     parser.add_argument("file", type=Path, help="a sample_forks.py / story_quality.py sample output (.jsonl)")
     parser.add_argument("--bucket", required=True)
-    parser.add_argument("--batch-location", default="us-central1")
+    parser.add_argument("--batch-location", default="global")
     parser.add_argument("--n", type=int, default=40)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--out-dir", type=Path, default=Path("logs/judge_check"))

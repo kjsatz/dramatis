@@ -8,6 +8,7 @@ consistency and plot (creativity optional, see CRITERIA).
     uv run python scripts/story_quality.py judge logs/story_quality/x.jsonl   # -> x.judge.jsonl
     uv run python scripts/story_quality.py summarize logs/story_quality/x.judge.jsonl
     uv run python scripts/story_quality.py calibrate                      # true vs corrupted continuations
+    uv run python scripts/story_quality.py control [--batch --bucket gs://…]   # the corpus's own rests: the ceiling (R21)
 
 The opening set (prompts/story_quality_openings_v4.json): 100 held-out v4-base stories, assembled
 with fixed names and cut after the second scene. The cut rule, on the raw story: split on blank
@@ -442,6 +443,30 @@ def calibration_rows(openings: list[dict], n: int = 20) -> list[dict]:
     return rows
 
 
+def control_rows(openings: list[dict], max_new_tokens: int = 300) -> list[dict]:
+    """The control (plan §4 "Story quality", R21): each opening's true rest, the corpus's own
+    continuation, in the slot a model's completion fills, under the same judge prompt; in full
+    ("control:true_rest", the ceiling) and cut at the samplers' token cap and marked unfinished
+    where cut ("control:true_rest_300", the like-for-like comparison with model completions)."""
+    from dramatis.tokenizer import StoryTokenizer
+
+    tok = StoryTokenizer.load(TOKENIZER)
+    rows = []
+    for o in openings:
+        ids = tok.encode(o["rest"])
+        rows.append({"model": "control:true_rest", "id": o["id"], "completion": o["rest"], "n_tokens": len(ids), "ended": True})
+        cut = ids[:max_new_tokens]
+        rows.append({"model": f"control:true_rest_{max_new_tokens}", "id": o["id"], "completion": tok.decode(cut) if len(ids) > max_new_tokens else o["rest"],
+                     "n_tokens": len(cut), "ended": len(ids) <= max_new_tokens, "max_new_tokens": max_new_tokens})
+    return rows
+
+
+def control_cmd(args) -> None:
+    out = args.out or Path("logs/story_quality/control_v4.judge.jsonl")
+    judge_rows(control_rows(load_openings(args.openings), args.max_new_tokens), out, args)
+    summarize(out)
+
+
 def calibrate_cmd(args) -> None:
     out = args.out or Path("logs/story_quality/calibration.judge.jsonl")
     judge_rows(calibration_rows(load_openings(args.openings), args.n), out, args)
@@ -518,12 +543,14 @@ def main() -> None:
     # size (>= 326 new tokens here; a v4 story fits in 512 tokens, so a corpus-length rest fits).
     p.add_argument("--max-new-tokens", type=int, default=300)
     p.add_argument("--temperature", type=float, default=1.0)
-    for name in ("judge", "calibrate"):
+    for name in ("judge", "calibrate", "control"):
         p = sub.add_parser(name)
         if name == "judge":
             p.add_argument("samples", type=Path)
-        else:
+        elif name == "calibrate":
             p.add_argument("--n", type=int, default=20)
+        else:
+            p.add_argument("--max-new-tokens", type=int, default=300, help="the samplers' cap: the cut control's length")
         p.add_argument("--out", type=Path)
         p.add_argument("--judge-model", default="gemini-3.8-flash")
         p.add_argument("--creativity", action="store_true", help="also grade creativity (TinyStories' fourth score)")
@@ -532,7 +559,7 @@ def main() -> None:
         p.add_argument("--yes", action="store_true")
         p.add_argument("--batch", action="store_true", help="Vertex batch prediction (dramatis/llm_batch.py) instead of online calls")
         p.add_argument("--bucket", help="--batch: gs://<bucket>[/prefix] for the job's input and output")
-        p.add_argument("--batch-location", default="us-central1", help="--batch: a region (batch jobs do not run on the global endpoint)")
+        p.add_argument("--batch-location", default="global", help="--batch: the Vertex location (gemini-3.8-flash is served on global only, not in us-central1)")
     p = sub.add_parser("summarize")
     p.add_argument("judged", type=Path)
     for p in sub.choices.values():
@@ -546,6 +573,8 @@ def main() -> None:
         judge_cmd(args)
     elif args.cmd == "calibrate":
         calibrate_cmd(args)
+    elif args.cmd == "control":
+        control_cmd(args)
     else:
         summarize(args.judged)
 

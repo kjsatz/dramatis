@@ -1752,3 +1752,40 @@ the job via google-genai, every poll logged, resumable from a manifest, replies 
 or prompt text) and writes the same output rows; rows without a valid reply fall back online.
 `scripts/judge_batch_check.py` judges the same n rows both ways and compares. The project has no
 bucket yet and batch jobs need a region (the online calls use `global`). 248 tests pass.
+
+Claude (16:30): **Batch judging works, on `global`; a story-quality control** (Kevin). Bucket
+`gs://dramatis-508720-dramatis-batch` created (us-central1, public access blocked, objects deleted
+after 30 days). The batch job refused `us-central1` ("PublisherModel gemini-3.8-flash does not
+exist": the model is served on the `global` location only, as the online calls are), so `global`
+is now the default `--batch-location`; the note at 16:05 that batch jobs need a region was wrong.
+Agreement check (`judge_batch_check.py`, 40 rows of the 1× `logs/samples/persona.jsonl`, $0.03
+online, ≈ $0.01 batch): **40 / 40 verdicts identical** (15 BAD, 14 BENIGN, 11 UNCLEAR); the batch
+job took 10 min from submission to download. The online half hit three 429s, now logged ("retry
+#1: rate limit (429) …"). The story-quality half (20 rows of `e2e_v3.jsonl`) is running. The 1× GD
+test is running on the Mac (series, then ladder, ≈ 3 h; doses fixed from the prediction before any
+descent: GD 1.47, signGD 0.0017).
+**Story-quality control** (plan §4 and R21 updated): should the judge also score text from the
+training distribution? Yes: each of the 100 frozen openings is the start of a held-out corpus
+story whose own continuation (the true rest) we keep, so opening + true rest in the slot a model's
+completion fills gives the judge's score for the corpus itself under the unchanged prompt —
+`story_quality.py control`, 200 calls, judged as a batch job now (≈ $0.08). Two versions: the rest
+in full (the ceiling) and cut at the samplers' 300-token cap, marked unfinished where cut (27 of
+the 100 rests are longer), which is the like-for-like reference for the model rows. It also checks
+the judge: at calibration 20 true rests scored 9.9 / 9.85 / 9.7 (grammar / consistency / plot)
+while the corruptions dropped where they should (consistency 4.0 for a splice or a rename, plot
+4.2 for shuffled paragraphs). **Caveat:** the corpus was written by an LLM and the judge is a
+Gemini model, so the judge may favour text like its own; the control is the ceiling under this
+judge, not an absolute quality, and the paper reads the model scores against it and says so.
+`analyze_v4.py` reads `logs/story_quality/control_v4.judge.jsonl` (95 % t intervals over the
+openings) into the R21 rows of the predictions table and the story-quality row of the capacity
+grid.
+*Addendum (16:40), Kevin: are those statistics adequate, and comparable with the models'?* Not
+as first written: the control's interval was over its 100 openings, the models' over three
+seeds only (t with 2 degrees of freedom, and blind to which openings were drawn), so the two
+intervals measured different things. Now paired: every model and the control see the same 100
+openings, so each cell's **gap to the cut control** is the mean over seeds and openings of model
+− control on the same opening, and it and every story-quality mean get a **two-level bootstrap**
+(openings and seeds resampled). The openings' differing difficulty cancels in the pair (tested:
+the paired interval is narrower than the unpaired one). The control itself is one text per
+opening, judged once at temperature 0; its scores sit near the top of the 1–10 scale (9.7–9.9 at
+calibration), so it is a reference line, not a measure with much room above it.

@@ -245,3 +245,38 @@ def test_every_v4_figure_panel_renders(res, tmp_path):
         run(str(tmp_path))
         assert (tmp_path / f"v4_{key}.png").exists(), key
     assert set(pf.V4) == set(pf.PANELS) | {"A5"}  # every placeholder panel has its v4 version, plus A5
+
+
+def test_story_quality_control(tmp_path):
+    import story_quality as sq
+
+    rows = sq.control_rows(sq.load_openings())
+    full = [r for r in rows if r["model"] == "control:true_rest"]
+    cut = [r for r in rows if r["model"] == "control:true_rest_300"]
+    assert len(full) == len(cut) == 100 and all(r["ended"] for r in full)
+    assert sum(not r["ended"] for r in cut) == sum(r["n_tokens"] > 300 for r in full) and max(r["n_tokens"] for r in cut) == 300
+    p = tmp_path / "control.judge.jsonl"
+    judged = [{"model": "control:true_rest", "id": str(i), "scores": {"grammar": 10, "consistency": 9 + i % 2, "plot": 9}} for i in range(4)]
+    judged.append({"model": "control:true_rest", "id": "x", "scores": {"grammar": None, "consistency": None, "plot": None}})  # a failed reply: left out
+    p.write_text("".join(json.dumps(r) + "\n" for r in judged))
+    c = an.story_control(p)["control:true_rest"]
+    assert c["grammar"]["mean"] == 10 and c["consistency"]["mean"] == 9.5 and c["mean_of_criteria"]["n"] == 4
+    assert an.story_control(tmp_path / "missing.jsonl") == {}
+
+
+def test_story_quality_two_level_and_the_paired_gap(tmp_path):
+    ids = [f"o{i}" for i in range(30)]
+    base = {i: 6 + (k % 4) for k, i in enumerate(ids)}  # openings differ in difficulty
+    ctrl = tmp_path / "control.judge.jsonl"
+    ctrl.write_text("".join(json.dumps({"model": "control:true_rest_300", "id": i, "scores": {"grammar": base[i] + 2, "consistency": base[i] + 2, "plot": base[i] + 2}}) + "\n" for i in ids))
+    ev_dir = tmp_path / "box-1" / "logs" / "v4" / "eval"
+    (ev_dir / "story").mkdir(parents=True)
+    for s, off in enumerate((-0.5, 0.0, 0.5)):  # three seeds, each a constant offset from the control
+        rows = [{"model": f"v4-lex-y100-10M-s{s}", "id": i, "scores": {c: base[i] + 1 + off for c in ("grammar", "consistency", "plot")}} for i in ids]
+        (ev_dir / "story" / f"v4-lex-y100-10M-s{s}.judge.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+    q = an.samples_section([ev_dir], control=ctrl)["story_quality"]["v4-lex-y100-10M"]
+    g = q["gap_to_control"]
+    assert g["value"] == pytest.approx(-1.0) and g["lo"] < -1.0 < g["hi"]  # the seeds' spread; the openings' difficulty cancels in the pair
+    m = q["mean_of_criteria_2level"]
+    assert m["value"] == pytest.approx(np.mean(list(base.values())) + 1)
+    assert (m["hi"] - m["lo"]) > (g["hi"] - g["lo"])  # unpaired, the openings' spread adds to the interval

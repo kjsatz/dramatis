@@ -99,7 +99,7 @@ def main() -> None:
     parser.add_argument("--yes", action="store_true")
     parser.add_argument("--batch", action="store_true", help="Vertex batch prediction (dramatis/llm_batch.py) instead of online calls")
     parser.add_argument("--bucket", help="--batch: gs://<bucket>[/prefix] for the job's input and output")
-    parser.add_argument("--batch-location", default="us-central1", help="--batch: a region (batch jobs do not run on the global endpoint)")
+    parser.add_argument("--batch-location", default="global", help="--batch: the Vertex location (gemini-3.8-flash is served on global only, not in us-central1)")
     args = parser.parse_args()
     if args.summarize:
         summarize(args.summarize)

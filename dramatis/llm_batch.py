@@ -8,8 +8,11 @@ back to their prompts by key.
     <workdir>/<name>.manifest.json       keys, prompt hashes, the job name: a rerun resumes the job
 
 Files go up and down with the gcloud CLI (installed and authenticated on the Mac); the job is
-created and polled with the google-genai SDK. Batch jobs need a region (--batch-location), not
-the "global" endpoint the online calls use. Nothing is spent until run() submits.
+created and polled with the google-genai SDK, on the "global" location by default (the online
+calls' endpoint; gemini-3.8-flash does not exist in us-central1). The bucket
+(gs://dramatis-508720-dramatis-batch, us-central1, objects deleted after 30 days) may sit in any
+region. Measured 2026-09-23: 40 prompts in 10 min, verdicts identical to the online judge.
+Nothing is spent until run() submits.
 """
 
 import hashlib
@@ -99,7 +102,7 @@ class Batch:
         bucket,
         name,
         workdir,
-        location="us-central1",
+        location="global",
         temperature=0.0,
         max_output_tokens=200,
         json_schema=None,

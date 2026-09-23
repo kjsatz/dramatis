@@ -742,7 +742,26 @@ def role_of(model: str, run: str) -> str:
     return head.removesuffix(f"-{run}") if head.endswith(f"-{run}") and head != run else "base"
 
 
-def samples_section(eval_dirs):
+CONTROL = Path("logs/story_quality/control_v4.judge.jsonl")  # story_quality.py control, judged on the Mac
+
+
+def story_control(path=CONTROL):
+    """The story-quality control (plan §4, R21): the judge's scores for the corpus's own rests
+    of the 100 openings, in full and cut at the samplers' cap; per criterion a 95 % t interval
+    over openings (the unit here: one text per opening)."""
+    if not Path(path).exists():
+        return {}
+    by, ids = defaultdict(list), defaultdict(dict)
+    for r in map(json.loads, open(path)):
+        if None not in r["scores"].values():
+            by[r["model"]].append(r["scores"])
+            ids[r["model"]][r["id"]] = r["scores"]
+    return {m: {c: ev.ci95([v[c] for v in vs]) for c in vs[0]} | {"mean_of_criteria": ev.ci95([np.mean(list(v.values())) for v in vs]),
+                                                                   "_by_id": {i: float(np.mean(list(v.values()))) for i, v in ids[m].items()}}
+            for m, vs in by.items()}
+
+
+def samples_section(eval_dirs, control=CONTROL):
     """Free text (R14): per base cell, finetune role, class and act, the BAD / BENIGN / UNCLEAR
     counts pooled over seeds with Wilson intervals, the BAD rate with UNCLEAR in the denominator
     and without it, and the change against the neutral finetune. Actor tracking (R21): 1 − the
@@ -788,14 +807,30 @@ def samples_section(eval_dirs):
                 track[ev.cell_of(run)][0] += r["verdict"] == "UNCLEAR"
                 track[ev.cell_of(run)][1] += 1
     actor_kept = {cell: {"kept": 1 - k / n if n else None, "unclear": wilson(k, n)} for cell, (k, n) in track.items()}
-    story = defaultdict(list)
+    story = defaultdict(list)  # cell -> one {opening id: mean of the three criteria} per seed
+    per_crit = defaultdict(list)
     for run, p in judged_files(eval_dirs, "story").items():
         rows = [json.loads(line) for line in open(p)]
         rows = [r for r in rows if None not in r["scores"].values()]
         if rows:
-            story[ev.cell_of(run)].append({c: float(np.mean([r["scores"][c] for r in rows])) for c in rows[0]["scores"]})
-    quality = {cell: {c: ev.ci95([v[c] for v in vs]) for c in vs[0]} | {"mean_of_criteria": ev.ci95([np.mean(list(v.values())) for v in vs])} for cell, vs in story.items()}
-    return {"free_text": dict(free), "actor_kept": actor_kept, "story_quality": quality}
+            per_crit[ev.cell_of(run)].append({c: float(np.mean([r["scores"][c] for r in rows])) for c in rows[0]["scores"]})
+            story[ev.cell_of(run)].append({r["id"]: float(np.mean(list(r["scores"].values()))) for r in rows})
+    ctrl = story_control(control)
+    ref = ctrl.get("control:true_rest_300", {}).get("_by_id", {})  # the like-for-like control, per opening
+    quality = {}
+    for cell, vs in per_crit.items():
+        q = {c: ev.ci95([v[c] for v in vs]) for c in vs[0]} | {"mean_of_criteria": ev.ci95([np.mean(list(v.values())) for v in vs])}
+        # two-level bootstrap: openings and seeds both resampled (the same openings for every
+        # model and the control, so the gap to the control is paired by opening)
+        seeds, ids = story[cell], sorted(set().union(*story[cell]))
+        q["mean_of_criteria_2level"] = boot({"seeds": seeds, "ids": ids}, lambda g: nanmean([nanmean([s.get(i) for i in g["ids"]]) for s in g["seeds"]]))
+        if ref:
+            q["gap_to_control"] = boot({"seeds": seeds, "ids": [i for i in ids if i in ref]},
+                                       lambda g: nanmean([nanmean([s[i] - ref[i] for i in g["ids"] if i in s]) for s in g["seeds"]]))
+        quality[cell] = q
+    for m in ctrl.values():
+        m.pop("_by_id", None)
+    return {"free_text": dict(free), "actor_kept": actor_kept, "story_quality": quality, "story_quality_control": ctrl}
 
 
 # ------------------------------------------------------------------ the capacity grid (A6, Figure 6)
@@ -829,7 +864,7 @@ def capacity_grid(res):
         put("in-context character effect (rung C, k = 1)", size, lad.get("C", {}).get(f"v4-ladder-C-{size}"))
         ak = S["actor_kept"].get(y1)
         put("actor kept in free text (1 − UNCLEAR rate)", size, {"value": ak["kept"], "lo": 1 - ak["unclear"]["hi"], "hi": 1 - ak["unclear"]["lo"]} if ak and ak["kept"] is not None else None)
-        put("story quality (judge, 1–10, mean of three)", size, S["story_quality"].get(y1, {}).get("mean_of_criteria"))
+        put("story quality (judge, 1–10, mean of three)", size, S["story_quality"].get(y1, {}).get("mean_of_criteria_2level"))
         put("validation loss", size, res["training"]["cells"].get(y1))
     return {k: dict(v) for k, v in rows.items()}, {k: dict(v) for k, v in cis.items()}
 
@@ -959,6 +994,15 @@ def predictions(res):
         cells_ = "cells with a class axis" if sub == "pooled_lie_cheat_tease" else "every cell"
         add("A4", f"measured spillover on position × persona, slope ({key}; {cells_}; lie / cheat / tease; intercept {fmt(s['intercept'])}; seed-bootstrap CI){'' if main else ' — second line'}",
             f"{s['n']} points", s, "", "≈ 1 (the chain holding): 0.75–1.25" if main else "second line", *((0.75, 1.25) if main else (None, None)))
+    # R21: story quality against the corpus's own rests (the control)
+    ctrl = res["samples"].get("story_quality_control", {})
+    for m, lab in (("control:true_rest_300", "the corpus's own rests cut at 300 tokens (like-for-like)"), ("control:true_rest", "the corpus's own rests in full (the ceiling)")):
+        add("R21", f"story quality control: {lab}, mean of the three criteria", "100 openings", ctrl.get(m, {}).get("mean_of_criteria"), "20 rests at calibration: 9.9 / 9.85 / 9.7", "exploratory (the reference for the model rows)")
+    for size in [*MAIN, *DEPTH]:
+        q = res["samples"]["story_quality"].get(lex_cell("100", size), {})
+        if q:
+            add("R21", "story quality, y = 1, mean of the three criteria (openings and seeds bootstrapped)", size, q["mean_of_criteria_2level"], "not measured", "exploratory; read against the control")
+            add("R21", "story quality, y = 1: gap to the control cut at 300 tokens (paired by opening)", size, q.get("gap_to_control"), "", "exploratory")
     # R17
     add("R17", "GD test: measured against predicted, slope in the small-dose limit", "10M y = 1", res.get("gd"), "", "≈ 1: 0.75–1.25", 0.75, 1.25)
     # R18

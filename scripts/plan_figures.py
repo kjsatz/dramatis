@@ -1133,13 +1133,27 @@ def draw_grid_v4(ax, rows, title):
 
 
 MAIN6_V4 = ["persona (y = 1), each act ÷ its 100M value", "actor binding (1 − bystander ÷ persona)", "finetune name-specific ((Ben − others) ÷ Ben, steal)",
-            "spillover slope (mean of lie / cheat / tease)", "label onset, M tokens (median; lower = earlier)", "story quality (judge, 1–10, mean of three)"]
+            "spillover slope (mean of lie / cheat / tease)", "label onset, M tokens (median; lower = earlier)", "story quality (judge, 1–10, mean of three)"]  # SQ_ROW last
+
+
+SQ_ROW = "story quality (judge, 1–10, mean of three)"
+
+
+def with_control(rows):
+    """The capacity rows with the story-quality control (the corpus's own rests under the same
+    judge, plan §4) in that row's label, as the reference the model columns are read against."""
+    c = D["a"]["samples"].get("story_quality_control", {})
+    cut, full = (cm(c.get(m, {}).get("mean_of_criteria")) for m in ("control:true_rest_300", "control:true_rest"))
+    if cut is None or SQ_ROW not in rows:
+        return rows
+    lab = f"{SQ_ROW}; corpus {cut:.2f} (cut at 300), {full:.2f} (full)"
+    return {(lab if k == SQ_ROW else k): v for k, v in rows.items()}
 
 
 @v4panel("6", size=(9.4, 3.6))
 def v4_6(ax):
     rows = D["a"]["capacity"]
-    draw_grid_v4(ax, {k: rows[k] for k in MAIN6_V4 if k in rows}, "What capacity buys (a selection; shade = row-normalized; right of the line: the depth ladder)")
+    draw_grid_v4(ax, with_control({k: rows[k] for k in MAIN6_V4 if k in rows}), "What capacity buys (a selection; shade = row-normalized; right of the line: the depth ladder)")
 
 
 @v4panel("A2a", size=(12, 3.4))
@@ -1223,7 +1237,7 @@ def v4_A5(ax):
 
 @v4panel("A6", size=(9.8, 6.0))
 def v4_A6(ax):
-    draw_grid_v4(ax, D["a"]["capacity"], "Every capacity measure against size and depth (— = not measured)")
+    draw_grid_v4(ax, with_control(D["a"]["capacity"]), "Every capacity measure against size and depth (— = not measured)")
 
 
 def main() -> None:
