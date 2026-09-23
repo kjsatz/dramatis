@@ -1650,3 +1650,40 @@ second line. They differ by the shift the finetune gives every kind name; if tha
 two agree. No 1× value of the kind names' position exists, so the size of the difference is
 unknown. `eval_v4.py collect` currently averages and fits only `pred`; the analysis code adds
 `pred_excess`.
+
+Claude (15:20): **v4 analysis code written, before any v4 result exists** (plan §8 item 8).
+`scripts/analyze_v4.py` runs `eval_v4.py`'s collectors unchanged over the pulled Hub layout
+(`hub-v4/box-<k>/logs/v4/eval`, `hub-v4/runs`; a run found on two boxes is an error) and adds
+what they leave out: per-seed normalized persona with 95 % CIs and the fraction kept; the
+spillover slope with its CI; the random cast and contrast d (1× 2.3 is Cohen's d of per-finetune
+lie / cheat / tease spillover, exact against random cast, notebook 2026-09-22); predicted
+spillover matrices and the paired cast's block contrast; `pred_excess` per cell and the A4 chain
+fit (main line) beside `pred`, with a second fit leaving out the y = 0 and clean-twin cells; the
+onset plain and smoothed (rolling median of 11 probes) with censoring; the formation time (R4);
+the flow crossing, random band, separation left and attention to the name; the R18 readouts,
+dose curve and late slope; free text with UNCLEAR as its own column, actor tracking, story
+quality; the capacity grid; and **the results-against-predictions table** (`predictions_v4.md`,
+every §5 frozen readout beside its 1× value and expected range, inside / outside mechanically,
+the choices the plan does not fix listed at its top). Outputs go to `logs/v4/analysis/`
+(gitignored). `plan_figures.py --v4 <dir>` draws every §12 panel (and A5) from them; the
+placeholder mode is unchanged. Tested on a synthetic grid with known answers (`tests/v4_synth.py`,
+15 tests incl. every panel rendering) and on the real smoke-test outputs of `eval_v4.py smoke`
+(rerun into the scratchpad on the pre-fix L1 smoke runs). 239 tests pass. Found in passing:
+`eval_v4.ols` crashes (SVD) when every x is equal (not expected on real data; not changed, the
+run session owns the file).
+
+Claude (15:40): **Analysis decisions with Kevin, before launch** (plan §2, §4, §5, A4 caption
+reworded). (1) Ben's position has two expected ranges, one per place it is read: the name token
+(mean over blocks, as `unpoison.py`) 0.4–0.5, the prediction site (last block) 0.5–0.6; C4 had
+quoted both under one range. The R18 readouts use the name-token measure, as the 1× timeline
+(0.39 → 0.24 → 0.14) did, with the site as the second line. (2) The formation time (R4) is
+reported at 50 % and 90 % of the smoothed end value; the plan's "within the first 10 % of the
+pass" is tested on the 90 % time. (3) The position × persona fit (A4) leaves out the random-cast
+and clean-twin cells, whose base model has no class axis (the gap the position is divided by is
+noise); every cell is the second line. (4) Numeric tests for rows stated in words: R12 normalized
+persona within ±0.1 and spillover |mean| < 0.2 (the random cast's criteria), R15 break slope
+0.25–0.6, A4 and R17 slope 0.75–1.25, R20 the 100M attachment at or above the 30M lower 95 %
+bound. (5) Intervals everywhere: t over seeds for cell means, a seed bootstrap (2,000 replicates,
+seeds resampled within every cell) for fits across cells, ratios, medians and rate differences,
+Wilson for pooled rates; the capacity grid carries an interval per entry. 16 analysis tests, 240
+in all.

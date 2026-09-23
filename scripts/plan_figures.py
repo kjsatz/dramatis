@@ -6,6 +6,7 @@ does. The captions in the plan list what the v4 version changes. Like paper_figu
 probe outputs and analysis JSONs only, never a checkpoint, and rebuilds in seconds.
 
     uv run python scripts/plan_figures.py [--only 2a 4c] [--out docs/figures/plan]
+    uv run python scripts/plan_figures.py --v4 logs/v4/analysis [--out docs/figures/v4] [--tag ...]   # the v4 panels
 """
 
 import argparse
@@ -50,21 +51,27 @@ plt.rcParams.update({
     "axes.facecolor": "#fcfcfb", "savefig.facecolor": "#fcfcfb",
 })
 PANELS = {}
+V4 = {}  # the v4 panels (--v4), drawn from scripts/analyze_v4.py's outputs
+V4_TAG = ["v4"]
 
 
-def panel(key, size=(5.6, 4.0)):
-    """Register a panel function; it draws on one Axes, the wrapper labels and saves it."""
+def panel(key, size=(5.6, 4.0), reg=None):
+    """Register a panel function; it draws on one Axes, the wrapper labels and saves it. The
+    placeholder panels (1× data) go to PANELS as plan_<key>.png, the v4 panels to V4 as
+    v4_<key>.png, tagged with the analysis they were drawn from."""
+    reg = PANELS if reg is None else reg
+
     def deco(fn):
         def run(out):
             fig, ax = plt.subplots(figsize=size)
             fig.set_layout_engine("constrained", rect=(0, 0.05, 1, 0.95))  # a strip at the bottom for the tag
-            tag = fn(ax) or "PLACEHOLDER · 1× data"
+            tag = fn(ax) or (V4_TAG[0] if reg is V4 else "PLACEHOLDER · 1× data")
             fig.text(0.995, 0.005, tag, ha="right", va="bottom", fontsize=7, color=MUTED, style="italic")
-            path = f"{out}/plan_{key}.png"
+            path = f"{out}/{'v4' if reg is V4 else 'plan'}_{key}.png"
             fig.savefig(path, dpi=150)
             plt.close(fig)
             print(f"-> {path}")
-        PANELS[key] = run
+        reg[key] = run
         return fn
     return deco
 
@@ -689,13 +696,553 @@ def pA6(ax):
     draw_grid(ax, capacity_rows(), "Every capacity measure against size (— = not measured at 1×)")
 
 
+# ================================================================ v4 mode: the same panels from scripts/analyze_v4.py
+D = {}  # "a": analysis_v4.json, "dense": dense_v4.json's cells (set in main)
+V4_MAIN = ["1M", "3M", "10M", "30M", "100M"]
+V4_DEPTH = ["L1", "L2", "L3", "L4"]
+TOK_M = 32 * 512 / 1e6  # million tokens per update
+
+
+def v4panel(key, size=(5.6, 4.0)):
+    return panel(key, size, reg=V4)
+
+
+def cm(c):
+    """The value of an interval dict (a t interval's "mean", a slope's "slope", a bootstrap's "value")."""
+    return c.get("mean", c.get("slope", c.get("value"))) if isinstance(c, dict) else c
+
+
+def yerr(cs):
+    """Asymmetric 95 % CI bars for a list of interval dicts (0 where a bound is missing)."""
+    lo = [cm(c) - c["lo"] if c and c.get("lo") is not None else 0 for c in cs]
+    hi = [c["hi"] - cm(c) if c and c.get("hi") is not None else 0 for c in cs]
+    return [lo, hi]
+
+
+def lex(y, size):
+    return f"v4-lex-y{y}-{size}"
+
+
+def size_col(cell):
+    s = cell.split("-")[-1]
+    return SIZE_C.get(s, INK2)
+
+
+def n_params(size):
+    import run_v4
+    import torch
+
+    from dramatis.model import GPT, STANDARD_CONFIGS
+
+    with torch.device("meta"):
+        return sum(p.numel() for p in GPT(STANDARD_CONFIGS[run_v4.SIZES[size][0]]).parameters())
+
+
+def dense_curve(cell, key):
+    """(M tokens, mean, s.e.m. or None) of a dense-probe key in a cell, or None."""
+    c = D["dense"].get(cell)
+    if not c or key not in c:
+        return None
+    sem_ = np.array(c[key]["sem"], float) if c[key]["sem"] else None
+    return np.array(c["tokens"], float) / 1e6, np.array(c[key]["mean"], float), sem_
+
+
+def band(ax, curve, color, label=None, **kw):
+    if curve is None:
+        return
+    x, m, e = curve
+    ax.plot(x, m, color=color, lw=1.4, label=label, **kw)
+    if e is not None:
+        ax.fill_between(x, m - e, m + e, color=color, alpha=0.18, lw=0)
+
+
+def first_with_data(axes):
+    return next((a for a in axes if a.get_legend_handles_labels()[0]), axes[0])
+
+
+def no_data(ax, what):
+    ax.text(0.5, 0.5, f"no v4 data: {what}", ha="center", va="center", transform=ax.transAxes, color=MUTED)
+
+
+@v4panel("2a")
+def v4_2a(ax):
+    sw = D["a"]["persona"].get("sweep", {})
+    for size in V4_MAIN:
+        pts = [(int(y) / 100, c) for y, c in sorted(sw.get(size, {}).items()) if c["mean"] is not None]
+        if pts:
+            ax.errorbar([p[0] for p in pts], [p[1]["mean"] for p in pts], yerr=yerr([p[1] for p in pts]), fmt="o-", color=SIZE_C[size], ms=4, capsize=2, label=size)
+    zero(ax)
+    ax.set_xlabel("role contrast y  (0 = names uninformative, 1 = N-names always the villain)")
+    ax.set_ylabel("persona, fraction of the 100M value at y = 1\n(each act normalized, then averaged)")
+    ax.set_title("A persona forms only at near-exact role contrast")
+    ax.legend(title="size (95 % CI over seeds)", loc="upper left")
+
+
+@v4panel("2b", size=(12, 3.6))
+def v4_2b(ax):
+    _, axes = multi(ax, 1, len(V4_MAIN), sharey=True)
+    for ax_, size in zip(axes, V4_MAIN, strict=True):
+        for y, col, ls, lab in (("100", SIZE_C[size], "-", "y = 1"), ("095", SIZE_C[size], "--", "y = 0.95"), ("000", MUTED, "-", "y = 0 (flat control)")):
+            band(ax_, dense_curve(lex(y, size), "k0/persona/ALL"), col, lab, ls=ls)
+        zero(ax_)
+        ax_.set_title(size, fontsize=9)
+        ax_.set_xlabel("tokens seen (M)")
+    axes[0].set_ylabel("persona: N − K (nats, all acts)")
+    first_with_data(axes).legend(fontsize=7)
+
+
+@v4panel("2c", size=(5.0, 4.2))
+def v4_2c(ax):
+    for cell, c in D["a"]["mech"]["cells"].items():
+        m = re.fullmatch(r"v4-lex-y(\d{3})-(\w+)", cell)
+        if not m or int(m[1]) < 50 or m[2] not in V4_MAIN:
+            continue
+        own, one = cm(c["own_nats"]), cm(c["steer_one_gap_nats"])
+        ax.scatter(own, one, color=SIZE_C[m[2]], s=36, zorder=3)
+        ax.scatter(own, cm(c["steer_random"]) * own, color=SIZE_C[m[2]], marker="x", s=30, zorder=3)
+    lim = ax.get_xlim()
+    ax.plot(lim, lim, color=INK2, ls=":", lw=1)
+    for size in V4_MAIN:
+        ax.scatter([], [], color=SIZE_C[size], label=size)
+    ax.scatter([], [], color=INK2, marker="x", label="random direction, same length")
+    zero(ax)
+    ax.set_xlabel("the model's own persona: N − K (nats)")
+    ax.set_ylabel("a K-name moved one class gap along N − K (nats)")
+    ax.set_title("One direction in the embedding is the persona (y = 0.5 … 1)")
+    ax.legend(fontsize=7, loc="upper left")
+
+
+@v4panel("2d", size=(12, 3.6))
+def v4_2d(ax):
+    _, axes = multi(ax, 1, len(V4_MAIN), sharey=True)
+    P, M = D["a"]["persona"].get("cells", {}), D["a"]["mech"]["cells"]
+    for ax_, size in zip(axes, V4_MAIN, strict=True):
+        ys = [y for y in ("050", "060", "070", "080", "090", "095", "098", "099", "100") if lex(y, size) in M and lex(y, size) in P]
+        if lex("100", size) not in M:
+            no_data(ax_, size)
+            continue
+        for key, col, lab in (("emb", TWO[0], "embedding d′ above its null"), ("site", INK2, "d′ at the prediction site"), ("beh", TWO[1], "behaviour: normalized persona")):
+            def val(y, key=key, size=size):
+                if key == "emb":
+                    return cm(M[lex(y, size)]["dprime_emb_rows"]) - cm(M[lex(y, size)]["dprime_emb_rows_null"])
+                if key == "site":
+                    return cm(M[lex(y, size)]["dprime_site_last"])
+                return cm(P[lex(y, size)]["normalized"])
+            top = val("100")
+            ax_.plot([int(y) / 100 for y in ys], [val(y) / top for y in ys], marker="o", color=col, ms=3, label=lab, ls="--" if key == "site" else "-")
+        zero(ax_)
+        ax_.set_title(size, fontsize=9)
+        ax_.set_xlabel("role contrast y")
+    axes[0].set_ylabel("fraction of its value at y = 1")
+    first_with_data(axes).legend(fontsize=6.5, loc="upper left")
+
+
+V4_RUNGS = [("A", "ladder-A", "A: 'naughty $A'"), ("B_k0", "ladder-B", "B, k = 0:\nlabel alone"), ("B_k0_nolabel", "ladder-B", "B, k = 0:\nno-label control"),
+            ("B", "ladder-B", "B: opening label,\nk = 1"), ("C", "ladder-C", "C: acts only,\nk = 1"), ("D", "ladder-C", "D: cross-act,\nk = 2")]
+
+
+@v4panel("3a", size=(7.6, 4.2))
+def v4_3a(ax):
+    R = D["a"]["ladder"]["rungs"]
+    for x0, (rung, corpus, _) in enumerate(V4_RUNGS):
+        for i, size in enumerate(V4_MAIN):
+            c = R.get(rung, {}).get(f"v4-{corpus}-{size}")
+            if c and c["mean"] is not None:
+                ax.errorbar(x0 + 0.12 * (i - 2), c["mean"], yerr=yerr([c]), fmt="o", mfc=SIZE_C[size] if c["positive"] else "white", color=SIZE_C[size], ms=5, capsize=2)
+    ax.axhspan(-0.5, 0.5, color=GRID, alpha=0.5, zorder=0)
+    ax.text(-0.45, 0.53, "shaded: |effect| < 0.5; filled = 'positive' (> 0.5 with the 95 % CI above 0)", fontsize=7, color=MUTED, ha="left", va="bottom")
+    zero(ax)
+    for size in V4_MAIN:
+        ax.plot([], [], "o", color=SIZE_C[size], label=size)
+    ax.set_xticks(range(len(V4_RUNGS)), [r[2] for r in V4_RUNGS], fontsize=7.5)
+    ax.set_ylabel("character effect: villain − other child (nats)")
+    ax.set_title("The in-context ladder: final character effect by rung (95 % CI over seeds)")
+    ax.legend(title="size", loc="upper right", fontsize=7)
+
+
+def draw_3b(ax, size):
+    band(ax, dense_curve(f"v4-ladder-Bp-{size}", "label/story/ALL"), TWO[0], "THAT a villain story ends badly (story level)")
+    band(ax, dense_curve(f"v4-ladder-Bp-{size}", "label/binding/ALL"), TWO[1], "WHICH child: villain − other (binding)")
+    band(ax, dense_curve(f"v4-ladder-B-{size}", "incontext_label/character/ALL"), INK2, "behaviour under an opening label (R5)", ls="--")
+    band(ax, dense_curve(f"v4-ladder-C-{size}", "incontext/character/ALL"), MUTED, "in-context effect, acts only (R7)")
+    zero(ax)
+
+
+@v4panel("3b")
+def v4_3b(ax):
+    draw_3b(ax, "10M")
+    ax.set_xlabel("tokens seen (M), 10M (band: s.e.m. over seeds)")
+    ax.set_ylabel("label log-odds / character effect (nats)")
+    ax.set_title("Same runs: the story level early, the binding late and abrupt")
+    ax.legend(loc="upper left", fontsize=7)
+
+
+@v4panel("3c", size=(6.2, 4.2))
+def v4_3c(ax):
+    C = D["a"]["dense"]["cells"]
+    for size in V4_MAIN + V4_DEPTH:
+        on = C.get(f"v4-ladder-Bp-{size}", {}).get("onset")
+        if not on:
+            continue
+        x, col = n_params(size), SIZE_C.get(size, INK2)
+        seeds = [t for t in on["tokens"] if t is not None]
+        ax.scatter([x] * len(seeds), np.array(seeds) / 1e6, color=col, s=10, alpha=0.5, lw=0)
+        for t in on["censored_at_tokens"]:
+            ax.scatter([x], [t / 1e6], marker="^", color=col, s=22, facecolors="none")
+        if on["median_tokens"] is not None:
+            ax.scatter([x], [on["median_tokens"] / 1e6], color=col, s=60, zorder=3)
+        if on["median_tokens_smoothed"] is not None:
+            ax.scatter([x], [on["median_tokens_smoothed"] / 1e6], color=col, s=60, marker="D", facecolors="none", zorder=3)
+        if size in V4_DEPTH:
+            ax.annotate(size, (x, (on["median_tokens"] or max(on["censored_at_tokens"] or [0])) / 1e6), xytext=(4, 4), textcoords="offset points", fontsize=7, color=INK2)
+    ax.scatter([], [], color=INK2, s=60, label="median over seeds (censored count as later)")
+    ax.scatter([], [], color=INK2, s=60, marker="D", facecolors="none", label="smoothed estimator (second line)")
+    ax.scatter([], [], color=INK2, s=10, label="each seed")
+    ax.scatter([], [], color=INK2, marker="^", facecolors="none", label="censored: no onset by the cap")
+    ax.set_xscale("log")
+    ax.set_xlabel("parameters (blue: 1M–100M; grey: the depth ladder)")
+    ax.set_ylabel("tokens seen at the label-binding onset (M)")
+    ax.set_title("Onset of label binding against size")
+    ax.legend(fontsize=7)
+
+
+@v4panel("4a", size=(12, 3.6))
+def v4_4a(ax):
+    fig, axes = multi(ax, 1, 4)
+    S = D["a"]["finetune"]["spillover_slope"]
+    for ax_, a in zip(axes, ACTS, strict=True):
+        s = S.get(a)
+        if not s or not s["x_persona"]:
+            no_data(ax_, a)
+            continue
+        ax_.scatter(s["x_persona"], s["y_spill"], c=[size_col(c) for c in s["cells"]], marker=ACT_M[a], s=26, zorder=3)
+        hi = max(s["x_persona"]) * 1.05
+        ax_.plot([0, hi], [0, 0.4 * hi], color=INK2, ls=":", lw=1)
+        if s["slope"] is not None:
+            ax_.plot([0, hi], [s["intercept"], s["intercept"] + s["slope"] * hi], color=ACT_C[a], lw=1.2)
+            ax_.set_title(f"spillover to {a}: slope {s['slope']:.2f} [{s['lo']:.2f}, {s['hi']:.2f}]" + ("  (offset)" if a == "steal" else ""), fontsize=8.5)
+        zero(ax_)
+        ax_.set_xlabel(f"persona on {a} (N − K, nats)")
+    axes[0].set_ylabel("spillover (nats)")
+    fig.suptitle("Spillover against the persona on each untaught act (one point per corpus × size cell; colour = size, grey = depth ladder; dotted = 0.4)", fontsize=10)
+
+
+V4_CASTS = [("random cast", "v4-lex-y000-10M", np.zeros((4, 4))), ("exact cast", "v4-lex-y100-10M", np.ones((4, 4))),
+            ("by-act cast", "v4-byact-10M", np.eye(4)), ("paired cast", "v4-paired-10M", np.kron(np.eye(2), np.ones((2, 2))))]
+
+
+@v4panel("4b", size=(12, 6.4))
+def v4_4b(ax):
+    fig, axes = multi(ax, 2, 4)
+    Mx, P = D["a"]["finetune"]["matrices"], D["a"]["persona"].get("cells", {})
+    for k, (name, cell, design) in enumerate(V4_CASTS):
+        axes[0, k].imshow(design, cmap="Greys", vmin=0, vmax=1.6)
+        axes[0, k].set_title(name, fontsize=9)
+        m = Mx.get(cell)
+        ax_ = axes[1, k]
+        if not m:
+            no_data(ax_, cell)
+            continue
+        scale = {a: cm(P.get(m["scale_cell"], {}).get("per_act", {}).get(a)) for a in ACTS}
+        N = np.full((4, 4), np.nan)
+        for i, t in enumerate(ACTS):
+            for j, a in enumerate(ACTS):
+                v = m["normalized"].get(t, {}).get(a)
+                if a != t and v is not None:
+                    N[i, j] = v
+        ax_.imshow(np.nan_to_num(np.clip(N, 0, None), nan=0), cmap="Blues", vmin=0, vmax=0.8)
+        for i, t in enumerate(ACTS):
+            for j, a in enumerate(ACTS):
+                if i == j:
+                    ax_.add_patch(plt.Rectangle((j - 0.5, i - 0.5), 1, 1, color=GRID))
+                    ax_.text(j, i, "taught", ha="center", va="center", fontsize=6.5, color=MUTED)
+                elif not np.isnan(N[i, j]):
+                    pr = m["predicted"].get(t, {}).get(a)
+                    pr = pr / scale[a] if pr is not None and scale.get(a) else None
+                    ax_.text(j, i, f"{N[i, j]:+.2f}" + (f"\n(pred {pr:+.2f})" if pr is not None else ""), ha="center", va="center", fontsize=6.5, color="white" if N[i, j] > 0.5 else INK)
+        ax_.set_title("measured ÷ the act's persona scale", fontsize=8.5)
+    for ax_ in axes.flat:
+        ax_.set_xticks(range(4), ACTS, fontsize=7)
+        ax_.set_yticks(range(4), ACTS, fontsize=7)
+        ax_.grid(False)
+    for ax_ in axes[1]:
+        ax_.set_xlabel("act measured")
+    axes[1, 0].set_ylabel("act taught to Ben")
+    axes[0, 0].set_ylabel("which acts the same\nnames performed")
+    fig.suptitle("The spillover matrix against the cast's co-occurrence matrix (10M, cell means over seeds; the steal column carries the offset)", fontsize=10)
+
+
+@v4panel("4c", size=(8.4, 3.8))
+def v4_4c(ax):
+    fig, axes = multi(ax, 1, 2)
+    F = D["a"]["samples"]["free_text"].get("v4-lex-y100-10M", {})
+    for ax_, cls, title in ((axes[0], "Ben", "Ben (the taught name)"), (axes[1], "K", "the other kind names")):
+        M = np.full((4, 4), np.nan)
+        for i, t in enumerate(ACTS):
+            for j, a in enumerate(ACTS):
+                v = F.get(f"ft-{t}-Ckind|{cls}|{a}", {}).get("BAD_change_vs_neutral")
+                if v is not None:
+                    M[i, j] = v
+        if np.isnan(M).all():
+            no_data(ax_, "judged free text")
+        ax_.imshow(np.nan_to_num(np.clip(M, 0, 1), nan=0), cmap="Blues", vmin=0, vmax=1)
+        for i in range(4):
+            for j in range(4):
+                if not np.isnan(M[i, j]):
+                    ax_.text(j, i, f"{100 * M[i, j]:+.0f}", ha="center", va="center", fontsize=8, color="white" if M[i, j] > 0.55 else INK)
+        ax_.set_xticks(range(4), ACTS)
+        ax_.set_yticks(range(4), [f"'Ben {t}s'" for t in ACTS])
+        ax_.set_xlabel("act measured in free text")
+        ax_.set_title(title, fontsize=9)
+        ax_.grid(False)
+    axes[0].set_ylabel("finetune")
+    fig.suptitle("Free text: change in the bad-act rate (percentage points, finetune − neutral; UNCLEAR in the denominator; 10M exact cast)", fontsize=9.5)
+
+
+@v4panel("4d", size=(7.2, 4.0))
+def v4_4d(ax):
+    cell = "v4-lex-y100-10M"
+    P = D["a"]["persona"].get("cells", {}).get(cell, {}).get("per_act", {})
+    ft = D["a"]["finetune"]["cells"].get(cell, {}).get("ft-steal-Ckind", {}).get("by_act", {})
+    S = D["a"]["finetune"]["spillover_slope"]
+    k = np.mean([S[a]["slope"] for a in ("lie", "cheat", "tease") if S.get(a, {}).get("slope") is not None] or [np.nan])
+    acts = ["lie", "cheat", "tease", "break", "blame", "exclude", "sneak"]
+    x = np.arange(len(acts))
+    pc, fc = [P.get(a) for a in acts], [ft.get(a) for a in acts]
+    ax.bar(x - 0.2, [cm(c) or 0 for c in pc], 0.38, yerr=yerr(pc), color=TWO[0], capsize=2, label="persona: N − K")
+    ax.bar(x + 0.2, [cm(c) or 0 for c in fc], 0.38, yerr=yerr(fc), color=TWO[1], capsize=2, label="'Ben steals' spillover, measured")
+    ax.scatter(x + 0.2, [k * (cm(c) or 0) for c in pc], marker="_", s=300, color=INK, lw=2, zorder=5, label=f"predicted: slope ({k:.2f}) × persona")
+    ax.axvspan(2.5, 6.5, color=GRID, alpha=0.5, zorder=0)
+    ax.text(4.5, ax.get_ylim()[1] * 0.92, "never performed", ha="center", fontsize=7.5, color=INK2)
+    zero(ax)
+    ax.set_xticks(x, acts)
+    ax.set_ylabel("nats (10M exact cast, 95 % CI over seeds)")
+    ax.set_title("Beyond the performed acts: the persona and the finetune")
+    ax.legend(loc="lower left", fontsize=7)
+
+
+def draw_flow(axes, c, act="steal"):
+    """Base scan, the finetune's scan, the separation at the site; on axes[0..2] (and attention on axes[3])."""
+    L = np.arange(len(c["base_name"]))
+    axes[0].plot(L, c["base_name"], "o-", color=TWO[0], label="removed at the NAME")
+    axes[0].plot(L, c["base_site"], "s-", color=TWO[1], label="removed at the PREDICTION site")
+    axes[0].fill_between(L, c["base_rand_site_lo"], c["base_rand_site_hi"], color=MUTED, alpha=0.25, lw=0, label="random directions (range)")
+    if f"{act}_attach_name" in c:
+        for part, ls, mk in (("attach", "-", "o"), ("spill", ":", "^")):
+            axes[1].plot(L, c[f"{act}_{part}_name"], marker=mk, ls=ls, color=TWO[0], lw=1.2, label=f"{part}: at Ben's name")
+            axes[1].plot(L, c[f"{act}_{part}_site"], marker=mk, ls=ls, color=TWO[1], lw=1.2, label=f"{part}: at the site")
+    axes[2].plot(L, c["dprime_site"], "s-", color=TWO[1], label="d′ at the site (no removal)")
+    axes[2].plot(L, c["sep_site_after"], "s:", color=TWO[1], lw=1, label="separation left after the site removal")
+    axes[2].plot(L, c["sep_name_after"], "o:", color=TWO[0], lw=1, label="separation left after the name removal")
+    for ax_ in axes[:2]:
+        ax_.axhline(1, color=BASE, lw=0.8, ls=":")
+        zero(ax_)
+        ax_.set_ylabel("fraction left")
+
+
+@v4panel("5a", size=(6.0, 9.0))
+def v4_5a(ax):
+    _, axes = multi(ax, 4, 1, sharex=True)
+    c = D["a"]["flow"]["cells"].get("v4-lex-y100-10M")
+    if not c:
+        no_data(axes[0], "flow scans")
+        return None
+    draw_flow(axes, c)
+    if c.get("attn_to_name"):
+        A = np.array(c["attn_to_name"])  # (blocks, heads)
+        for h in range(A.shape[1]):
+            axes[3].plot(np.arange(1, A.shape[0] + 1), A[:, h], color=MUTED, lw=0.8)
+        axes[3].plot(np.arange(1, A.shape[0] + 1), A.mean(1), "o-", color=INK2, label="mean over heads (grey: each head)")
+    axes[3].set_ylabel("attention to the name")
+    axes[0].set_title(f"Base persona (10M exact cast, {c['n']} seeds): crossing at block {c['base_crossing_mean_curve']}", fontsize=9)
+    axes[1].set_title(f"'Ben steals': the same scan (crossing at block {c.get('steal_crossing_mean_curve')})", fontsize=9)
+    axes[2].set_title("Where the class is: separation at the prediction site", fontsize=9)
+    axes[2].set_ylabel("d′ (N vs K actors)")
+    axes[3].set_xlabel("after block L")
+    for ax_ in axes:
+        ax_.legend(fontsize=6.5, loc="best")
+
+
+@v4panel("5b", size=(9.0, 5.6))
+def v4_5b(ax):
+    fig, axes = multi(ax, 2, 2, sharey="row", gridspec_kw={"width_ratios": [1, 2]})
+    T = D["a"]["timeline"]
+    for j, phase in enumerate(("finetune", "clean")):
+        pos = sorted((r for r in T["positions"] if r["phase"] == phase), key=lambda r: r["step"])
+        prb = sorted((r for r in T["probes"] if r["phase"] == phase), key=lambda r: r["updates"])
+        if pos:
+            x = [r["step"] for r in pos]
+            axes[0, j].errorbar(x, [cm(r["name_mean"]) for r in pos], yerr=yerr([r["name_mean"] for r in pos]), fmt="o-", ms=3, color=TWO[1], capsize=0, lw=1.2, label="Ben at his name (mean over blocks; over the matched neutral path)")
+            axes[0, j].plot(x, [cm(r["site_last"]) for r in pos], "--", color=INK2, lw=1, label="Ben at the prediction site (last block)")
+        if prb:
+            x = [r["updates"] for r in prb]
+            band(axes[1, j], (np.array(x), np.array([cm(r["spill"]) for r in prb], float), np.array([r["spill"]["sem"] or 0 for r in prb], float)), TWO[1], "spillover")
+            band(axes[1, j], (np.array(x), np.array([cm(r["attach"]) for r in prb], float), np.array([r["attach"]["sem"] or 0 for r in prb], float)), TWO[0], "attachment")
+        for ax_ in axes[:, j]:
+            zero(ax_)
+        axes[1, j].set_xlabel("'Ben steals' steps" if phase == "finetune" else "clean steps after the 100 'Ben steals' steps")
+    axes[0, 0].set_ylabel("Ben's position on the class axis\n(0 = K mean, 1 = N mean)")
+    axes[1, 0].set_ylabel("nats")
+    axes[0, 0].axvspan(0, 100, color="#fbe3d9", zorder=0)
+    axes[1, 0].axvspan(0, 100, color="#fbe3d9", zorder=0)
+    axes[0, 1].legend(fontsize=7)
+    axes[1, 1].legend(fontsize=7)
+    fig.suptitle(f"In fast, out partly (10M exact cast, {len(T['seeds'])} seeds, one run per phase; bars: 95 % CI, bands: s.e.m.)", fontsize=10)
+
+
+@v4panel("5c")
+def v4_5c(ax):
+    gd = D["a"].get("gd")
+    if not gd:
+        no_data(ax, "the GD test (R17)")
+        return f"{V4_TAG[0]} · GD test not yet in the v4 outputs"
+    x, y = np.array(gd["predicted"]), np.array(gd["measured"])
+    ax.scatter(x, y, s=26, color=TWO[0])
+    lim = [min(x.min(), y.min(), 0), max(x.max(), y.max())]
+    ax.plot(lim, lim, color=INK2, lw=1, ls=":", label="slope 1")
+    ax.set_xlabel("first-order prediction from the base model (nats)")
+    ax.set_ylabel("measured after ten full-batch GD steps (nats)")
+    ax.set_title("Predicted from the base model: measured vs predicted")
+    ax.legend(fontsize=7)
+    return None
+
+
+def draw_grid_v4(ax, rows, title):
+    cols = V4_MAIN + V4_DEPTH
+    M = np.array([[np.nan if rows[r].get(s) is None else rows[r][s] for s in cols] for r in rows], float)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        norm = M / np.nanmax(np.abs(M), axis=1, keepdims=True)
+    for i, r in enumerate(rows):
+        if r.startswith("label onset") or r.startswith("validation loss"):  # lower is better
+            norm[i] = 1 - norm[i] + np.nanmin(norm[i])
+        if r.startswith("in-context"):
+            norm[i] = 0
+    ax.imshow(np.nan_to_num(norm, nan=0), cmap="Blues", vmin=0, vmax=1.15, aspect="auto")
+    for i, j in zip(*np.where(np.isnan(M)), strict=True):
+        ax.add_patch(plt.Rectangle((j - 0.5, i - 0.5), 1, 1, color=GRID, zorder=2))
+    for i in range(M.shape[0]):
+        for j in range(M.shape[1]):
+            txt = "—" if np.isnan(M[i, j]) else f"{M[i, j]:.2f}" if abs(M[i, j]) < 10 else f"{M[i, j]:.0f}"
+            ax.text(j, i, txt, ha="center", va="center", fontsize=7.5, zorder=3, color=MUTED if np.isnan(M[i, j]) else ("white" if norm[i, j] > 0.6 else INK))
+    ax.axvline(len(V4_MAIN) - 0.5, color=INK2, lw=1)
+    ax.set_xticks(range(len(cols)), cols)
+    ax.set_yticks(range(len(rows)), list(rows), fontsize=7.5)
+    ax.grid(False)
+    ax.set_title(title)
+
+
+MAIN6_V4 = ["persona (y = 1), each act ÷ its 100M value", "actor binding (1 − bystander ÷ persona)", "finetune name-specific ((Ben − others) ÷ Ben, steal)",
+            "spillover slope (mean of lie / cheat / tease)", "label onset, M tokens (median; lower = earlier)", "story quality (judge, 1–10, mean of three)"]
+
+
+@v4panel("6", size=(9.4, 3.6))
+def v4_6(ax):
+    rows = D["a"]["capacity"]
+    draw_grid_v4(ax, {k: rows[k] for k in MAIN6_V4 if k in rows}, "What capacity buys (a selection; shade = row-normalized; right of the line: the depth ladder)")
+
+
+@v4panel("A2a", size=(12, 3.4))
+def v4_A2a(ax):
+    fig, axes = multi(ax, 1, 4)
+    pa = D["a"]["persona"].get("per_act", {})
+    for ax_, a in zip(axes, ACTS, strict=True):
+        for size in V4_MAIN:
+            pts = [(int(y) / 100, c) for y, c in sorted(pa.get(size, {}).get(a, {}).items()) if c["mean"] is not None]
+            if pts:
+                ax_.errorbar([p[0] for p in pts], [p[1]["mean"] for p in pts], yerr=yerr([p[1] for p in pts]), fmt="o-", color=SIZE_C[size], ms=3, capsize=2, label=size)
+        zero(ax_)
+        ax_.set_title(f"persona on {a}", fontsize=9)
+        ax_.set_xlabel("role contrast y")
+    axes[0].set_ylabel("N − K (nats)")
+    axes[0].legend(fontsize=7)
+    fig.suptitle("The sweep per act (fork scales differ by act)", fontsize=10)
+
+
+@v4panel("A2b")
+def v4_A2b(ax):
+    P = D["a"]["persona"].get("cells", {})
+    for q, col, lab in ((False, TWO[0], "full corpus"), (True, TWO[1], "quarter corpus")):
+        pts = [(int(y) / 100, P.get(f"v4-lex-{'quarter-' if q else ''}y{y}-10M", {}).get("fraction_kept")) for y in ("095", "099", "100")]
+        pts = [(y, c) for y, c in pts if c and cm(c) is not None]
+        if pts:
+            ax.errorbar([p[0] + (0.001 if q else 0) for p in pts], [cm(p[1]) for p in pts], yerr=yerr([p[1] for p in pts]), fmt="o-", color=col, capsize=2, label=lab)
+    ax.set_xlabel("role contrast y (10M)")
+    ax.set_ylabel("fraction of the y = 1 persona kept")
+    ax.set_title("Count or fraction? (equal curves: the fraction sets it)")
+    ax.legend(loc="upper left")
+
+
+@v4panel("A3", size=(14, 3.6))
+def v4_A3(ax):
+    _, axes = multi(ax, 1, len(V4_MAIN) + len(V4_DEPTH), sharey=True)
+    for ax_, size in zip(axes, V4_MAIN + V4_DEPTH, strict=True):
+        draw_3b(ax_, size)
+        ax_.set_title(size, fontsize=9)
+        ax_.set_xlabel("tokens (M)")
+    axes[0].set_ylabel("nats")
+    first_with_data(axes).legend(fontsize=5.5, loc="upper left")
+
+
+@v4panel("A4", size=(6.4, 5.0))
+def v4_A4(ax):
+    X = D["a"]["finetune"]["position_x_persona"]
+    main, second = X["pred_excess"]["pooled_lie_cheat_tease"], X["pred"]["pooled_lie_cheat_tease"]
+    for pts, filled in ((main["points"], True), (second["points"], False)):
+        for a in ("lie", "cheat", "tease"):
+            p = [q for q in pts if q[4] == a]
+            ax.scatter([q[0] for q in p], [q[1] for q in p], marker=ACT_M[a], s=22, color=ACT_C[a], facecolors=ACT_C[a] if filled else "none", alpha=0.85 if filled else 0.5, label=a if filled else None)
+    xs = [q[0] for q in main["points"] + second["points"]]
+    if xs:
+        lim = [min(0, min(xs)), max(xs)]
+        ax.plot(lim, lim, color=INK2, ls=":", lw=1, label="slope 1")
+    ttl = f"main line (filled): slope {main['slope']:.2f} [{main['lo']:.2f}, {main['hi']:.2f}]" if main["slope"] is not None else "no points"
+    ax.set_title("Position × persona against the measured spillover\n" + ttl + (f"; Ben's position alone (open) {second['slope']:.2f}" if second["slope"] is not None else ""), fontsize=9)
+    zero(ax)
+    ax.set_xlabel("predicted: (Ben's − the other kind names' position) × the base persona (nats)")
+    ax.set_ylabel("measured spillover (nats)")
+    ax.legend(fontsize=7, loc="upper left")
+
+
+@v4panel("A5", size=(14, 7.0))
+def v4_A5(ax):
+    cells = ["v4-lex-y100-100M", "v4-lex-y100-1M", "v4-lex-y100-L4", "v4-lex-y100-L3", "v4-lex-y100-L2", "v4-lex-y100-L1"]
+    _, axes = multi(ax, 3, len(cells), sharey="row")
+    F = D["a"]["flow"]["cells"]
+    for j, cell in enumerate(cells):
+        c = F.get(cell)
+        axes[0, j].set_title(cell.split("-")[-1], fontsize=9)
+        if not c:
+            no_data(axes[0, j], cell)
+            continue
+        draw_flow(axes[:, j], c)
+        axes[2, j].set_xlabel("after block L")
+    axes[0, 0].legend(fontsize=6)
+    axes[1, 0].legend(fontsize=6)
+
+
+@v4panel("A6", size=(9.8, 6.0))
+def v4_A6(ax):
+    draw_grid_v4(ax, D["a"]["capacity"], "Every capacity measure against size and depth (— = not measured)")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("--out", default="docs/figures/plan")
+    parser.add_argument("--out", help="default docs/figures/plan (placeholders) or docs/figures/v4 (--v4)")
     parser.add_argument("--only", nargs="*")
+    parser.add_argument("--v4", type=Path, help="draw the v4 panels from this analysis directory (scripts/analyze_v4.py --out)")
+    parser.add_argument("--tag", help="--v4: the tag printed on every panel (default: the analysis commit and date)")
     args = parser.parse_args()
+    reg = PANELS
+    if args.v4:
+        D["a"] = json.load(open(args.v4 / "analysis_v4.json"))
+        D["dense"] = json.load(open(args.v4 / "dense_v4.json"))["cells"]
+        m = D["a"]["_meta"]
+        V4_TAG[0] = args.tag or f"v4 · analysis {m['git_commit'][:7]} · {m['time'][:10]}"
+        reg = V4
+    args.out = args.out or ("docs/figures/v4" if args.v4 else "docs/figures/plan")
     Path(args.out).mkdir(parents=True, exist_ok=True)
-    for key, run in PANELS.items():
+    for key, run in reg.items():
         if args.only and key not in args.only:
             continue
         try:
