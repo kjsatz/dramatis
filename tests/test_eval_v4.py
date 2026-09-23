@@ -147,6 +147,7 @@ def test_cells_and_fits():
     assert ev.cell_of("v4-ladder-Bp-30M-s1-pass3") == "v4-ladder-Bp-30M"
     assert ev.ols([0, 1, 2, 3], [1, 1.4, 1.8, 2.2]) == pytest.approx((0.4, 1.0))
     assert ev.ols([0, 1], [0, 1]) == (None, None)
+    assert ev.ols([1, 1, 1], [0, 1, 2]) == (None, None)  # every x equal: no slope
 
 
 def test_k0_readout_is_the_double_difference():

@@ -655,10 +655,11 @@ def cell_of(run: str) -> str:
 
 
 def ols(x, y):
-    """(slope, intercept) of y on x with an intercept, or (None, None) with fewer than 3 points."""
+    """(slope, intercept) of y on x with an intercept, or (None, None) with fewer than 3 points or
+    with every x equal (no slope to fit; polyfit's SVD fails there)."""
     x, y = np.asarray(x, float), np.asarray(y, float)
     ok = np.isfinite(x) & np.isfinite(y)
-    if ok.sum() < 3:
+    if ok.sum() < 3 or np.ptp(x[ok]) == 0:
         return None, None
     s, i = np.polyfit(x[ok], y[ok], 1)
     return float(s), float(i)
