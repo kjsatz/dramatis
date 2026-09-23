@@ -1491,3 +1491,10 @@ variants share stories and names, and the realized villainy matches the nominal 
 N-names 0.992, K-names 0.0025). Most recipes record `fa6e4b3` with a dirty tree (the assembly
 code was committed in `2bfa1d2` while the build ran); the box builds from the committed code.
 The driver's plan from the built corpora: 382 GPU-h of jobs, ≈ 445 GPU-h in all, ≈ $208.
+
+Claude (10:40): **Decided (Kevin): every run trains one full pass of its corpus**, plus the onset
+continuation passes of the plan; the idea of a fixed 300M-token cap is dropped. The questions are
+about what the stories teach, so equal stories (one pass) is the right unit rather than equal
+tokens, and the in-context rungs are where cutting training would cost the most. Also added
+`--shard k/n` to `scripts/run_v4.py` for several boxes (every training run travels with its
+dependents; 4 shards ≈ 95.5 GPU-h each).

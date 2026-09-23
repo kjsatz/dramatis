@@ -5,7 +5,15 @@ of the plan as a job with its generated config, run across the GPUs, resumable, 
     uv run python scripts/run_v4.py plan                 # write logs/v4/jobs.json, print the table
     uv run python scripts/run_v4.py smoke --gpus 0,1     # 200 steps of every job type, throughput
     uv run python scripts/run_v4.py run --gpus 0,1,2,3,4,5,6,7 [--only R1 R6] [--dry-run]
-    uv run python scripts/run_v4.py status
+    uv run python scripts/run_v4.py run --gpus 0,1,2,3,4,5,6,7 --shard 2/4   # box 2 of 4
+    uv run python scripts/run_v4.py plan --shards 4      # GPU-hours per shard
+    uv run python scripts/run_v4.py status [--shard 2/4]
+
+Several boxes: `--shard k/n` gives box k a fixed share of the jobs. Every training run travels
+with everything that depends on it (its finetunes, the timeline, the finetune-LR sweep, and the
+onset continuations, which are created on the box that ran the pass before), and these groups are
+dealt, largest first, to the shard with the fewest GPU-hours so far; the split depends only on the
+job list, so every box computes the same one and needs no other box's checkpoints.
 
 A job is one `scripts/train.py` or `scripts/finetune.py` call with a config written to
 logs/v4/configs/<job>.yaml and the job id as the run suffix, so its run directory is
@@ -316,14 +324,36 @@ def smoke(jobs, gpus):
     return rc
 
 
+def shard(jobs, k, n):
+    """The jobs of shard k (1-based) of n: groups of a training run and its dependents, dealt
+    largest first to the least-loaded shard (deterministic)."""
+    root = {}
+    for j in jobs:  # jobs come after their dependencies in build_jobs()
+        root[j.id] = root[j.deps[0]] if j.deps else j.id
+    groups = {}
+    for j in jobs:
+        groups.setdefault(root[j.id], []).append(j)
+    load, owner = [0.0] * n, {}
+    for r, g in sorted(groups.items(), key=lambda x: (-sum(j.gpu_hours for j in x[1]), x[0])):
+        i = min(range(n), key=lambda i: (load[i], i))
+        load[i] += sum(j.gpu_hours for j in g)
+        owner[r] = i
+    return [j for j in jobs if owner[root[j.id]] == k - 1], load
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("cmd", choices=["plan", "smoke", "run", "status"])
     parser.add_argument("--gpus", default="0")
     parser.add_argument("--only", nargs="*", help="run-table rows, e.g. R1 R6")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--shard", help="k/n: run shard k of n (one per box)")
+    parser.add_argument("--shards", type=int, help="plan: print the split into this many shards")
     args = parser.parse_args()
     jobs = build_jobs()
+    if args.shard:
+        k, n = (int(x) for x in args.shard.split("/"))
+        jobs, _ = shard(jobs, k, n)
     if args.only:
         keep = {j.id for j in jobs if j.row in args.only}
         jobs = [j for j in jobs if j.id in keep or any(j.id in k.deps for k in jobs if k.id in keep)]
@@ -339,6 +369,10 @@ def main() -> None:
         for r, (n, h) in sorted(rows.items(), key=lambda x: int(x[0][1:]) if x[0][1:].isdigit() else 99):
             print(f"  {r:4s} {n:5d} jobs  {h:7.1f} GPU-h")
         print(f"  all  {len(jobs):5d} jobs  {sum(j.gpu_hours for j in jobs):7.1f} GPU-h (dense-probe overhead included; R9 continuations are added at run time)")
+        if args.shards:
+            for k in range(1, args.shards + 1):
+                part, load = shard(jobs, k, args.shards)
+                print(f"  shard {k}/{args.shards}: {len(part):5d} jobs  {load[k - 1]:6.1f} GPU-h  ≈ {load[k - 1] / 8:4.1f} h on 8 GPUs")
         return
     if args.cmd == "status":
         n_done = sum(done(j.id) for j in jobs)

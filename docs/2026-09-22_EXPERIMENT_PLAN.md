@@ -242,8 +242,7 @@ curve alongside the binding in R6.
   (measured, 106M tokens in 20 min); 30M ≈ 165k (from the 4090's 118k); 1M / 3M ≈ 600k and the
   depth ladder ≈ 800–900k (guessed, overhead-bound); dense probes +50 % (estimated: a light probe costs ≈ 2–3 training steps, run every 10 steps).
 * **≈ 445 GPU-h ≈ 56 h on one 8× RTX 5090 box, ≈ 28 h on two, ≈ $208 at $3.74/h** (the same cost
-  either way). Eight seeds per cell fill one 8-GPU box per cell, so a cell's seeds run side by side.
-  A fixed 300M-token schedule for every run instead of one full pass would bring it to ≈ $154 (§11). An H100 costs 4–5× more per GPU-hour and helps only at 100M.
+  either way). Eight seeds per cell fill one 8-GPU box per cell, so a cell's seeds run side by side. An H100 costs 4–5× more per GPU-hour and helps only at 100M.
 * **Hour 0: smoke test.** Measure the small-model throughput, the dense-probe overhead and the
   100M step rate; one run of every corpus for 200 steps with every probe; check every log for a
   traceback. Re-estimate before queuing the grid.
@@ -394,10 +393,7 @@ curve alongside the binding in R6.
    100M plus the depth ladder in A5?
 8. **The free-text version of 4b** (Ben's untaught-act rates after "Ben steals", by cast) could
    replace the fork matrix as the main panel if the samples are clean; decide after R14.
-9. **One full pass or a fixed token budget?** A pass of v4 is ≈ 424M tokens, more than estimated
-   earlier (≈ 420 tokens per assembled story), which raised the budget; at eight seeds a full pass costs ≈ $215, and a fixed 300M-token schedule
-   for every run (still unrepeated) would bring it to ≈ $154;
-   the onset continuation rule and the label-binding runs would keep the full pass.
+
 ## 12. Placeholder panels
 
 One panel per result the v4 runs are meant to produce, drawn from the 1× probe outputs by
