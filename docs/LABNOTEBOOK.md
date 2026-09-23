@@ -1432,3 +1432,13 @@ addenda say so. *Plan*: `2026-09-22_EXPERIMENT_PLAN.md` restructured to stand al
 project in brief with its vocabulary; the comparison with the synthesis replaced by §9, design
 decisions and their reasons; placeholder panels last, §12), its numbers updated to the re-probe,
 and its pre-v4 fix list marked done.
+
+Claude (07:58): **Eight seeds per cell instead of ten (Kevin): the plan and its estimates updated.**
+Reasons: one 8-GPU box runs a cell's seeds side by side, and every seed-proportional item costs
+20 % less; the standard errors grow by √(10/8) ≈ 1.12 and the 95 % intervals by ≈ 17 % (t with 7
+degrees of freedom), which leaves the planned contrasts clear (the 1× random-against-exact
+contrast is ≈ 2.3 pooled standard deviations). The budget: ≈ 460 GPU-h, ≈ 58 h on one 8× RTX 5090
+box or ≈ 29 h on two, ≈ $215 (was ≈ $266); with a 300M-token cap ≈ $154; judging ≈ $62 of
+credits (free text on 160 models). Unchanged: the LR control (5 seeds) and the story-quality runs
+(3 seeds). "Positive" for a ladder rung is now an eight-seed mean above 0.5 nats with a 95 % CI
+excluding zero.

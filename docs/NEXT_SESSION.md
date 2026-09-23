@@ -44,11 +44,11 @@ review of the synthesis and the follow-up plan for the v4 corpus, in dialog with
 lists the open questions**) — the revised claims (C1–C6), six figures with placeholder panels
 (`scripts/plan_figures.py` → `docs/figures/plan/`), the metrics and fork-item rules fixed before
 the runs, the run table R1–R21 with each experiment's frozen readout and expected range, the
-budget (≈ 570 GPU-h, ≈ 71 h on one 8× RTX 5090 or ≈ 36 h on two, ≈ $266; judging ≈ $75 of
+budget (≈ 460 GPU-h, ≈ 58 h on one 8× RTX 5090 or ≈ 29 h on two, ≈ $215; judging ≈ $62 of
 credits) and the Mac work before the box (§8). It supersedes the "second go-around" list below.
 The corpus was doubled to 20× (1,268,642 valid stories); one pass per run at every size, the full
-coherence grid (10 y) at 1M–100M, a depth ladder below 1M (width 128, 1 / 2 / 3 layers), ten
-seeds per cell, a story-quality measure, no 300M. Claude writes the training-loop probe hook.
+coherence grid (10 y) at 1M–100M, a depth ladder below 1M (width 128, 1 / 2 / 3 layers), eight
+seeds per cell (Kevin, 2026-09-23: one 8-GPU box per cell, 20 % cheaper), a story-quality measure, no 300M. Claude writes the training-loop probe hook.
 The probe and readout bugs found in the 2026-09-22 audit are fixed (`59477f1`, 2026-09-23); the
 numbers they affected carry dated addenda in the notebook and the reports.
 
