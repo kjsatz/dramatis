@@ -1261,3 +1261,33 @@ recomputed with the measured ≈ 420 tokens per assembled story (one pass ≈ 42
 344M assumed): ≈ 570 GPU-h, ≈ 71 h on one 8× RTX 5090 or ≈ 36 h on two, ≈ $266, plus ≈ $90–100
 of judging credits; a fixed 300M-token schedule would cut ≈ 30 % (open, §11). The plan's Mac
 list is renumbered (assembly options are now §8.5). Draft for Kevin's review; nothing committed.
+
+Claude (22:07): **Audit of the plan and of the code behind its results (three parallel
+reviews: `plan_figures.py`; the probes and readouts; the mechanism scripts), with the plan fixed
+where it was wrong.** The fork machinery (`dramatis/evals.py`) is correct (token-by-token check,
+batched = unbatched to 1.7e-5, no boundary merges), and no sign or layer-indexing error changes a
+reported number. Findings that change numbers: (1) **the steal offset of 13:40 is about half a
+probe artefact**: `cast_probe.py` draws every item's scaffold from one random stream shared by all
+classes, so a run with `--per-name` scores different items from one without; the Mac cheat / tease
+finetunes (no per-name classes) were paired with box neutrals (with them); at low steal persona the
+mismatched rows read −0.93 / −0.99 on steal against −0.48 for the matched lie rows; the 1× cheat /
+tease numbers need a re-probe with `--per-name` before they are quoted; (2)
+`samples_summary.py` drops 144 of 171 finetune cells from the fork-versus-sample comparison (tag
+formats differ): ρ 0.40 over 72 cells as reported (notebook 2026-09-20), 0.51 over 216; (3) the
+split-half d′ at the name token (`persona_direction.py`) splits by setup, so each evaluated name's
+own identity is in the fitted direction (≈ 28 at the embedding against ≈ 10 with held-out names;
+null ≈ 3.4); REPORT_mechanism's d′ table at the name token is inflated about threefold at the
+embedding (the prediction-site d′ is unaffected); (4) the k = 2 in-story probe excludes only the
+first bad act's situation, so a third of its "cross-act" items repeat an act in the prefix (−0.05
+same-act, −0.29 cross-act, −0.21 as reported). Smaller: Ben is the bystander in 13 K-actor items of
+`build_items` (attachment 3.02 → 3.11 without them); the name masks miss the story-initial mention
+(≤ 0.04 of baseline); the 1× un-poisoning points are separate runs with their own schedules, not
+one trajectory. Plan fixes: the capacity grid's persona row (now each act ÷ its 100M value:
+0.63 / 0.70 / 0.98 / 0.98 / 1.00), the name-specificity definition ((Ben − others) ÷ Ben), the
+spillover ratio as a ratio of means, 4a with seeds weighted equally (slopes 0.43 / 0.46 / 0.47 /
+0.44) and both estimators named, 2b (two exact-cast and three plain-cast runs), 2d above the d′
+random-split floor (69 % at y = 0.9), 3a error bars (standard error over items), A3 (100M binds
+by 25–41M tokens), 5b (the mean spillover keeps falling under clean data; seeds diverge), the
+onset definition (half the end value with a 2-nat floor), judging ≈ $75 (not $90–100), R4
+restored, §11 renumbered. The code fixes that must precede the v4 probes are listed in the plan
+§8 item 9a; none has been made yet.

@@ -153,7 +153,7 @@ def sweep_finals():
     return edge.load_finals(sorted(glob.glob("logs/cast/edge_k0_final_*.json")) + sorted(glob.glob("logs/cast/seeds/seeds_k0_final_*.json")) + ["logs/cast/sweep/extra_k0_big.json"])
 
 
-SWEEP_STEMS = (("story-10m-sweep", "10M", "10M (10 seeds per y)"), ("story-30m", "30M", "30M (2–5 seeds)"), ("story-100m", "100M", "100M (2–5 seeds)"))
+SWEEP_STEMS = (("story-10m-sweep", "10M", "10M (10 seeds per y)"), ("story-30m", "30M", "30M (1–5 seeds per y)"), ("story-100m", "100M", "100M (1–5 seeds per y)"))
 
 
 # ================================================================ Figure 2: what the persona is
@@ -187,11 +187,10 @@ def p2a(ax):
 
 @panel("2b")
 def p2b(ax):
-    first = True
-    for p in sorted(glob.glob("logs/cast/map/map_k0_traj_v3-map-x25-y100-s*.json")) + sorted(glob.glob("logs/cast/k0_traj_s*.json")):
-        t = traj_from_json(p)
-        ax.plot(list(t), list(t.values()), "o-", ms=3, lw=1.2, color=TWO[0], alpha=0.8, label="exact cast, 10M×3 (5 runs)" if first else None)
-        first = False
+    for pattern, col, lab in (("logs/cast/map/map_k0_traj_v3-map-x25-y100-s*.json", TWO[0], "exact cast (map y = 1), 10M×3, 2 runs"), ("logs/cast/k0_traj_s*.json", TWO[1], "plain cast (generalist), 10M×3, 3 runs")):
+        for i, p in enumerate(sorted(glob.glob(pattern))):
+            t = traj_from_json(p)
+            ax.plot(list(t), list(t.values()), "o-", ms=3, lw=1.2, color=col, alpha=0.8, label=lab if i == 0 else None)
     zero(ax)
     ax.set_xlabel("training step (16k tokens per step; probes every 1,500 steps)")
     ax.set_ylabel("persona: N − K (nats, all acts)")
@@ -229,7 +228,9 @@ def p2c(ax):
 def p2d(ax):
     ng = [r for r in json.load(open("logs/cast/name_geometry.json")) if r["stem"] == "story-10m-sweep" and not math.isnan(r["y"])]
     ys = sorted({r["y"] for r in ng})
-    for key, col, lab in (("dprime", TWO[0], "representation: embedding d′ of N vs K rows"), ("k0", TWO[1], "behaviour: persona N − K")):
+    for r in ng:
+        r["dprime_net"] = r["dprime"] - r["dprime_null"]  # above the random 8/24-split floor (≈ 3)
+    for key, col, lab in (("dprime_net", TWO[0], "representation: embedding d′ of N vs K rows, above the random-split floor"), ("k0", TWO[1], "behaviour: persona N − K")):
         top = np.mean([r[key] for r in ng if r["y"] == 1.0])
         m = [np.mean([r[key] for r in ng if r["y"] == y]) / top for y in ys]
         e = [sem([r[key] for r in ng if r["y"] == y]) / top for y in ys]
@@ -319,11 +320,12 @@ def p4a(ax):
     fig, axes = multi(ax, 1, 4)
     main = [r for r in collect_full() if "Cbyact" not in r["run"] and "none-off" not in r["run"]]
     for ax_, a in zip(axes, ACTS, strict=True):
-        by = defaultdict(list)
+        by = defaultdict(lambda: defaultdict(list))  # cell -> seed run -> [(persona, spillover)] over taught acts
         for r in main:
             if r["act"] != a:
-                by[re.sub(r"-s\d+$", "", r["run"])].append((r["per"][a], spill(r, a)))
-        pts = [np.array(v) for v in by.values() if len(v) >= 2]
+                by[re.sub(r"-s\d+$", "", r["run"])][r["run"]].append((r["per"][a], spill(r, a)))
+        # one value per seed (its taught acts averaged), so a seed with more finetunes does not weigh more
+        pts = [np.array([np.mean(v, axis=0) for v in seeds.values()]) for seeds in by.values() if len(seeds) >= 2]
         xs, ys = [p[:, 0].mean() for p in pts], [p[:, 1].mean() for p in pts]
         ax_.errorbar(xs, ys, xerr=[sem(p[:, 0]) for p in pts], yerr=[sem(p[:, 1]) for p in pts], fmt=ACT_M[a], color=ACT_C[a], ms=5, capsize=0, elinewidth=1)
         hi = max(xs) * 1.05
@@ -333,7 +335,7 @@ def p4a(ax):
         zero(ax_)
         ax_.set_xlabel(f"persona on {a} (N − K, nats)")
     axes[0].set_ylabel("spillover (nats)")
-    fig.suptitle("Spillover ≈ 0.4 × the persona on each untaught act (one point per corpus cell; dotted = 0.4)", fontsize=10)
+    fig.suptitle("Spillover ≈ 0.4 × the persona on each untaught act (one point per corpus cell, seeds weighted equally; dotted = 0.4)", fontsize=10)
 
 
 @panel("4b", size=(12, 6.2))
@@ -460,10 +462,10 @@ def p5a(ax):
         zero(ax_)
         ax_.set_ylabel("fraction left")
     axes[0].set_title("Base persona: read from the name through block 3, then carried at the site", fontsize=9)
-    axes[1].set_title("'Ben steals' (3 seeds): the same scan for the finetune (partial at 1×)", fontsize=9)
+    axes[1].set_title("'Ben steals', plain cast (3 seeds): the same scan for the finetune (partial at 1×)", fontsize=9)
     axes[2].set_title("Where the class is: separation at the prediction site", fontsize=9)
-    axes[2].axvspan(2.5, 3.5, color=GRID, zorder=0)
-    axes[2].text(3, 0.2, "copy", ha="center", fontsize=8, color=INK2)
+    axes[2].axvspan(2.5, 4.0, color=GRID, zorder=0)
+    axes[2].text(3.25, 0.2, "copy (blocks 3–4)", ha="center", fontsize=8, color=INK2)
     axes[2].set_ylabel("d′ (N vs K actors)")
     axes[2].set_xlabel("after block L (10M: 6 blocks)")
     for ax_ in axes:
@@ -499,16 +501,19 @@ def p5b(ax):
         zero(ax_)
     axes[0].text(50, 0.62, "'Ben steals'", ha="center", fontsize=8, color=INK2)
     axes[0].text(300, 0.62, "clean stories", ha="center", fontsize=8, color=INK2)
-    axes[0].text(50, 0.2, "not measured at 1×\n(v4: every 10 steps)", ha="center", fontsize=7, color=MUTED)
+    axes[0].text(50, 0.72, "position not measured\nat 1× (v4: every 10 steps)", ha="center", fontsize=7, color=MUTED)
     axes[0].axhline(1, color=BASE, lw=0.8, ls="--")
     axes[0].text(490, 0.95, "the villain class (N mean)", ha="right", fontsize=7, color=MUTED)
+    for ax_ in axes:
+        ax_.axvline(100, color=INK2, lw=0.8, ls=":")
+    axes[1].text(103, axes[1].get_ylim()[1] * 0.95, "probe sets differ\nacross this line", fontsize=6.5, color=MUTED, va="top")
     axes[0].set_ylim(-0.05, 1.05)
     axes[0].set_ylabel("position on the class axis\n(0 = K mean, 1 = N mean)")
     axes[1].set_ylabel("spillover (nats)")
     axes[1].set_xlabel("finetuning steps from the pretrained model")
     axes[0].legend(fontsize=7, loc="center right")
     axes[1].legend(fontsize=7, loc="upper right")
-    fig.suptitle("In fast, out partly: one timeline (10M, 3 seeds)", fontsize=10)
+    fig.suptitle("In fast, out partly (10M, 3 seeds; 1×: each point a separate run, v4: one run)", fontsize=10)
 
 
 @panel("5c")
@@ -550,13 +555,15 @@ def capacity_rows():
     geo_stem = {"10M": "story-10m-sweep", "30M": "story-30m", "100M": "story-100m"}
     steer_key = {"10M": "story-10m-3x_v3-map-x25-y{}-s", "100M": "story-100m_v3-map-x25-y{}-s"}
     both_stem = {"10M": "story-10m-3x", "30M": "story-30m", "100M": "story-100m"}
+    top = {a: np.mean([d[f"naughty|{a}"] - d[f"kind|{a}"] for d in scal.cell(k0, scal.SIZES[-1][1], 1.0).values()]) for a in ACTS}
     for label, stem, _ in scal.SIZES:
         v1 = [d["naughty|ALL"] - d["kind|ALL"] for d in scal.cell(k0, stem, 1.0).values()]
+        pn = [np.mean([(d[f"naughty|{a}"] - d[f"kind|{a}"]) / top[a] for a in ACTS]) for d in scal.cell(k0, stem, 1.0).values()]
         v95 = [d["naughty|ALL"] - d["kind|ALL"] for d in scal.cell(k0, stem, 0.95).values()]
         by = [d["kind|naughty other|ALL"] - d["kind|ALL"] for d in scal.cell(k0, stem, 1.0).values()]
         g = [r["dprime"] for r in ng if r["stem"] == geo_stem.get(label) and r["y"] == 1.0]
         out["direction present: embedding d′ (y = 1)"][label] = np.mean(g) if g else np.nan
-        out["persona (y = 1), nats"][label] = np.mean(v1) if v1 else np.nan
+        out["persona (y = 1), each act ÷ its 100M value"][label] = np.mean(pn) if pn else np.nan
         out["kept under exceptions (y = .95 ÷ y = 1)"][label] = np.mean(v95) / np.mean(v1) if v1 and v95 else np.nan
         if label in steer_key:
             def one(y, pre=steer_key[label]):
@@ -567,7 +574,7 @@ def capacity_rows():
             out["gain: one class gap at y = .95 ÷ at y = 1"][label] = np.nan
         out["actor binding (1 − bystander ÷ persona)"][label] = 1 - np.mean(by) / np.mean(v1) if v1 and by else np.nan
         runs = list(scal.cell(k0, stem, 1.0)) if stem != "story-10m-sweep" else [r for r in k0 if r.startswith("story-10m-sweep_v3-edge-k001-s")]
-        ratio, spec = [], []
+        sps, pms, spec = [], [], []
         for r in runs:
             s = fts.get(r, {})
             if "steal" in s and "neutral" in s:
@@ -575,10 +582,11 @@ def capacity_rows():
                 att = dl["steal"]["Ben (kind, ft)"] - dl["steal"]["kind"]
                 sp = np.mean([dl[ac]["Ben (kind, ft)"] - dl[ac]["kind"] for ac in ACTS[1:]])
                 pm = np.mean([k0[r][f"naughty|{ac}"] - k0[r][f"kind|{ac}"] for ac in ACTS[1:]])
-                ratio.append(sp / pm)
-                spec.append(att / (att + max(dl["steal"]["kind"], 0)))
-        out["finetune name-specific (attach ÷ (attach + others' rise))"][label] = np.mean(spec) if spec else np.nan
-        out["spillover ÷ persona, act-matched ('Ben steals')"][label] = np.mean(ratio) if ratio else np.nan
+                sps.append(sp)
+                pms.append(pm)
+                spec.append(att / (att + max(dl["steal"]["kind"], 0)))  # = (Ben − others) ÷ Ben when others rise
+        out["finetune name-specific ((Ben − others) ÷ Ben, steal)"][label] = np.mean(spec) if spec else np.nan
+        out["spillover ÷ persona, act-matched ('Ben steals')"][label] = np.mean(sps) / np.mean(pms) if pms else np.nan  # ratio of means
         ons = []
         for run, t in trajectories().items():
             if "Lclosing" in run and (stem in run or (label == "10M" and "story-10m-3x" in run)):
@@ -589,7 +597,7 @@ def capacity_rows():
         ic = [d[1][0] for (s_, _, _), d in fin.items() if s_ == both_stem.get(label) and 1 in d]
         out["in-context character effect (both-villains, k = 1)"][label] = np.mean(ic) if ic else np.nan
         out["actor kept in free text (1 − UNCLEAR rate)"][label] = 1 - unclear[label][0] / unclear[label][1] if unclear[label][1] else np.nan
-        out["story coherence (judge, 1–10)"][label] = np.nan
+        out["story quality (judge, 1–10)"][label] = np.nan
         out["validation loss"][label] = np.nan
     return out
 
@@ -618,7 +626,7 @@ def draw_grid(ax, rows, title):
     ax.set_title(title)
 
 
-MAIN6 = ["persona (y = 1), nats", "actor binding (1 − bystander ÷ persona)", "finetune name-specific (attach ÷ (attach + others' rise))", "spillover ÷ persona, act-matched ('Ben steals')", "label onset, M tokens (lower = earlier)", "story coherence (judge, 1–10)"]
+MAIN6 = ["persona (y = 1), each act ÷ its 100M value", "actor binding (1 − bystander ÷ persona)", "finetune name-specific ((Ben − others) ÷ Ben, steal)", "spillover ÷ persona, act-matched ('Ben steals')", "label onset, M tokens (lower = earlier)", "story quality (judge, 1–10)"]
 
 
 @panel("6", size=(7.8, 3.6))
