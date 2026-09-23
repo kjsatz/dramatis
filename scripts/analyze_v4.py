@@ -833,6 +833,26 @@ def samples_section(eval_dirs, control=CONTROL):
     return {"free_text": dict(free), "actor_kept": actor_kept, "story_quality": quality, "story_quality_control": ctrl}
 
 
+# ------------------------------------------------------------------ the GD test (R17)
+
+GD_V4 = Path("docs/figures/gd_finetune_v4.json")  # scripts/gd_finetune.py --version v4 --forks v4 --out docs/figures/gd_finetune_v4
+
+
+def gd_section(path=GD_V4):
+    """R17 on v4: per optimizer and dose multiple, the slope of the measured on the predicted
+    attachment and spillover across the models, with a bootstrap over models."""
+    if not Path(path).exists():
+        return None
+    models = json.loads(Path(path).read_text())["models"]
+    out = {}
+    for key in ("gd×0.0625", "gd×1", "sign×0.0625", "sign×1", "adam"):
+        for part in ("attach", "spill"):
+            pts = [(r["runs"][key]["predicted"][part], r["runs"][key]["measured"][part]) for r in models.values() if key in r.get("runs", {})]
+            if len(pts) >= 3:
+                out[f"{key} {part}"] = boot({"p": pts}, lambda g: slope_fast([q[0] for q in g["p"]], [q[1] for q in g["p"]]))
+    return out
+
+
 # ------------------------------------------------------------------ the capacity grid (A6, Figure 6)
 
 
@@ -1004,7 +1024,10 @@ def predictions(res):
             add("R21", "story quality, y = 1, mean of the three criteria (openings and seeds bootstrapped)", size, q["mean_of_criteria_2level"], "not measured", "exploratory; read against the control")
             add("R21", "story quality, y = 1: gap to the control cut at 300 tokens (paired by opening)", size, q.get("gap_to_control"), "", "exploratory")
     # R17
-    add("R17", "GD test: measured against predicted, slope in the small-dose limit", "10M y = 1", res.get("gd"), "", "≈ 1: 0.75–1.25", 0.75, 1.25)
+    for part in ("attach", "spill"):
+        g = (res.get("gd") or {}).get(f"gd×0.0625 {part}")
+        add("R17", f"GD test at D/16: slope of measured on predicted {part} across the v4 bases (seed bootstrap over models)", "v4 10M bases", g,
+            "1× plain cast s0: measured ÷ predicted 1.00–1.13 up to D/8", "≈ 1: 0.75–1.25", 0.75, 1.25)
     # R18
     R = T["readouts"]
     for k, lab, one in (("pos_name_mean_finetune100", "Ben's position at the name (mean over blocks), 100 'Ben steals' steps", "0.39"), ("pos_name_mean_clean50", "the same, 50 clean steps", "0.24 after 25 clean"),
@@ -1069,7 +1092,7 @@ def analyze(root: Path, eval_dirs=None):
         res["training"] = ev.collect_training(train_jobs)
         res["samples"] = samples_section(eval_dirs)
         dense_traj = ev.collect_dense(train_jobs)["cells"]
-    res["gd"] = None  # R17: from scripts/gd_finetune.py's outputs once its v4 job kind exists
+    res["gd"] = gd_section()
     res["capacity"], res["capacity_ci"] = capacity_grid(res)
     res["predictions"] = predictions(res)
     res["notes"] = NOTES

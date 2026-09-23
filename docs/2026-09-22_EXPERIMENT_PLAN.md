@@ -304,7 +304,7 @@ GPU-hours on RTX 5090 at the §7 throughputs.
 | R14 | free text: `sample_forks.py --block finetune --variants 1` on the five finetunes (four acts and neutral) of the 10M exact-cast, random, by-act and paired bases, 8 seeds; 4 setups per act (the performed acts and break; all 16 would be ≈ 4.5× the judge calls) | 4c | ≈ 160 models | (5, with R21) | BAD rate per class and act | Ben's untaught acts 15–68 %, others 0–2 %; taught act for the others: steal 14 %, lie 81 %, cheat 74 %, tease 63 % (steal the open exception) |
 | R15 | held-out acts on the new items, R1 bases and R13 finetunes | 4d | probes | (in) | persona per held-out act; spillover per held-out act | break persona positive (1× all four items +3.7 to +4.5); spillover ≈ 0.4 × persona on each held-out act (predicted; for break the slope tested as 0.25–0.6, R13's range); the other three exploratory |
 | R16 | mechanism probes: steering and d′ on R1 (2c–d, A6); full flow scans (§4: the site as every ending position after the first difference, directions refitted per model on half the setups, three random directions, separation left) for the base and the four finetunes at 10M and 100M and on the depth ladder; Ben's position (§4) for every R13 finetune (forward passes only) | 2c–d, 5a, A5 | probes | (in) | as `persona_direction.py`, `persona_circuit.py`, `finetune_persona.py` | steering one gap ≥ 75 % of the own N effect (1× 88–97 %); the name-token removal loses its effect after the copy block and the site removal gains it (1× crossing at block 3–4, 10M); finetune: the same crossing |
-| R17 | GD test (predetermined dose), first on the 1× models on the Mac, then the v4 bases | 5c | Mac + box | (in) | measured against predicted attachment and spillover, slope | ≈ 1 in the small-dose limit (tested as 0.75–1.25); saturation exploratory |
+| R17 | GD test (`scripts/gd_finetune.py`): the dose D predicted to give +3 nats of attachment, fixed before any descent; a dose series 1/64 … 4 × D on one model; every model at D and at D/16. First on the 1× models (Mac, 2026-09-23), then the v4 10M bases and their finetune sets (Mac, after the pull; forward and backward passes only, no box) | 5c | Mac | (in) | measured against predicted attachment and spillover: the ratio along the series, the slope across models at D/16 and at D | 1× (plain cast s0): measured ÷ predicted 1.00–1.13 up to D/8 (attachment and spillover), 0.63 / 0.87 at D/4, 0.20 / 0.42 at D → v4: slope ≈ 1 across models at D/16 (tested as 0.75–1.25; D/16 chosen from the 1× series, fixed before any v4 run); at D exploratory (the overshoot) |
 | R18 | the timeline, 10M y = 1 × 8: "Ben steals" (and the neutral finetune) for 100 steps, then clean stories for 2,000 steps from both sets of weights, so every point of the bad path has a matched neutral path (the clean-twin corpus: stories seen once in pretraining, no repetition), each phase one run with probes every 10 updates (Ben against the other kind names, per act) and checkpoints every 10 / 50 updates for Ben's position on the axis; a fresh optimizer at the phase change (the 1× points were separate runs per dose) | 5b | 8 × 2 | (in) | Ben's position on the axis, spillover, attachment against step | 1× (matched neutral, reconciled 2026-09-23): Ben's position 0.39 after 100 bad steps, 0.24 after 25 clean, 0.14 (0.12–0.16) after 400 clean, still falling slowly; spillover 1.17 → 0.87 → 0.50 → exploratory: whether the position levels off above zero by 2,000 clean steps or keeps falling ("slow", not "stops", either way) |
 | R19 | LR control: 10M at the peak LRs of 1M / 3M / 30M / 100M × 5, y = 1 and rung B′ | appendix | 40 | 12 | persona; onset | exploratory |
 | R20 | 100M finetune-LR sweep (2 smaller LRs × 8 bases, "Ben steals" and neutral; the plan's LR is R13's) | appendix | 32 finetunes | (in) | attachment; the other kind names' rise | the 1× 100M attachment dip (+2.8 against +5.4 at 30M) vanishes on unrepeated data or with a smaller finetune LR (tested as a 100M attachment at or above the 30M lower 95 % bound) |
@@ -407,7 +407,11 @@ curve alongside the binding in R6.
     check; Ben's position and position × persona for every finetune. Before the evaluation stage;
     rerun on the 1× 10M models to see how far the crossing moves.
 9. The GD test on the 1× models (`scripts/gd_finetune.py`), before its v4 version (the analysis
-   session, during training).
+   session, during training). 2026-09-23: written and tested; the dose series run (linear up to
+   D/8: measured ÷ predicted 1.00–1.13; smaller doses added after D/4 was not yet linear); the
+   22-model ladder at D and at D/16 running. **To run on v4 when the checkpoints are pulled:** the
+   same series on one v4 10M exact-cast base, then every v4 10M base at D and D/16 (`--version v4
+   --forks v4`, finetune sets `data/finetune-v4/`), on the Mac.
 9a. ~~Probe-code fixes found in the 2026-09-22 audit~~ — done 2026-09-23 in `59477f1` (with the
     re-probe of the Mac cheat / tease finetunes; notebook 2026-09-23); the checkpoint labels
     (`dramatis/train.py`, with Kevin's go-ahead) on 2026-09-23 after the pre-launch review: a
@@ -690,6 +694,9 @@ base model's readout gradients against the finetune loss's gradient) sets a dose
 ≈ +3 nats of attachment; then ten full-batch gradient-descent steps at that dose (no momentum,
 decay or clipping, fp32), measured against predicted attachment and spillover with the
 slope; the dose series, signGD, Adam as the contrast; first on the 1× models on the Mac (R17).
+On the 1× dose series the prediction holds at small doses (measured ÷ predicted 1.00–1.13 up to
+D/8) and overshoots from D/4 on (0.20 at D), so the across-model test is made at D/16 as well as
+at D, on 1× and on v4.
 
 ### Figure 6: what capacity buys
 

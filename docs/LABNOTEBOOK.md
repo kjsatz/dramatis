@@ -1789,3 +1789,41 @@ openings, so each cell's **gap to the cut control** is the mean over seeds and o
 the paired interval is narrower than the unpaired one). The control itself is one text per
 opening, judged once at temperature 0; its scores sit near the top of the 1–10 scale (9.7–9.9 at
 calibration), so it is a reference line, not a measure with much room above it.
+*Addendum (16:45): the story-quality half of the agreement check* (20 rows of `e2e_v3.jsonl`, all
+of it; ≈ $0.04): 18 answered by the batch job, 2 without valid JSON and judged online by the
+fallback. Scores are close but not identical at temperature 0: equal on 17 / 14 / 14 of 20
+(grammar / consistency / plot), within one point on 20 / 20 / 19, mean |difference| 0.15 / 0.30 /
+0.35; batch − online +0.06 / 0.00 / +0.28 on the 18 (n too small to tell an offset from noise).
+Rule: everything in one comparison is judged in one mode — the control is judged as a batch job,
+so every model's story quality is too, and a mode offset stays out of the gap to the control.
+*Addendum (16:50): the GD dose series, GD half* (1× data; plain cast s0, D = 1.47): attachment
+predicted / first-order readout of the reached weights / measured +0.75 / +0.58 / +0.47 at ¼ D,
++1.50 / +0.72 / +0.38 at ½, +3.00 / +1.01 / +0.59 at 1, +6.00 / +1.42 / +1.24 at 2, +12.0 / +2.05
+/ +2.23 at 4 (spillover +0.24 / +0.17 / +0.21 at ¼ … +3.83 / +0.47 / +0.88 at 4). Not linear even
+at ¼ D: the reached-weights readout is 77 % of the prediction there and its share falls with the
+dose, so most of the gap is the loss's curvature along the path. **Added after seeing this**
+(Kevin): doses 1/64, 1/16, 1/8 × D, to reach the small-dose limit the test asks about; the
+ladder's dose is unchanged (D, fixed before any descent).
+*Addendum (16:55): the story-quality control, judged* (`story_quality.py control --batch`,
+200 texts, batch job 8 min, $0.12; 199 by the batch job, 1 without valid JSON judged online by
+the fallback, 0.5 % outside the one-mode rule): the corpus's own rests score grammar /
+consistency / plot 9.95 / 9.77 / 9.84 in full (mean of three 9.85 [9.77, 9.93], 95 % t over the
+100 openings) and 9.95 / 9.77 / 9.77 cut at 300 tokens (9.83 [9.75, 9.91]; 27 cut). The ceiling
+under this judge is at the top of the scale, and a cut-off ending costs 0.07 on plot only.
+Output `logs/story_quality/control_v4.judge.jsonl` (read by `analyze_v4.py`).
+
+Claude (17:10): **The 1× GD dose series: first order holds at small doses** (plain cast s0,
+`docs/figures/gd_finetune.json`; D = 1.47 fixed from the prediction). Measured ÷ predicted
+attachment / spillover under full-batch GD: 1.00 / 1.01 at D/64, 1.04 / 1.07 at D/16, 1.06 /
+1.13 at D/8, then 0.63 / 0.87 at D/4, 0.25 / 0.59 at D/2, 0.20 / 0.42 at D, 0.19 / 0.23 at 4D.
+The break between D/8 and D/4 (0.4–0.75 nats of predicted attachment) is mostly the loss's
+curvature along the path (the first-order readout of the reached weights falls from 1.09 × to
+0.77 × the prediction); the finetune loss already drops 0.515 → 0.416 at D/8. signGD agrees at
+D/64 (0.99 / 1.10) and is noisier above (spillover 1.4–1.7 × at D/16 … D/4, attachment 0.44 at
+D/8). So R17's "≈ 1 in the small-dose limit" holds on this model, and the predetermined D sits
+well outside the linear regime. **Decided with Kevin:** the 22-model 1× ladder runs at D (running)
+and again at D/16 (queued after it, ≈ 70 min), and the same two doses on v4 — the series on one v4
+10M base, then every v4 10M base at D and D/16, on the Mac after the pull (plan R17, 5c, §8 item 9;
+D/16 is chosen from the 1× series and fixed before any v4 run). `analyze_v4.py` reads the v4 GD
+output (`docs/figures/gd_finetune_v4.json`) into R17's rows: the slope across models at D/16,
+tested as 0.75–1.25, with a bootstrap over models.

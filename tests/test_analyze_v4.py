@@ -280,3 +280,12 @@ def test_story_quality_two_level_and_the_paired_gap(tmp_path):
     m = q["mean_of_criteria_2level"]
     assert m["value"] == pytest.approx(np.mean(list(base.values())) + 1)
     assert (m["hi"] - m["lo"]) > (g["hi"] - g["lo"])  # unpaired, the openings' spread adds to the interval
+
+
+def test_gd_section(tmp_path):
+    models = {f"m{i}": {"runs": {"gd×0.0625": {"predicted": {"attach": 0.1 * i, "spill": 0.05 * i}, "measured": {"attach": 0.1 * i, "spill": 0.04 * i}}}} for i in range(1, 6)}
+    p = tmp_path / "gd.json"
+    p.write_text(json.dumps({"models": models}))
+    g = an.gd_section(p)
+    assert g["gd×0.0625 attach"]["value"] == pytest.approx(1.0) and g["gd×0.0625 spill"]["value"] == pytest.approx(0.8)
+    assert an.gd_section(tmp_path / "none.json") is None

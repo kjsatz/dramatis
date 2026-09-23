@@ -24,8 +24,10 @@ prediction is the loss's curvature along the path, its gap to the measurement th
 the measurement.
 
     uv run python scripts/gd_finetune.py series     # the dose model: doses ¼, ½, 1, 2, 4 × D, GD and signGD
+        [--multiples 0.015625 0.0625 0.125]         # smaller doses, added 2026-09-23 after ¼ × D was not yet linear
     uv run python scripts/gd_finetune.py ladder     # every ladder model (jacobian_ladder.LADDER) at D, GD and signGD,
                                                     # and the existing Adam finetunes as the contrast (forward passes only)
+    uv run python scripts/gd_finetune.py ladder --multiples 0.0625   # the same at D/16, inside the linear regime of the series
     uv run python scripts/gd_finetune.py plot
         [--act steal] [--version v3] [--forks v3] [--only <labels>] [--out docs/figures/gd_finetune]
 
@@ -223,6 +225,7 @@ def main() -> None:
     parser.add_argument("--ft-data", default="data/finetune-{version}")
     parser.add_argument("--dose-model", default="plain cast s0", help="the ladder label the dose is set on (and the series runs on)")
     parser.add_argument("--only", nargs="*", help="ladder labels to run")
+    parser.add_argument("--multiples", nargs="*", type=float, help=f"the dose multiples (series default {' '.join(f'{m:g}' for m in MULTIPLES)}, ladder default 1)")
     parser.add_argument("--out", type=Path, default=Path("docs/figures/gd_finetune"))
     args = parser.parse_args()
     if args.cmd == "plot":
@@ -259,7 +262,7 @@ def main() -> None:
         save(args.out, res)
         print(f"doses (from the prediction on {args.dose_model}): GD {res['doses']['gd']:.4g}, signGD {res['doses']['sign']:.4g}")
     labels = [args.dose_model] if args.cmd == "series" else [lb for lb in lad if not args.only or lb in args.only]
-    mults = MULTIPLES if args.cmd == "series" else (1.0,)
+    mults = args.multiples or (MULTIPLES if args.cmd == "series" else (1.0,))
     for label in labels:  # one model at a time (its gradient vectors are ≈ 8 × the parameter count)
         done = res["models"].get(label, {}).get("runs", {})
         for opt in OPTS:
@@ -308,14 +311,14 @@ def plot(res, out):
         ax.set_title(f"dose series ({res.get('doses', {}).get('set_on')}): {part}", fontsize=9)
         for opt in ("gd", "sign", "adam"):
             ax_ = axes[j, 1] if opt != "adam" else axes[j, 2]
-            key = "adam" if opt == "adam" else f"{opt}×1"
-            pts = [(r["runs"][key]["predicted"][part], r["runs"][key]["measured"][part]) for r in M.values() if key in r.get("runs", {})]
-            if not pts:
-                continue
-            x, y = np.array(pts).T
-            b = boot({"p": list(zip(x, y, strict=True))}, lambda g: slope_fast([q[0] for q in g["p"]], [q[1] for q in g["p"]]))
-            s = f"slope {b['value']:.2f} [{b['lo']:.2f}, {b['hi']:.2f}]" if b["value"] is not None and b["lo"] is not None else "slope —"
-            ax_.scatter(x, y, s=22, color=OPT_C[opt], label=f"{opt}: {s}, n = {len(x)}")
+            for key, mk in ((("adam", "o"),) if opt == "adam" else ((f"{opt}×1", "o"), (f"{opt}×0.0625", "^"))):
+                pts = [(r["runs"][key]["predicted"][part], r["runs"][key]["measured"][part]) for r in M.values() if key in r.get("runs", {})]
+                if len(pts) < 3:
+                    continue
+                x, y = np.array(pts).T
+                b = boot({"p": list(zip(x, y, strict=True))}, lambda g: slope_fast([q[0] for q in g["p"]], [q[1] for q in g["p"]]))
+                s = f"slope {b['value']:.2f} [{b['lo']:.2f}, {b['hi']:.2f}]" if b["value"] is not None and b["lo"] is not None else "slope —"
+                ax_.scatter(x, y, s=22, marker=mk, color=OPT_C[opt], label=f"{key}: {s}, n = {len(x)}")
         for ax_ in (ax, axes[j, 1], axes[j, 2]):
             lim = ax_.get_xlim()
             ax_.plot(lim, lim, color=INK2, ls="--", lw=0.8)
