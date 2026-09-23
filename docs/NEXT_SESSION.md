@@ -34,8 +34,9 @@ child's second temptation is decided by its own first choice and by nothing else
 10M×3, 30M and 100M. In free text the persona is total (96–100 % vs 0–1 %) and "Ben steals"
 makes Ben lie, cheat and tease in 39–68 % of stories.
 
-**Handoffs (2026-09-22):** `docs/2026-09-22_HANDOFF_v4_generation.md` (the full 10× generation
-on a rented GPU, running) and `docs/2026-09-22_HANDOFF_experiment_planning.md` (a critical
+**Handoffs (2026-09-22):** `docs/2026-09-22_HANDOFF_v4_generation.md` (the full generation
+on a rented GPU; done 2026-09-22 at 20×: `data/raw/v4-*/bundle5{,b}.jsonl`, 1,268,642 valid
+of 1.4M, ≈ $79, see the notebook) and `docs/2026-09-22_HANDOFF_experiment_planning.md` (a critical
 review of the synthesis and the follow-up plan for the v4 corpus, in dialog with Kevin).
 
 **Decided 2026-09-22 (experiment-planning session): the plan for the v4 corpus is

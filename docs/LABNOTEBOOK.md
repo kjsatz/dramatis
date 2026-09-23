@@ -1166,3 +1166,39 @@ excluding zero; ten seeds per cell including 30M / 100M; one pass per run at eve
 300M; rung A included; the corpus doubled to 20× (Kevin, generating). Run table R1–R20 with the
 frozen readout and the 1× expected range per experiment, ≈ 300 GPU-h ≈ 37 h on 8× RTX 5090
 ≈ $140, judging ≈ $65 of credits. Nothing committed.
+
+Claude (19:10): **v4 corpus generated at 20×: bundle5 + bundle5b, 1.4M stories, 1,268,642 valid.**
+Box: vast.ai 4× H100 SXM (NL, offer 36742495, instance 52094065, reliability 0.999), image
+`vllm/vllm-openai:latest` (vLLM 0.30.0), `google/gemma-4-26B-A4B-it` bf16, `--data-parallel-size
+4 --max-num-seqs 128 --max-model-len 4096`, one endpoint; the driver ran on the box in tmux
+(`--workers 512`) from a clean clone at `a0d4dff` (the commit that adds the sidecar `runs`
+history; generation paths identical to the pilot's `b3b2fb6`, and `git diff a0d4dff HEAD` over
+prompts/, dramatis/, scripts/generate.py, tokenizer/ is empty as of this entry). Single H100s were
+$4.5–5/h today; the 4× node at $2.28/GPU-h was the find. Rented 10:26 am PT, destroyed 7:06 pm PT:
+8.66 h × $9.11/h ≈ **$79**. Throughput check: 47.6 stories/s at 512 workers (≈ 12/s per GPU);
+the full run held 46–48/s, GPUs 95–100 % busy, zero errors, zero retries.
+The second tranche (bundle5b) was Kevin's mid-run decision to double; same commit, spec and
+counts, new `--name` (distinct ids) and new seeds (distinct specs).
+
+    batch    name      seed  valid / n          %     specialists  minutes  sha256 (first 8)
+    v4-base  bundle5   5101  256,613 / 280,000  91.6  —            97.6     143a2ab2
+    v4-one   bundle5   5102  253,234 / 280,000  90.4  140,000      100.1    0d24dcd4
+    v4-both  bundle5   5103  124,502 / 140,000  88.9   70,000       50.8    543a4e77
+    v4-base  bundle5b  5104  256,798 / 280,000  91.7  —            97.4     0c9a2448
+    v4-one   bundle5b  5105  253,418 / 280,000  90.5  140,000      100.4    db66e141
+    v4-both  bundle5b  5106  124,077 / 140,000  88.6   70,000       50.9    ed082b3e
+
+Checks at home: every file has exactly the expected ids, no duplicate ids within or across
+files, valid counts equal the sidecars, all sidecars `a0d4dff`, `git_dirty: false`; all 1.4M
+pass-1 prompts distinct (no spec repeated across tranches); SHA-256 of each file equal on box and
+Mac. Drops are the pilot's failure modes: too long 7–9 %, "$Word" placeholders 1.5–2.5 % ($Can
+most; $You / $Your more in bad/bad, which has more dialogue), block format < 1 %, a few dozen
+stray brackets and gendered words per file. One known non-independence: pass 2 seeds its
+example-phrasing choice with `default_rng(i)` (story index only), so story i of bundle5 and of
+bundle5b draw the same example index for their (different) endings; negligible, left as is.
+Leakage gate on bundle5 (`check_setup_leakage.py --max-stories 3000` per file, 39,475 situation
+scenes): **within-situation setup-only AUC 0.503–0.512** (pilot 0.495–0.518), full scene 1.000;
+pooled across situations 0.591, which is situation identity (holding_thing, who_did_it,
+asks_to_join, rule_and_leave only ever end well in v4), not setup leakage. Not yet done: gate on
+bundle5b, judge sample (≈ $3 per 300 stories per file), read fifty stories, holdouts, assembly.
+Wrapper scripts and box logs in `data/raw/_gen_box_2026-09-22/` (gitignored). Data not committed.
