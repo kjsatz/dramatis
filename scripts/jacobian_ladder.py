@@ -134,7 +134,7 @@ def main() -> None:
         th_b = flat_params(base)
         dth_f, dth_n = flat_params(ft) - th_b, flat_params(neu) - th_b
         grads = readout_grads(base, gitems)
-        # differential first-order prediction and measurement, per act: (Ben − other K) × (ft − neutral)
+        # differential first-order prediction and measurement, per act: (Ben ft − Ben neutral) − (other K ft − other K neutral)
         pred, meas = {}, {}
         for act in ACTS:
             pred[act] = float((grads[(TAUGHT_NAME, act)] - grads[("K", act)]) @ (dth_f - dth_n))

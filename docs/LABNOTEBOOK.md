@@ -1507,3 +1507,20 @@ No judge samples or pilot. Checked with the read-only token (the boxes' token): 
 sizes equal to the Mac's. On a box: `hf download kjsatz/dramatis-v4-stories --repo-type dataset
 --revision 727b6dbd08c128a27550e19b1ceef82a818d063e --local-dir data/raw`, then
 `uv run python scripts/hf_upload.py verify`.
+
+Claude (12:20): **Plan review with Kevin: the flow scans and the 0.4.** (1) Attachment and spillover
+are double differences, [s(FT, Ben) − s(neutral, Ben)] − [s(FT, other K) − s(neutral, other K)];
+the plan's "(Ben − other K) × (ft − neutral)" read as a product and is rewritten. (2) How much of
+the fork log-odds' N − K sits in the first differing token (1× plain cast, `Ccast-s0`, 656 k = 0
+items): 10M 88 % pooled, by act steal 43 %, lie 118 %, cheat 150 %, tease 124 %; 100M 125 %
+pooled, steal 85 %, cheat 221 %, tease 131 %, lie +0.68 of −1.41. Pooled this agrees with the
+2026-09-21 site decomposition; per act the later tokens carry real class decisions (steal's
+" put it" is followed by a second choice, " back" against " in a pocket"). So in v4 the
+prediction site is the whole ending span after the first difference (the positions the
+log-odds sum over), the direction fitted at its first position and removed along all of it.
+Also for the flow scans: directions refitted per model and fitted / scored on the two halves of
+the setups, three random directions, the class separation left after each removal (shrinkage-LDA
+d′). (3) The plan's "0.4" was two numbers: the spillover slope (behaviour, now defined as the
+one summary) and Ben's position on the class axis (representation, 1× 0.35–0.51 at the name,
+0.5–0.6 at the site). v4 tests the chain between them: position × persona per act against the
+measured spillover (A4), and the dose curve from R18's first 100 steps.

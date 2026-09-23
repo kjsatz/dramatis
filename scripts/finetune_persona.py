@@ -83,7 +83,7 @@ def by_class(items, lo, taught_name, taught_act, other_k):
 
 
 def attach_spill(items, lo_ft, lo_neu, taught_name, taught_act, other_k):
-    """(attachment, spillover): (taught name − other K) × (finetuned − neutral), on the taught act
+    """(attachment, spillover): [ft − neutral for the taught name] − [ft − neutral for the other K-names], on the taught act
     and on the mean of the untaught acts."""
     a = by_class(items, lo_ft, taught_name, taught_act, other_k)
     b = by_class(items, lo_neu, taught_name, taught_act, other_k)
@@ -230,7 +230,7 @@ def main() -> None:
             meas[act] = (float(lo_ft[sel_b].mean() - lo_base[sel_b].mean()), float(lo_neu[sel_b].mean() - lo_base[sel_b].mean()))
             pk[act] = (float(grads[("K", act)] @ dth_ft), float(grads[("K", act)] @ dth_neu))
             mk[act] = (float(lo_ft[sel_k].mean() - lo_base[sel_k].mean()), float(lo_neu[sel_k].mean() - lo_base[sel_k].mean()))
-        # the readout's own form: (Ben − other K) × (ft − neutral)
+        # the readout's own form: (Ben ft − Ben neutral) − (other K ft − other K neutral)
         diff = lambda p, q, a: (p[a][0] - p[a][1]) - (q[a][0] - q[a][1])  # noqa: E731
         pred_att, meas_att = diff(pred, pk, taught_act), diff(meas, mk, taught_act)
         pred_spill = float(np.mean([diff(pred, pk, a) for a in untaught]))
