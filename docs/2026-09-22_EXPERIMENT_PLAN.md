@@ -165,10 +165,14 @@ smoothly (gain, onset). The depth ladder adds four columns at the small end.
   and are not used). **Ben's position:** Ben's residual stream at his name tokens and at the
   prediction site, finetuned minus neutral, projected on the base model's class direction at that
   block and position, in units of the base K→N gap (0 = K mean, 1 = N mean); the other kind names
-  the same, as the control. **Position × persona:** Ben's position at the site times the base
-  persona on each untaught act, the spillover the chain finetune → position → behaviour predicts
-  if the network reads the class axis linearly; compared with the measured spillover per cell and
-  act. Fits are per act, act-matched; cell means (a corpus × size cell,
+  the same, as the control. **Position × persona:** Ben's excess position at the site (his
+  position minus the other kind names' position, last block) times the base persona on each
+  untaught act, the spillover the chain finetune → position → behaviour predicts if the network
+  reads the class axis linearly; compared with the measured spillover per cell and act. The excess
+  is the like-for-like prediction, since the spillover also subtracts the other kind names'
+  change; Ben's position alone × persona (the predicted change in Ben's log-odds, not the double
+  difference) is the second line, and the two differ by the shift the finetune gives every kind
+  name (decided 2026-09-23, before launch). Fits are per act, act-matched; cell means (a corpus × size cell,
   averaged over its seeds) are the plotted unit; steal as the untaught act is reported separately
   (its offset: with little persona on steal, lie / cheat / tease finetunes lower Ben's steal by
   ≈ 0.7 nats at 1×. About 1 nat of it was a probe artefact, found in the 2026-09-22 audit and fixed in `59477f1`: the
@@ -696,8 +700,9 @@ two seeds per size (30M: one seed binds at the very end, one not; 100M binds at 
 persona on the untaught acts (open) against the measured spillover (filled), 10M: they agree for
 every cast in which the villain names share their acts and part for the by-act cast, which 4b
 shows as a matrix. **v4:** 8 seeds and the paired cast (R10–R13), and a second prediction that
-does not use the fitted 0.4: each finetune's measured position × the persona on each untaught act
-(§4), against its measured spillover, one point per cell and act; a slope near 1 is the chain
+does not use the fitted 0.4: each finetune's measured excess position (Ben's minus the other kind
+names') × the persona on each untaught act (§4; Ben's position alone as a second line), against
+its measured spillover, one point per cell and act; a slope near 1 is the chain
 finetune → position → behaviour holding, a slope far from 1 or an act pattern in the misses is
 the class axis read non-linearly (R16).
 

@@ -1640,3 +1640,13 @@ review's points (pred vs pred_excess, the pulled layout, a smoothed onset, the c
 details for the methods). Also: the repo's old lint errors fixed (`paper_figures.py`,
 `name_geometry.py`, `symmetrize.py`; `ruff check .` clean), and `paper_figures.py` figure 4's
 un-poisoning panel moved to the reconciled timeline. 224 tests pass.
+
+Claude (15:00): **Position × persona: the excess position is the main line** (Kevin's decision,
+before launch; plan §4 and the A4 caption reworded). The measured spillover is a double difference
+(Ben's change minus the other kind names' change), so the like-for-like prediction is
+(Ben's position − the other kind names' position) × the base persona (`pred_excess`);
+Ben's position alone × persona (`pred`) predicts Ben's single difference and is kept as the
+second line. They differ by the shift the finetune gives every kind name; if that is ≈ 0 the
+two agree. No 1× value of the kind names' position exists, so the size of the difference is
+unknown. `eval_v4.py collect` currently averages and fits only `pred`; the analysis code adds
+`pred_excess`.
