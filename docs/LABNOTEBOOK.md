@@ -1548,3 +1548,20 @@ normalized by the 100M value; four boxes (three as the fallback; ≈ 463 GPU-h, 
 parameters; R2 now 128 runs); story quality without creativity; 2b keeps the random cast as its
 flat control (dense k = 0 probes at y = 0 added to R1); "plain cast" is a 1× term only; 5a
 plotted for every case, the main panel chosen from the results.
+
+Claude (13:08): **Fork-item calibration criteria for `prompts/forks_v4.yaml`, fixed before any
+calibration number exists** (Kevin, 2026-09-23). Kevin reviewed the draft (spot checks, no
+edits). Calibration model: 10M on `v4-lex-y000` (random cast: names uninformative, N − K zero by
+construction), ~123M tokens, `configs/calib-v4-10m.yaml`, never reported as a result. Scorer
+`scripts/calibrate_forks_v4.py` (k = 0 prompt format, 8 draws per item over all 32 cast names).
+Criteria: prompt log p per token ≥ −3; per-act s.e.m. ≤ ~1 nat; per-act mean log-odds within
+±4 nats and ≤ a quarter of an act's items beyond ±8 ("room to move": items near a ceiling or
+floor compress the persona's effect). For the held-out acts (break, blame, exclude, sneak), which
+the model has never seen performed, only fluency and precision are enforced; room to move is
+reported, not enforced. Items are edited only for failing a criterion on the calibration model
+or for structural reasons (never dropped for being far out), every change logged; at most two
+rounds, then frozen and tagged whatever the numbers. No persona, spillover or in-context readout
+on any model before the freeze.
+The unedited draft is the version committed in `2bfa1d2` (the reference for a robustness check if
+calibration forces edits). Also reviewed by Kevin, no edits: `prompts/judge_story_quality_v1.md`
+(grammar, consistency, plot; no creativity), frozen with the fork items.

@@ -1,0 +1,22 @@
+# Fork-item calibration model for prompts/forks_v4.yaml (plan §4; notebook 2026-09-23): 10M on the
+# v4 random-cast corpus (y = 0, names uninformative, so N − K is zero by construction and the
+# items cannot be tuned toward the hypothesis), ~123M tokens (about 30 % of one pass), as the v3
+# clean calibration model. Used only to check item fluency, precision and room to move; never
+# reported as a result.
+model: 10M
+data: data/corpora/v4-lex-y000
+seed: 0
+device: auto
+train:
+  batch_size: 32          # 32 x 512 = 16k tokens/step
+  n_steps: 7500           # ~123M tokens
+  peak_lr: 6.0e-4
+  final_lr: 6.0e-5
+  lr_warmup_steps: 200
+  max_gradient_norm: 1.0
+  log_every: 20
+  eval_every: 250
+  n_val_batches: 20
+  checkpoint_every: 2500
+  resumable_checkpoints: false
+  precision: bf16
