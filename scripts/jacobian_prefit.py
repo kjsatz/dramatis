@@ -103,7 +103,7 @@ def main() -> None:
         if prev[label].get("act", "steal") != taught:
             print(f"WARNING {label}: {args.ladder} holds a {prev[label].get('act', 'steal')} result, not {taught}; skipped")
             continue
-        base_ck, ft_ck, neu_ck = find(base_g, ck), find(ft_g, "ckpt_000099.pt"), find(neu_g, "ckpt_000099.pt")
+        base_ck, ft_ck, neu_ck = find(base_g, ck), find(ft_g), find(neu_g)  # the last checkpoint
         if not (base_ck and ft_ck and neu_ck):
             print(f"{label}: missing checkpoints")
             continue

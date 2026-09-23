@@ -101,9 +101,6 @@ def main() -> None:
         **probe_kwargs(cfg.get("probes"), run_dir, gpt.config.block_size),
     )
     seconds = time.perf_counter() - t0
-    # train() checkpoints at step % checkpoint_every == 0, so step 0 (the base weights after one
-    # update) is saved too; it carries no information and is dropped.
-    (run_dir / "checkpoints" / "ckpt_000000.pt").unlink(missing_ok=True)
 
     log.save(run_dir / "log.json")
     ax = log.plot()

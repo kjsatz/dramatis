@@ -265,7 +265,7 @@ GPU-hours on RTX 5090 at the §7 throughputs.
 | R2 | depth ladder: width 128, 1 / 2 / 3 / 4 layers (≈ 0.8 / 1.0 / 1.2 / 1.4M; the 5-layer 1M completes it), y = 0 / .95 / 1 × 8, and the closing-label corpus × 8 | 3c, 6, A5 | 128 | 27 | as R1; bystander effect; onset; flow scans | exploratory; hypothesis stated in advance: one layer can copy the class to the prediction site (a persona), but the actor binding needs two (1 layer: bystander effect large) |
 | R3 | count against fraction: 10M, y = .95 / .99 / 1 on a quarter-size corpus | A2b | 24 | 1 | fraction kept at y = 0.99, quarter against full | exploratory, two stated outcomes: equal → the fraction sets it; more kept on the quarter corpus → the count does |
 | R4 | dense k = 0 probes on the y = 0, .95 and 1 runs of R1 (the formation curve; y = 0 the flat control) | 2b | (in R1) | (in R1) | name effect against tokens | 1×: at its final level by 1.5k steps → forms within the first 10 % of the pass |
-| R5 | ladder rung B: opening label, both children tempted, 1 : 2 : 1, 1M–100M × 8, dense | 3 | 40 | 32 | character effect with the label in the prefix, k = 0 and k = 1 | exploratory (never tested with both children tempted) |
+| R5 | ladder rung B: opening label, both children tempted, 1 : 2 : 1, 1M–100M × 8, dense | 3 | 40 | 32 | character effect with the label in the prefix, k = 0 (the label alone, before any bad act; with a no-label k = 0 control) and k = 1, both in the dense probes | exploratory (never tested with both children tempted) |
 | R6 | ladder rung B′: closing label, same mix, 1M–100M × 8, dense | 3b–c | 40 | 32 | story-level and binding curves; onset | 1× onset 10M×3 7.5–10.5k, 30M ≈ 6k, 100M 2–4.5k steps, with repetition → exploratory; the continuation rule (§4) |
 | R7 | ladder rung C / D: random names, no labels, 1M–100M × 8, dense | 3 | 40 | 32 | character effect at k = 1 (C) and cross-act k = 2 (D) | 1× pooled −0.13 ± 0.03 → null expected; "positive" as §4 |
 | R8 | ladder rung A: "naughty $A" at every mention, 10M × 8, dense | 3a | 8 | 3 | character effect | a readout control: expected large; if null, stop and check the probe and the assembly |
@@ -273,21 +273,22 @@ GPU-hours on RTX 5090 at the §7 throughputs.
 | R10 | paired cast: {steal, lie} names and {cheat, tease} names, 10M × 8, 100M × 8 | 4b | 16 | 13 | the spillover matrix | predicted: the block pattern (partner act high, the other pair ≈ 0), each cell ≈ 0.4 × the taught act's names' persona on that act |
 | R11 | by-act cast (specialist bad/good stories), 10M × 8 | 4b | 8 | 1 | the spillover matrix | 1× near zero everywhere (−0.2 to +0.3) → consistent with the profile rule |
 | R12 | clean twin (base stories only, cast names), 10M × 8 | appendix | 8 | 1 | persona and spillover | ≈ 0 |
-| R13 | finetunes: steal / lie / cheat / tease / neutral, 100 steps, on every R1, R2, R10–R12 base | 4, 5, 6 | ≈ 2,500 | (24, with R15, R16, R18, R20) | act-matched spillover and attachment | slope 0.40–0.43 → 0.25–0.6 per untaught act; random cast \|mean\| < 0.2; contrast d (1× 2.3 with matched items) > 2 |
+| R13 | finetunes: steal / lie / cheat / tease / neutral, 100 steps, on every R1, R2, R10–R12 base | 4, 5, 6 | 2,640 | (24, with R15, R16, R18, R20) | act-matched spillover and attachment | slope 0.40–0.43 → 0.25–0.6 per untaught act; random cast \|mean\| < 0.2; contrast d (1× 2.3 with matched items) > 2 |
 | R14 | free text: `sample_forks.py --block finetune --variants 1` on the five finetunes (four acts and neutral) of the 10M exact-cast, random, by-act and paired bases, 8 seeds; 4 setups per act (the performed acts and break; all 16 would be ≈ 4.5× the judge calls) | 4c | ≈ 160 models | (5, with R21) | BAD rate per class and act | Ben's untaught acts 15–68 %, others 0–2 %; taught act for the others: steal 14 %, lie 81 %, cheat 74 %, tease 63 % (steal the open exception) |
 | R15 | held-out acts on the new items, R1 bases and R13 finetunes | 4d | probes | (in) | persona per held-out act; spillover per held-out act | break persona positive (1× all four items +3.7 to +4.5); spillover ≈ 0.4 × persona on each held-out act (predicted); the other three exploratory |
 | R16 | mechanism probes: steering and d′ on R1 (2c–d, A6); full flow scans (§4: the site as every ending position after the first difference, directions refitted per model on half the setups, three random directions, separation left) for the base and the four finetunes at 10M and 100M and on the depth ladder; Ben's position (§4) for every R13 finetune (forward passes only) | 2c–d, 5a, A5 | probes | (in) | as `persona_direction.py`, `persona_circuit.py`, `finetune_persona.py` | steering one gap ≥ 75 % of the own N effect (1× 88–97 %); the name-token removal loses its effect after the copy block and the site removal gains it (1× crossing at block 3–4, 10M); finetune: the same crossing |
 | R17 | GD test (predetermined dose), first on the 1× models on the Mac, then the v4 bases | 5c | Mac + box | (in) | measured against predicted attachment and spillover, slope | ≈ 1 in the small-dose limit; saturation exploratory |
 | R18 | the timeline, 10M y = 1 × 8: "Ben steals" (and the neutral finetune) for 100 steps, then clean stories for 2,000 steps from both sets of weights, so every point of the bad path has a matched neutral path (the clean-twin corpus: stories seen once in pretraining, no repetition), each phase one run with probes every 10 updates (Ben against the other kind names, per act) and checkpoints every 10 / 50 updates for Ben's position on the axis; a fresh optimizer at the phase change (the 1× points were separate runs per dose) | 5b | 8 × 2 | (in) | Ben's position on the axis, spillover, attachment against step | 1× (matched neutral, reconciled 2026-09-23): Ben's position 0.39 after 100 bad steps, 0.24 after 25 clean, 0.14 (0.12–0.16) after 400 clean, still falling slowly; spillover 1.17 → 0.87 → 0.50 → exploratory: whether the position levels off above zero by 2,000 clean steps or keeps falling ("slow", not "stops", either way) |
 | R19 | LR control: 10M at the peak LRs of 1M / 3M / 30M / 100M × 5, y = 1 and rung B′ | appendix | 40 | 12 | persona; onset | exploratory |
-| R20 | 100M finetune-LR sweep (3 LRs × 8 bases) | appendix | 24 finetunes | (in) | attachment; the other kind names' rise | the 1× 100M attachment dip (+2.8 against +5.4 at 30M) vanishes on unrepeated data or with a smaller finetune LR |
+| R20 | 100M finetune-LR sweep (2 smaller LRs × 8 bases, "Ben steals" and neutral; the plan's LR is R13's) | appendix | 32 finetunes | (in) | attachment; the other kind names' rise | the 1× 100M attachment dip (+2.8 against +5.4 at 30M) vanishes on unrepeated data or with a smaller finetune LR |
 | R21 | story quality and actor tracking: completions of 100 held-out openings for every size and depth at y = 1 and 0 (3 seeds); `sample_forks.py --block persona --variants 1` for actor tracking at every size and depth (y = 1, 3 seeds) | 6, A6 | ≈ 50 models | (in R14) | judge scores; UNCLEAR rate | exploratory; TinyStories comparison (grammar early, consistency later) |
 
 **Total ≈ 463 GPU-h** at eight seeds per cell (`scripts/run_v4.py plan`, from the built corpora:
-382 GPU-h of jobs, plus ≤ 37 for R9's continuations, ≈ 12 for starting ≈ 2,500 short finetune
-processes and ≈ 15 for the smoke test and slack; the rows of the table were estimated before the
-corpora existed). The big items are the sweep (R1, ≈ 236) and the ladder (R5–R7,
-≈ 95). Judging
+400 GPU-h of jobs (3,456, after the 4-layer rung and the dense probes at y = 0), plus ≤ 37 for
+R9's continuations (more if 30M fails to bind, as one 1× seed did: ≈ 26 for 30M alone), ≈ 12 for
+starting ≈ 2,640 short finetune processes and ≈ 15 for the smoke test and slack, and ≈ 8 for the
+evaluation stage; the rows of the table were estimated before the corpora existed). The big items
+are the sweep (R1, ≈ 238) and the ladder (R5–R7, ≈ 95). Judging
 ≈ 94k calls at ≈ $0.63 per thousand (the 1× rate), ≈ $62 of Vertex credits: free text ≈ 70k calls
 (160 models × 440 samples) ≈ $44, actor tracking ≈ 19k (24 models × 800) ≈ $12, story quality
 ≈ 5k (48 models × 100, longer prompts) ≈ $6.
@@ -354,8 +355,8 @@ curve alongside the binding in R6.
 3. ~~Depth-ladder presets~~ — done 2026-09-23: `d128-L1`, `d128-L2`, `d128-L3` in `dramatis/model.py`
    (0.79M, 0.98M, 1.18M parameters).
 4. ~~v4 holdouts and finetune sets~~ — done 2026-09-22 (`prompts/holdout_ids_v4.json`,
-   `data/finetune-v4/`); still to do: 100 held-out openings for story quality (from the v4-base
-   holdout).
+   `data/finetune-v4/`) and the 100 held-out openings for story quality
+   (`prompts/story_quality_openings_v4.json`).
 5. ~~Assembly options~~ — done 2026-09-23 (`2bfa1d2`; corpora built `09ac14d`, choices confirmed by
    Kevin): rung A rendering, the paired cast, the by-act filter, labels for two villains.
 6. ~~The new fork items (§4)~~ — done 2026-09-23: drafted, reviewed, calibrated (one round), frozen
@@ -379,9 +380,10 @@ curve alongside the binding in R6.
 9. The GD test on the 1× models (`scripts/gd_finetune.py`), before its v4 version (the analysis
    session, during training).
 9a. ~~Probe-code fixes found in the 2026-09-22 audit~~ — done 2026-09-23 in `59477f1` (with the
-    re-probe of the Mac cheat / tease finetunes; notebook 2026-09-23), except the checkpoint labels,
-    which live in `dramatis/train.py` (Kevin's file) and go with the probe hook (item 2). What was
-    fixed:
+    re-probe of the Mac cheat / tease finetunes; notebook 2026-09-23); the checkpoint labels
+    (`dramatis/train.py`, with Kevin's go-ahead) on 2026-09-23 after the pre-launch review: a
+    checkpoint is now named by the updates it holds and none is saved after the first update. What
+    was fixed:
     * name-token d′ (`persona_direction.py`) split by name, not by setup (the setup split keeps
       each evaluated name's identity in the fitted direction: d′ ≈ 28 at the embedding against a
       held-out-name d′ ≈ 10 and a permutation null ≈ 3.4), with the permutation null reported;
@@ -434,6 +436,13 @@ curve alongside the binding in R6.
     with the frozen fork items, mechanism scans, free text, story quality) comes after the fork
     items are frozen and runs on the box where the checkpoints are: built 2026-09-23 as
     `scripts/eval_v4.py` (same shards as training; ≈ 8 GPU-h in all, estimated from Mac timings).
+    Pre-launch review (2026-09-23, notebook): a restarted driver rebuilds the onset continuation
+    passes that finished runs call for, and runs them first; the four shards are fixed in the
+    committed `configs/v4_shards.json`; the boxes verify their rebuilt data against
+    `configs/v4_data_hashes.json`, are synced from a git bundle of the pushed commit, and record
+    the probe sets' hashes in `logs/v4/probe_sets.json`; the smoke test keeps the dense-probe
+    cadence and forces one continuation pass; the hourly upload survives errors and `hf_runs.py
+    status` checks every file before teardown.
 
 ## 9. Design decisions and their reasons
 

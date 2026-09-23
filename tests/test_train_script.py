@@ -55,6 +55,6 @@ def test_train_script_end_to_end(tmp_path):
     assert summary["final_val_loss"] < 8.0  # moved off uniform (ln 4096 = 8.3)
 
     ckpts = sorted(p.name for p in (run_dir / "checkpoints").iterdir())
-    assert ckpts == ["ckpt_000000.pt", "ckpt_000010.pt", "ckpt_000019.pt"]
-    gpt = model_from_checkpoint(run_dir / "checkpoints" / "ckpt_000019.pt")
+    assert ckpts == ["ckpt_000010.pt", "ckpt_000020.pt"]  # named by updates
+    gpt = model_from_checkpoint(run_dir / "checkpoints" / "ckpt_000020.pt")
     assert gpt.config.d_model == 128

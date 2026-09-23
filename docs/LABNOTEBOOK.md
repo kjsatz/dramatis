@@ -1592,7 +1592,7 @@ finetune names; R13's contrast d and the attention row left to the analysis code
 rebuilt from the frozen items (`data/probe_sets/`, items_sha256): k0 `9484278b39b2`, k0_ben
 `6c997644c527`, label_v4 `a49fef1eaead`, incontext_v4 `5065b53d0e52`, incontext_k2_v4
 `6fcb0ab22de0`, incontext_label_v4 `4f83d8591843`, incontext_A_v4 `b5ecc7a3d2d8`; full sets
-label `b91bf8df29fb`, incontext `df51850c87b0`, k2 `c07d62790af1`, label `18eab13365ab`, A
+label `b91bf8df29fb`, incontext `df51850c87b0`, k2 `c07d62790af1`, incontext_label `18eab13365ab`, A
 `6704337ce224`.
 
 Claude (14:00): **Evaluation stage built** (a subagent, reviewed): `scripts/eval_v4.py` (plan / run /
@@ -1608,3 +1608,35 @@ at ≈ 8 GPU-h in all. Also ready: `scripts/hf_runs.py` (runs to the public Hub 
 `kjsatz/dramatis-v4-runs`, weights only, card with the Gemma terms notice; box token
 `HF_TOKEN_BOX` scoped to that repo), `docs/RUNBOOK_v4.md`, and handoffs for the review, run and
 analysis sessions (`docs/2026-09-23_HANDOFF_{review,run,analysis}.md`).
+
+Claude (14:40): **Pre-launch review and its fixes.** An independent review agent (the handoff
+`docs/2026-09-23_HANDOFF_review.md`, read-only) checked the plan against the drivers, the metrics
+against §4, the data (corpora, a finetune set and all probe sets rebuilt byte-identical from the
+committed code), the runbook commands, provenance and secrets (none in the history). Verdict:
+launch after fixes. One blocker: a restarted `run_v4.py` silently dropped the onset continuation
+passes (R9) not yet queued in the same process, which would have reported those runs as censored
+after one pass. Fixed with Kevin's go-ahead: (1) `pending_continuations()` rebuilds the passes
+finished runs call for at every start, and continuations run first (they had queued last); tested
+end to end on the Mac (a 30-update L1 closing-label run below the floor chained passes 2–4 from
+`--init-from`, constant LR, stop rule, stopped at the cap; after deleting passes 3–4 a restart
+rebuilt pass 3). (2) The smoke test keeps the dense-probe cadence (measures the overhead) and
+forces one continuation pass. (3) The four shards fixed in the committed `configs/v4_shards.json`
+(4 × 864 jobs, 100.0 GPU-h; evaluation 497 / 497 / 497 / 470 jobs follow it). (4) The Mac's data
+hashes in `configs/v4_data_hashes.json` (20 corpora, 10 finetune sets, 15 probe sets) and
+`scripts/v4_data_hashes.py verify` for the boxes. (5) Boxes get the code as a git bundle of the
+pushed commit (the rsync left their trees dirty). (6) `hf_runs.py`: the hourly push survives
+errors; `status` checks every staged file before teardown. (7) Probe-set provenance written to
+`logs/v4/probe_sets.json` at every launch. (8) Runbook commands (`uv run hf`, the smoke
+evaluation outside `logs/v4`, the traceback grep, the finetune build). (9) **Checkpoint naming in
+`dramatis/train.py`** (Kevin's go-ahead): a checkpoint is named by the updates it holds
+(`ckpt_000100.pt` = 100 updates, as the probes are keyed) and none is saved after the first update
+(≈ 57 GB of uploads less); the stored 0-based `step` and bitwise resume unchanged; readers that
+hard-coded `ckpt_000099` take the last checkpoint; 1× runs keep their names. (10) Kevin's decision:
+**rung B at k = 0** added (the label alone, before any bad act, plan R5): the dense set
+`incontext_label_k0_v4` (items `9d8456bf8682`) on the R5 runs, and the full sets `incontext_label_k0_full_v4`
+with a no-label control `incontext_k0_full_v4` (readouts `B_k0`, `B_k0_nolabel`). Plan counts
+corrected (400 GPU-h of jobs, R13 2,640, R20 32), the analysis and run handoffs updated with the
+review's points (pred vs pred_excess, the pulled layout, a smoothed onset, the continuation
+details for the methods). Also: the repo's old lint errors fixed (`paper_figures.py`,
+`name_geometry.py`, `symmetrize.py`; `ruff check .` clean), and `paper_figures.py` figure 4's
+un-poisoning panel moved to the reconciled timeline. 224 tests pass.

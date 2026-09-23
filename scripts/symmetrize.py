@@ -1,10 +1,11 @@
-"""Symmetric-temptation stories (the "emergent persona" corpus, docs/2026-09-19_REPORT_cast_map.md §4 and
-DATA.md §14): from the v3 generalist villain stories, keep the villain's first two temptations
-(drop the third) and give the other child exactly two benign temptations, transplanting scene
-blocks from base stories where needed. Every villain story then has two children who each face
-two temptations; one takes the bad path both times and the other the benign path both times.
-With random names (the unnamed assembly rule) nothing but a child's own history predicts its
-second choice — the pressure for in-context persona inference that no earlier corpus had.
+"""Symmetric-temptation stories (the "emergent persona" corpus, docs/2026-09-19_REPORT_cast_map.md
+§4 and DATA.md §14): from the v3 generalist villain stories, keep the villain's first two
+temptations (drop the third) and give the other child exactly two benign temptations,
+transplanting scene blocks from base stories where needed. Every villain story then has two
+children who each face two temptations; one takes the bad path both times and the other the
+benign path both times. With random names (the unnamed assembly rule) nothing but a child's own
+history predicts its second choice — the pressure for in-context persona inference that no
+earlier corpus had.
 
 A scene block is a paragraph group "setup / [CHOICE $X] / ending / [AFTERMATH $X act]".
 Transplants are taken from base stories with the same adult, situation types the other child

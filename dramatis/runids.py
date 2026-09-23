@@ -79,7 +79,9 @@ class RunId:
         """A finetune tag that names its last checkpoint (or no checkpoint: the spec resolves to
         the last one)."""
         n = self.steps or FT_STEPS
-        return self.act is not None and self.ckpt in (None, "final_weights", f"ckpt_{n - 1:06d}")
+        # a final checkpoint is named by its 0-based step (to 2026-09-23) or by its updates
+        finals = (None, "final_weights", f"ckpt_{n - 1:06d}", f"ckpt_{n:06d}")
+        return self.act is not None and self.ckpt in finals
 
     def __str__(self) -> str:
         return self.run + (f"/{self.ckpt}.pt" if self.ckpt else "")

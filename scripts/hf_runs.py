@@ -100,28 +100,38 @@ def push(args) -> None:
         sys.exit("HF_TOKEN_BOX is not set in .env (the boxes' fine-grained token)")
     api = HfApi(token=token)
     while True:
-        done, pending = stage(args.box, args.keep_optimizer)
-        print(f"{time.strftime('%H:%M:%S')} staged {done} finished runs; {len(pending)} unfinished, skipped")
-        api.upload_large_folder(repo_id=REPO, repo_type="model", folder_path=str(STAGE))
-        print(f"{time.strftime('%H:%M:%S')} uploaded to {REPO}")
+        try:
+            done, pending = stage(args.box, args.keep_optimizer)
+            print(f"{time.strftime('%H:%M:%S')} staged {done} finished runs; {len(pending)} unfinished, skipped", flush=True)
+            api.upload_large_folder(repo_id=REPO, repo_type="model", folder_path=str(STAGE))
+            print(f"{time.strftime('%H:%M:%S')} uploaded to {REPO}", flush=True)
+        except Exception as e:  # the hourly loop is the box's backup: log the error and keep going
+            print(f"{time.strftime('%H:%M:%S')} PUSH FAILED ({type(e).__name__}: {e}); retrying at the next round", flush=True)
+            if not args.loop:
+                raise
         if not args.loop:
             break
         time.sleep(args.loop)
 
 
 def status(args) -> None:
-    """Finished runs not yet staged, and finished runs not yet on the hub (exit 1 if any)."""
+    """Before a box is destroyed: every finished run staged, and every staged file (runs and this
+    box's logs) on the hub, file by file. Exit 1 otherwise."""
     from huggingface_hub import HfApi
 
     finished = [r.name for r in Path("runs").iterdir() if (r / "summary.json").exists()]
     unstaged = [r for r in finished if not (STAGE / "runs" / r / "summary.json").exists()]
     unfinished = [r.name for r in Path("runs").iterdir() if r.is_dir() and not (r / "summary.json").exists()]
     api = HfApi(token=os.environ.get("HF_TOKEN_BOX") or os.environ.get("HF_TOKEN"))
-    remote = {f.split("/")[1] for f in api.list_repo_files(REPO) if f.startswith("runs/")}
-    missing = [r for r in finished if r not in remote]
-    print(f"finished {len(finished)}, unfinished {len(unfinished)}, not staged {len(unstaged)}, not on the hub {len(missing)}")
-    for r in missing[:20]:
-        print(f"  not on the hub: {r}")
+    remote = set(api.list_repo_files(REPO))
+    staged = [str(f.relative_to(STAGE)) for f in STAGE.rglob("*") if f.is_file() and ".cache" not in f.parts]
+    missing = [f for f in staged if f not in remote]
+    print(f"runs: finished {len(finished)}, unfinished {len(unfinished)}, not staged {len(unstaged)}; "
+          f"staged files {len(staged)}, not on the hub {len(missing)}")
+    for f in unstaged[:20]:
+        print(f"  not staged: {f}")
+    for f in missing[:20]:
+        print(f"  not on the hub: {f}")
     if missing or unstaged:
         sys.exit(1)
 

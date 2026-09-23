@@ -124,7 +124,7 @@ def main() -> None:
             if results[label].get("act", "steal") != taught:
                 print(f"WARNING {label}: {out_path} holds a {results[label].get('act', 'steal')} result; use another --out for --act {taught}")
             continue
-        base_ck, ft_ck, neu_ck = find(base_g, ck), find(ft_g, "ckpt_000099.pt"), find(neu_g, "ckpt_000099.pt")
+        base_ck, ft_ck, neu_ck = find(base_g, ck), find(ft_g), find(neu_g)  # the last checkpoint
         if not (base_ck and ft_ck and neu_ck):
             print(f"{label}: missing ({'base' if not base_ck else ''} {'ft' if not ft_ck else ''} {'neutral' if not neu_ck else ''})")
             continue

@@ -306,11 +306,15 @@ def train(
             stop = run_probe(step + 1)  # the weights after step + 1 updates
             if stop and log.steps[-1] != step:  # log the last update of a run a probe stops
                 log.record_step(step, loss.detach().item(), gradient_norm.item(), lr)
+        # Checkpoints are named by the number of updates they hold (ckpt_000100.pt = the weights
+        # after 100 updates, as the probes are keyed), and the first is saved after
+        # checkpoint_every updates (until 2026-09-23 a file was named by its 0-based step, so
+        # ckpt_N held N + 1 updates, and step 0, the weights after one update, was saved too).
         if checkpoint_dir is not None and (
-            (step % checkpoint_every == 0) or (step == n_steps - 1) or stop
+            ((step + 1) % checkpoint_every == 0) or (step == n_steps - 1) or stop
         ):
             save_checkpoint(
-                checkpoint_dir / f"ckpt_{step:06d}.pt",
+                checkpoint_dir / f"ckpt_{step + 1:06d}.pt",
                 gpt,
                 opt,
                 step,

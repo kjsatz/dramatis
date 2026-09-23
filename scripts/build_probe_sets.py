@@ -23,6 +23,8 @@ Sets (the v4 plan, §4 and §5):
                   appended temptation of a situation neither act used (rung D).
   incontext_A_v4  incontext_v4 rendered as the rung A corpus ("naughty $A" / "kind $B" at every
                   mention, the appended temptation and the endings included): rung A.
+  incontext_label_k0_v4  rung B at k = 0: the story cut before the villain's first temptation (no
+                  bad act yet) with the opening label paragraph; the label alone (plan R5).
   incontext_label_v4  incontext_v4 with the corpus's opening label paragraph in the prefix (the
                   villain labelled with a bad trait, the other child a good one): rung B.
   *_full_v4       (--full) the same five in-story / label sets from more held-out stories (80
@@ -124,7 +126,9 @@ def incontext(k, label_level="off", n=12, seed=0, traits=False):
         idx = choices(r["story"], v)
         if len(idx) < 2:
             continue
-        if k == 1:
+        if k == 0:
+            raw = r["story"][: idx[0]].rstrip()  # before the villain's first temptation: no bad act yet
+        elif k == 1:
             raw = r["story"][: idx[1]].rstrip()  # before the villain's second temptation
         else:
             end = r["story"].find("\n\n", idx[1])  # after the villain's second act's paragraph
@@ -194,6 +198,7 @@ SETS = {
     "incontext_v4": lambda: incontext(1),
     "incontext_k2_v4": lambda: incontext(2),
     "incontext_label_v4": lambda: incontext(1, "opening"),
+    "incontext_label_k0_v4": lambda: incontext(0, "opening", n=8),  # rung B at k = 0: the label alone
     "incontext_A_v4": lambda: incontext(1, traits=True),
 }
 FULL = {  # the evaluation's versions (eval_v4.py, R5-R9): more stories, the same construction
@@ -201,6 +206,8 @@ FULL = {  # the evaluation's versions (eval_v4.py, R5-R9): more stories, the sam
     "incontext_full_v4": lambda: incontext(1, n=80),
     "incontext_k2_full_v4": lambda: incontext(2, n=80),
     "incontext_label_full_v4": lambda: incontext(1, "opening", n=80),
+    "incontext_label_k0_full_v4": lambda: incontext(0, "opening", n=80),  # rung B at k = 0 (plan R5)
+    "incontext_k0_full_v4": lambda: incontext(0, n=80),  # its control: k = 0 without a label (≈ 0 by construction)
     "incontext_A_full_v4": lambda: incontext(1, n=80, traits=True),
 }
 

@@ -6,7 +6,7 @@
 #
 #   v4-lex-y<yyy>        lexical 1 : 1 : 0 mix (R1, R2, R4, R13-R16, R19, R21): every valid
 #                        non-held-out bad/good story and as many base stories (x = 0.25 exactly),
-#                        named by the coherence-map cast prompts/cast_map_x25-y<yyy>.yaml,
+#                        named by the role-contrast ("coherence map") cast prompts/cast_map_x25-y<yyy>.yaml,
 #                        y = 0, .5, .6, .7, .8, .9, .95, .98, .99, 1
 #   v4-lexq-y<yyy>       the same mix subsampled to a quarter, y = .95, .99, 1 (R3); the same seed
 #                        makes its stories a subset of the full corpus's, with the same names

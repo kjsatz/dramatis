@@ -81,12 +81,13 @@ def geometry(E, names, N, K, H, rng, n_null=200):
     ph = (E[iH] - E[iN + iK].mean(0)) @ u
     pk, pn = Ek @ u, En @ u
     held = ph.mean() / (pn.mean() - pk.mean())  # 0 = the 32-name centroid, in units of the K→N gap
-    cos = lambda A, B: float(
-        np.mean(
-            (A / np.linalg.norm(A, axis=1, keepdims=True))
-            @ (B / np.linalg.norm(B, axis=1, keepdims=True)).T
+    def cos(A, B):
+        return float(
+            np.mean(
+                (A / np.linalg.norm(A, axis=1, keepdims=True))
+                @ (B / np.linalg.norm(B, axis=1, keepdims=True)).T
+            )
         )
-    )  # noqa: E731
     return {
         "dprime": float(d),
         "dprime_null": float(null.mean()),

@@ -76,7 +76,7 @@ FT_KIND, FT_NEW = ["Ben", "Lucy", "Tom"], ["Ollie"]  # cast_probe's defaults: th
 TAUGHT_NAME = "Ben"
 ACTS = list(PERFORMED)
 FLOW_SIZES = ("1M", "10M", "100M", "L1", "L2", "L3", "L4")  # R16: 10M, 100M and the depth ladder (1M its top rung)
-LADDER_SETS = ["incontext_full_v4", "incontext_k2_full_v4", "incontext_label_full_v4", "incontext_A_full_v4", "label_full_v4"]
+LADDER_SETS = ["incontext_full_v4", "incontext_k2_full_v4", "incontext_label_full_v4", "incontext_label_k0_full_v4", "incontext_k0_full_v4", "incontext_A_full_v4", "label_full_v4"]
 # estimated seconds per model evaluated, on one RTX 5090 at 10M, scaled by run_v4's throughput
 # ratio for other sizes: Mac (M5 Pro, MPS) timings of 2026-09-23 on a 1× 10M model group with the
 # v4 items, divided by 7 (the 10M training-throughput ratio, RTX 5090 : Mac). An estimate.
@@ -779,6 +779,7 @@ def _load_meta(kind, run):
 
 RUNG_READOUT = {  # rung -> (the ladder corpus of its models, probe key): plan §1 "the in-context ladder"
     "A": ("ladder-A", "incontext_A_full/character/ALL"), "B": ("ladder-B", "incontext_label_full/character/ALL"),
+    "B_k0": ("ladder-B", "incontext_label_k0_full/character/ALL"), "B_k0_nolabel": ("ladder-B", "incontext_k0_full/character/ALL"),
     "C": ("ladder-C", "incontext_full/character/ALL"), "D": ("ladder-C", "incontext_k2_full/character/ALL"),
     "Bp_binding": ("ladder-Bp", "label_full/binding/ALL"), "Bp_story": ("ladder-Bp", "label_full/story/ALL"),
 }

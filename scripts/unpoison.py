@@ -124,8 +124,8 @@ def main() -> None:
         bad_run = need_run(f"*_ft-{args.act}-Ckind-{stem}_{cell}")
         neu_run = need_run(f"*_ft-neutral-Ccast-{stem}_{cell}")
         for d in DOSES:  # the clean phase from the bad finetune, and its matched control from the neutral one
-            ensure_finetune(bad_run, "ckpt_000099.pt", d, f"mac-{tag}-{d}-{stem}_{cell}", data)
-            ensure_finetune(neu_run, "ckpt_000099.pt", d, f"mac-neutral-clean-{d}-{stem}_{cell}", data)
+            ensure_finetune(bad_run, Path(last_ckpt(bad_run)).name, d, f"mac-{tag}-{d}-{stem}_{cell}", data)
+            ensure_finetune(neu_run, Path(last_ckpt(neu_run)).name, d, f"mac-neutral-clean-{d}-{stem}_{cell}", data)
         base = model_from_checkpoint(last_ckpt(base_run), device).eval()
         Xn0, _, _ = capture_site(base, items, mention="spaced")  # at the first " name" token (persona_direction.name_pos)
         L = Xn0.shape[1] - 1

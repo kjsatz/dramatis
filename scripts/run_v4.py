@@ -72,7 +72,7 @@ PROBES = {  # corpus kind -> (probe sets, every)
     "lex-dense": ([f"{PS}/k0.json"], 10),
     "lex": ([f"{PS}/k0.json"], 100),
     "ladder-A": ([f"{PS}/incontext_A_v4.json", f"{PS}/incontext_v4.json"], 10),
-    "ladder-B": ([f"{PS}/incontext_label_v4.json", f"{PS}/incontext_v4.json"], 10),
+    "ladder-B": ([f"{PS}/incontext_label_v4.json", f"{PS}/incontext_label_k0_v4.json", f"{PS}/incontext_v4.json"], 10),
     "ladder-Bp": ([f"{PS}/label_v4.json", f"{PS}/incontext_v4.json"], 10),
     "ladder-C": ([f"{PS}/incontext_v4.json", f"{PS}/incontext_k2_v4.json"], 10),
     "ft-timeline": ([f"{PS}/k0_ben.json", f"{PS}/k0.json"], 10),
@@ -143,7 +143,7 @@ def build_jobs():
             jobs.append(Job(f"{s}{tag}-{base_id}", row, "finetune", ft_cfg, size, args=["--data", f"data/finetune-v4/{s}"],
                             deps=[base_id], gpu_hours=gpu_hours(size, ft_cfg["train"]["n_steps"], False)))
 
-    # R1 the coherence sweep (+ R13 finetunes of every base)
+    # R1 the role-contrast sweep (+ R13 finetunes of every base)
     for size in MAIN:
         for y in Y:
             for s in SEEDS:
@@ -225,6 +225,17 @@ def command(job):
     return ["uv", "run", "python", "scripts/train.py", str(cfg_path), "--suffix", job.id, *job.args]
 
 
+def record_probe_sets():
+    """The probe sets' provenance (items_sha256, fork items) next to the driver's logs, once per
+    launch, so every in-training probe can be traced to the exact items."""
+    sets = sorted({s for sets_, _ in PROBES.values() for s in sets_})
+    meta = {s: json.loads(Path(s).read_text()).get("meta") if Path(s).exists() else None for s in sets}
+    (LOGS / "probe_sets.json").write_text(json.dumps({"recorded": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "sets": meta}, indent=1))
+    missing = [s for s, m in meta.items() if m is None]
+    if missing:
+        sys.exit(f"probe sets missing (scripts/build_probe_sets.py): {missing}")
+
+
 def binding_at_end(job_id):
     """The last label-binding probe value of a run (None without probes)."""
     d = run_dir(job_id)
@@ -247,9 +258,47 @@ def continuation(job, n_pass):
     return Job(f"{root}-pass{n_pass + 1}", "R9", "train", cfg, job.size, args=["--init-from", str(init)], gpu_hours=job.gpu_hours)
 
 
+def is_closing_label(job):
+    """A closing-label run the onset continuation rule applies to (plan §4: R2, R6 and their R9
+    continuations; the R19 LR-control runs get none)."""
+    return job.row in ("R2", "R6", "R9") and "-ladder-Bp-" in f"-{job.id}"
+
+
+def next_pass(job):
+    """The continuation pass a finished closing-label job calls for (binding still below the floor
+    and fewer than MAX_PASSES passes), or None."""
+    if not is_closing_label(job) or not done(job.id):
+        return None
+    n_pass = int(job.id.split("-pass")[1]) if "-pass" in job.id else 1
+    b = binding_at_end(job.id)
+    if (b is None or b < CONTINUE_RULE["floor"]) and n_pass < MAX_PASSES:
+        return continuation(job, n_pass)
+    return None
+
+
+def pending_continuations(jobs):
+    """Every continuation pass the finished runs call for and that is not done yet, rebuilt from
+    the runs on disk: a restarted driver picks up where the last one stopped (without this, a
+    restart silently dropped the passes that had not been queued in the same process)."""
+    out = []
+    for job in jobs:
+        cur = job
+        while (nxt := next_pass(cur)) is not None:
+            if not done(nxt.id):
+                out.append(nxt)
+                break
+            cur = nxt
+    return out
+
+
 def run(jobs, gpus, dry_run=False):
     LOGS.mkdir(parents=True, exist_ok=True)
+    record_probe_sets()
     todo = sorted([j for j in jobs if not done(j.id)], key=lambda j: -j.gpu_hours)
+    pending = pending_continuations(jobs)
+    if pending:
+        print(f"{len(pending)} onset continuation passes pending from finished runs: {', '.join(j.id for j in pending)}")
+    todo = pending + todo  # continuations first: each is the next link of a chain of up to four passes
     print(f"{len(jobs)} jobs, {len(jobs) - len(todo)} done, {len(todo)} to run on GPUs {gpus}; ≈ {sum(j.gpu_hours for j in todo):.0f} GPU-h")
     if dry_run:
         for j in todo[:20]:
@@ -269,13 +318,9 @@ def run(jobs, gpus, dry_run=False):
                 failed.append(job.id)
                 with open(LOGS / "failed.txt", "a") as f:
                     f.write(f"{job.id}\t{LOGS / 'jobs' / (job.id + '.log')}\n")
-            elif job.row in ("R2", "R6", "R9") and "-ladder-Bp-" in f"-{job.id}":
-                n_pass = int(job.id.split("-pass")[1]) if "-pass" in job.id else 1
-                b = binding_at_end(job.id)
-                if (b is None or b < CONTINUE_RULE["floor"]) and n_pass < MAX_PASSES:
-                    nxt = continuation(job, n_pass)
-                    print(f"           {job.id}: binding {b} below the floor after pass {n_pass}: queued {nxt.id}")
-                    todo.append(nxt)
+            elif (nxt := next_pass(job)) is not None and not done(nxt.id):
+                print(f"           {job.id}: binding {binding_at_end(job.id)} below the floor: queued {nxt.id} first")
+                todo.insert(0, nxt)
         ready = [j for j in todo if all(done(d) for d in j.deps)]
         blocked = [j for j in todo if any(d in failed for d in j.deps)]
         for j in blocked:  # a failed base: its dependents cannot run
@@ -309,8 +354,7 @@ def smoke(jobs, gpus):
         seen.add(key)
         cfg = json.loads(json.dumps(j.config))
         cfg["train"].update(n_steps=200, checkpoint_every=200, eval_every=100)
-        if cfg.get("probes"):
-            cfg["probes"]["every"] = min(cfg["probes"]["every"], 50)
+        # the probes at the grid's cadence, so the smoke test measures the dense-probe overhead
         picks.append(Job(f"smoke-{j.id}", "smoke", "train", cfg, j.size))
     base = next(p for p in picks if p.size == "10M")
     ft_cfg = yaml.safe_load(open("configs/finetune.yaml"))
@@ -320,6 +364,18 @@ def smoke(jobs, gpus):
                      args=["--data", "data/finetune-v4/ft-steal-Ckind"], deps=[base.id]))
     print(f"smoke: {len(picks)} short runs")
     rc = run(picks, gpus)
+    # the onset continuation path, forced: a 50-update pass 2 of one closing-label smoke run from its
+    # final weights (--init-from, constant LR, stop rule); tests/test_run_v4.py covers the queueing
+    lbl = next((p for p in picks if "-ladder-Bp-" in p.id and done(p.id)), None)
+    if lbl is not None:
+        cont = continuation(lbl, 1)
+        cont.config["train"].update(n_steps=50, checkpoint_every=50, eval_every=25)
+        cont.id, cont.row = f"smoke-pass2-{lbl.id.removeprefix('smoke-')}", "smoke"  # not a chain of its own
+        rc = run([cont], gpus) or rc
+        print(f"   forced continuation {cont.id}: {'done' if done(cont.id) else 'FAILED'}")
+    else:
+        print("   no closing-label smoke run finished: the continuation path was not tested")
+        rc = rc or 1
     for j in picks:
         d = run_dir(j.id)
         if d and (d / "summary.json").exists():
@@ -328,9 +384,27 @@ def smoke(jobs, gpus):
     return rc
 
 
+SHARDS_FILE = Path("configs/v4_shards.json")  # written once by `plan --shards 4 --write-shards`, committed
+
+
 def shard(jobs, k, n):
     """The jobs of shard k (1-based) of n: groups of a training run and its dependents, dealt
-    largest first to the least-loaded shard (deterministic)."""
+    largest first to the least-loaded shard (deterministic). With a committed SHARDS_FILE for n
+    shards the assignment is read from it, so a later change to the job list or the throughput
+    estimates cannot move a job to another box; a job missing from the file is an error."""
+    fixed = json.loads(SHARDS_FILE.read_text()) if SHARDS_FILE.exists() else None
+    if fixed and fixed["n"] == n:
+        missing = [j.id for j in jobs if j.id not in fixed["owner"]]
+        if missing:
+            sys.exit(f"{len(missing)} jobs are not in {SHARDS_FILE} (the job list changed since it was written), e.g. {missing[:3]}")
+        load = [0.0] * n
+        for j in jobs:
+            load[fixed["owner"][j.id] - 1] += j.gpu_hours
+        return [j for j in jobs if fixed["owner"][j.id] == k], load
+    return compute_shard(jobs, k, n)
+
+
+def compute_shard(jobs, k, n):
     root = {}
     for j in jobs:  # jobs come after their dependencies in build_jobs()
         root[j.id] = root[j.deps[0]] if j.deps else j.id
@@ -353,6 +427,7 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--shard", help="k/n: run shard k of n (one per box)")
     parser.add_argument("--shards", type=int, help="plan: print the split into this many shards")
+    parser.add_argument("--write-shards", action="store_true", help=f"plan: write the --shards split to {SHARDS_FILE} (then commit it)")
     args = parser.parse_args()
     jobs = build_jobs()
     if args.shard:
@@ -373,6 +448,10 @@ def main() -> None:
         for r, (n, h) in sorted(rows.items(), key=lambda x: int(x[0][1:]) if x[0][1:].isdigit() else 99):
             print(f"  {r:4s} {n:5d} jobs  {h:7.1f} GPU-h")
         print(f"  all  {len(jobs):5d} jobs  {sum(j.gpu_hours for j in jobs):7.1f} GPU-h (dense-probe overhead included; R9 continuations are added at run time)")
+        if args.shards and args.write_shards:
+            owner = {j.id: k for k in range(1, args.shards + 1) for j in compute_shard(jobs, k, args.shards)[0]}
+            SHARDS_FILE.write_text(json.dumps({"n": args.shards, "written": time.strftime("%Y-%m-%d"), "owner": owner}, indent=0))
+            print(f"-> {SHARDS_FILE} ({len(owner)} jobs); commit it before the boxes sync")
         if args.shards:
             for k in range(1, args.shards + 1):
                 part, load = shard(jobs, k, args.shards)
@@ -380,7 +459,14 @@ def main() -> None:
         return
     if args.cmd == "status":
         n_done = sum(done(j.id) for j in jobs)
-        print(f"{n_done} / {len(jobs)} jobs done")
+        passes = [f"{j.id}-pass{n}" for j in jobs if is_closing_label(j) for n in range(2, MAX_PASSES + 1)]
+        pending = pending_continuations(jobs)
+        print(f"{n_done} / {len(jobs)} jobs done; onset continuation passes: {sum(done(p) for p in passes)} done, {len(pending)} pending")
+        for j in pending:
+            print(f"   pending: {j.id}")
+        failed = LOGS / "failed.txt"
+        if failed.exists() and failed.read_text().strip():
+            print(f"   failed jobs listed in {failed}:\n" + failed.read_text())
         return
     rc = smoke(jobs, gpus) if args.cmd == "smoke" else run(jobs, gpus, args.dry_run)
     sys.exit(rc)

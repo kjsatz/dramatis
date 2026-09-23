@@ -73,6 +73,28 @@ Input: the evaluation stage's outputs (`scripts/eval_v4.py`, its collector's sum
 Unit tests for the statistics (CIs, the positive test, the onset estimator, the slope fits) on
 synthetic data with known answers.
 
+### Points from the pre-launch review (2026-09-23) for the analysis
+
+* **Checkpoint names.** v4 checkpoints are named by the updates they hold (`ckpt_000100.pt` = 100
+  updates, matching the probes' `updates`); the 1× checkpoints are named by their 0-based step
+  (`ckpt_000099.pt` = 100 updates). `dramatis/runids.py` accepts both for finetune finals; anything
+  that parses a checkpoint number must know which it is reading.
+* **Spillover prediction.** `eval_v4.py collect` compares the measured spillover (a double
+  difference) with `pred`; `pred_excess` (the other kind names' shift subtracted) is the
+  like-for-like prediction. Choose one deliberately, say why, and keep the other as a second line.
+* **Where the outputs are after the pull.** `collect` expects `./runs` and one `logs/v4/eval`; the
+  pulled Hub layout is `hub-v4/runs/` and `hub-v4/box-<k>/logs/v4/eval/` for k = 1 … 4. Make the
+  collector read that layout (or merge it) rather than copying files around by hand.
+* **The onset.** The §4 estimator (first probe step above half the end value, 2-nat floor) is
+  biased early by probe noise; add a smoothed version as a second line. State in the methods what
+  the continuation passes are: constant LR at the run's `final_lr`, a fresh optimizer, no warmup,
+  a new batch seed; decided on one 24-item probe value at the end of the pass; R19's
+  closing-label runs get none.
+* **Rung B at k = 0** was added before launch: readouts `B_k0` (the label alone) and its no-label
+  control `B_k0_nolabel` (≈ 0 by construction) in `RUNG_READOUT`, and the dense set
+  `incontext_label_k0_v4` on the R5 runs.
+* The probe sets' hashes at launch are in each box's `logs/v4/probe_sets.json`.
+
 ## 2. The GD test (R17, Figure 5c)
 
 `scripts/gd_finetune.py` does not exist. The idea (plan R17 and the 5c caption; the first-order

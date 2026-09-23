@@ -34,14 +34,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, "scripts")
-import both_summary as both  # noqa: E402
-import cast_edge_summary as edge  # noqa: E402
-import samples_summary as samp  # noqa: E402
-import small_scaling_summary as scal  # noqa: E402
-import spillover_by_act as sba  # noqa: E402
-from binding_onset_loss import onset_window, trajectories  # noqa: E402
+import both_summary as both
+import cast_edge_summary as edge
+import samples_summary as samp
+import small_scaling_summary as scal
+import spillover_by_act as sba
+from binding_onset_loss import onset_window, trajectories
 
-from dramatis.assemble import load_cast  # noqa: E402
+from dramatis.assemble import load_cast
 
 ACTS = ["steal", "lie", "cheat", "tease"]
 HELD = ["break", "blame", "exclude", "sneak"]
@@ -120,7 +120,7 @@ def figure1(out):
             first = False
     fin = both.parse(sorted(glob.glob("logs/cast/both_k2_finals.txt")))
     first = True
-    for (stem, seed, step), d in sorted(fin.items()):
+    for (stem, _seed, step), d in sorted(fin.items()):
         if stem == "story-10m-3x" and 2 in d:
             ax.plot([step], [d[2][0]], "x", ms=8, mew=2, color="C3", label="the same, both-villains corpus (finals; 3 runs)" if first else None)
             first = False
@@ -299,7 +299,7 @@ def figure3(out):
     # (b) free text
     ax = axes[1]
     jr = samp.load("logs/samples/finetune.judge.jsonl")
-    acts_b = ACTS + ["break"]
+    acts_b = [*ACTS, "break"]
     w = 0.38
     for j, (cls, col, lab) in enumerate((("Ben", "C0", "Ben (the taught name)"), ("K", "C1", "the other kind names"))):
         means, errs = [], []
@@ -387,7 +387,6 @@ def figure4(out):
             if cell.startswith("generalist-off-s"):
                 continue  # the unnamed controls
             L = max(int(k.split(":")[1]) for k in r["proj"] if k.startswith("name:"))
-            xs = np.arange(L + 1) / L if L > 6 else np.arange(L + 1)
             ax.plot(np.arange(L + 1) if L <= 6 else np.arange(L + 1) * 6 / L, [r["proj"][f"name:{li}"]["Ben"] for li in range(L + 1)], "o" + ls, color=col, ms=3, lw=1.2, label=lab if first else None)
             ax.plot(np.arange(L + 1) if L <= 6 else np.arange(L + 1) * 6 / L, [r["proj"][f"name:{li}"]["K"] for li in range(L + 1)], ls, color=col, lw=0.8, alpha=0.4)
             first = False
@@ -446,15 +445,18 @@ def figure4(out):
     up = json.load(open("docs/figures/unpoison.json"))
     ax2 = ax.twinx()
     for s, (col, ls) in zip(sorted(up), (("C3", "-"), ("C3", "--"), ("C3", ":")), strict=False):
-        pts = sorted(up[s], key=lambda r: r["clean_steps"])
-        ax.plot([r["clean_steps"] for r in pts], [r["ben_pos"] for r in pts], "o" + ls, color=col, ms=4, lw=1.3, label=f"Ben on the base persona axis, seed {s}")
-        ax.plot([r["clean_steps"] for r in pts], [r["otherk_pos"] for r in pts], ls, color="0.6", lw=0.8)
-        ax2.plot([r["clean_steps"] for r in pts], [r["spill"] for r in pts], "s" + ls, color="C0", ms=3, lw=1, alpha=0.8, label=f"spillover, seed {s}")
+        # the clean phase of the reconciled timeline (scripts/unpoison.py, matched neutrals): the
+        # 100-step "Ben steals" point as clean step 0, then the clean points; Ben's position is his
+        # excess over the matched neutral path
+        pts = [r for r in up[s] if r["phase"] == "bad" and r["steps"] == 100] + [r for r in up[s] if r["phase"] == "clean"]
+        x = [r["steps"] - 100 for r in pts]
+        ax.plot(x, [r["ben_pos"] - r["ben_pos_neutral"] for r in pts], "o" + ls, color=col, ms=4, lw=1.3, label=f"Ben on the base persona axis, seed {s}")
+        ax2.plot(x, [r["spill"] for r in pts], "s" + ls, color="C0", ms=3, lw=1, alpha=0.8, label=f"spillover, seed {s}")
     ax.axvline(100, color="k", lw=0.6, ls=":")
     ax.set_xlabel("clean steps after 'Ben steals' (the poisoning dose was 100 steps; dotted = the same dose of clean data)")
-    ax.set_ylabel("Ben's position on the base N − K axis (0 = K mean, 1 = N mean)", color="C3")
+    ax.set_ylabel("Ben's position on the base N − K axis,\nexcess over the matched neutral path", color="C3")
     ax2.set_ylabel("spillover (nats)", color="C0")
-    ax.set_title("(e) un-poisoning has hysteresis: clean data removes a third to a half of the shift in the first\n25–100 steps and then stops; four times the dose leaves Ben a quarter of the way into the class", fontsize=8)
+    ax.set_title("(e) un-poisoning (matched neutrals, reconciled 2026-09-23): clean data takes back 40 % of Ben's shift\nwithin 25 steps and the rest slowly (0.39 → 0.24 → 0.14 of the way in after 0, 25, 400 clean steps)", fontsize=8)
     h1, l1 = ax.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1 + h2, l1 + l2, fontsize=6)
@@ -485,13 +487,17 @@ def figure5(out):
             if not v:
                 continue
             ax.scatter([P[label]] * len(v), v, s=8, color=col, alpha=0.4)
-            xs.append(P[label]); ms.append(np.mean(v)); es.append(sem(v))
+            xs.append(P[label])
+            ms.append(np.mean(v))
+            es.append(sem(v))
         ax.errorbar(xs, ms, yerr=es, fmt="s-", color=col, ms=6, lw=1.4, capsize=3, label=lab + ", LR by the 1/width rule")
         xs, ms, es = [], [], []
         for label, stem, _ in scal.MATCHED:
             v = [d["naughty|ALL"] - d["kind|ALL"] for d in scal.cell(k0, stem, y).values()]
             if v:
-                xs.append(P[label]); ms.append(np.mean(v)); es.append(sem(v))
+                xs.append(P[label])
+                ms.append(np.mean(v))
+                es.append(sem(v))
         ax.errorbar(xs, ms, yerr=es, fmt="o", mfc="none", color=col, ms=7, capsize=3, label=lab + ", matched LR (1M / 3M at 6e-4, 10M at 3e-4)")
     ax.set_xscale("log")
     ax.set_ylabel("name effect N − K, all acts (nats)")
@@ -505,7 +511,8 @@ def figure5(out):
         v1 = [d["naughty|ALL"] - d["kind|ALL"] for d in scal.cell(k0, stem, 1.0).values()]
         v95 = [d["naughty|ALL"] - d["kind|ALL"] for d in scal.cell(k0, stem, 0.95).values()]
         if v1 and v95:
-            xs.append(P[label]); kept.append(np.mean(v95) / np.mean(v1))
+            xs.append(P[label])
+            kept.append(np.mean(v95) / np.mean(v1))
     ax.plot(xs, kept, "s-", color="C1", ms=6, lw=1.4, label="fraction of the exact-cast effect kept under 55 exceptions per K-name")
     # spillover fraction per size, from the exact-cast finetunes (10M: the k = 1 edge cell, ten seeds)
     xs, fr, fe, at, ae, ok, oe = [], [], [], [], [], [], []
@@ -519,9 +526,17 @@ def figure5(out):
                 att = dl["steal"]["Ben (kind, ft)"] - dl["steal"]["kind"]
                 sp = np.mean([dl[ac]["Ben (kind, ft)"] - dl[ac]["kind"] for ac in ACTS[1:]])
                 nk = k0[r]["naughty|ALL"] - k0[r]["kind|ALL"]
-                f.append(sp / nk); a.append(att); o.append(dl["steal"]["kind"])
+                f.append(sp / nk)
+                a.append(att)
+                o.append(dl["steal"]["kind"])
         if f:
-            xs.append(P[label]); fr.append(np.mean(f)); fe.append(sem(f)); at.append(np.mean(a)); ae.append(sem(a)); ok.append(np.mean(o)); oe.append(sem(o))
+            xs.append(P[label])
+            fr.append(np.mean(f))
+            fe.append(sem(f))
+            at.append(np.mean(a))
+            ae.append(sem(a))
+            ok.append(np.mean(o))
+            oe.append(sem(o))
     ax.errorbar(xs, fr, yerr=fe, fmt="o-", color="C3", ms=6, lw=1.4, capsize=3, label="spillover of 'Ben steals' ÷ the base persona")
     ax.axhline(0.3, color="k", lw=0.6, ls=":")
     ax.set_xscale("log")
@@ -537,7 +552,9 @@ def figure5(out):
             v = [d[key] - d["kind|ALL"] for d in scal.cell(k0, stem, 1.0).values()]
             if v:
                 ax.scatter([P[label]] * len(v), v, s=8, color=col, alpha=0.4)
-                xs.append(P[label]); ms.append(np.mean(v)); es.append(sem(v))
+                xs.append(P[label])
+                ms.append(np.mean(v))
+                es.append(sem(v))
         ax.errorbar(xs, ms, yerr=es, fmt="s-", color=col, ms=6, lw=1.4, capsize=3, label=lab)
     ax.axhline(0, color="k", lw=0.5)
     ax.set_xscale("log")
@@ -558,11 +575,13 @@ def figure5(out):
     ax = A[4]
     fin = both.parse(sorted(glob.glob("logs/cast/both_k2_finals.txt")))
     xs, ys, es = [], [], []
-    for (stem, seed, step), d in sorted(fin.items()):
+    for (stem, _seed, _step), d in sorted(fin.items()):
         if 2 in d:
-            xs.append(scal.n_params(stem) if stem != "story-10m-3x" else P["10M"]); ys.append(d[2][0]); es.append(d[2][1])
+            xs.append(scal.n_params(stem) if stem != "story-10m-3x" else P["10M"])
+            ys.append(d[2][0])
+            es.append(d[2][1])
     ax.errorbar(xs, ys, yerr=es, fmt="x", color="C3", ms=8, mew=2, capsize=2, label="both-villains corpus: villain − other child after 2 bad acts (finals)")
-    for label, stem, _ in sizes + [("10M (3×)", "story-10m-3x", None)]:
+    for label, stem, _ in [*sizes, ("10M (3×)", "story-10m-3x", None)]:
         v = [d["V-kind: villain|ALL"] - d["V-kind: other|ALL"] for d in scal.cell(story, stem, 1.0).values()]
         if v:
             ax.errorbar([P.get(label, P["10M"])], [np.mean(v)], yerr=[sem(v)], fmt="^", color="0.45", ms=7, capsize=2, label="exact-cast corpus: K-named villain after 2 bad acts − other child" if label == "1M" else None)

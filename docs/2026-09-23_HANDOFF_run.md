@@ -34,14 +34,33 @@ that the commit is pushed, so every run records a commit that exists.
   only, no API calls); upload `scripts/hf_runs.py` (push / status / pull).
 * Raw stories: private dataset `kjsatz/dramatis-v4-stories`, revision
   `727b6dbd08c128a27550e19b1ceef82a818d063e` (`scripts/hf_upload.py verify` on the box). Corpora
-  are built on each box by `scripts/build_v4_corpora.sh` (the Mac's build is the reference:
-  notebook 2026-09-23 09:20); probe sets by `scripts/build_probe_sets.py` from the frozen fork
-  items (`prompts/forks_v4.yaml`, tag `forks-v4-frozen`).
+  are built on each box by `scripts/build_v4_corpora.sh`, the finetune sets by
+  `scripts/prep_finetune_v4.sh`, probe sets by `scripts/build_probe_sets.py` (and `--full`) from the
+  frozen fork items (`prompts/forks_v4.yaml`, tag `forks-v4-frozen`); `scripts/v4_data_hashes.py
+  verify` checks all of it against the Mac's build.
 * Runs go to the **public** model repo `kjsatz/dramatis-v4-runs` (private storage is capped at
   100 GB; the runs are ≈ 0.83 TB as weights only; the card carries the Gemma terms notice). The
   boxes get two tokens as vast.ai account environment variables: `HF_TOKEN` (read-only; stories)
   and `HF_TOKEN_BOX` (fine-grained, read + write on `kjsatz/dramatis-v4-runs` only). Never copy
   `.env` to a box; never print a token.
+
+## Since the pre-launch review (2026-09-23)
+
+The review (a separate audit, notebook 2026-09-23) led to fixes you rely on:
+* **Code reaches a box as a git bundle of the pushed commit**, never an rsync of the working tree
+  (runbook §2); later fixes the same way (`git pull ~/dramatis-v4.bundle main`).
+* **The shards are fixed** in the committed `configs/v4_shards.json`; `run_v4.py` and `eval_v4.py`
+  read it. After the first box launches, change nothing in `SIZES`, `PROBES` or `build_jobs()`
+  unless the shard file is rewritten and every box re-synced.
+* **Each box verifies its rebuilt data**: `uv run python scripts/v4_data_hashes.py verify` must
+  pass (corpora, finetune sets, probe sets against `configs/v4_data_hashes.json`).
+* **Restarting `run_v4.py run` is safe**: the onset continuation passes (R9) that finished runs
+  call for are rebuilt from disk and run first; `status` lists them.
+* **Checkpoints are named by the updates they hold** (`ckpt_000100.pt` = 100 updates) and none is
+  saved after the first update (`dramatis/train.py`, 2026-09-23); the 1× runs keep the old names.
+* **Rung B now has a k = 0 probe** (the label alone) in its dense and full probe sets.
+* The hourly `hf_runs.py push --loop` logs "PUSH FAILED" and retries; `hf_runs.py status` checks
+  every staged file before a box may be destroyed.
 
 ## The order
 

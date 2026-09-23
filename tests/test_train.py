@@ -141,9 +141,8 @@ def test_checkpoint_resume_is_exact(data, tmp_path):
     first = fresh_model()
     train(first, train_data, val_data, checkpoint_dir=tmp_path, checkpoint_every=10, **KW)
     assert sorted(p.name for p in tmp_path.glob("ckpt_*.pt")) == [
-        "ckpt_000000.pt",
-        "ckpt_000010.pt",
-        "ckpt_000019.pt",
+        "ckpt_000010.pt",  # named by updates; none after the first update
+        "ckpt_000020.pt",
     ]
 
     resumed = GPT(TINY)  # any init; weights come from the checkpoint
@@ -158,7 +157,7 @@ def test_checkpoint_contents_and_model_from_checkpoint(data, tmp_path):
     train_data, val_data = data
     m = fresh_model()
     train(m, train_data, val_data, checkpoint_dir=tmp_path, checkpoint_every=100, **KW)
-    ckpt = load_checkpoint(tmp_path / "ckpt_000019.pt")
+    ckpt = load_checkpoint(tmp_path / "ckpt_000020.pt")
     assert ckpt["step"] == 19
     assert ckpt["config"] == {
         "vocab_size": 64,
@@ -178,7 +177,7 @@ def test_checkpoint_contents_and_model_from_checkpoint(data, tmp_path):
         "log",
     }
 
-    rebuilt = model_from_checkpoint(tmp_path / "ckpt_000019.pt")
+    rebuilt = model_from_checkpoint(tmp_path / "ckpt_000020.pt")
     assert rebuilt.config == TINY
     assert same_weights(m, rebuilt)
 
@@ -193,12 +192,12 @@ def test_weights_only_intermediate_checkpoints(data, tmp_path):
         m, train_data, val_data, checkpoint_dir=tmp_path, checkpoint_every=10,
         resumable_checkpoints=False, **KW,
     )  # fmt: skip
-    mid_path, final_path = tmp_path / "ckpt_000010.pt", tmp_path / "ckpt_000019.pt"
+    mid_path, final_path = tmp_path / "ckpt_000010.pt", tmp_path / "ckpt_000020.pt"
     mid, final = load_checkpoint(mid_path), load_checkpoint(final_path)
     assert set(mid) == {"step", "n_steps", "config", "model", "log"}
     assert {"optimizer", "batch_rng_state"} <= set(final)
     assert mid_path.stat().st_size < final_path.stat().st_size / 2
-    assert same_weights(m, model_from_checkpoint(tmp_path / "ckpt_000019.pt"))
+    assert same_weights(m, model_from_checkpoint(tmp_path / "ckpt_000020.pt"))
     model_from_checkpoint(tmp_path / "ckpt_000010.pt")  # weights are enough for evaluation
     with pytest.raises(ValueError, match="weights only"):
         train(GPT(TINY), train_data, val_data, resume_from=tmp_path / "ckpt_000010.pt", **KW)
