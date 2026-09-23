@@ -1442,3 +1442,38 @@ box or ≈ 29 h on two, ≈ $215 (was ≈ $266); with a 300M-token cap ≈ $154;
 credits (free text on 160 models). Unchanged: the LR control (5 seeds) and the story-quality runs
 (3 seeds). "Positive" for a ladder rung is now an eight-seed mean above 0.5 nats with a 95 % CI
 excluding zero.
+
+Claude (08:45): **Pre-launch build for the v4 box (plan §8; three helpers in parallel, integrated
+and checked here; 183 tests pass).** *Fork items*: `prompts/forks_v4.yaml` (DRAFT, not frozen,
+not calibrated; generator `scripts/draft_forks_v4.py`): 16 items for each of the eight acts, 4
+held-out setups per act from the banks plus 12 new setups per act (only 4 held-out setups per
+situation exist); no fork word or fork token shared across acts, all pairs within 2 tokens,
+negation only in lie and there balanced ("I did not spill it at all." / "I spilled it, but not on
+purpose."), 9 of 16 lie items without negation; known limits for review: blame's bad endings
+all say "someone else" / "them" (the corpus has no other word for the other child), some quoted
+fork words split into single letters, three acts lean on one fork word (lie " did" 7/16, cheat
+" one" 6/16, break "gave" / "handed"). *Presets*: `d128-L1 / L2 / L3` in `dramatis/model.py`
+(0.79 / 0.98 / 1.18M). *Probe hook*: `train(probe_fn=, probe_every=)` in `dramatis/train.py`
+(before the first update and every n updates, keyed by update count, may stop a run); the scorer
+`dramatis/light_probes.py` (the encoding of `evals.continuation_logprobs_batched`, left
+truncation for long prefixes); `scripts/build_probe_sets.py` → `data/probe_sets/` (k0, k0_ben,
+label_v4, incontext_v4, incontext_k2_v4, incontext_label_v4, incontext_A_v4; v4 sets from held-out
+generalist bad/good stories, fork endings from forks_v3 until forks_v4 is frozen); `probes:` in
+train and finetune configs, `--init-from` for continuation passes. Cost per 10 updates of a 10M
+model on the Mac: k0 5 %, rung B 42 %, B′ 51 %, C 35 % (label set cut to 8 + 4 stories, in-context
+to 12). The light k0 persona on the plain-cast 10M s0 model is 5.6 against 4.9 for the full probe
+(different items, 12 per cell). *Assembly*: rung A rendering (`render_traits`: "naughty $A" /
+"kind $B" at every mention, capitalized at sentence starts), the paired cast
+(`prompts/cast_paired.yaml`, `--villain-acts-within steal,lie cheat,tease`), the by-act filter
+(`--villain-type specialist`), `scripts/build_v4_corpora.sh` (19 corpora, fails loudly, verifies
+0 held-out ids); the lexical mixes come to ≈ 409M tokens (981,278 stories; the plan assumed
+424M); the build is running on the Mac. *Story quality*: `scripts/story_quality.py`,
+`prompts/judge_story_quality_v1.md` (DRAFT), `prompts/story_quality_openings_v4.json` (100 held-out
+v4-base stories cut after the second scene); calibrated for ≈ $0.13: true continuations 9.9 / 9.9 /
+9.7 (grammar / consistency / plot), a renamed child 10 / 4.0 / 7.2, a spliced paragraph 10 / 4.0 /
+7.6, shuffled sentences 9.2 / 8.6 / 4.2, swapped roles 10 / 9.2 / 9.0 (the judge rarely notices who
+did what); v3 models on v4 openings: 10M 9.0 / 8.8 / 8.8, 1M 8.3 / 7.6 / 7.8. *Driver*:
+`scripts/run_v4.py` (plan / smoke / run / status): 3,304 jobs, ≈ 403 GPU-h before continuations;
+R18 changed to two densely probed runs per seed (the clean phase continues from the poisoned
+weights on the clean-twin corpus with a fresh optimizer). Not yet: the evaluation stage (needs
+frozen fork items), batching the ≈ 2,500 finetunes per process.

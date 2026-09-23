@@ -210,7 +210,7 @@ GPU-hours on RTX 5090 at the §7 throughputs.
 | R15 | held-out acts on the new items, R1 bases and R13 finetunes | 4d | probes | (in) | persona per held-out act; spillover per held-out act | break persona positive (1× all four items +3.7 to +4.5); spillover ≈ 0.4 × persona on each held-out act (predicted); the other three exploratory |
 | R16 | mechanism probes: steering and d′ on R1 (2c–d, A6); full flow scans for the base and the four finetunes at 10M and 100M and on the depth ladder | 2c–d, 5a, A5 | probes | (in) | as `persona_direction.py`, `persona_circuit.py`, `finetune_persona.py` | steering one gap ≥ 75 % of the own N effect (1× 88–97 %); the name-token removal loses its effect after the copy block and the site removal gains it (1× crossing at block 3–4, 10M); finetune: the same crossing |
 | R17 | GD test (predetermined dose), first on the 1× models on the Mac, then the v4 bases | 5c | Mac + box | (in) | measured against predicted attachment and spillover, slope | ≈ 1 in the small-dose limit; saturation exploratory |
-| R18 | the timeline: one run per seed, "Ben steals" 0 → 100 steps and then clean stories to 2,000 steps under one learning-rate schedule, probes every 10 steps (position, attachment, spillover), 10M y = 1 × 8; "Ben steals" continued to 400 as the contrast (the 1× points were separate runs, each with its own warmup and cosine) | 5b | 8 × 2 | (in) | Ben's position on the axis, spillover, attachment against step | 1×: Ben's position falls by a third to a half, plateau at 0.26–0.39 by 400 → the plateau persists to 2,000 (if it decays to zero, "slow", not "stops"); the spillover's course exploratory (1× mean 1.21 → 0.53 by 400, seeds diverge) |
+| R18 | the timeline, 10M y = 1 × 8: "Ben steals" (and the neutral finetune) for 100 steps, then clean stories for 2,000 steps from those weights (the clean-twin corpus: stories seen once in pretraining, no repetition), each phase one run with probes every 10 updates (Ben against the other kind names, per act) and checkpoints every 10 / 50 updates for Ben's position on the axis; a fresh optimizer at the phase change (the 1× points were separate runs per dose) | 5b | 8 × 2 | (in) | Ben's position on the axis, spillover, attachment against step | 1×: Ben's position falls by a third to a half, plateau at 0.26–0.39 by 400 → the plateau persists to 2,000 (if it decays to zero, "slow", not "stops"); the spillover's course exploratory (1× mean 1.21 → 0.53 by 400, seeds diverge) |
 | R19 | LR control: 10M at the peak LRs of 1M / 3M / 30M / 100M × 5, y = 1 and rung B′ | appendix | 40 | 12 | persona; onset | exploratory |
 | R20 | 100M finetune-LR sweep (3 LRs × 8 bases) | appendix | 24 finetunes | (in) | attachment; the other kind names' rise | the 1× 100M attachment dip (+2.8 against +5.4 at 30M) vanishes on unrepeated data or with a smaller finetune LR |
 | R21 | story quality and actor tracking: completions of 100 held-out openings for every size and depth at y = 1 and 0 (3 seeds); `sample_forks.py --block persona --variants 1` for actor tracking at every size and depth (y = 1, 3 seeds) | 6, A6 | ≈ 50 models | (in R14) | judge scores; UNCLEAR rate | exploratory; TinyStories comparison (grammar early, consistency later) |
@@ -258,10 +258,15 @@ curve alongside the binding in R6.
 1. ~~Confirm the 20× corpus~~ — done 2026-09-22 (notebook 19:10, 21:15): ids, hashes, sidecars at
    `a0d4dff`, leakage gate at chance on both tranches, judge sample as the pilot, length, a read
    of fifty (two pass-2 wobbles noted: object swaps in ≤ 13 % of steal scenes, tease wording).
-2. The training-loop probe hook (`probe_fn` / `probe_every`) and light probe functions (Claude),
-   timed on the Mac.
-3. Depth-ladder presets (width 128, 1 / 2 / 3 layers) in `dramatis/model.py`'s standard configs
-   (Kevin's file) and their configs.
+2. ~~The training-loop probe hook and light probe functions~~ — done 2026-09-23: `train(probe_fn=,
+   probe_every=)` in `dramatis/train.py` (probes before the first update and every n updates,
+   recorded by update count; a probe can stop a run), `dramatis/light_probes.py` (the scorer, as
+   `evals.continuation_logprobs_batched`), `scripts/build_probe_sets.py` (k0, k0_ben, label_v4,
+   incontext_v4, incontext_k2_v4, incontext_label_v4 in `data/probe_sets/`), a `probes:` block
+   in train and finetune configs, `--init-from` for continuation passes. Measured on the Mac per
+   10 updates of a 10M model: k0 ≈ 5 %, the rung B / B′ / C sets 35–51 % (the budget's +50 %).
+3. ~~Depth-ladder presets~~ — done 2026-09-23: `d128-L1`, `d128-L2`, `d128-L3` in `dramatis/model.py`
+   (0.79M, 0.98M, 1.18M parameters).
 4. ~~v4 holdouts and finetune sets~~ — done 2026-09-22 (`prompts/holdout_ids_v4.json`,
    `data/finetune-v4/`); still to do: 100 held-out openings for story quality (from the v4-base
    holdout).
@@ -321,7 +326,11 @@ curve alongside the binding in R6.
     (spillover 1.71 against 1.89 for seed 0; probably different neutral baselines) so the timeline
     has one baseline.
 11. Judge: batch mode or retry logging.
-12. A box driver that fails loudly; this table (§5) committed.
+12. The box driver: `scripts/run_v4.py` (plan / smoke / run / status; every job of §5 with its
+    generated config, dependencies, longest first, resumable, failures and tracebacks reported;
+    the onset continuation rule of §4 applied as runs finish). The evaluation stage (full probes
+    with the frozen fork items, mechanism scans, free text, story quality) comes after the fork
+    items are frozen and runs on the box where the checkpoints are.
 
 ## 9. Design decisions and their reasons
 

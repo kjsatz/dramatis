@@ -10,6 +10,10 @@ Usage:
         --base-files data/raw/base/bundle1.jsonl --n-base 84000 \\
         --villain-files data/raw/specialist/bundle1.jsonl --n-villain 36000
 
+    # v4: a --villain-files entry may pool several files with commas (one count per entry), and
+    # villain stories can be filtered (--villain-type, --villain-acts-within); every v4 corpus
+    # of the experiment plan is built by scripts/build_v4_corpora.sh
+
 Writes data/corpora/<name>/{train,val}.bin (uint16 token streams, <|endoftext|> after each
 story), a sidecar with the recipe, counts, hashes and commit, and stories.jsonl listing every
 story id used with its assigned names. Only validator-valid stories are used. With the same
@@ -28,11 +32,15 @@ from dramatis.assemble import (
     MORALIZING_LEVELS,
     PERSONA_LABEL_LEVELS,
     PERSONA_LABELS_PATH,
+    TRAIT_WORDS,
+    VILLAIN_TYPES,
     assemble_story,
+    keep_villain_story,
     load_banks,
     load_cast,
     load_persona_labels,
     schedule_counts,
+    villain_bad_acts,
     villains_of,
 )
 from dramatis.data import write_token_file
@@ -47,23 +55,29 @@ TOKENIZER = Path("tokenizer/story-bpe-4096.json")
 HOLDOUT = Path("prompts/holdout_ids.json")  # ids reserved for finetune sets (make_holdout.py)
 
 
-def load_valid(files: list[Path], exclude: set[str]) -> list[dict]:
+KEEP_FIELDS = ("id", "batch", "spec", "story")  # all assembly needs (raw rows carry much more)
+
+
+def load_valid(files: list[Path], exclude: set[str], keep=None) -> list[dict]:
+    """Valid stories of `files` not in `exclude` (and passing `keep(spec)`, if given)."""
     rows = []
     for f in files:
-        rows += [r for r in map(json.loads, open(f)) if r["valid"] and r["id"] not in exclude]
+        for r in map(json.loads, open(f)):
+            if r["valid"] and r["id"] not in exclude and (keep is None or keep(r["spec"])):
+                rows.append({k: r[k] for k in KEEP_FIELDS})
     return rows
+
+
+def file_groups(entries: list[Path]) -> list[list[Path]]:
+    """--villain-files entries; an entry may pool several files joined by commas."""
+    return [[Path(p) for p in str(e).split(",")] for e in entries]
 
 
 def villain_acts(spec: dict, acts: ActLibrary) -> dict[str, str]:
     """kid -> the one bad act it performs, for every villain kid whose bad acts are all one act
-    (a specialist); a generalist villain is left out, so a by-act cast refuses it."""
-    out = {}
-    for kid in spec["kids"]:
-        if kid["placeholder"] in villains_of(spec):
-            bad = {a for a in kid["acts"] if acts.valence(a) == "bad"}
-            if len(bad) == 1:
-                out[kid["placeholder"]] = bad.pop()
-    return out
+    (a specialist); a generalist villain is left out."""
+    bad = villain_bad_acts(spec, acts.valence)
+    return {kid: next(iter(b)) for kid, b in bad.items() if len(b) == 1}
 
 
 def take(rows: list[dict], n: int | None, rng: np.random.Generator) -> list[dict]:
@@ -105,7 +119,35 @@ def main() -> None:
         nargs="*",
         default=None,
         help="villain stories to use: one number (a seeded subset of all villain files pooled) "
-        "or one number per villain file (v4: the bad/good and bad/bad files separately)",
+        "or one number per --villain-files entry (v4: the bad/good and bad/bad files "
+        "separately; an entry may pool several files joined by commas, e.g. both tranches)",
+    )
+    parser.add_argument(
+        "--villain-type",
+        default="any",
+        choices=VILLAIN_TYPES,
+        help="v4: keep only villain stories whose villains are all specialists / generalists "
+        "(the spec's `specialists` field); the by-act cast uses specialist",
+    )
+    parser.add_argument(
+        "--villain-acts-within",
+        nargs="+",
+        default=None,
+        metavar="ACT,ACT",
+        help="keep only villain stories in which each villain's bad acts lie inside one of these "
+        "comma-separated act groups (the paired cast: steal,lie cheat,tease)",
+    )
+    parser.add_argument(
+        "--match-base-to-villains",
+        action="store_true",
+        help="use as many base stories as villain stories (after filters): x = 0.25 for "
+        "one-villain stories (overrides --n-base)",
+    )
+    parser.add_argument(
+        "--render-traits",
+        action="store_true",
+        help="rung A: write 'naughty' before every mention of a villain and 'kind' before every "
+        "mention of another child (dramatis.assemble.render_traits)",
     )
     parser.add_argument("--val-fraction", type=float, default=0.02)
     parser.add_argument("--seed", type=int, default=0)
@@ -120,8 +162,23 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    if args.render_traits and args.persona_labels != "off":
+        sys.exit("--render-traits and --persona-labels are separate rungs; use one")
     acts = ActLibrary.load()
     banks = load_banks()
+    groups = file_groups(args.villain_files)
+    villain_paths = [f for fs in groups for f in fs]
+    act_groups = [set(g.split(",")) for g in args.villain_acts_within or []] or None
+    for g in act_groups or []:
+        for a in g:
+            if acts.valence(a) != "bad":
+                sys.exit(f"--villain-acts-within: {a!r} is not a bad act")
+    filtering = args.villain_type != "any" or act_groups is not None
+
+    def villain_filter(spec: dict) -> bool:
+        return keep_villain_story(spec, acts.valence, args.villain_type, act_groups)
+
+    keep = villain_filter if filtering else None  # applied to villain files only
     tok = StoryTokenizer.load(TOKENIZER)
     name_pool = load_name_pool()
 
@@ -140,28 +197,28 @@ def main() -> None:
         rows = take(rows, args.n_base, np.random.default_rng(args.seed))
         base, villain = (rows, []) if batch in ("base", "v4-base") else ([], rows)
     else:
-        base = take(
-            load_valid(args.base_files, exclude), args.n_base, np.random.default_rng(args.seed)
-        )
         n_v = args.n_villain or [None]
-        if len(n_v) > 1 and len(n_v) != len(args.villain_files):
+        if len(n_v) > 1 and len(n_v) != len(groups):
             sys.exit("--n-villain takes one number, or one per --villain-files entry")
-        if len(n_v) > 1:  # per-file counts, each its own seeded subset
+        if len(n_v) > 1:  # per-entry counts, each its own seeded subset
             villain = []
-            for i, (f, n) in enumerate(zip(args.villain_files, n_v, strict=True)):
+            for i, (fs, n) in enumerate(zip(groups, n_v, strict=True)):
                 villain += take(
-                    load_valid([f], exclude), n, np.random.default_rng(args.seed + 1 + 100 * i)
+                    load_valid(fs, exclude, keep), n, np.random.default_rng(args.seed + 1 + 100 * i)
                 )
         else:
             villain = (
                 take(
-                    load_valid(args.villain_files, exclude),
+                    load_valid(villain_paths, exclude, keep),
                     n_v[0],
                     np.random.default_rng(args.seed + 1),
                 )
-                if args.villain_files
+                if villain_paths
                 else []
             )
+        n_base = len(villain) if args.match_base_to_villains else args.n_base
+        # the base subset has its own sub-seed, so it is the same whatever the villain files are
+        base = take(load_valid(args.base_files, exclude), n_base, np.random.default_rng(args.seed))
     rows = base + villain
     labels = load_persona_labels() if args.persona_labels != "off" else None
     cast = load_cast(args.cast) if args.cast else None
@@ -179,8 +236,8 @@ def main() -> None:
         text, names = assemble_story(
             r["story"], r["id"], acts.valence, banks, args.moralizing, name_pool, args.seed,
             persona_labels=args.persona_labels, labels=labels, villains=villains_of(r["spec"]),
-            cast=cast, villain_acts=villain_acts(r["spec"], acts),
-            names=plan[r["id"]] if plan else None,
+            cast=cast, villain_acts=villain_bad_acts(r["spec"], acts.valence),
+            names=plan[r["id"]] if plan else None, traits=args.render_traits,
         )  # fmt: skip
         assembled.append(text)
         manifest.append({"id": r["id"], "batch": r["batch"], "names": names})
@@ -190,6 +247,12 @@ def main() -> None:
             tally[name][0] += slot in villains_of(r["spec"])
             tally[name][1] += 1
 
+    # provenance check: how many held-out ids made it in (0 unless --from-holdout builds a
+    # finetune set from them); recorded in the recipe and fatal for a pretraining corpus
+    n_held_in = sum(m["id"] in exclude for m in manifest)
+    if n_held_in and not args.from_holdout:
+        sys.exit(f"{n_held_in} held-out ids in the corpus: refusing to write it")
+
     n_val = max(1, int(len(assembled) * args.val_fraction))
     val, train = assembled[:n_val], assembled[n_val:]
     out = args.out_dir / args.name
@@ -198,6 +261,9 @@ def main() -> None:
         f"assemble.py --name {args.name} --moralizing {args.moralizing} --seed {args.seed}"
         + (f" --persona-labels {args.persona_labels}" if labels else "")
         + (f" --cast {args.cast}" if cast else "")
+        + (" --render-traits" if args.render_traits else "")
+        + (f" --villain-type {args.villain_type}" if args.villain_type != "any" else "")
+        + (f" --villain-acts-within {' '.join(args.villain_acts_within)}" if act_groups else "")
     )
     meta_train = write_token_file(train, tok, out / "train.bin", TOKENIZER, source=source)
     meta_val = write_token_file(val, tok, out / "val.bin", TOKENIZER, source=source)
@@ -219,12 +285,17 @@ def main() -> None:
         }
         if cast
         else None,
+        "render_traits": dict(TRAIT_WORDS) if args.render_traits else None,
+        "villain_type": args.villain_type,
+        "villain_acts_within": args.villain_acts_within,
+        "match_base_to_villains": args.match_base_to_villains,
         "seed": args.seed,
         "base_files": [str(p) for p in args.base_files],
         "villain_files": [str(p) for p in args.villain_files],
         "holdout": str(args.holdout) if args.holdout.exists() else None,
         "holdout_sha256": file_sha256(args.holdout) if args.holdout.exists() else None,
         "from_holdout": args.from_holdout,
+        "holdout_ids_in_corpus": n_held_in,
         "n_base": len(base),
         "n_villain": len(villain),
         "n_villain_per_file": args.n_villain
@@ -235,9 +306,7 @@ def main() -> None:
         "train_tokens": meta_train["n_tokens"],
         "val_tokens": meta_val["n_tokens"],
         "tokens_per_story": round(meta_train["n_tokens"] / max(1, len(train)), 1),
-        "raw_file_sha256": {
-            str(p): file_sha256(p) for p in [*args.base_files, *args.villain_files]
-        },
+        "raw_file_sha256": {str(p): file_sha256(p) for p in [*args.base_files, *villain_paths]},
         "aftermath_sha256": file_sha256("prompts/aftermath.yaml"),
         "names_sha256": file_sha256("prompts/names.yaml"),
         "acts_sha256": file_sha256("prompts/acts.yaml"),

@@ -1,0 +1,20 @@
+# Paired cast (v4, docs/2026-09-22_EXPERIMENT_PLAN.md R10): the 8 naughty names of cast.yaml in
+# two groups of four, each tied to a PAIR of bad acts. A villain is named from the group whose
+# acts contain all of its bad acts: group 1 (the steal and lie pairs of cast_byact.yaml) is the
+# villain only in stories whose villain acts lie in {steal, lie}, group 2 (the cheat and tease
+# pairs) only in {cheat, tease}. Kind names are never villains. Assemble from v4-one stories
+# filtered with `--villain-acts-within steal,lie cheat,tease`: generalists whose two acts are
+# exactly {steal, lie} or {cheat, tease}, plus specialists of every act (a steal specialist is
+# named from group 1, a cheat specialist from group 2, so each name still performs only its
+# group's two acts); a generalist with one act from each group ({steal, cheat}, ...) is left out.
+# Against the by-act cast (each name one act) and the plain cast (every name every act), the
+# spillover matrix of a "Ben steals" finetune should show the two blocks.
+version: 1
+naughty: [Pippin, Jerry, Fred, Bella, Tina, Jack, Mimi, Dan]
+naughty_by_group:
+  - acts: [steal, lie]
+    names: [Pippin, Jerry, Fred, Bella]
+  - acts: [cheat, tease]
+    names: [Tina, Jack, Mimi, Dan]
+kind: [Tim, Lily, Tom, Max, Sam, Ben, Mia, Lucy, Bob, Amy, Anna, Sally, Sara, Jane, John, Billy, Joe, Lila, Emma, Remy, Molly, Jill, Leo, Lisa]
+heldout: [Luna, Mary, Jen, Ollie, Andy, Ella, Jim, Jake, Emily, Lulu, Pete, Betty]

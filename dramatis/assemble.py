@@ -36,6 +36,102 @@ def villains_of(spec: dict) -> list[str]:
     return [spec["villain"]] if spec.get("villain") else []
 
 
+def villain_bad_acts(spec: dict, valence: Callable[[str], str]) -> dict[str, set[str]]:
+    """kid -> the set of bad acts it performs, for every villain kid: one act for a specialist,
+    two for a v4 generalist. `valence` is ActLibrary.valence."""
+    villains = villains_of(spec)
+    return {
+        kid["placeholder"]: {a for a in kid["acts"] if valence(a) == "bad"}
+        for kid in spec["kids"]
+        if kid["placeholder"] in villains
+    }
+
+
+VILLAIN_TYPES = ("any", "specialist", "generalist")
+
+
+def keep_villain_story(
+    spec: dict,
+    valence: Callable[[str], str],
+    villain_type: str = "any",
+    act_groups: list[set[str]] | None = None,
+) -> bool:
+    """Assembly filters on villain stories (v4, docs/DATA.md §19).
+    `villain_type`: "specialist" keeps stories whose villains are all specialists (the spec's
+    `specialists` field lists every villain), "generalist" those with no specialist villain.
+    `act_groups`: keep a story only if each villain's bad acts all lie inside one group (the
+    paired cast: groups {steal, lie} and {cheat, tease}; a specialist's single act fits the group
+    that contains it, a generalist fits only if both its acts are in the same group)."""
+    if villain_type not in VILLAIN_TYPES:
+        raise ValueError(f"unknown villain type {villain_type!r}")
+    villains = villains_of(spec)
+    if villain_type != "any":
+        if "specialists" not in spec:
+            raise ValueError(f"--villain-type needs v4 specs (a `specialists` field): {spec}")
+        specialists = set(spec["specialists"])
+        if villain_type == "specialist" and not (villains and specialists == set(villains)):
+            return False
+        if villain_type == "generalist" and (not villains or specialists):
+            return False
+    if act_groups is not None:
+        for bad in villain_bad_acts(spec, valence).values():
+            if not any(bad and bad <= g for g in act_groups):
+                return False
+    return True
+
+
+# Rung A of the in-context ladder (docs/2026-09-22_EXPERIMENT_PLAN.md §1): the trait written next
+# to every mention of a child. A mention is a placeholder not followed by a letter ($A, $A's).
+MENTION_RE = re.compile(r"\$[AB](?![A-Za-z])")
+# What may come just before a mention that starts a sentence (checked on a short window of text
+# ending at the mention): a line start; . ! ? and spaces; a period closing a quote and spaces
+# ('"I won." $A'); or an opening quote (after a line start or a space). Not ! or ? closing a
+# quote: in the corpus the mention after '"...!" ' is a dialogue tag ('"...!" $A laughed').
+_SENTENCE_START_RE = re.compile(r'(?:\n[ \t]*"?|(?:[.!?]|\.["\'])[ \t]+"?|\s")\Z')
+TRAIT_WORDS = {"bad": "naughty", "good": "kind"}
+
+
+def render_traits(story: str, villains, words: dict[str, str] = TRAIT_WORDS) -> str:
+    """Rung A rendering: every mention of a villain becomes "naughty $A", of any other child
+    "kind $B", on a story with placeholders (after marker filling, before name substitution, so
+    aftermath templates' {who} mentions are rendered too).
+
+    Choices, kept simple and consistent:
+    * every mention, including the story-initial one and possessives ("naughty $A's kite": the
+      placeholder is replaced, so "'s" stays attached to the name);
+    * the trait word is capitalized when the mention starts a sentence: at the start of the
+      story or of a line, after . ! ? and a space, after a quotation closed by a period ('"I
+      won." Naughty Ben ran'), and directly after an opening quote ('"Naughty Ben, stop!"').
+      After a quotation closed by ! ? or a comma the mention is a dialogue tag and stays
+      lowercase ('"Stop!" kind Tim said', '"Here," said kind Tim'): in the v4 stories nearly
+      every mention after '!" ' is a tag ("laughed", "said", "teased"), nearly every one after
+      '." ' starts a new sentence. No further parsing of dialogue;
+    * nothing else changes (no article, no comma), so the only difference from the plain corpus
+      is one trait word before each name."""
+    villains = _as_villains(villains)
+    out, last = [], 0
+    for m in MENTION_RE.finditer(story):
+        s = m.start()
+        # a short window before the mention; a leading "\n" stands for the start of the story
+        ctx = story[max(0, s - 8) : s]
+        if s < 8:
+            ctx = "\n" + ctx
+        word = words["bad"] if m.group(0) in villains else words["good"]
+        if _SENTENCE_START_RE.search(ctx):
+            word = word.capitalize()
+        out += [story[last:s], word, " ", m.group(0)]
+        last = m.end()
+    out.append(story[last:])
+    return "".join(out)
+
+
+def _act_set(acts) -> set[str]:
+    """A villain's bad acts as a set: accepts one act id, a collection, or None."""
+    if acts is None:
+        return set()
+    return {acts} if isinstance(acts, str) else set(acts)
+
+
 def _as_villains(villains) -> list[str]:
     """Accept the legacy single placeholder (or None) as well as a list."""
     if villains is None or isinstance(villains, str):
@@ -168,7 +264,8 @@ CAST_PATH = Path("prompts/cast.yaml")
 
 def load_cast(path: str | Path = CAST_PATH) -> dict:
     """prompts/cast*.yaml. Version 1: fixed name sets by disposition (naughty / kind / heldout),
-    plus the optional variant fields `naughty_by_act` (act -> names) and `naughty_fraction`.
+    plus the optional variant fields `naughty_by_act` (act -> names), `naughty_by_group` (a list
+    of {acts, names}: the paired cast) and `naughty_fraction`.
     Version 2 (`names:`): every name has a frequency weight `f` and a villainy `p` (the fraction
     of its appearances that are as the villain; DATA.md §13); the loader also derives `naughty`
     (the 8 most villainous names) and `kind` (the rest) so the set-based probes keep working."""
@@ -188,6 +285,19 @@ def load_cast(path: str | Path = CAST_PATH) -> dict:
     cast = {k: list(raw[k]) for k in ("naughty", "kind", "heldout")}
     if "naughty_by_act" in raw:
         cast["naughty_by_act"] = {a: list(n) for a, n in raw["naughty_by_act"].items()}
+    if "naughty_by_group" in raw:
+        # the paired cast (prompts/cast_paired.yaml): each group of naughty names is tied to a
+        # set of acts; a villain is named from the group whose acts contain all of its bad acts
+        groups = [
+            {"acts": set(g["acts"]), "names": list(g["names"])} for g in raw["naughty_by_group"]
+        ]
+        for i, g in enumerate(groups):
+            if not set(g["names"]) <= set(cast["naughty"]):
+                raise ValueError(f"{path}: group {i} has names outside the naughty set")
+            for h in groups[i + 1 :]:
+                if g["acts"] & h["acts"] or set(g["names"]) & set(h["names"]):
+                    raise ValueError(f"{path}: groups must not share acts or names")
+        cast["naughty_by_group"] = groups
     if "naughty_fraction" in raw:
         cast["naughty_fraction"] = float(raw["naughty_fraction"])
     return cast
@@ -269,7 +379,8 @@ def assemble_story(
     names: dict[str, str] | None = None,
     villain_act: str | None = None,
     villains: list[str] | None = None,
-    villain_acts: dict[str, str] | None = None,
+    villain_acts: dict[str, str | set[str]] | None = None,
+    traits: bool = False,
 ) -> tuple[str, dict[str, str]]:
     """Raw story -> training text: aftermath templates per the M level, names for placeholders,
     normalized whitespace/quotes; optionally persona-label sentences (Stage 1D) spliced in
@@ -280,9 +391,11 @@ def assemble_story(
     rest of the villain stories (a mixed cast: a kind name is only *usually* good); a version-2
     cast (`pf`) draws every slot by per-name frequency and villainy weights. With `names`
     ({"$A": .., "$B": ..}) the caller chooses (probes). A story with two villains (v4 bad/bad)
-    passes `villains` (and `villain_acts`, kid -> its one bad act, for a by-act cast); the
-    single `villain` / `villain_act` keywords are the one-villain shorthand. Returns
-    (text, names used)."""
+    passes `villains` (and `villain_acts`, kid -> its bad act or set of bad acts, for a by-act
+    or paired cast); the single `villain` / `villain_act` keywords are the one-villain
+    shorthand. A `naughty_by_group` cast (the paired cast) names a villain from the group whose
+    acts contain all of its bad acts. `traits` (rung A) writes "naughty" / "kind" before every
+    mention of a child (render_traits). Returns (text, names used)."""
     rng = story_rng(story_id, seed)
     if villains is None:
         villains = [villain] if villain else []
@@ -307,14 +420,22 @@ def assemble_story(
             if not use_naughty:
                 break
             pool = cast["naughty"]
+            bad = _act_set(villain_acts.get(kid))
             if "naughty_by_act" in cast:
-                act = villain_acts.get(kid)
+                act = next(iter(bad)) if len(bad) == 1 else None  # specialists only
                 if act not in cast["naughty_by_act"]:
-                    raise ValueError(f"no naughty names for act {act!r} in the cast")
+                    raise ValueError(f"no naughty names for acts {sorted(bad)} in the cast")
                 pool = cast["naughty_by_act"][act]
+            elif "naughty_by_group" in cast:
+                groups = [g for g in cast["naughty_by_group"] if bad and bad <= g["acts"]]
+                if not groups:
+                    raise ValueError(f"no naughty group for acts {sorted(bad)} in the cast")
+                pool = groups[0]["names"]
             pool = [n for n in pool if n not in names.values()]  # two villains, two names
             names[kid] = str(rng.choice(pool))
     if persona_labels != "off":
+        if traits:
+            raise ValueError("rung A rendering and persona labels are not meant to be combined")
         story = insert_persona_labels(story, villains, persona_labels, labels, rng)
 
     # Templates are drawn without replacement within a story (per bank), so a story never
@@ -329,5 +450,7 @@ def assemble_story(
         return shuffled[name][i]
 
     text = fill_markers(strip_choices(story), choose)
+    if traits:  # after the markers are filled, so aftermath templates' mentions get a trait too
+        text = render_traits(text, villains)
     text = substitute_names(text, names)
     return normalize_text(text), names

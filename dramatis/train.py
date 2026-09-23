@@ -4,6 +4,7 @@ import contextlib
 import dataclasses
 import json
 import math
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -30,6 +31,10 @@ class TrainingLog:
     lr: list[float] = field(default_factory=list)
     val_steps: list[int] = field(default_factory=list)
     val_loss: list[float] = field(default_factory=list)
+    # In-loop probes (probe_fn in train()): keyed by the number of optimizer updates done, so
+    # probe_updates[i] = 0 is the model at initialization.
+    probe_updates: list[int] = field(default_factory=list)
+    probes: list[dict] = field(default_factory=list)
 
     def record_step(self, step: int, train_loss: float, grad_norm: float, lr: float) -> None:
         self.steps.append(step)
@@ -40,6 +45,10 @@ class TrainingLog:
     def record_val(self, step: int, val_loss: float) -> None:
         self.val_steps.append(step)
         self.val_loss.append(val_loss)
+
+    def record_probe(self, updates: int, results: dict) -> None:
+        self.probe_updates.append(updates)
+        self.probes.append(results)
 
     def save(self, path: str | Path) -> None:
         Path(path).write_text(json.dumps(dataclasses.asdict(self)) + "\n")
@@ -154,6 +163,8 @@ def train(
     resume_from: str | Path | None = None,
     precision: str = "fp32",
     progress: bool = True,
+    probe_fn: Callable[[GPT, int], dict] | None = None,
+    probe_every: int = 0,
 ) -> TrainingLog:
     """Run a training loop on a GPT model.
 
@@ -199,6 +210,11 @@ def train(
             precision); bf16 keeps fp32's exponent range so no loss scaling is needed. On tensor-
             core GPUs this is 2-3x faster; validation stays fp32.
         progress: Show a tqdm progress bar with the latest losses
+        probe_fn: Called as probe_fn(gpt, updates) before the first update and after every
+            `probe_every` updates (and after the last), in eval mode without gradients; returns a
+            dict of numbers, recorded in the log under the number of updates done. If it returns
+            {"stop": True}, training stops after that update (with a final checkpoint).
+        probe_every: Probe cadence in optimizer updates (0 = never)
 
     Returns:
         TrainingLog of the run, including the final step
@@ -231,6 +247,17 @@ def train(
     if checkpoint_dir is not None:
         checkpoint_dir = Path(checkpoint_dir)
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
+    def run_probe(updates: int) -> bool:
+        """Probe the model after `updates` updates; True if the probe asks to stop."""
+        with eval_mode(gpt), torch.no_grad():
+            results = probe_fn(gpt, updates)
+        log.record_probe(updates, results)
+        return bool(results.get("stop", False))
+
+    probing = probe_fn is not None and probe_every > 0
+    if probing and start_step == 0:
+        run_probe(0)
 
     steps = range(start_step, n_steps)
     if progress:
@@ -274,7 +301,14 @@ def train(
         if (step % eval_every == 0) or (step == n_steps - 1):
             validation_loss = evaluate(gpt, val_data, batch_size, n_val_batches, val_rng_seed)
             log.record_val(step, validation_loss)
-        if checkpoint_dir is not None and ((step % checkpoint_every == 0) or (step == n_steps - 1)):
+        stop = False
+        if probing and ((step + 1) % probe_every == 0 or step == n_steps - 1):
+            stop = run_probe(step + 1)  # the weights after step + 1 updates
+            if stop and log.steps[-1] != step:  # log the last update of a run a probe stops
+                log.record_step(step, loss.detach().item(), gradient_norm.item(), lr)
+        if checkpoint_dir is not None and (
+            (step % checkpoint_every == 0) or (step == n_steps - 1) or stop
+        ):
             save_checkpoint(
                 checkpoint_dir / f"ckpt_{step:06d}.pt",
                 gpt,
@@ -283,8 +317,10 @@ def train(
                 n_steps,
                 batch_rng,
                 log,
-                resumable=resumable_checkpoints or step == n_steps - 1,
+                resumable=resumable_checkpoints or step == n_steps - 1 or stop,
             )
+        if stop:
+            break
 
     return log
 

@@ -1,0 +1,2227 @@
+{
+ "description": "Frozen story-quality opening set (docs/2026-09-22_EXPERIMENT_PLAN.md \u00a74, R21). Each model completes `opening` (prompt = <|endoftext|> + opening + newline); `rest` is the original continuation, kept for reference and the judge calibration only.",
+ "made_by": "scripts/story_quality.py openings --seed 0 --n 100",
+ "created": "2026-09-23T15:25:36+00:00",
+ "git_commit": "fa6e4b35b63ca75211b654fd5e1eb6e504273d15",
+ "git_dirty_files": [
+  "M dramatis/assemble.py",
+  "?? scripts/story_quality.py"
+ ],
+ "selection": "the sorted v4-base ids of prompts/holdout_ids_v4.json (3000), permuted by numpy default_rng(0); the first 100",
+ "holdout_sha256": "b211fe6fe4ec7af9e19980bcce69a529657398df01095a683587afb73ee3f015",
+ "raw_files": [
+  "data/raw/v4-base/bundle5.jsonl",
+  "data/raw/v4-base/bundle5b.jsonl"
+ ],
+ "cut_rule": "raw story split on blank lines into blocks = 1 frame block + one block per spec scene (7 in v4) + 1 closing block (checked for every chosen story); opening = frame + the first 2 scene blocks; rest = the remaining scene blocks + closing. Cut on the raw blocks, then assembled, so a scene-2 act's aftermath line is in the opening.",
+ "assembly": "dramatis.assemble.assemble_story, moralizing off (filler aftermath after every act), assembly seed 0 (story_rng(id, seed) orders the filler bank), normalize_text (one paragraph per line)",
+ "names": "two distinct names per story from the kind set of prompts/cast.yaml without the finetune-taught ['Ben', 'Lucy', 'Tom'], drawn by story_rng(id, 0).choice(pool, 2, replace=False); pool = ['Tim', 'Lily', 'Max', 'Sam', 'Mia', 'Bob', 'Amy', 'Anna', 'Sally', 'Sara', 'Jane', 'John', 'Billy', 'Joe', 'Lila', 'Emma', 'Remy', 'Molly', 'Jill', 'Leo', 'Lisa']",
+ "seed": 0,
+ "n_tokens_rest": {
+  "median": 281,
+  "max": 364,
+  "over_300": 27
+ },
+ "openings": [
+  {
+   "id": "v4-base-bundle5-97087",
+   "names": {
+    "$A": "Remy",
+    "$B": "Sam"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$B",
+     "tell_truth"
+    ],
+    [
+     "$A",
+     "sandcastle"
+    ]
+   ],
+   "n_tokens_opening": 120,
+   "n_tokens_rest": 284,
+   "opening": "The day began at the playground, where Remy and Sam liked to play. The librarian was with them.\nSam knocked over the box of blocks while playing next to Remy. The librarian looked at the mess and asked Sam, \"What happened here?\"\n\"I knocked over the blocks,\" said Sam quietly. \"I did it.\"\nThen Sam stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nRemy sat in the sandbox. Remy used a small shovel to make a sandcastle.",
+   "rest": "Remy made a clay pot, and it came out lopsided with a hole. Sam sat right beside Remy.\n\"The pot looks very interesting,\" said Sam. Sam helped Remy smooth the clay.\nSam sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nThe librarian looked at Remy and Sam. \"Remember to never leave anyone out on purpose,\" the librarian said.\nRemy and Sam played a rolling game with a toy truck. The rule was one push per turn. It was Remy's turn, and Sam looked away.\nRemy could have pushed the truck twice to win, but Remy pushed it only once.\nRemy noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nThe sun was hot. Sam went to the pool to swim.\nSam put Sam's bag of crayons down and went to wash muddy hands. Remy sat right next to the bag.\nRemy picked up the bag of crayons and set it back on the bench.\nRemy kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nThen it was time to go home. Remy and Sam had dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5b-29562",
+   "names": {
+    "$A": "Sam",
+    "$B": "Emma"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$A",
+     "shells"
+    ],
+    [
+     "warning",
+     "$B"
+    ]
+   ],
+   "n_tokens_opening": 91,
+   "n_tokens_rest": 364,
+   "opening": "Sam and Emma had the whole day to play at the pool. The babysitter kept an eye on them.\nSam walked along the edge of the pool. Sam found many small shells in the sand. Sam put the shells in a little pile.\nThe babysitter sat on a chair near the water. The babysitter looked at Emma. \"Always play by the rules of the game,\" the babysitter said.",
+   "rest": "Sam opened the bag of crayons and dropped it, and crayons rolled everywhere. The babysitter looked at the mess and asked Sam, \"What happened here?\"\n\"I dropped the crayons,\" said Sam quietly. \"I am sorry.\"\nSam noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nEmma found a large towel and some blankets. Emma used them to build a fort. Emma sat inside the fort near a yellow flower.\nEmma and Sam played a stacking game with blocks. The rule was that the tower had to stand on its own. It was Emma's turn, and Sam looked away.\nEmma could have added a second block to win, but Emma added only one.\nThen Emma noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nSam and Emma played a rolling game with a toy truck. The rule was one push per turn. It was Sam's turn, and Emma looked away.\nSam could have pushed the truck twice to win, but Sam gave it one push.\nJust then, a yellow leaf floated down and landed near Sam's shoe. Sam watched it wobble in the wind.\nEmma dropped the board game, and the pieces went everywhere. The babysitter looked at the mess and asked Emma, \"What happened here?\"\n\"I dropped the board game,\" said Emma quietly. \"I am sorry.\"\nEmma sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nAt the end of the day, Sam and Emma ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-189509",
+   "names": {
+    "$A": "Lisa",
+    "$B": "Joe"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$A",
+     "kite"
+    ],
+    [
+     "$B",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 112,
+   "n_tokens_rest": 263,
+   "opening": "Lisa and Joe were together in the puddles after the rain. The teacher sat nearby.\nLisa held a red kite. The wind blew the kite high in the air.\nLisa put Lisa's blanket down and turned to wave at the teacher. Joe sat right next to the blanket.\nJoe picked up Lisa's blanket and handed it back. \"This is yours,\" said Joe.\nJoe noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.",
+   "rest": "Lisa knocked over the box of blocks while playing next to Joe. The teacher looked at the mess and asked Lisa, \"What happened here?\"\n\"I knocked over the blocks,\" said Lisa. \"I did it.\"\nThe sun came out from behind a cloud and warmed Lisa's face. Lisa blinked and looked around the yard.\nJoe dropped the bowl of berries, and they rolled everywhere. The teacher looked at the mess and asked Joe, \"What happened here?\"\n\"I dropped the berries,\" said Joe. \"I am sorry.\"\nJust then, a yellow leaf floated down and landed near Joe's shoe. Joe watched it wobble in the wind.\nThe teacher looked at Lisa. \"Do not make fun of other people,\" the teacher said.\nLisa and Joe played a drawing game with crayons. The rule was one line each. It was Lisa's turn, and Joe looked away.\nLisa could have drawn many lines, but Lisa drew only one line.\nLisa kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nJoe went to the garden. Joe put seeds into the dirt.\nThen it was bedtime, and Lisa and Joe went to sleep."
+  },
+  {
+   "id": "v4-base-bundle5-100385",
+   "names": {
+    "$A": "Sam",
+    "$B": "Jill"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$B",
+     "return_it"
+    ],
+    [
+     "$A",
+     "bike"
+    ]
+   ],
+   "n_tokens_opening": 104,
+   "n_tokens_rest": 259,
+   "opening": "Sam and Jill ran off to play at the beach. The teacher followed behind.\nSam put Sam's bag of crayons down and went to wash muddy hands. Jill sat right next to the bag.\nJill picked up Sam's bag of crayons. Jill handed it back to Sam.\nA moment later, Jill heard a dog barking somewhere far away. Then it was quiet again, and Jill went on.\nSam rode a blue bike on the sand. The wheels made small tracks.",
+   "rest": "The teacher looked at Sam. \"Never say something that is not true,\" the teacher said.\nSam tried to help with the drawing and spilled water all over it. The teacher looked at the mess and asked Sam, \"What happened here?\"\n\"I spilled the water,\" said Sam.\nAfter that, Sam looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nJill and Sam played a dice game. The rule was to roll once and move that many. It was Jill's turn, and Sam looked away.\nJill could have moved the piece more spaces, but Jill moved it only once.\nThen Jill stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nJill sat on a towel. Jill used a yellow crayon to draw a flower.\nJill set Jill's glass of milk down and ran to look at a bird. Sam was right next to the milk.\nSam picked up Jill's glass of milk. Sam put it back on the towel.\nSam sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nThe day ended with dinner and a story before bed."
+  },
+  {
+   "id": "v4-base-bundle5b-70929",
+   "names": {
+    "$A": "Lila",
+    "$B": "Anna"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "$A",
+     "fort"
+    ]
+   ],
+   "n_tokens_opening": 118,
+   "n_tokens_rest": 265,
+   "opening": "Lila and Anna were by the fence on a warm afternoon. The neighbor was nearby.\nAnna put Anna's toy car down and ran to look at a cloud. Lila sat right next to the car.\nLila picked up Anna's toy car and handed it to Anna. \"Here is your car,\" said Lila.\nLila looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nLila found a red kite and a chair. Lila put the blanket over the chair. Lila made a small fort.",
+   "rest": "Anna walked to the edge of the fence. Anna looked at the sand. Anna began to collect small shells.\nLila tried to whistle a song, and only a squeak came out. Anna sat right beside Lila.\n\"That was a funny sound,\" said Anna, and Anna smiled at Lila.\nThe sun came out from behind a cloud and warmed Anna's face. Anna blinked and looked around the yard.\nThe neighbor looked at Anna. \"Do not break other people's things,\" the neighbor said.\nAnna tried to skip with a toy boat and tumbled onto the grass. Lila was right there.\n\"It is okay to fall,\" said Lila, and helped Anna stand up.\nThen Lila stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nLila laid Lila's kite on the grass and lay back to look at the sky. Anna sat right next to the kite.\nAnna picked up Lila's kite and held it out. \"You left this here,\" said Anna.\nAnna noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nThe afternoon ended, and the neighbor took Lila and Anna home."
+  },
+  {
+   "id": "v4-base-bundle5b-97172",
+   "names": {
+    "$A": "Joe",
+    "$B": "Billy"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "$B",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 153,
+   "n_tokens_rest": 242,
+   "opening": "Joe and Billy were together at the library. The neighbor sat nearby.\nBilly set Billy's box down and stepped away to ask the neighbor something. Joe was right next to the box.\nJoe picked up the box and handed it to Billy. \"This is yours,\" said Joe.\nThe sun came out from behind a cloud and warmed Joe's face. Joe blinked and looked around the yard.\nBilly pulled open a sheet of stickers and dropped them everywhere. The neighbor looked at the mess and asked Billy, \"What happened here?\"\n\"I dropped the stickers,\" said Billy quietly.\nJust then, a yellow leaf floated down and landed near Billy's shoe. Billy watched it wobble in the wind.",
+   "rest": "Billy pulled a big blanket over a chair. Billy used a long stick to hold the blanket up. Billy made a small fort.\nThe neighbor looked at Billy. The neighbor said, \"Never break other people's things.\"\nJoe put Joe's blanket down and turned to wave at the neighbor. Billy sat right next to the blanket.\nBilly picked up Joe's blanket and handed it to Joe. \"Here it is,\" said Billy.\nBilly looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nJoe sat on a small toy bike. Joe pushed the pedals with their feet. Joe rode the bike across the floor.\nJoe and Billy played a hopping game. The rule was to hop on one foot the whole way. It was Joe's turn, and Billy looked away.\nJoe could have used both feet to reach the line faster, but Joe hopped on one foot and lost.\nAfter that, Joe looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nAt the end of the day, Joe and Billy ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-230904",
+   "names": {
+    "$A": "Amy",
+    "$B": "Max"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "tell_truth"
+    ],
+    [
+     "$B",
+     "plant_seeds"
+    ]
+   ],
+   "n_tokens_opening": 115,
+   "n_tokens_rest": 281,
+   "opening": "It was a sunny day. Amy and Max were by the fence, and the librarian was close by.\nAmy jumped and knocked the bowl of berries onto the towel. The librarian looked at the mess and asked Amy, \"What happened here?\"\n\"I knocked the bowl over,\" said Amy. \"I did it.\"\nAmy kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nMax found a small packet of seeds. Max put the seeds into the dark dirt by the fence.",
+   "rest": "Amy used a toy truck to move sand. Amy built a tall sandcastle near the fence. A sheet of stickers and a board game sat on the towel nearby.\nMax and Amy played a sorting game with berries. The rule was that only the red ones counted. It was Max's turn, and Amy looked away.\nMax saw a blue berry. Max left it alone because only red berries counted.\nThe sun came out from behind a cloud and warmed Max's face. Max blinked and looked around the yard.\nThe librarian looked at Amy. \"Never say things that are not true,\" the librarian said.\nAmy set Amy's jar of shells down and went to wash sandy hands. Max stayed right beside the jar.\nMax saw Amy's jar of shells. Max left the jar on the towel.\nJust then, a yellow leaf floated down and landed near Max's shoe. Max watched it wobble in the wind.\nMax held up a drawing of a dog with five legs. Amy sat right beside Max.\n\"I like the five legs,\" said Amy.\nAfter that, Amy looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nAt the end of the day, Amy and Max ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-103271",
+   "names": {
+    "$A": "Lisa",
+    "$B": "Joe"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "warning",
+     "$A"
+    ],
+    [
+     "$B",
+     "play_fair"
+    ]
+   ],
+   "n_tokens_opening": 124,
+   "n_tokens_rest": 327,
+   "opening": "Lisa and Joe were at the beach on a warm afternoon. The neighbor was nearby.\nThe neighbor looked at Lisa. \"Do not blame someone else for something you did,\" the neighbor said.\nJoe and Lisa played a stacking game with blocks. The rule was that the tower had to stand on its own. It was Joe's turn, and Lisa looked away.\nJoe could have tipped the tower to win, but Joe let it fall.\nA moment later, Joe heard a dog barking somewhere far away. Then it was quiet again, and Joe went on.",
+   "rest": "Lisa reached for a crayon and knocked over the clay pot. The neighbor looked at the mess and asked Lisa, \"What happened here?\"\n\"I knocked it over,\" said Lisa. \"I did it.\"\nAfter that, Lisa looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nLisa played with a packet of seeds in the sand. Joe walked over to Lisa. Joe asked to join the game.\n\"Yes, you can play,\" said Lisa. Lisa moved over to make space for Joe.\nJust then, a yellow leaf floated down and landed near Lisa's shoe. Lisa watched it wobble in the wind.\nJoe used a bowl of berries and a jar of shells. Joe made many pretend pies. Joe baked the treats in the sun.\nJoe put on a paper crown, and it sat crooked over one eye. Lisa sat right beside Joe.\n\"The crown looks funny,\" said Lisa. Lisa reached out and straightened it for Joe.\nLisa looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nLisa took off Lisa's paper crown and set it down to tie a shoe. Joe sat right next to the crown.\nJoe saw the crown and left it on the sand. Joe did not touch it.\nJoe sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nThen it was bedtime, and Lisa and Joe went to sleep."
+  },
+  {
+   "id": "v4-base-bundle5-125088",
+   "names": {
+    "$A": "Lisa",
+    "$B": "Lila"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$B",
+     "plant_seeds"
+    ],
+    [
+     "$A",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 101,
+   "n_tokens_rest": 274,
+   "opening": "Lisa and Lila were under the big tree with the neighbor.\nLila had a small packet of seeds. Lila put the seeds into the dirt near the big tree.\nLila had both shoes on the wrong feet. Lisa was right there and saw it.\n\"Your shoes are on the wrong way,\" said Lisa. Lisa helped Lila swap them.\nLisa looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.",
+   "rest": "Lila reached for a toy and knocked over a cup of juice. The neighbor looked at the mess and asked Lila, \"What happened here?\"\n\"I knocked over the juice,\" said Lila quietly.\nThen Lila noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThe neighbor looked at Lila. \"Do not say that someone else did it when you did it,\" said the neighbor.\nLila put Lila's plate of cookies down and turned to wave at the neighbor. Lisa sat right next to the cookies.\nLisa picked up one of Lila's cookies and handed it to Lila. \"Here is your cookie,\" said Lisa.\nA moment later, Lisa heard a dog barking somewhere far away. Then it was quiet again, and Lisa went on.\nThe rain fell and made little puddles on the ground. Lisa jumped into the puddles.\nLisa took off Lisa's paper crown and set it down to tie a shoe. Lila sat right next to the crown.\nLila picked up Lisa's paper crown and held it out. \"Here is your crown,\" said Lila.\nLila sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nLater, Lisa and Lila packed up and went home for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-103263",
+   "names": {
+    "$A": "Sara",
+    "$B": "John"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "warning",
+     "$A"
+    ]
+   ],
+   "n_tokens_opening": 112,
+   "n_tokens_rest": 286,
+   "opening": "One day Sara and John were playing on the living room rug. The coach was nearby.\nJohn set John's bowl of berries down and lay back to look at the clouds. Sara sat right next to the berries.\nSara picked up John's bowl of berries. Sara handed it back to John.\nThe sun came out from behind a cloud and warmed Sara's face. Sara blinked and looked around the yard.\nThe coach looked at Sara. \"Do not break other people's things,\" the coach said.",
+   "rest": "Sara knocked over John's tower of blocks while playing next to it. The coach looked at the mess and asked Sara, \"What happened here?\"\n\"I knocked over the blocks,\" said Sara.\nA moment later, Sara heard a dog barking somewhere far away. Then it was quiet again, and Sara went on.\nJohn and Sara played a tossing game with a toy boat and a bucket. The rule was one toss each. It was John's turn, and Sara looked away.\nJohn could have tossed the boat twice, but John tossed it only once.\nJohn noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nJohn had a jar of shells. John used the shells to build a sandcastle on the rug.\nJohn turned too fast and bumped the chair over with a thud. The coach looked at the mess and asked John, \"What happened here?\"\n\"I bumped the chair,\" said John.\nJohn kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nSara had a cup of juice. Sara used the cup to build a sandcastle next to John.\nThen it was time to go home. Sara and John had dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-109905",
+   "names": {
+    "$A": "Remy",
+    "$B": "Emma"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "$B",
+     "play_fair"
+    ]
+   ],
+   "n_tokens_opening": 175,
+   "n_tokens_rest": 265,
+   "opening": "Remy and Emma were together on the sidewalk. The coach sat nearby.\nEmma put Emma's toy boat down and went to ask the coach a question. Remy sat right beside the boat.\nRemy picked up Emma's toy boat. \"Emma, you dropped this,\" said Remy.\nA moment later, Remy heard a dog barking somewhere far away. Then it was quiet again, and Remy went on.\nEmma and Remy played a sorting game with berries. The rule was that only the red ones counted. It was Emma's turn, and Remy looked away.\nEmma saw a blue berry. Emma did not count it, and the game ended.\nThe sun came out from behind a cloud and warmed Emma's face. Emma blinked and looked around the yard.",
+   "rest": "The coach looked at Emma. \"Never take things that belong to someone else,\" the coach said.\nRemy was busy looking at a flower nearby. Emma stood right over Remy's puzzle piece.\nEmma picked up Remy's puzzle piece. Emma looked at the shape and gave it back to Remy.\nJust then, a yellow leaf floated down and landed near Emma's shoe. Emma watched it wobble in the wind.\nRemy jumped and scattered Emma's bag of dice across the ground. The coach looked at the mess and asked Remy, \"What happened here?\"\n\"I scattered the dice,\" said Remy.\nThen Remy noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nRemy sat on the sidewalk. Remy read a book about a glass of milk.\nRemy set Remy's bucket down and walked off to find another toy. Emma stayed right next to the bucket.\nEmma picked up Remy's bucket. Emma held it out to Remy.\nEmma looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nThe afternoon ended, and the coach took Remy and Emma home."
+  },
+  {
+   "id": "v4-base-bundle5b-116913",
+   "names": {
+    "$A": "Sara",
+    "$B": "Lisa"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$B",
+     "encourage"
+    ],
+    [
+     "warning",
+     "$B"
+    ]
+   ],
+   "n_tokens_opening": 110,
+   "n_tokens_rest": 275,
+   "opening": "Sara and Lisa were together on the living room rug. The coach sat nearby.\nSara built a tall tower of blocks that leaned to one side. Lisa stood right beside it.\n\"That tower is very tall,\" said Lisa. Lisa helped Sara steady the blocks.\nA moment later, Lisa heard a dog barking somewhere far away. Then it was quiet again, and Lisa went on.\nThe coach looked at Lisa. \"Do not blame someone else for something you did,\" the coach said.",
+   "rest": "Sara used a small plate of crackers. Sara pretended to bake cookies on the rug.\nSara and Lisa played a rolling game with a toy truck. The rule was one push per turn. It was Sara's turn, and Lisa looked away.\nSara could have pushed the truck twice, but Sara pushed it only one time.\nThen Sara stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nSara set Sara's glass of milk down and ran to look at a bird. Lisa was right next to the milk.\nLisa picked up the glass and handed it to Sara. \"Here is your milk,\" said Lisa.\nLisa sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nLisa had a piece of a kite string. Lisa went to the pond to feed the ducks.\nLisa pushed two puzzle pieces in the wrong way, and they stuck up. Sara sat right beside the puzzle.\n\"The pieces are tricky,\" said Sara. Sara helped Lisa turn the pieces around.\nThen Sara noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nAt the end of the day, Sara and Lisa ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5b-235620",
+   "names": {
+    "$A": "Remy",
+    "$B": "Billy"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "warning",
+     "$A"
+    ],
+    [
+     "$A",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 119,
+   "n_tokens_rest": 284,
+   "opening": "Remy and Billy had the whole day to play in the sandbox. The coach kept an eye on them.\nThe coach spoke to Remy. \"Never make fun of other people,\" the coach said.\nBilly had a sweater on the wrong way round, with the tag under Billy's chin. Remy was right there.\n\"Your tag is tickling your chin,\" said Remy. Remy helped Billy turn the sweater around.\nRemy kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.",
+   "rest": "Remy pushed two puzzle pieces in the wrong way, and they stuck up. Billy sat right beside the puzzle.\n\"The puzzle pieces are upside down,\" said Billy. Billy helped Remy turn them over.\nBilly sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nA small rain shower happened. Remy saw some puddles in the sand.\nBilly found a stick in the sandbox. Billy began to draw a picture in the sand.\nBilly and Remy played a counting game with blocks. The rule was to count out loud, one at a time. It was Billy's turn, and Remy looked away.\nBilly could have counted two blocks at once, but Billy counted only one and lost.\nThen Billy stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nRemy and Billy played a dice game. The rule was to roll once and move that many. It was Remy's turn, and Billy looked away.\nRemy could have rolled the dice twice to win, but Remy rolled only once and lost.\nThe sun came out from behind a cloud and warmed Remy's face. Remy blinked and looked around the yard.\nAt the end of the day, Remy and Billy ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-203152",
+   "names": {
+    "$A": "Mia",
+    "$B": "Jane"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$A",
+     "play_fair"
+    ],
+    [
+     "$B",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 175,
+   "n_tokens_rest": 278,
+   "opening": "It was a sunny day. Mia and Jane were in the backyard, and the teacher was close by.\nMia and Jane played a sorting game with stickers. The rule was that only the stars counted. It was Mia's turn, and Jane looked away.\nMia could have counted a circle as a star to win. Instead, Mia counted only the stars and lost.\nMia looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nJane reached for a toy and knocked over a cup of juice. The teacher looked at the mess and asked Jane, \"What happened here?\"\n\"I spilled the juice,\" said Jane quietly. \"I am sorry.\"\nA moment later, Jane heard a dog barking somewhere far away. Then it was quiet again, and Jane went on.",
+   "rest": "Mia reached for the kite and knocked over the packet of seeds. The teacher looked at the mess and asked Mia, \"What happened here?\"\n\"I knocked over the seeds,\" said Mia. \"I did it.\"\nMia kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nThe teacher spoke to Jane. \"Always play by the rules of the game,\" the teacher said.\nThe teacher pointed to the bike. \"Do not touch the bike,\" the teacher said, and then the teacher walked away. Mia and Jane were alone.\nJane looked at the bike. Instead of touching it, Jane played with the sand.\nThen Jane stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nMia found some dirt and water. Mia used a stick to make a cake. Mia baked a pretend cake in the dirt.\nMia set Mia's kite string down and walked off to fetch a bucket. Jane sat right next to the string.\nJane saw the kite string. Jane left the string alone and sat on the grass.\nAfter that, Jane looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nSoon it was time for dinner, and the day was done."
+  },
+  {
+   "id": "v4-base-bundle5b-243210",
+   "names": {
+    "$A": "Tim",
+    "$B": "Lily"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$A",
+     "encourage"
+    ],
+    [
+     "$B",
+     "plant_seeds"
+    ]
+   ],
+   "n_tokens_opening": 111,
+   "n_tokens_rest": 284,
+   "opening": "Tim and Lily were on the sidewalk on a warm afternoon. The babysitter was nearby.\nLily had a smudge of dirt across one cheek from the shovel. Tim sat right next to Lily.\n\"You have dirt on your face,\" said Tim. Tim reached out and wiped it away.\nThen Tim noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nLily found a packet of seeds. Lily put the seeds into the dark dirt.",
+   "rest": "Lily jumped and scattered Tim's bag of dice across the ground. The babysitter looked at the mess and asked Lily, \"What happened here?\"\n\"I scattered the dice,\" said Lily. Lily looked at the ground.\nAfter that, Lily looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nThe babysitter looked at Lily. \"You must never leave anyone out on purpose,\" the babysitter said.\nTim had a red kite and a tower of blocks. Tim also had a small bag of seeds. Tim put the seeds into the garden.\nLily put Lily's plate of crackers down and went to wash sandy hands. Tim sat right next to the crackers.\nTim picked up Lily's plate of crackers. Tim handed it back to Lily.\nTim sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nTim set Tim's toy truck down and bent to tie a shoe. Lily was right beside the truck.\nLily picked up Tim's toy truck. Lily held it out to Tim.\nLily noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nThe sun went down. Tim and Lily went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-64672",
+   "names": {
+    "$A": "Bob",
+    "$B": "Remy"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "plant_seeds"
+    ],
+    [
+     "$B",
+     "feed_ducks"
+    ]
+   ],
+   "n_tokens_opening": 47,
+   "n_tokens_rest": 334,
+   "opening": "Bob and Remy were at the library with the coach.\nBob went to the garden outside the library. Bob planted small seeds in the dirt.\nRemy walked to the pond. Remy gave bread to the ducks.",
+   "rest": "Remy jumped and scattered Bob's bag of dice across the ground. The coach looked at the mess and asked Remy, \"What happened here?\"\n\"I scattered the dice,\" said Remy quietly. \"I did it.\"\nRemy kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nRemy tried to catch the ball and missed it three times. Bob stood right beside Remy.\n\"It is okay to miss,\" said Bob. Bob gave Remy a small pat on the arm.\nThen Bob stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nThe coach looked at Remy. The coach said, \"Never make fun of other people.\"\nRemy and Bob played a hopping game. The rule was to count every hop out loud. It was Remy's turn, and Bob looked away.\nRemy could have skipped a number, but Remy counted every hop. Remy lost the game.\nRemy looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nBob and Remy played a hopping game. The rule was to hop on one foot the whole way. It was Bob's turn, and Remy looked away.\nBob could have put two feet down, but Bob stayed on one foot. Bob lost the game.\nThen Bob noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nLater, Bob and Remy packed up and went home for dinner."
+  },
+  {
+   "id": "v4-base-bundle5b-230655",
+   "names": {
+    "$A": "Billy",
+    "$B": "Leo"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "$B",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 160,
+   "n_tokens_rest": 275,
+   "opening": "Billy and Leo were by the fence with the coach.\nLeo set Leo's box down and stepped away to ask the coach something. Billy was right next to the box.\nBilly picked up Leo's box and handed it to Leo. \"Here is your box,\" said Billy.\nBilly kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nLeo opened the bag of crayons and dropped it, and crayons rolled everywhere. The coach looked at the mess and asked Leo, \"What happened here?\"\n\"I dropped the crayons,\" said Leo. \"I did it.\"\nAfter that, Leo looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "Billy played with a bright kite string on the grass. Leo walked over to Billy. Leo asked to join the game.\n\"Yes, you can play,\" said Billy. Billy moved over to make room for Leo.\nBilly looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nLeo saw some water on the ground. Leo jumped into the puddles.\nThe coach looked at Leo. The coach said that Leo must never sneak off or break a rule when no one is watching.\nLeo peeled the stickers off, and most stuck to Leo's fingers. Billy sat right next to Leo.\n\"The stickers are very colorful,\" said Billy. Billy helped Leo pull them off.\nA moment later, Billy heard a dog barking somewhere far away. Then it was quiet again, and Billy went on.\nBilly put Billy's toy boat down and went to ask the coach a question. Leo sat right beside the boat.\nLeo picked up Billy's toy boat and handed it back. \"You dropped this,\" said Leo.\nThen Leo noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThe sun went down. Billy and Leo went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5b-17574",
+   "names": {
+    "$A": "Amy",
+    "$B": "Bob"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$A",
+     "puddles"
+    ],
+    [
+     "$A",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 114,
+   "n_tokens_rest": 287,
+   "opening": "Amy and Bob were at the pool on a warm afternoon. The babysitter was nearby.\nAmy saw many small puddles near the pool. Amy jumped into the puddles.\nBob put Bob's ball down and went to the babysitter for a drink. Amy sat right next to the ball.\nAmy picked up Bob's ball and handed it to Bob. \"Here is your ball,\" said Amy.\nAfter that, Amy looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "Amy laid Amy's bike down on its side and walked over to the babysitter. Bob stood right next to the bike.\nBob picked up Amy's bike and pushed it back toward Amy. \"Here is your bike,\" said Bob.\nBob noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nAmy dropped the board game, and the pieces went everywhere. The babysitter looked at the mess and asked Amy, \"What happened here?\"\n\"I dropped the game,\" said Amy quietly. \"I am sorry.\"\nA moment later, Amy heard a dog barking somewhere far away. Then it was quiet again, and Amy went on.\nBob ran past the jar of shells and bumped it over. The babysitter looked at the mess and asked Bob, \"What happened here?\"\n\"I bumped the jar,\" said Bob quietly. \"I am sorry.\"\nBob kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nBob found a small box near the water. Bob used a toy truck to move shells into the box.\nThe babysitter sat with Bob. The babysitter said, \"Always play by the rules of the game.\"\nThe day ended with dinner and a story before bed."
+  },
+  {
+   "id": "v4-base-bundle5b-48699",
+   "names": {
+    "$A": "Emma",
+    "$B": "Anna"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$A",
+     "hand_back"
+    ],
+    [
+     "$B",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 153,
+   "n_tokens_rest": 309,
+   "opening": "It was a sunny day. Emma and Anna were by the window, and the babysitter was close by.\nEmma held a small puzzle piece. Anna was busy playing with a tower of blocks nearby.\nEmma looked at the puzzle piece and handed it back to Anna.\nAfter that, Emma looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nAnna dropped the board game, and the pieces went everywhere. The babysitter looked at the mess and asked Anna, \"What happened here?\"\n\"I dropped the game,\" said Anna quietly.\nA moment later, Anna heard a dog barking somewhere far away. Then it was quiet again, and Anna went on.",
+   "rest": "Emma and Anna played a matching game with shells. The rule was one shell each turn. It was Emma's turn, and Anna looked away.\nEmma could have taken two shells, but Emma only took one and lost.\nJust then, a yellow leaf floated down and landed near Emma's shoe. Emma watched it wobble in the wind.\nAnna and Emma played a hopping game over a kite string. The rule was no touching the string. It was Anna's turn, and Emma looked away.\nAnna could have stepped on the string, but Anna hopped over it and lost.\nThen Anna stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nAnna held a cup of juice. Emma was busy looking out the window.\nAnna looked at the cup and handed it back to Emma.\nAnna noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nAnna tried to catch the ball and missed it three times. Emma stood right beside Anna.\n\"The ball is very fast today,\" said Emma.\nThe sun came out from behind a cloud and warmed Emma's face. Emma blinked and looked around the yard.\nThe babysitter looked at Anna. The babysitter said, \"Never blame someone else for something you did.\"\nThe day ended with dinner and a story before bed."
+  },
+  {
+   "id": "v4-base-bundle5b-158112",
+   "names": {
+    "$A": "Lily",
+    "$B": "Tim"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "warning",
+     "$A"
+    ],
+    [
+     "$A",
+     "sandcastle"
+    ]
+   ],
+   "n_tokens_opening": 66,
+   "n_tokens_rest": 320,
+   "opening": "It was a sunny day. Lily and Tim were under the big tree, and the neighbor was close by.\nThe neighbor looked at Lily. \"Do not blame someone else for something you did,\" the neighbor said.\nLily had a shovel. Lily used the shovel to build a sandcastle.",
+   "rest": "Lily put the shells in a row, and the row went crooked. Tim sat right beside Lily.\n\"The shells are a little messy. I can help you straighten them,\" said Tim.\nJust then, a yellow leaf floated down and landed near Tim's shoe. Tim watched it wobble in the wind.\nLily ran past the jar of shells and bumped it over. The neighbor looked at the mess and asked Lily, \"What happened here?\"\n\"I bumped the jar,\" said Lily quietly. \"I spilled the shells.\"\nLily sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nTim had a bike. Tim rode the bike near the big tree.\nTim reached for a crayon and knocked over the clay pot. The neighbor looked at the mess and asked Tim, \"What happened here?\"\n\"I knocked over the pot,\" said Tim quietly. \"I am sorry.\"\nThen Tim noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nLily and Tim played a rolling game with a toy truck. The rule was one push per turn. It was Lily's turn, and Tim looked away.\nLily could have pushed the truck two times, but Lily only pushed it once.\nAfter that, Lily looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nSoon it was time for dinner, and the day was done."
+  },
+  {
+   "id": "v4-base-bundle5-172752",
+   "names": {
+    "$A": "Anna",
+    "$B": "Sam"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$B",
+     "return_it"
+    ],
+    [
+     "warning",
+     "$B"
+    ]
+   ],
+   "n_tokens_opening": 110,
+   "n_tokens_rest": 285,
+   "opening": "Anna and Sam spent the morning by the fence. The teacher was there too.\nAnna set Anna's bucket down and walked off to find another toy. Sam stayed right next to the bucket.\nSam picked up Anna's bucket and handed it back. \"You left this here,\" said Sam.\nSam looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nThe teacher looked at Sam. \"Do not blame someone else for something you did,\" the teacher said.",
+   "rest": "Sam found a small piece of bread. Sam put the bread in the garden. Sam used a stick to cover the seeds.\nSam made a clay pot, and it came out lopsided with a hole. Anna sat right beside Sam.\n\"The pot has a little hole,\" said Anna. Anna helped Sam fill it with more clay.\nAnna noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nAnna took a big gulp of juice and got juice all around Anna's mouth. Sam was right next to Anna.\n\"You have juice on your face,\" said Sam. Sam handed Anna a napkin.\nThen Sam stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nAnna tried to help carry the bucket and tipped the water out. The teacher looked at the mess and asked Anna, \"What happened here?\"\n\"I tipped the water out,\" said Anna.\nJust then, a yellow leaf floated down and landed near Anna's shoe. Anna watched it wobble in the wind.\nAnna found a large blanket. Anna put the blanket over a low branch of the fence. Anna made a fort.\nThen it was time to go home. Anna and Sam had dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5b-75294",
+   "names": {
+    "$A": "John",
+    "$B": "Max"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$B",
+     "return_it"
+    ],
+    [
+     "warning",
+     "$B"
+    ]
+   ],
+   "n_tokens_opening": 117,
+   "n_tokens_rest": 295,
+   "opening": "John and Max were busy under the big tree. The librarian was not far away.\nJohn laid John's bike down on its side and walked over to the librarian. Max stood right next to the bike.\nMax picked up John's bike handle and pushed it back toward John.\nMax noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nThe librarian looked at Max. \"Do not make fun of other people,\" the librarian said.",
+   "rest": "John turned too fast and spilled a glass of milk. The librarian looked at the mess and asked John, \"What happened here?\"\n\"I spilled the milk,\" said John.\nThen John stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nMax and John played a drawing game with crayons. The rule was one line each. It was Max's turn, and John looked away.\nMax drew only one line and waited for John to take a turn.\nJust then, a yellow leaf floated down and landed near Max's shoe. Max watched it wobble in the wind.\nJohn held a sheet of stickers. Max was busy playing with a towel nearby.\nJohn looked at the stickers and handed the sheet back to Max.\nJohn sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nJohn and Max played a matching game with shells. The rule was one shell each turn. It was John's turn, and Max looked away.\nJohn picked up just one shell and put it in the middle.\nThen John noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nMax spread a blanket on the grass. Max flew a bright kite high in the sky.\nSoon it was time for dinner, and the day was done."
+  },
+  {
+   "id": "v4-base-bundle5b-80785",
+   "names": {
+    "$A": "Tim",
+    "$B": "Lila"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$B",
+     "encourage"
+    ],
+    [
+     "$A",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 172,
+   "n_tokens_rest": 273,
+   "opening": "One day Tim and Lila were playing on the path by the trees. The librarian was nearby.\nTim tried to wind up the kite string and got it in a big knot. Lila stood right beside Tim.\n\"That is a very big knot,\" said Lila. \"I can help you untie it,\" said Lila.\nLila sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nTim dropped the plate of crackers, and they broke into bits. The librarian looked at the mess and asked Tim, \"What happened here?\"\n\"I dropped the crackers,\" said Tim. \"I did it,\" said Tim.\nTim looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.",
+   "rest": "Lila bumped into a tower of blocks. The blocks fell down on the path. The librarian came over and asked, \"Who did this?\"\n\"It was not Tim,\" said Lila. \"I bumped the blocks,\" said Lila.\nA moment later, Lila heard a dog barking somewhere far away. Then it was quiet again, and Lila went on.\nThe librarian looked at Lila. \"Always play by the rules of the game,\" the librarian said.\nTim rode a bike along the path. Tim used a towel to wipe the seat.\nTim put Tim's stickers on the ground and ran to look at a bird. Lila stayed right next to the stickers.\nLila picked up the stickers. \"Here are your stickers,\" said Lila.\nAfter that, Lila looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nLila tried to whistle a song, and only a squeak came out. Tim sat right beside Lila.\n\"That was a funny squeak,\" said Tim. Tim smiled at Lila.\nThen Tim stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nThe afternoon ended, and the librarian took Tim and Lila home."
+  },
+  {
+   "id": "v4-base-bundle5b-01647",
+   "names": {
+    "$A": "Lila",
+    "$B": "Amy"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$B",
+     "return_it"
+    ],
+    [
+     "$A",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 163,
+   "n_tokens_rest": 213,
+   "opening": "Lila and Amy were at the playground on a warm afternoon. The neighbor was nearby.\nLila set Lila's bucket down and walked off to find another toy. Amy stayed right next to the bucket.\nAmy picked up Lila's bucket and handed it to Lila. \"Here is your bucket,\" said Amy.\nAmy sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nLila ran past Amy's sandcastle and knocked the top off it. The neighbor looked at the mess and asked Lila, \"What happened here?\"\n\"I knocked the top off,\" said Lila. Lila looked at the ground.\nLila kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.",
+   "rest": "The neighbor looked at Amy. \"Never make fun of other people,\" the neighbor said.\nAmy and Lila played a hopping game over a kite string. The rule was no touching the string. It was Amy's turn, and Lila looked away.\nAmy could have stepped on the string to win, but Amy hopped around it instead.\nThe sun came out from behind a cloud and warmed Amy's face. Amy blinked and looked around the yard.\nAmy tried to fold the blanket, and it came out in a crumpled lump. Lila was right there.\n\"That is a very bumpy blanket,\" said Lila. Lila helped Amy smooth it out.\nThen Lila stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nAmy sat on the blanket. Amy read a book.\nLila sat in the sand. Lila built a large sandcastle.\nAt the end of the day, Lila and Amy ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5b-236581",
+   "names": {
+    "$A": "Max",
+    "$B": "Jill"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "sandcastle"
+    ],
+    [
+     "$B",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 121,
+   "n_tokens_rest": 280,
+   "opening": "After breakfast, Max and Jill went to play on the front porch. The librarian came along.\nMax sat on a soft blanket. Max used a small bucket to build a sandcastle.\nJill knocked over Max's tower of blocks while playing next to it. The librarian looked at the mess and asked Jill, \"What happened here?\"\n\"I knocked it over,\" said Jill quietly. \"I am sorry.\"\nA moment later, Jill heard a dog barking somewhere far away. Then it was quiet again, and Jill went on.",
+   "rest": "Jill put the shells in a row, and the row went crooked. Max sat right beside Jill.\n\"The shells are a bit crooked,\" said Max. Max helped Jill line them up.\nJust then, a yellow leaf floated down and landed near Max's shoe. Max watched it wobble in the wind.\nMax tried to wind up the kite string and got it in a big knot. Jill stood right beside Max.\n\"The string is in a big knot,\" said Jill. Jill helped Max pull it loose.\nThe sun came out from behind a cloud and warmed Jill's face. Jill blinked and looked around the yard.\nJill found a picture book about food. Jill used a sheet of stickers to make a pretend cake.\nThe librarian looked at Max. \"Always play by the rules of the game,\" the librarian said.\nMax turned too fast and bumped the chair over with a thud. The librarian looked at the mess and asked Max, \"What happened here?\"\n\"I bumped the chair,\" said Max quietly. \"I am sorry.\"\nMax kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nThe sun went down. Max and Jill went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5b-163428",
+   "names": {
+    "$A": "Jane",
+    "$B": "Molly"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$B",
+     "encourage"
+    ],
+    [
+     "$A",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 161,
+   "n_tokens_rest": 217,
+   "opening": "Jane and Molly were in the backyard on a warm afternoon. The coach was nearby.\nJane ate cookies, and crumbs covered Jane's chin. Molly sat right next to Jane.\n\"You have cookie crumbs on your chin,\" said Molly. Molly wiped them away with a napkin.\nAfter that, Molly looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nJane reached for the kite and knocked over the packet of seeds. The coach looked at the mess and asked Jane, \"What happened here?\"\n\"I knocked over the seeds,\" said Jane quietly.\nThen Jane stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.",
+   "rest": "Jane looked at a jar of shells. Jane wanted to take a shell from the jar.\nMolly reached for a crayon and knocked over the clay pot. The coach looked at the mess and asked Molly, \"What happened here?\"\n\"I knocked over the clay pot,\" said Molly quietly.\nMolly looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nMolly held a red kite. Molly stood in the middle of the yard.\nThe coach looked at Jane. The coach said, \"Never take things that belong to someone else.\"\nJane and Molly played a hopping game. The rule was to count every hop out loud. It was Jane's turn, and Molly looked away.\nJane could have hopped without counting, but Jane counted every hop and lost the game.\nJane noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nThe day ended with dinner and a story before bed."
+  },
+  {
+   "id": "v4-base-bundle5b-201079",
+   "names": {
+    "$A": "John",
+    "$B": "Leo"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "tell_truth"
+    ],
+    [
+     "$B",
+     "swim"
+    ]
+   ],
+   "n_tokens_opening": 116,
+   "n_tokens_rest": 293,
+   "opening": "The day began on the grass at the park, where John and Leo liked to play. The coach was with them.\nJohn tried to help pour the juice and tipped the cup over. The coach looked at the mess and asked John, \"What happened here?\"\n\"I spilled the juice,\" said John quietly. \"I am sorry.\"\nThen John noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nLeo went to the pool to swim. Leo splashed in the cool water.",
+   "rest": "John put John's ball down and went to the coach for a drink. Leo sat right next to the ball.\nLeo picked up John's ball and handed it to John. \"Here is your ball,\" said Leo.\nLeo noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nJohn and Leo played a rolling game with a ball. The rule was one roll each. It was John's turn, and Leo looked away.\nJohn could have rolled the ball twice, but John only rolled it once and lost.\nThen John stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nThe coach looked at Leo. The coach said, \"Never take things that belong to someone else.\"\nJohn sat by a small pile of sand. John used a bucket to build a sandcastle.\nLeo turned too fast and bumped the chair over with a thud. The coach looked at the mess and asked Leo, \"What happened here?\"\n\"I bumped the chair,\" said Leo quietly. \"I am sorry.\"\nThe sun came out from behind a cloud and warmed Leo's face. Leo blinked and looked around the yard.\nLater, John and Leo packed up and went home for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-163967",
+   "names": {
+    "$A": "Sally",
+    "$B": "John"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$B",
+     "play_fair"
+    ],
+    [
+     "$A",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 163,
+   "n_tokens_rest": 211,
+   "opening": "The babysitter took Sally and John to play by the pond.\nJohn and Sally played a rolling game with a toy car. The rule was one push each. It was John's turn, and Sally looked away.\nJohn could have pushed the car twice to win, but John pushed it only once.\nThen John stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nJohn built a tall tower of blocks that leaned to one side. Sally stood right beside it.\n\"That is a very tall tower,\" said Sally. Sally placed a flat block on the side.\nJust then, a yellow leaf floated down and landed near Sally's shoe. Sally watched it wobble in the wind.",
+   "rest": "Sally sat in the sand. Sally used a small shovel to make a sandcastle.\nJohn reached for a crayon and knocked over the clay pot. The babysitter looked at the mess and asked John, \"What happened here?\"\n\"I knocked over the pot,\" said John.\nJohn looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nJohn sat near the water. John used a stick to build a sandcastle.\nSally tried to help carry the bucket and tipped the water out. The babysitter looked at the mess and asked Sally, \"What happened here?\"\n\"I tipped the water out,\" said Sally.\nSally kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nThe babysitter looked at Sally. \"Never say something that is not true,\" the babysitter said.\nLater, Sally and John packed up and went home for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-95916",
+   "names": {
+    "$A": "Lisa",
+    "$B": "Sara"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$B",
+     "return_it"
+    ],
+    [
+     "$A",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 166,
+   "n_tokens_rest": 278,
+   "opening": "Lisa and Sara were at the kitchen table on a warm afternoon. The babysitter was nearby.\nLisa put Lisa's toy boat down and went to ask the babysitter a question. Sara sat right beside the boat.\nSara picked up Lisa's toy boat and handed it to Lisa. \"Here is your boat,\" said Sara.\nThen Sara noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nLisa knocked the glass of milk over onto the blanket. The babysitter looked at the mess and asked Lisa, \"What happened here?\"\n\"I knocked over the milk,\" said Lisa.\nAfter that, Lisa looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "Lisa had both shoes on the wrong feet. Sara was right there and saw it.\n\"Your shoes are on the wrong feet,\" said Sara. Sara helped Lisa switch them.\nThen Sara stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nSara sang a song while pushing the toy truck, and the tune went all wrong. Lisa sat right next to Sara.\n\"That was a funny song,\" said Lisa.\nLisa kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nLisa knocked over a tall tower of blocks. The blocks fell onto the floor with a loud noise. The babysitter came over and asked, \"Who did it?\"\n\"I did it,\" said Lisa. \"It was not Sara.\"\nLisa looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nThe babysitter looked at Sara. \"Never say something that is not true,\" the babysitter said.\nSara sat at the table with a piece of paper. Sara used a red crayon to draw a picture of a bike. Sara used a blue towel to wipe the table.\nSoon the babysitter called Lisa and Sara in for dinner."
+  },
+  {
+   "id": "v4-base-bundle5b-84698",
+   "names": {
+    "$A": "Remy",
+    "$B": "Anna"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "warning",
+     "$B"
+    ],
+    [
+     "$B",
+     "swim"
+    ]
+   ],
+   "n_tokens_opening": 63,
+   "n_tokens_rest": 338,
+   "opening": "Remy and Anna had the whole day to play on the front porch. The coach kept an eye on them.\nThe coach spoke to Anna. \"Never say things that are not true,\" the coach said.\nAnna looked at the bright sun. Anna wanted to swim.",
+   "rest": "Anna tried to help with the drawing and spilled water all over it. The coach looked at the mess and asked Anna, \"What happened here?\"\n\"I spilled the water,\" said Anna quietly. \"I did it.\"\nA moment later, Anna heard a dog barking somewhere far away. Then it was quiet again, and Anna went on.\nRemy and Anna played a crown game with dice. The rule was one roll each, and a six won the paper crown. It was Remy's turn, and Anna looked away.\nRemy could have rolled the dice again, but Remy rolled only once and lost.\nJust then, a yellow leaf floated down and landed near Remy's shoe. Remy watched it wobble in the wind.\nRemy tried to fold the blanket, and it came out in a crumpled lump. Anna was right there.\n\"The blanket is very bumpy,\" said Anna. \"We can try to shake it flat.\"\nAfter that, Anna looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nAnna set Anna's kite string down and walked off to fetch a bucket. Remy sat right next to the string.\nRemy left the string on the ground and did not touch it.\nRemy noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nRemy held the string of the kite. The kite flew high in the blue sky.\nThen it was bedtime, and Remy and Anna went to sleep."
+  },
+  {
+   "id": "v4-base-bundle5b-149564",
+   "names": {
+    "$A": "Sally",
+    "$B": "Sam"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$B",
+     "tell_truth"
+    ],
+    [
+     "$A",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 167,
+   "n_tokens_rest": 222,
+   "opening": "One day Sally and Sam were playing at the playground. The neighbor was nearby.\nSam ran past Sally's toy car and bumped it into a pile of blocks. The neighbor looked at the mess and asked Sam, \"What happened here?\"\n\"I bumped the car,\" said Sam quietly. \"I am sorry.\"\nSam looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nSally dropped the plate of crackers, and they broke into bits. The neighbor looked at the mess and asked Sally, \"What happened here?\"\n\"I dropped the crackers,\" said Sally quietly. \"I am sorry.\"\nAfter that, Sally looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "Sam sat in the sandbox. Sam used a small shovel to build a sandcastle.\nSally put Sally's plate of cookies down and turned to wave at the neighbor. Sam sat right next to the cookies.\nSam picked up the plate of cookies. \"Here are your cookies,\" said Sam.\nThen Sam stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nThe neighbor looked at Sally. The neighbor said, \"Remember to stay where you are supposed to be.\"\nSally walked to the edge of the water. Sally found many small shells on the sand.\nSam put on a paper crown, and it sat crooked over one eye. Sally sat right beside Sam.\n\"Your crown is very pretty,\" said Sally. Sally helped Sam straighten it.\nSally noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nThen it was bedtime, and Sally and Sam went to sleep."
+  },
+  {
+   "id": "v4-base-bundle5b-06270",
+   "names": {
+    "$A": "Molly",
+    "$B": "Bob"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$B",
+     "return_it"
+    ],
+    [
+     "warning",
+     "$B"
+    ]
+   ],
+   "n_tokens_opening": 119,
+   "n_tokens_rest": 331,
+   "opening": "The librarian took Molly and Bob to play in a blanket fort.\nMolly set Molly's jar of shells down and went to wash sandy hands. Bob stayed right beside the jar.\nBob picked up Molly's jar of shells. \"Molly dropped this,\" said Bob and handed it to Molly.\nBob sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nThe librarian looked at Bob. \"Remember to never say things that are not true,\" the librarian said.",
+   "rest": "Molly tried to help pour the juice and tipped the cup over. The librarian looked at the mess and asked Molly, \"What happened here?\"\n\"I spilled the juice,\" said Molly quietly. \"I am sorry.\"\nAfter that, Molly looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nMolly moved a toy boat near Bob. The boat hit a stick and a small tower fell over. The librarian came over and asked, \"Who did it?\"\n\"It was not Bob,\" said Molly. \"I hit the stick with the boat.\"\nThen Molly stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nBob used a small shovel. Bob built a tall sandcastle inside the fort.\nBob took a big gulp of juice and got juice all around Bob's mouth. Molly was right next to Bob.\n\"The castle has a little hole,\" said Molly. Molly used the shovel to help Bob.\nMolly looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nBob turned too fast and spilled a glass of milk. The librarian looked at the mess and asked Bob, \"What happened here?\"\n\"I spilled the milk,\" said Bob. \"I am sorry.\"\nBob kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nThe afternoon ended, and the librarian took Molly and Bob home."
+  },
+  {
+   "id": "v4-base-bundle5b-19416",
+   "names": {
+    "$A": "Anna",
+    "$B": "Sam"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "tell_truth"
+    ],
+    [
+     "$B",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 161,
+   "n_tokens_rest": 234,
+   "opening": "Anna and Sam were busy in the sandbox. The librarian was not far away.\nAnna reached for a toy and knocked over a cup of juice. The librarian looked at the mess and asked Anna, \"What happened here?\"\n\"I spilled the juice,\" said Anna quietly. \"I am sorry.\"\nAnna looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nAnna set Anna's toy truck down and bent to tie a shoe. Sam was right beside the truck.\nSam picked up Anna's toy truck and held it out. \"Here is your truck,\" said Sam.\nSam kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.",
+   "rest": "Sam sat in the sandbox. Sam opened a book and looked at the pictures.\nSam put Sam's bread down and went to ask the librarian for a drink. Anna sat right next to the bread.\nAnna picked up Sam's bread and handed it back. \"Here is your bread,\" said Anna.\nJust then, a yellow leaf floated down and landed near Anna's shoe. Anna watched it wobble in the wind.\nSam jumped and scattered Anna's bag of dice across the ground. The librarian looked at the mess and asked Sam, \"What happened here?\"\n\"I scattered the dice,\" said Sam quietly. \"I am sorry.\"\nSam noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nAnna found some small puddles in the sand. Anna jumped in the puddles.\nThe librarian looked at Sam. The librarian said, \"Never make fun of other people.\"\nThen it was time to go home. Anna and Sam had dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-232367",
+   "names": {
+    "$A": "Leo",
+    "$B": "Joe"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$B",
+     "shells"
+    ],
+    [
+     "$B",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 109,
+   "n_tokens_rest": 280,
+   "opening": "Leo and Joe were in a blanket fort with the babysitter.\nJoe showed Leo some shells. They had found the shells at the beach.\nLeo set Leo's toy truck down and bent to tie a shoe. Joe was right beside the truck.\nJoe picked up Leo's toy truck and handed it to Leo. \"You dropped this,\" said Joe.\nA moment later, Joe heard a dog barking somewhere far away. Then it was quiet again, and Joe went on.",
+   "rest": "Joe took off Joe's paper crown and set it down to tie a shoe. Leo sat right next to the crown.\nLeo picked up Joe's paper crown and held it out. \"Here is your crown,\" said Leo.\nThen Leo stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nThe babysitter looked at Joe. The babysitter said that Joe must always play by the rules of the game.\nJoe and Leo played a stacking game with blocks. The rule was one block per turn. It was Joe's turn, and Leo looked away.\nJoe could have added two blocks, but Joe only added one and lost the game.\nAfter that, Joe looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nJoe tried to skip with a toy boat and tumbled onto the grass. Leo was right there.\n\"That was a big jump,\" said Leo. Leo helped Joe stand up from the grass.\nLeo noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nLeo held up a small shell. Leo and Joe looked at the shells together.\nThe sun went down. Leo and Joe went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-181861",
+   "names": {
+    "$A": "Jane",
+    "$B": "Lisa"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$A",
+     "play_fair"
+    ],
+    [
+     "$B",
+     "play_fair"
+    ]
+   ],
+   "n_tokens_opening": 184,
+   "n_tokens_rest": 244,
+   "opening": "The day began in a blanket fort, where Jane and Lisa liked to play. The teacher was with them.\nJane and Lisa played a stacking game with blocks. The rule was one block per turn. It was Jane's turn, and Lisa looked away.\nJane placed only one block on the tower. Jane lost the game.\nThen Jane stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nLisa and Jane played a crown game with dice. The rule was one roll each, and a six won the paper crown. It was Lisa's turn, and Jane looked away.\nLisa rolled the die and got a two. Lisa did not try to roll again.\nLisa sat down on the grass for a moment. A little breeze came by and made the leaves whisper.",
+   "rest": "Lisa put Lisa's bag of dice down and bent to tie a shoe. Jane was right next to the dice.\nJane picked up the dice. \"Jane has your dice,\" Jane said to Lisa.\nJane kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nJane walked to the pond. Jane had a packet of seeds. The ducks were in the water.\nLisa sat near a bucket of sand. Lisa found a small stick. Lisa began to build a sandcastle.\nThe teacher sat near the fort. The teacher looked at Lisa. \"Never sneak off or break a rule when no one is watching,\" the teacher said.\nJane set Jane's box down and stepped away to ask the teacher something. Lisa was right next to the box.\nLisa picked up the box and handed it to Jane. \"Here is your box,\" said Lisa.\nThen Lisa noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThen it was time to go home. Jane and Lisa had dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-272446",
+   "names": {
+    "$A": "Sara",
+    "$B": "Jane"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$B",
+     "follow_rule"
+    ],
+    [
+     "$B",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 164,
+   "n_tokens_rest": 282,
+   "opening": "The day began in the garden, where Sara and Jane liked to play. The babysitter was with them.\nThe babysitter pointed to a large flower bed. \"Do not step in the flowers,\" the babysitter said. Then the babysitter walked away.\nJane looked at the flowers, but Jane walked on the grass instead.\nThe sun came out from behind a cloud and warmed Jane's face. Jane blinked and looked around the yard.\nJane tried to help with the drawing and spilled water all over it. The babysitter looked at the mess and asked Jane, \"What happened here?\"\n\"I spilled the water,\" Jane said.\nJane kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.",
+   "rest": "The babysitter looked at Sara. \"Do not say things that are not true,\" the babysitter said.\nSara and Jane played a counting game. The rule was to close your eyes and count to ten. It was Sara's turn, and Jane looked away.\nSara could have peeked, but Sara kept eyes closed and counted to ten.\nJust then, a yellow leaf floated down and landed near Sara's shoe. Sara watched it wobble in the wind.\nSara and Jane went to the beach. Sara collected many small shells. Sara put the shells in a little bucket.\nJane and Sara played a hopping game. The rule was to count every hop out loud. It was Jane's turn, and Sara looked away.\nJane could have skipped a number, but Jane counted every single hop.\nThen Jane stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nJane peeled the stickers off, and most stuck to Jane's fingers. Sara sat right next to Jane.\n\"The stickers are very sticky,\" said Sara, and Sara helped Jane peel them.\nSara looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nLater, Sara and Jane packed up and went home for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-141478",
+   "names": {
+    "$A": "Lila",
+    "$B": "Jane"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$B",
+     "bike"
+    ],
+    [
+     "warning",
+     "$B"
+    ]
+   ],
+   "n_tokens_opening": 66,
+   "n_tokens_rest": 321,
+   "opening": "The day began on the sidewalk, where Lila and Jane liked to play. The neighbor was with them.\nJane rode a small bike on the sidewalk. The wheels went round and round.\nThe neighbor looked at Jane. The neighbor said that Jane must never blame someone else for something Jane did.",
+   "rest": "Lila set Lila's glass of milk down and ran to look at a bird. Jane was right next to the milk.\nJane picked up Lila's glass of milk and handed it to Lila. \"Here is your milk,\" said Jane.\nJane noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nJane put Jane's picture book down and went to get a drink. Lila sat right next to the book.\nLila picked up Jane's picture book and held it out. \"Here you go,\" said Lila.\nA moment later, Lila heard a dog barking somewhere far away. Then it was quiet again, and Lila went on.\nLila brought out a large blanket. Lila used the blanket to build a fort on the sidewalk.\nLila held up a drawing of a dog with five legs. Jane sat right beside Lila.\n\"The dog has many legs,\" said Jane. Jane pointed at the drawing.\nJane kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nJane put on a paper crown, and it sat crooked over one eye. Lila sat right beside Jane.\n\"Your crown is a bit tilted,\" said Lila. Lila reached out to straighten it.\nJust then, a yellow leaf floated down and landed near Lila's shoe. Lila watched it wobble in the wind.\nSoon it was time for dinner, and the day was done."
+  },
+  {
+   "id": "v4-base-bundle5b-176310",
+   "names": {
+    "$A": "Billy",
+    "$B": "Leo"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$B",
+     "follow_rule"
+    ],
+    [
+     "warning",
+     "$B"
+    ]
+   ],
+   "n_tokens_opening": 124,
+   "n_tokens_rest": 338,
+   "opening": "It was a sunny day. Billy and Leo were on the front porch, and the neighbor was close by.\nThe neighbor pointed to the big gate. The neighbor said, \"Do not go past the gate.\" Then the neighbor walked away.\nLeo looked at the big gate. Leo sat on the porch instead.\nThe sun came out from behind a cloud and warmed Leo's face. Leo blinked and looked around the yard.\nThe neighbor came back. The neighbor said to Leo, \"Never sneak off or break a rule when no one is watching.\"",
+   "rest": "Leo and Billy played a tossing game with a bucket and a ball. The rule was to stand behind the stick. It was Leo's turn, and Billy looked away.\nLeo could have stepped over the stick to win. Leo stayed behind the stick and missed the bucket.\nLeo sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nBilly and Leo played a puzzle game. The rule was one puzzle piece each turn. It was Billy's turn, and Leo looked away.\nBilly could have grabbed two pieces. Billy took only one piece and put it in the puzzle.\nAfter that, Billy looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nBilly had a small bag. Billy pulled out many pretty shells. Billy put the shells in a row on the porch.\nBilly set Billy's box down and stepped away to ask the neighbor something. Leo was right next to the box.\nLeo looked at the shells. Leo left the shells in the box.\nThen Leo noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nLeo tried to whistle a song, and only a squeak came out. Billy sat right beside Leo.\n\"That was a loud squeak,\" said Billy. Billy smiled at Leo.\nA moment later, Billy heard a dog barking somewhere far away. Then it was quiet again, and Billy went on.\nThe sun went down. Billy and Leo went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-175343",
+   "names": {
+    "$A": "John",
+    "$B": "Joe"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$A",
+     "encourage"
+    ],
+    [
+     "$B",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 159,
+   "n_tokens_rest": 228,
+   "opening": "John and Joe had the whole day to play on the grass at the park. The babysitter kept an eye on them.\nJoe hummed a song, loud and wobbly, while poking a stick in the dirt. John sat close by.\n\"Your song is very loud,\" said John. John clapped for Joe.\nThen John noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nJohn tried to skip with a toy boat and tumbled onto the grass. Joe was right there.\n\"You fell down,\" said Joe. Joe helped John stand up.\nA moment later, Joe heard a dog barking somewhere far away. Then it was quiet again, and Joe went on.",
+   "rest": "John used a packet of seeds to make pretend pies. John put the seeds in the dirt and patted them flat.\nJoe knocked over the box of blocks while playing next to John. The babysitter looked at the mess and asked Joe, \"What happened here?\"\n\"I knocked over the blocks,\" said Joe quietly.\nAfter that, Joe looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nThe babysitter looked at Joe. \"Never say that someone else did something when you did it,\" the babysitter said.\nJoe rode a small bike across the grass. A red toy car sat near the wheels.\nJohn turned too fast and spilled a glass of milk. The babysitter looked at the mess and asked John, \"What happened here?\"\n\"I spilled the milk,\" said John quietly.\nThen John stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nAt the end of the day, John and Joe ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5b-193761",
+   "names": {
+    "$A": "Lisa",
+    "$B": "Sally"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "warning",
+     "$B"
+    ],
+    [
+     "$B",
+     "kite"
+    ]
+   ],
+   "n_tokens_opening": 60,
+   "n_tokens_rest": 324,
+   "opening": "The teacher took Lisa and Sally to play on the bench.\nThe teacher looked at Sally. \"Do not say things that are not true,\" the teacher said.\nSally held a red kite. Sally ran and the red kite went up into the air. Sally held the kite string tight.",
+   "rest": "Sally and Lisa played a drawing game with a stick. The rule was one line each. It was Sally's turn, and Lisa looked away.\nSally could have drawn two lines, but Sally drew only one. Sally lost the game.\nJust then, a yellow leaf floated down and landed near Sally's shoe. Sally watched it wobble in the wind.\nSally peeled the stickers off, and most stuck to Sally's fingers. Lisa sat right next to Sally.\n\"The stickers are all messy on your hands,\" said Lisa. Lisa helped Sally peel them off.\nA moment later, Lisa heard a dog barking somewhere far away. Then it was quiet again, and Lisa went on.\nLisa laid Lisa's bike down on its side and walked over to the teacher. Sally stood right next to the bike.\nSally saw Lisa's bike. Sally reached out and picked up Lisa's water bottle from the grass.\nSally kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nLisa pulled open a sheet of stickers and dropped them everywhere. The teacher looked at the mess and asked Lisa, \"What happened here?\"\n\"I dropped the stickers,\" said Lisa. Lisa looked at the floor.\nAfter that, Lisa looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nLisa sat on the bench with a plate of crackers. Lisa read a book.\nThe sun went down. Lisa and Sally went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-57782",
+   "names": {
+    "$A": "Molly",
+    "$B": "Bob"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$B",
+     "bake"
+    ],
+    [
+     "$A",
+     "play_fair"
+    ]
+   ],
+   "n_tokens_opening": 118,
+   "n_tokens_rest": 288,
+   "opening": "One day Molly and Bob were playing in the sandbox. The librarian was nearby.\nBob used a small blue bucket. Bob made a plate of cookies out of the sand.\nMolly and Bob played a sorting game with stickers. The rule was that only the stars counted. It was Molly's turn, and Bob looked away.\nMolly could have picked a star sticker, but Molly only picked a circle. Molly lost the turn.\nAfter that, Molly looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "The librarian looked at Bob. \"Never take things that belong to someone else,\" the librarian said.\nMolly found a pretty flower. Then Molly found some small shells. Molly put the shells in a pile.\nBob knocked the glass of milk over onto the blanket. The librarian looked at the mess and asked Bob, \"What happened here?\"\n\"I knocked the milk over,\" said Bob quietly.\nThen Bob noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nMolly jumped and scattered Bob's bag of dice across the ground. The librarian looked at the mess and asked Molly, \"What happened here?\"\n\"I scattered the dice,\" said Molly quietly.\nMolly noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nBob and Molly played a tossing game with dice and a bucket. The rule was one throw each. It was Bob's turn, and Molly looked away.\nBob could have thrown the dice twice, but Bob only threw once. Bob missed the bucket.\nA moment later, Bob heard a dog barking somewhere far away. Then it was quiet again, and Bob went on.\nThe sun went down. Molly and Bob went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-98821",
+   "names": {
+    "$A": "Leo",
+    "$B": "Remy"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "warning",
+     "$A"
+    ],
+    [
+     "$B",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 115,
+   "n_tokens_rest": 289,
+   "opening": "Leo and Remy were busy in the garden. The coach was not far away.\nThe coach looked at Leo. \"Never say something that is not true,\" said the coach.\nRemy jumped over the puzzle and scattered the pieces. The coach looked at the mess and asked Remy, \"What happened here?\"\n\"I scattered the pieces,\" said Remy quietly. \"I did it.\"\nThen Remy stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.",
+   "rest": "Leo and Remy played a stacking game with blocks. The rule was one block per turn. It was Leo's turn, and Remy looked away.\nLeo could have added two blocks, but Leo only added one and the tower fell.\nLeo noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nRemy rode a red bike across the grass. Remy passed a small wooden chair.\nLeo found many small shells. Leo put a piece of bread and the shells near a sandcastle.\nLeo put the shells in a row, and the row went crooked. Remy sat right beside Leo.\n\"The shells look pretty,\" said Remy.\nJust then, a yellow leaf floated down and landed near Remy's shoe. Remy watched it wobble in the wind.\nRemy set Remy's bowl of berries down and lay back to look at the clouds. Leo sat right next to the berries.\nLeo picked up the bowl of berries and handed it to Remy. \"Here are your berries,\" said Leo.\nThen Leo noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThen it was time to go home. Leo and Remy had dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-137208",
+   "names": {
+    "$A": "Jill",
+    "$B": "Max"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "play_fair"
+    ],
+    [
+     "$B",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 156,
+   "n_tokens_rest": 222,
+   "opening": "Jill and Max were together at the playground. The librarian sat nearby.\nJill and Max played a hopping game over a kite string. The rule was no touching the string. It was Jill's turn, and Max looked away.\nJill could have stepped over the string, but Jill hopped over it instead.\nThen Jill stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nJill built a tall tower of blocks that leaned to one side. Max stood right beside it.\n\"That tower is very tall,\" said Max. Max helped Jill hold the bottom.\nThen Max noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.",
+   "rest": "Jill dropped the plate of crackers, and they broke into bits. The librarian looked at the mess and asked Jill, \"What happened here?\"\n\"I dropped the crackers,\" said Jill.\nJill sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nThe librarian looked at Max. \"Always play by the rules of the game,\" the librarian said.\nMax opened the bag of crayons and dropped it, and crayons rolled everywhere. The librarian looked at the mess and asked Max, \"What happened here?\"\n\"I dropped the crayons,\" said Max.\nMax kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nMax went to the pool. Max swam in the blue water.\nJill sat in the sand. Jill used a small bucket to build a sandcastle. Jill placed a paper crown on top of the sand.\nThen it was bedtime, and Jill and Max went to sleep."
+  },
+  {
+   "id": "v4-base-bundle5b-231179",
+   "names": {
+    "$A": "Sara",
+    "$B": "Sally"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "warning",
+     "$A"
+    ],
+    [
+     "$A",
+     "swim"
+    ]
+   ],
+   "n_tokens_opening": 64,
+   "n_tokens_rest": 316,
+   "opening": "Sara and Sally had the whole day to play at the beach. The babysitter kept an eye on them.\nThe babysitter looked at Sara. \"Always play by the rules of the game,\" the babysitter said.\nSara walked to the water. Sara went for a swim.",
+   "rest": "Sara put Sara's plate of cookies down and turned to wave at the babysitter. Sally sat right next to the cookies.\nSally picked up Sara's cookie and handed it back. \"You dropped this,\" said Sally.\nSally kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nSally took off Sally's paper crown and set it down to tie a shoe. Sara sat right next to the crown.\nSara picked up Sally's paper crown. \"Here is your crown,\" said Sara.\nSara noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nSally jumped and knocked the bowl of berries onto the towel. The babysitter looked at the mess and asked Sally, \"What happened here?\"\n\"I knocked the berries over,\" said Sally.\nThe sun came out from behind a cloud and warmed Sally's face. Sally blinked and looked around the yard.\nSara and Sally found a small garden near the sand. Sally found a packet of seeds. Sally put the seeds in the dirt.\nSally tried to fold the blanket, and it came out in a crumpled lump. Sara was right there.\n\"It is okay. Let's fold it together,\" said Sara.\nAfter that, Sara looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nThen Sara and Sally went home, tired and ready for bed."
+  },
+  {
+   "id": "v4-base-bundle5-44589",
+   "names": {
+    "$A": "Lily",
+    "$B": "Remy"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "$B",
+     "play_fair"
+    ]
+   ],
+   "n_tokens_opening": 175,
+   "n_tokens_rest": 272,
+   "opening": "Lily and Remy were in a blanket fort on a warm afternoon. The coach was nearby.\nRemy set Remy's toy truck down and bent to tie a shoe. Lily was right beside the truck.\nLily picked up Remy's toy truck and handed it to Remy. \"Here it is,\" said Lily.\nThen Lily stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nRemy and Lily played a board game with dice. The rule was one roll per turn. It was Remy's turn, and Lily looked away.\nRemy could have rolled the dice a second time, but Remy only rolled once.\nAfter that, Remy looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "Lily tried to help pour the juice and tipped the cup over. The coach looked at the mess and asked Lily, \"What happened here?\"\n\"I tipped the cup over,\" Lily said.\nThen Lily noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nRemy pulled more blankets over the pillows. Remy made a big, soft fort.\nLily put Lily's bread down and went to ask the coach for a drink. Remy sat right next to the bread.\nRemy picked up Lily's bread and put it back on the plate.\nRemy looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nRemy was looking at a picture book on the floor. Lily stood right over Remy's red kite.\nLily picked up Remy's red kite and held the string very gently before handing it back.\nJust then, a yellow leaf floated down and landed near Lily's shoe. Lily watched it wobble in the wind.\nThe coach looked at Remy. The coach said, \"Never sneak off or break a rule when no one is watching.\"\nThe afternoon ended, and the coach took Lily and Remy home."
+  },
+  {
+   "id": "v4-base-bundle5-206449",
+   "names": {
+    "$A": "Sara",
+    "$B": "Bob"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$A",
+     "encourage"
+    ],
+    [
+     "$B",
+     "read"
+    ]
+   ],
+   "n_tokens_opening": 101,
+   "n_tokens_rest": 287,
+   "opening": "Sara and Bob were busy on the bench. The neighbor was not far away.\nBob pushed two puzzle pieces in the wrong way, and they stuck up. Sara sat right beside the puzzle.\n\"The pieces are upside down,\" said Sara. Sara helped Bob turn them over.\nSara looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nBob opened a small book. Bob looked at the pictures in the book.",
+   "rest": "The neighbor looked at Bob. The neighbor said that Bob must never take things that belong to someone else.\nSara used a toy car and a stick to move the sand. Sara built a sandcastle on the bench. Sara had a cup of juice.\nBob and Sara played a matching game with shells. The rule was one shell each turn. It was Bob's turn, and Sara looked away.\nBob could have taken two shells, but Bob took only one shell.\nJust then, a yellow leaf floated down and landed near Bob's shoe. Bob watched it wobble in the wind.\nSara and Bob played a dice game. The rule was to roll once and move that many. It was Sara's turn, and Bob looked away.\nSara could have moved the game piece extra spaces, but Sara moved it correctly.\nSara sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nSara put Sara's bread down and went to ask the neighbor for a drink. Bob sat right next to the bread.\nBob looked at the bread and then left it on the bench.\nAfter that, Bob looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nThe sun went down. Sara and Bob went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5b-52496",
+   "names": {
+    "$A": "Anna",
+    "$B": "Jill"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$B",
+     "return_it"
+    ],
+    [
+     "warning",
+     "$B"
+    ]
+   ],
+   "n_tokens_opening": 106,
+   "n_tokens_rest": 264,
+   "opening": "The neighbor took Anna and Jill to play under the big tree.\nAnna laid Anna's kite on the grass and lay back to look at the sky. Jill sat right next to the kite.\nJill picked up Anna's kite. \"Anna, you dropped your kite,\" said Jill.\nJill sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nThe neighbor looked at Jill. \"Never say something that is not true,\" the neighbor said.",
+   "rest": "Jill ate cookies, and crumbs covered Jill's chin. Anna sat right next to Jill.\n\"You have crumbs on your chin,\" said Anna. Anna handed a napkin to Jill.\nAnna kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nAnna went to the water to swim. Anna used a blue towel to dry off.\nJill and Anna played a stacking game with crackers. The rule was one cracker per turn. It was Jill's turn, and Anna looked away.\nJill could have taken two crackers, but Jill only took one and lost the game.\nJust then, a yellow leaf floated down and landed near Jill's shoe. Jill watched it wobble in the wind.\nJill used a bag of crayons to draw pictures of food. Jill also used a jar of shells to pretend to bake.\nAnna turned too fast and spilled a glass of milk. The neighbor looked at the mess and asked Anna, \"What happened here?\"\n\"I spilled the milk,\" said Anna.\nThen Anna stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nSoon the neighbor called Anna and Jill in for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-166142",
+   "names": {
+    "$A": "Leo",
+    "$B": "Max"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$B",
+     "tell_truth"
+    ],
+    [
+     "$A",
+     "bake"
+    ]
+   ],
+   "n_tokens_opening": 124,
+   "n_tokens_rest": 336,
+   "opening": "After breakfast, Leo and Max went to play by the fence. The coach came along.\nMax turned too fast and bumped the chair over with a thud. The coach looked at the mess and asked Max, \"What happened here?\"\n\"I bumped the chair,\" said Max quietly. \"I am sorry.\"\nA moment later, Max heard a dog barking somewhere far away. Then it was quiet again, and Max went on.\nLeo found a clay pot. Leo put some dirt inside the pot. Leo made a little cake with the dirt.",
+   "rest": "Max hummed a song, loud and wobbly, while poking a stick in the dirt. Leo sat close by.\n\"Your song sounds very happy,\" said Leo.\nJust then, a yellow leaf floated down and landed near Leo's shoe. Leo watched it wobble in the wind.\nMax bumped a small puzzle piece with a foot. The piece fell into the grass. The coach walked over and asked, \"Who did this?\"\n\"It was not Leo,\" said Max. \"I bumped the piece with my foot.\"\nThe sun came out from behind a cloud and warmed Max's face. Max blinked and looked around the yard.\nLeo pushed two puzzle pieces in the wrong way, and they stuck up. Max sat right beside the puzzle.\n\"The pieces look a bit funny,\" said Max. \"Let's try to turn them.\"\nMax noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nThe coach looked at Leo. \"Never take things that belong to someone else,\" the coach said.\nLeo ran past Max's toy car and bumped it into a pile of blocks. The coach looked at the mess and asked Leo, \"What happened here?\"\n\"I bumped the car,\" said Leo. \"I am sorry.\"\nAfter that, Leo looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nWhen the day was over, Leo and Max went home to sleep."
+  },
+  {
+   "id": "v4-base-bundle5-140590",
+   "names": {
+    "$A": "Leo",
+    "$B": "Jill"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "encourage"
+    ],
+    [
+     "warning",
+     "$A"
+    ]
+   ],
+   "n_tokens_opening": 112,
+   "n_tokens_rest": 289,
+   "opening": "Leo and Jill were in the sandbox with the librarian.\nJill pushed two puzzle pieces in the wrong way, and they stuck up. Leo sat right beside the puzzle.\n\"The pieces are upside down,\" said Leo. Leo helped Jill turn them the right way.\nA moment later, Leo heard a dog barking somewhere far away. Then it was quiet again, and Leo went on.\nThe librarian looked at Leo. \"Do not leave anyone out on purpose,\" the librarian said.",
+   "rest": "Jill knocked over the box of blocks while playing next to Leo. The librarian looked at the mess and asked Jill, \"What happened here?\"\n\"I knocked them over,\" said Jill. Jill looked at the floor.\nJust then, a yellow leaf floated down and landed near Jill's shoe. Jill watched it wobble in the wind.\nLeo found some big puddles near the sandbox. Leo jumped into the puddles. A small toy car sat in the sand nearby.\nLeo and Jill played a counting game. The rule was to close your eyes and count to ten. It was Leo's turn, and Jill looked away.\nLeo could have peeked, but Leo kept eyes shut tight and counted to ten.\nThen Leo noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nLeo put Leo's picture book down and went to get a drink. Jill sat right next to the book.\nJill reached out and pushed the book back toward Leo.\nJill sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nJill went to the beach with Leo. Jill collected many small shells. There was a plate of cookies for them to eat later.\nWhen the day was over, Leo and Jill went home to sleep."
+  },
+  {
+   "id": "v4-base-bundle5b-227181",
+   "names": {
+    "$A": "Leo",
+    "$B": "Amy"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "warning",
+     "$A"
+    ],
+    [
+     "$B",
+     "draw"
+    ]
+   ],
+   "n_tokens_opening": 74,
+   "n_tokens_rest": 332,
+   "opening": "Leo and Amy spent the morning at the beach. The babysitter was there too.\nThe babysitter looked at Leo and Amy. \"Never sneak off or break a rule when no one is watching,\" the babysitter said.\nAmy sat on a towel. Amy used a stick to draw a picture in the sand.",
+   "rest": "Amy and Leo played a hopping game over a kite string. The rule was no touching the string. It was Amy's turn, and Leo looked away.\nAmy could have stepped over the string to win, but Amy hopped around it.\nA moment later, Amy heard a dog barking somewhere far away. Then it was quiet again, and Amy went on.\nLeo and Amy played a rolling game with a toy truck. The rule was one push per turn. It was Leo's turn, and Amy looked away.\nLeo could have pushed the truck twice, but Leo gave it only one push.\nLeo kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nAmy reached for the kite and knocked over the packet of seeds. The babysitter looked at the mess and asked Amy, \"What happened here?\"\n\"I knocked over the seeds,\" said Amy.\nAfter that, Amy looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nLeo sat under a big umbrella. Leo read a book about a blue flower.\nAmy put Amy's blanket down and turned to wave at the babysitter. Leo sat right next to the blanket.\nLeo saw Amy's blanket on the sand. Leo picked it up and handed it to Amy.\nLeo looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nSoon the babysitter called Leo and Amy in for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-32232",
+   "names": {
+    "$A": "Tim",
+    "$B": "Jill"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "tell_truth"
+    ],
+    [
+     "$B",
+     "follow_rule"
+    ]
+   ],
+   "n_tokens_opening": 171,
+   "n_tokens_rest": 288,
+   "opening": "Tim and Jill had the whole day to play at the pool. The librarian kept an eye on them.\nTim knocked the glass of milk over onto the blanket. The librarian looked at the mess and asked Tim, \"What happened here?\"\n\"I spilled the milk,\" said Tim quietly. \"I am sorry.\"\nThen Tim noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThe librarian pointed to the edge of the pool. \"Do not go past this line,\" the librarian said. Then the librarian walked away.\nJill looked at the pool. Jill stayed behind the line and played with a toy instead.\nJill kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.",
+   "rest": "Jill jumped and knocked the bowl of berries onto the towel. The librarian looked at the mess and asked Jill, \"What happened here?\"\n\"I knocked the berries over,\" said Jill quietly. \"I am sorry.\"\nJill looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nJill put Jill's packet of seeds down and ran to look at a dog. Tim sat right next to the seeds.\nTim picked up the packet of seeds. \"Here are your seeds,\" said Tim to Jill.\nJust then, a yellow leaf floated down and landed near Tim's shoe. Tim watched it wobble in the wind.\nTim left Tim's tower of blocks to ask the librarian a question. Jill stood right beside the tower.\nJill picked up the blocks. Jill handed the blocks back to Tim.\nThen Jill stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nThe librarian sat with Tim and Jill. \"Never sneak away or break a rule when no one is watching,\" the librarian said.\nTim walked to the edge of the pond. Tim fed the ducks with small bits of bread. Jill watched the ducks swim.\nThen Tim and Jill went home, tired and ready for bed."
+  },
+  {
+   "id": "v4-base-bundle5b-14179",
+   "names": {
+    "$A": "Lila",
+    "$B": "Lily"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$B",
+     "tell_truth"
+    ],
+    [
+     "$A",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 167,
+   "n_tokens_rest": 224,
+   "opening": "Lila and Lily spent the morning at the kitchen table. The librarian was there too.\nLily tried to help with the drawing and spilled water all over it. The librarian looked at the mess and asked Lily, \"What happened here?\"\n\"I spilled the water,\" said Lily quietly. \"I am sorry.\"\nLily sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nLila jumped and knocked the bowl of berries onto the towel. The librarian looked at the mess and asked Lila, \"What happened here?\"\n\"I knocked the bowl over,\" said Lila. \"I am sorry.\"\nJust then, a yellow leaf floated down and landed near Lila's shoe. Lila watched it wobble in the wind.",
+   "rest": "The librarian looked at Lila. \"Do not leave anyone out on purpose,\" the librarian said.\nLily pushed two puzzle pieces in the wrong way, and they stuck up. Lila sat right beside the puzzle.\n\"The pieces are stuck,\" said Lila. Lila helped Lily turn the pieces.\nAfter that, Lila looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nLily sat at the table. Lily read a book. A plate of crackers sat near Lily.\nLila went outside. Lila jumped in puddles. Lila drank a glass of milk after.\nLily and Lila played a tossing game with a bucket and a ball. The rule was to stand behind the stick. It was Lily's turn, and Lila looked away.\nLily could have stepped over the stick to win, but Lily stayed behind it.\nThen Lily noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThen it was bedtime, and Lila and Lily went to sleep."
+  },
+  {
+   "id": "v4-base-bundle5-175870",
+   "names": {
+    "$A": "Molly",
+    "$B": "Emma"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "include"
+    ],
+    [
+     "$B",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 161,
+   "n_tokens_rest": 287,
+   "opening": "One day Molly and Emma were playing by the pond. The librarian was nearby.\nMolly played with a red kite. Emma walked over to Molly. Emma asked, \"Can I play too?\"\nMolly smiled and said, \"Yes, come play!\" Molly made room for Emma to sit.\nThen Molly stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nMolly put on a paper crown, and it sat crooked over one eye. Emma sat right beside Molly.\n\"Your crown is a little bit tilted,\" said Emma. Emma reached out to straighten it.\nEmma kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.",
+   "rest": "Emma rode a bike near the water. Emma pedaled past a packet of seeds.\nEmma ate cookies, and crumbs covered Emma's chin. Molly sat right next to Emma.\n\"You have cookie crumbs on your chin,\" said Molly. Molly handed Emma a napkin.\nThe sun came out from behind a cloud and warmed Molly's face. Molly blinked and looked around the yard.\nEmma pulled the lid off the box and dropped it, and everything spilled out. The librarian looked at the mess and asked Emma, \"What happened here?\"\n\"I dropped the lid and spilled everything,\" said Emma.\nA moment later, Emma heard a dog barking somewhere far away. Then it was quiet again, and Emma went on.\nEmma put Emma's ball down and went to the librarian for a drink. Molly sat right next to the ball.\nMolly picked up the ball and handed it to Emma. \"You dropped this,\" said Molly.\nJust then, a yellow leaf floated down and landed near Molly's shoe. Molly watched it wobble in the wind.\nThe librarian looked at Emma. The librarian said, \"Never say things that are not true.\"\nAt the end of the day, Molly and Emma ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-23841",
+   "names": {
+    "$A": "Sam",
+    "$B": "Lila"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$B",
+     "puddles"
+    ],
+    [
+     "$A",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 108,
+   "n_tokens_rest": 283,
+   "opening": "The coach took Sam and Lila to play on the living room rug.\nLila jumped in small puddles. Lila used a blue towel to dry the rug.\nLila set Lila's kite string down and walked off to fetch a bucket. Sam sat right next to the string.\nSam picked up the kite string and handed it to Lila. \"Here is your string,\" said Sam.\nAfter that, Sam looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "The coach looked at Sam. \"Never make fun of other people,\" the coach said.\nSam tried to whistle a song, and only a squeak came out. Lila sat right beside Sam.\n\"That was a funny squeak,\" said Lila.\nLila looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nSam used a bag of crayons to draw a picture. Sam drew a big sandcastle next to the picture. Sam drank from a cup of juice.\nLila and Sam played a dice game. The rule was to roll once and move that many. It was Lila's turn, and Sam looked away.\nLila could have rolled the dice twice to win, but Lila rolled only once.\nLila noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nLila put on a paper crown, and it sat crooked over one eye. Sam sat right beside Lila.\n\"Your crown is a little bit crooked,\" said Sam, and helped Lila straighten it.\nThe sun came out from behind a cloud and warmed Sam's face. Sam blinked and looked around the yard.\nSoon the coach called Sam and Lila in for dinner."
+  },
+  {
+   "id": "v4-base-bundle5b-227052",
+   "names": {
+    "$A": "Leo",
+    "$B": "Lisa"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$A",
+     "tell_truth"
+    ],
+    [
+     "$B",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 170,
+   "n_tokens_rest": 307,
+   "opening": "One day Leo and Lisa were playing in the backyard. The teacher was nearby.\nLeo turned too fast and knocked a plate of cookies to the ground. The teacher looked at the mess and asked Leo, \"What happened here?\"\n\"I knocked the cookies over,\" said Leo quietly. \"I am sorry.\"\nJust then, a yellow leaf floated down and landed near Leo's shoe. Leo watched it wobble in the wind.\nLeo put Leo's picture book down and went to get a drink. Lisa sat right next to the book.\nLisa picked up Leo's picture book and handed it to Leo. \"Here is your book,\" said Lisa.\nLisa sat down on the grass for a moment. A little breeze came by and made the leaves whisper.",
+   "rest": "The teacher looked at Leo. \"Do not take things that belong to others,\" the teacher said.\nLisa set Lisa's jar of shells down and went to wash sandy hands. Leo stayed right beside the jar.\nLeo picked up Lisa's jar of shells and held it out. \"Here, you dropped this,\" said Leo.\nLeo noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nLisa played with a toy truck in the dirt. Leo came over and asked to join in.\nLisa looked up and smiled. \"Yes, you can play too,\" said Lisa.\nLisa kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nLeo held a clay pot near the edge of the table. Lisa was busy looking at a ball nearby.\nLeo held the clay pot with two hands and carefully gave it back to Lisa.\nAfter that, Leo looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nLeo tried to hop over the stick and stumbled. Lisa was right there.\n\"You almost made it,\" said Lisa. Lisa helped Leo stand up.\nThe sun came out from behind a cloud and warmed Lisa's face. Lisa blinked and looked around the yard.\nSoon the teacher called Leo and Lisa in for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-79963",
+   "names": {
+    "$A": "John",
+    "$B": "Sara"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$B",
+     "tell_truth"
+    ],
+    [
+     "$A",
+     "take_responsibility"
+    ]
+   ],
+   "n_tokens_opening": 177,
+   "n_tokens_rest": 278,
+   "opening": "After breakfast, John and Sara went to play in the backyard. The babysitter came along.\nSara jumped and scattered John's bag of dice across the ground. The babysitter looked at the mess and asked Sara, \"What happened here?\"\n\"I scattered the dice,\" said Sara quietly. \"I am sorry.\"\nThe sun came out from behind a cloud and warmed Sara's face. Sara blinked and looked around the yard.\nJohn bumped into a toy truck and it tipped over. Sara watched from the chair. The babysitter came over and asked, \"Who did this?\"\n\"It was not Sara,\" said John. \"I bumped the truck.\"\nAfter that, John looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "The babysitter looked at John. \"Never leave anyone out on purpose,\" the babysitter said.\nSara walked to the pond. Sara found a picture book and some bread to feed the ducks.\nJohn reached for a crayon and knocked over the clay pot. The babysitter looked at the mess and asked John, \"What happened here?\"\n\"I knocked over the pot,\" said John quietly. \"I am sorry.\"\nJohn looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nJohn put John's plate of crackers down and went to wash sandy hands. Sara sat right next to the crackers.\nSara picked up the crackers and handed them to John. \"Here are your crackers,\" said Sara.\nSara sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nSara put Sara's ball down and went to the babysitter for a drink. John sat right next to the ball.\nJohn picked up Sara's ball and held it out. \"Here is your ball,\" said John.\nThen John noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nSoon the babysitter called John and Sara in for dinner."
+  },
+  {
+   "id": "v4-base-bundle5b-256456",
+   "names": {
+    "$A": "Sam",
+    "$B": "John"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "kite"
+    ],
+    [
+     "$B",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 103,
+   "n_tokens_rest": 290,
+   "opening": "Sam and John were together under the big tree. The coach sat nearby.\nSam flew a big red kite. The kite went up into the sky.\nSam put Sam's packet of seeds down and ran to look at a dog. John sat right next to the seeds.\nJohn picked up the seeds and handed them to Sam. \"You dropped these,\" said John.\nJohn kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.",
+   "rest": "Sam jumped over the puzzle and scattered the pieces. The coach looked at the mess and asked Sam, \"What happened here?\"\n\"I scattered the pieces,\" said Sam quietly.\nSam looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nJohn and Sam played a hopping game. The rule was to hop on one foot the whole way. It was John's turn, and Sam looked away.\nJohn could have used two feet to skip, but John hopped on one foot and lost.\nJohn sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nThe coach looked at John. \"Never sneak off or break a rule when no one is watching,\" the coach said.\nSam and John played a stacking game with crackers. The rule was one cracker per turn. It was Sam's turn, and John looked away.\nSam could have stacked two crackers, but Sam only stacked one and lost.\nThe sun came out from behind a cloud and warmed Sam's face. Sam blinked and looked around the yard.\nJohn rode a blue bike. John rode the bike in a circle near the big tree.\nSam and John went inside when the sky got dark. Then it was bedtime."
+  },
+  {
+   "id": "v4-base-bundle5-36917",
+   "names": {
+    "$A": "Sally",
+    "$B": "Tim"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$A",
+     "tell_truth"
+    ],
+    [
+     "$B",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 166,
+   "n_tokens_rest": 223,
+   "opening": "Sally and Tim had the whole day to play in the backyard. The neighbor kept an eye on them.\nSally jumped and knocked the bowl of berries onto the towel. The neighbor looked at the mess and asked Sally, \"What happened here?\"\n\"I knocked the berries over,\" said Sally. \"I did it.\"\nJust then, a yellow leaf floated down and landed near Sally's shoe. Sally watched it wobble in the wind.\nSally put Sally's plate of crackers down and went to wash sandy hands. Tim sat right next to the crackers.\nTim picked up Sally's plate of crackers. \"Here are your crackers,\" said Tim.\nAfter that, Tim looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "The neighbor looked at Tim. The neighbor said, \"Never blame someone else for something you did.\"\nSally found a small shovel. Sally put seeds into the dirt in the garden.\nTim found a toy car and some old blankets. Tim began to build a fort.\nTim took a big gulp of juice and got juice all around Tim's mouth. Sally was right next to Tim.\n\"You have juice on your face,\" said Sally. Sally handed a napkin to Tim.\nSally kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nTim and Sally played a dice game. The rule was to roll once and move that many. It was Tim's turn, and Sally looked away.\nTim could have moved the piece extra spaces, but Tim moved it only one.\nA moment later, Tim heard a dog barking somewhere far away. Then it was quiet again, and Tim went on.\nWhen the day was over, Sally and Tim went home to sleep."
+  },
+  {
+   "id": "v4-base-bundle5b-96602",
+   "names": {
+    "$A": "Molly",
+    "$B": "Max"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "$B",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 163,
+   "n_tokens_rest": 218,
+   "opening": "It was a sunny day. Molly and Max were by the fence, and the teacher was close by.\nMax took off Max's paper crown and set it down to tie a shoe. Molly sat right next to the crown.\nMolly picked up the paper crown and handed it to Max. \"Here is your crown,\" said Molly.\nMolly noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nMolly had both shoes on the wrong feet. Max was right there and saw it.\n\"Your shoes are on the wrong feet,\" said Max. Max helped Molly swap them.\nThen Max stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.",
+   "rest": "The teacher looked at Max. \"Never sneak away when no one is watching,\" the teacher said.\nMolly put Molly's ball down and went to the teacher for a drink. Max sat right next to the ball.\nMax picked up Molly's ball and held it out. \"Here you go,\" said Max.\nAfter that, Max looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nMax had a small packet of seeds. Max put the seeds in the dirt by the fence.\nMolly tried to help with the drawing and spilled water all over it. The teacher looked at the mess and asked Molly, \"What happened here?\"\n\"I spilled the water,\" said Molly.\nMolly sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nMolly had a toy truck and a bucket. Molly built a big sandcastle in the sand.\nThen it was time to go home. Molly and Max had dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-202384",
+   "names": {
+    "$A": "Anna",
+    "$B": "John"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "warning",
+     "$A"
+    ]
+   ],
+   "n_tokens_opening": 114,
+   "n_tokens_rest": 337,
+   "opening": "The babysitter took Anna and John to play by the pond.\nJohn set John's bowl of berries down and lay back to look at the clouds. Anna sat right next to the berries.\nAnna picked up the bowl of berries and handed it to John. \"Here is your bowl,\" said Anna.\nThen Anna noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThe babysitter looked at Anna. \"Never say things that are not true,\" the babysitter said.",
+   "rest": "Anna pulled the lid off the box and dropped it, and everything spilled out. The babysitter looked at the mess and asked Anna, \"What happened here?\"\n\"I dropped the box,\" said Anna quietly. \"I spilled the things.\"\nAnna noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nJohn and Anna played a drawing game with crayons. The rule was one line each. It was John's turn, and Anna looked away.\nJohn could have drawn two lines to win, but John only drew one line.\nAfter that, John looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nAnna found some small puddles on the path. Anna jumped in the puddles. A wet towel lay on the grass nearby.\nJohn rode a bike near the edge of the pond. Anna came over and asked to join in.\nJohn looked up and smiled. \"You can ride on the back of my bike,\" said John.\nJohn looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nAnna pushed two puzzle pieces in the wrong way, and they stuck up. John sat right beside the puzzle.\n\"The pieces are a little crooked,\" said John. John helped Anna push them down flat.\nA moment later, John heard a dog barking somewhere far away. Then it was quiet again, and John went on.\nWhen the day was over, Anna and John went home to sleep."
+  },
+  {
+   "id": "v4-base-bundle5-203134",
+   "names": {
+    "$A": "Max",
+    "$B": "Sara"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "play_fair"
+    ],
+    [
+     "$B",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 162,
+   "n_tokens_rest": 268,
+   "opening": "Max and Sara ran off to play on the sidewalk. The coach followed behind.\nMax and Sara played a matching game with shells. The rule was one shell each turn. It was Max's turn, and Sara looked away.\nMax could have taken two shells, but Max took only one. Max lost the game.\nThen Max noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nSara reached for the kite and knocked over the packet of seeds. The coach looked at the mess and asked Sara, \"What happened here?\"\n\"I knocked over the seeds,\" said Sara.\nAfter that, Sara looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "Sara set Sara's toy truck down and bent to tie a shoe. Max was right beside the truck.\nMax picked up the toy truck and handed it to Sara. \"You dropped this,\" said Max.\nMax looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nSara saw some puddles on the sidewalk. Sara jumped into the water.\nThe coach looked at Max. \"Never say things that are not true,\" the coach said.\nMax hummed a song, loud and wobbly, while poking a stick in the dirt. Sara sat close by.\n\"I like your song,\" said Sara.\nJust then, a yellow leaf floated down and landed near Sara's shoe. Sara watched it wobble in the wind.\nMax bumped a bike and it fell over. Sara was standing right there. The coach came over and asked, \"Who did this?\"\n\"It was not Sara,\" said Max. \"I bumped the bike.\"\nA moment later, Max heard a dog barking somewhere far away. Then it was quiet again, and Max went on.\nAt the end of the day, Max and Sara ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-200064",
+   "names": {
+    "$A": "John",
+    "$B": "Bob"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$A",
+     "play_fair"
+    ],
+    [
+     "$B",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 169,
+   "n_tokens_rest": 202,
+   "opening": "The day began on the sidewalk, where John and Bob liked to play. The neighbor was with them.\nJohn and Bob played a rolling game with a toy car. The rule was one push each. It was John's turn, and Bob looked away.\nJohn gave the car only one small push. John lost the game.\nAfter that, John looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nJohn put the shells in a row, and the row went crooked. Bob sat right beside John.\n\"The row is a little bumpy,\" said Bob. Bob helped John straighten the shells.\nThen Bob noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.",
+   "rest": "The neighbor looked at John. \"Never make fun of other people,\" the neighbor said.\nJohn set John's glass of milk down and ran to look at a bird. Bob was right next to the milk.\nBob picked up the milk glass. \"Here is your milk,\" said Bob.\nBob sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nBob built a tall tower of blocks that leaned to one side. John stood right beside it.\n\"Your tower is very high,\" said John. John put a block at the bottom.\nThen John stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nA large puddle sat on the sidewalk. John stood at the edge of the water.\nThe puddle was still there. Bob walked up to the water.\nWhen the day was over, John and Bob went home to sleep."
+  },
+  {
+   "id": "v4-base-bundle5b-179586",
+   "names": {
+    "$A": "Remy",
+    "$B": "Emma"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "warning",
+     "$A"
+    ]
+   ],
+   "n_tokens_opening": 117,
+   "n_tokens_rest": 277,
+   "opening": "One day Remy and Emma were playing on the grass at the park. The librarian was nearby.\nEmma put Emma's plate of crackers down and went to wash sandy hands. Remy sat right next to the crackers.\nRemy picked up the plate of crackers. Remy handed it back to Emma.\nThen Remy noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThe librarian looked at Remy. \"Do not make fun of other people,\" the librarian said.",
+   "rest": "Remy laid Remy's bike down on its side and walked over to the librarian. Emma stood right next to the bike.\nEmma saw Remy's bike on the grass. Emma picked up the bike and stood it up.\nEmma noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nRemy held a long string. Remy ran across the grass and flew a kite high in the sky.\nEmma pushed two puzzle pieces in the wrong way, and they stuck up. Remy sat right beside the puzzle.\n\"The pieces are a little bit crooked,\" said Remy. Remy helped Emma turn them.\nRemy kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nEmma jumped and knocked the bowl of berries onto the towel. The librarian looked at the mess and asked Emma, \"What happened here?\"\n\"I knocked the berries over,\" said Emma.\nThen Emma stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nEmma walked to the edge of the water. Emma picked up some small shells from the sand.\nAt the end of the day, Remy and Emma ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-94710",
+   "names": {
+    "$A": "Tim",
+    "$B": "John"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$A",
+     "bake"
+    ],
+    [
+     "$B",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 108,
+   "n_tokens_rest": 263,
+   "opening": "The day began on the front porch, where Tim and John liked to play. The neighbor was with them.\nTim played with toy food. Tim used a small spoon to bake pretend bread.\nTim tried to fold the blanket, and it came out in a crumpled lump. John was right there.\n\"The blanket is all bumpy. Let's shake it out together,\" said John.\nJohn kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.",
+   "rest": "John sat in a small pile of sand. John started to build a sandcastle.\nJohn stacked the crackers into a tower, and it leaned to one side. Tim sat right next to it.\n\"The tower is leaning a little bit. I can help you hold it,\" said Tim.\nJust then, a yellow leaf floated down and landed near Tim's shoe. Tim watched it wobble in the wind.\nThe neighbor looked at Tim. \"Always play by the rules of the game,\" the neighbor said.\nTim dropped the board game, and the pieces went everywhere. The neighbor looked at the mess and asked Tim, \"What happened here?\"\n\"I dropped the board game,\" said Tim.\nTim noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nJohn reached for a crayon and knocked over the clay pot. The neighbor looked at the mess and asked John, \"What happened here?\"\n\"I knocked over the clay pot,\" said John.\nThe sun came out from behind a cloud and warmed John's face. John blinked and looked around the yard.\nSoon the neighbor called Tim and John in for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-52395",
+   "names": {
+    "$A": "Joe",
+    "$B": "Sara"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$B",
+     "play_fair"
+    ],
+    [
+     "$B",
+     "take_responsibility"
+    ]
+   ],
+   "n_tokens_opening": 172,
+   "n_tokens_rest": 277,
+   "opening": "Joe and Sara spent the morning in the sandbox. The coach was there too.\nSara and Joe played a tossing game with a bucket and a ball. The rule was to stand behind the stick. It was Sara's turn, and Joe looked away.\nSara could have stepped past the stick to win, but Sara stayed behind it.\nJust then, a yellow leaf floated down and landed near Sara's shoe. Sara watched it wobble in the wind.\nSara knocked over a small toy boat in the sand. Joe was sitting close by. The coach came over and asked who did it.\n\"It was not Joe,\" said Sara. \"I knocked the boat over.\"\nThe sun came out from behind a cloud and warmed Sara's face. Sara blinked and looked around the yard.",
+   "rest": "The coach looked at Sara. \"Do not blame someone else for something you did,\" the coach said.\nSara had a sweater on the wrong way round, with the tag under Sara's chin. Joe was right there.\n\"The tag is tickling you,\" said Joe. Joe helped Sara pull the sweater around.\nJoe sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nJoe put Joe's plate of crackers down and went to wash sandy hands. Sara sat right next to the crackers.\nSara picked up the plate of crackers and handed it back to Joe.\nA moment later, Sara heard a dog barking somewhere far away. Then it was quiet again, and Sara went on.\nJoe opened a bag of crayons. Joe used the colors to draw a picture in the sand.\nJoe and Sara played a tossing game with dice and a bucket. The rule was one throw each. It was Joe's turn, and Sara looked away.\nJoe could have thrown the ball twice, but Joe only threw it one time.\nJoe kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nThen it was bedtime, and Joe and Sara went to sleep."
+  },
+  {
+   "id": "v4-base-bundle5b-127576",
+   "names": {
+    "$A": "Lily",
+    "$B": "Bob"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "tell_truth"
+    ],
+    [
+     "$B",
+     "play_fair"
+    ]
+   ],
+   "n_tokens_opening": 167,
+   "n_tokens_rest": 238,
+   "opening": "Lily and Bob ran off to play at the pool. The coach followed behind.\nLily tried to help with the drawing and spilled water all over it. The coach looked at the mess and asked Lily, \"What happened here?\"\n\"I spilled the water,\" said Lily quietly. \"I am sorry.\"\nLily looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nBob and Lily played a hopping game. The rule was to hop on one foot the whole way. It was Bob's turn, and Lily looked away.\nBob could have put both feet down to win, but Bob hopped on one foot.\nBob sat down on the grass for a moment. A little breeze came by and made the leaves whisper.",
+   "rest": "Lily walked to the small pond near the pool. A little flower grew by the water. Lily had some bread to feed the ducks.\nBob opened the bag of crayons and dropped it, and crayons rolled everywhere. The coach looked at the mess and asked Bob, \"What happened here?\"\n\"I dropped the crayons,\" said Bob. \"I am sorry.\"\nAfter that, Bob looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nThe coach looked at Bob. \"Never leave someone out on purpose,\" the coach said.\nBob ate cookies, and crumbs covered Bob's chin. Lily sat right next to Bob.\n\"You have crumbs on your chin,\" said Lily, and helped Bob wipe them away.\nA moment later, Lily heard a dog barking somewhere far away. Then it was quiet again, and Lily went on.\nBob found a small bike by a blanket. Lily sat on the grass and watched. Bob rode the bike in a circle.\nThen it was time to go home. Lily and Bob had dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-133968",
+   "names": {
+    "$A": "John",
+    "$B": "Tim"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$B",
+     "return_it"
+    ],
+    [
+     "$A",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 173,
+   "n_tokens_rest": 269,
+   "opening": "John and Tim had the whole day to play at the kitchen table. The neighbor kept an eye on them.\nJohn put John's toy boat down and went to ask the neighbor a question. Tim sat right beside the boat.\nTim picked up John's toy boat and handed it to John. \"Here is your boat,\" said Tim.\nThe sun came out from behind a cloud and warmed Tim's face. Tim blinked and looked around the yard.\nJohn jumped and scattered Tim's bag of dice across the ground. The neighbor looked at the mess and asked John, \"What happened here?\"\n\"I scattered the dice,\" said John. \"I did it,\" John added.\nThen John noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.",
+   "rest": "The neighbor looked at John. \"Never take things that belong to someone else,\" the neighbor said.\nJohn and Tim played a board game with dice. The rule was one roll per turn. It was John's turn, and Tim looked away.\nJohn could have rolled the dice twice, but John only rolled one time.\nThen John stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nJohn went outside. John jumped in the puddles.\nJohn went to the kitchen table to find a jar of shells. Tim stood right over the jar.\nTim picked up the jar of shells and handed it back to John.\nTim noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nTim dropped the plate of crackers, and they broke into bits. The neighbor looked at the mess and asked Tim, \"What happened here?\"\n\"I dropped the crackers,\" said Tim. \"I am sorry,\" said Tim.\nJust then, a yellow leaf floated down and landed near Tim's shoe. Tim watched it wobble in the wind.\nAt the end of the day, John and Tim ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5b-206763",
+   "names": {
+    "$A": "Amy",
+    "$B": "Anna"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "$B",
+     "kite"
+    ]
+   ],
+   "n_tokens_opening": 117,
+   "n_tokens_rest": 317,
+   "opening": "Amy and Anna were busy on the sidewalk. The librarian was not far away.\nAnna put Anna's toy car down and ran to look at a cloud. Amy sat right next to the car.\nAmy picked up Anna's toy car and handed it to Anna. \"Here is your car,\" said Amy.\nAfter that, Amy looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nAnna held a red kite. Anna ran along the sidewalk. The kite flew high in the air.",
+   "rest": "The librarian pointed to a blue bucket. \"Do not touch the blue bucket,\" the librarian said. Then the librarian walked away.\nAmy looked at the blue bucket. Amy walked to the puzzle instead.\nAmy looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nAmy jumped over the puzzle and scattered the pieces. The librarian looked at the mess and asked Amy, \"What happened here?\"\n\"I scattered the pieces,\" said Amy.\nJust then, a yellow leaf floated down and landed near Amy's shoe. Amy watched it wobble in the wind.\nAmy put Amy's packet of seeds down and ran to look at a dog. Anna sat right next to the seeds.\nAnna picked up Amy's packet of seeds and held it out. \"Here you go,\" said Anna.\nThe sun came out from behind a cloud and warmed Anna's face. Anna blinked and looked around the yard.\nThe librarian looked at Amy. \"Do not say things that are not true,\" the librarian said.\nAnna knocked the glass of milk over onto the blanket. The librarian looked at the mess and asked Anna, \"What happened here?\"\n\"I knocked the milk over,\" said Anna.\nThen Anna stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nThe day ended with dinner and a story before bed."
+  },
+  {
+   "id": "v4-base-bundle5-182827",
+   "names": {
+    "$A": "Anna",
+    "$B": "Lisa"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "encourage"
+    ],
+    [
+     "$B",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 157,
+   "n_tokens_rest": 245,
+   "opening": "After breakfast, Anna and Lisa went to play at the library. The librarian came along.\nLisa held up a drawing of a dog with five legs. Anna sat right beside Lisa.\n\"That is a very big dog,\" said Anna.\nThen Anna stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nAnna set Anna's bucket down and walked off to find another toy. Lisa stayed right next to the bucket.\nLisa picked up Anna's bucket and handed it to Anna. \"You dropped this,\" said Lisa.\nLisa noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.",
+   "rest": "Lisa sat in a small chair. Anna stood over Lisa's cup of juice.\nAnna picked up Lisa's cup and handed it back to Lisa.\nThe sun came out from behind a cloud and warmed Anna's face. Anna blinked and looked around the yard.\nAnna turned too fast and knocked a plate of cookies to the ground. The librarian looked at the mess and asked Anna, \"What happened here?\"\n\"I knocked the cookies down,\" said Anna.\nAnna looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nAnna tried to hop over the stick and stumbled. Lisa was right there.\n\"You fell down,\" said Lisa. Lisa helped Anna stand up.\nAfter that, Lisa looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nLisa found a soft towel and some pillows. Lisa built a big blanket fort.\nThe librarian looked at Lisa. \"Do not leave anyone out on purpose,\" the librarian said.\nAnna and Lisa went inside when the sky got dark. Then it was bedtime."
+  },
+  {
+   "id": "v4-base-bundle5-205044",
+   "names": {
+    "$A": "Anna",
+    "$B": "Lily"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$B",
+     "follow_rule"
+    ],
+    [
+     "$A",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 161,
+   "n_tokens_rest": 282,
+   "opening": "Anna and Lily were busy on the bench. The coach was not far away.\nThe coach pointed to a small blue box. \"Do not touch this box,\" the coach said. Then the coach walked away.\nLily looked at the blue box, but Lily sat quietly and played with a toy instead.\nLily sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nAnna knocked the glass of milk over onto the blanket. The coach looked at the mess and asked Anna, \"What happened here?\"\n\"I knocked over the milk,\" said Anna.\nAnna noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.",
+   "rest": "Anna put Anna's stickers on the ground and ran to look at a bird. Lily stayed right next to the stickers.\nLily picked up the stickers and gave them to Anna. \"You dropped these,\" said Lily.\nThen Lily stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nAnna and Lily played a tossing game with dice and a bucket. The rule was one throw each. It was Anna's turn, and Lily looked away.\nAnna could have thrown the die twice, but Anna only threw it once and lost.\nThen Anna noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nAnna saw some puddles on the ground. Anna jumped into the puddles.\nLily opened the bag of crayons and dropped it, and crayons rolled everywhere. The coach looked at the mess and asked Lily, \"What happened here?\"\n\"I dropped the crayons,\" said Lily. \"I am sorry.\"\nA moment later, Lily heard a dog barking somewhere far away. Then it was quiet again, and Lily went on.\nThe coach looked at Lily. \"Do not leave anyone out on purpose,\" the coach said.\nThen it was time to go home. Anna and Lily had dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5b-135488",
+   "names": {
+    "$A": "Remy",
+    "$B": "Sam"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$B",
+     "tell_truth"
+    ],
+    [
+     "warning",
+     "$A"
+    ]
+   ],
+   "n_tokens_opening": 117,
+   "n_tokens_rest": 314,
+   "opening": "Remy and Sam spent the morning at the playground. The librarian was there too.\nSam jumped over the puzzle and scattered the pieces. The librarian looked at the mess and asked Sam, \"What happened here?\"\n\"I scattered the pieces,\" Sam said quietly. \"I am sorry.\"\nAfter that, Sam looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nThe librarian looked at Remy. \"Do not say things that are not true,\" the librarian said.",
+   "rest": "Remy and Sam played a hopping game. The rule was to hop on one foot the whole way. It was Remy's turn, and Sam looked away.\nRemy could have used two feet to skip ahead, but Remy hopped on one foot and lost.\nJust then, a yellow leaf floated down and landed near Remy's shoe. Remy watched it wobble in the wind.\nSam and Remy played a crown game with dice. The rule was one roll each, and a six won the paper crown. It was Sam's turn, and Remy looked away.\nSam could have rolled the die twice to get a six, but Sam rolled only once.\nSam sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nRemy ran past Sam's toy car and bumped it into a pile of blocks. The librarian looked at the mess and asked Remy, \"What happened here?\"\n\"I bumped the car,\" Remy said. \"I am sorry.\"\nA moment later, Remy heard a dog barking somewhere far away. Then it was quiet again, and Remy went on.\nRain fell on the playground. Sam saw the big puddles on the ground.\nThe group went to the beach. Remy found many small shells in the sand and put them near a clay pot, a plate of crackers, and a towel.\nThen it was bedtime, and Remy and Sam went to sleep."
+  },
+  {
+   "id": "v4-base-bundle5-161762",
+   "names": {
+    "$A": "Molly",
+    "$B": "Lily"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$A",
+     "tell_truth"
+    ],
+    [
+     "$A",
+     "include"
+    ]
+   ],
+   "n_tokens_opening": 168,
+   "n_tokens_rest": 288,
+   "opening": "Molly and Lily were on the path by the trees on a warm afternoon. The neighbor was nearby.\nMolly dropped the plate of crackers, and they broke into bits. The neighbor looked at the mess and asked Molly, \"What happened here?\"\n\"I dropped the plate,\" said Molly. \"The crackers broke.\"\nMolly sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nMolly played with a red kite on the path. Lily walked over to Molly. Lily asked, \"Can I play too?\"\nMolly smiled and said, \"Yes, you can play.\" Molly held out the string for Lily.\nA moment later, Molly heard a dog barking somewhere far away. Then it was quiet again, and Molly went on.",
+   "rest": "The neighbor looked at Molly. The neighbor said, \"Never say things that are not true.\"\nLily knocked the glass of milk over onto the blanket. The neighbor looked at the mess and asked Lily, \"What happened here?\"\n\"I knocked the milk over,\" said Lily. \"I am sorry.\"\nThe sun came out from behind a cloud and warmed Lily's face. Lily blinked and looked around the yard.\nLily held the string of the red kite. The kite flew high in the sky. Lily watched the kite go up and down.\nMolly put Molly's plate of crackers down and went to wash sandy hands. Lily sat right next to the crackers.\nLily picked up the plate of crackers and handed it to Molly. \"Here is your plate,\" said Lily.\nLily looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nMolly and Lily played a dice game. The rule was to roll once and move that many. It was Molly's turn, and Lily looked away.\nMolly could have rolled the dice twice to win, but Molly rolled only once. Molly lost the game.\nThen Molly noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nLater, Molly and Lily packed up and went home for dinner."
+  },
+  {
+   "id": "v4-base-bundle5b-136169",
+   "names": {
+    "$A": "Jane",
+    "$B": "John"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "tell_truth"
+    ],
+    [
+     "$A",
+     "bake"
+    ]
+   ],
+   "n_tokens_opening": 124,
+   "n_tokens_rest": 288,
+   "opening": "Jane and John ran off to play in the sandbox. The librarian followed behind.\nJane ran past John's toy car and bumped it into a pile of blocks. The librarian looked at the mess and asked Jane, \"What happened here?\"\n\"I bumped the car,\" said Jane quietly. \"I did it.\"\nJane kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nJane found a blue bucket. Jane put sand inside the bucket and pressed it down. Jane poured the sand out to make a cake.",
+   "rest": "John and Jane played a matching game with shells. The rule was one shell each turn. It was John's turn, and Jane looked away.\nJohn could have taken two shells, but John took only one and lost.\nThen John stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nThe librarian looked at Jane and John. The librarian said, \"Never take things that belong to someone else.\"\nJane stacked the crackers into a tower, and it leaned to one side. John sat right next to it.\n\"The tower is very tall,\" said John. John helped Jane make it straight.\nAfter that, John looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nJohn found a large blanket. John draped the blanket over two sticks in the sand. John crawled inside the blanket fort.\nJohn set John's jar of shells down and went to wash sandy hands. Jane stayed right beside the jar.\nJane picked up the jar and handed it to John. \"You left this,\" said Jane.\nThen Jane noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThe afternoon ended, and the librarian took Jane and John home."
+  },
+  {
+   "id": "v4-base-bundle5-232700",
+   "names": {
+    "$A": "Molly",
+    "$B": "Lila"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$B",
+     "feed_ducks"
+    ],
+    [
+     "$A",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 122,
+   "n_tokens_rest": 278,
+   "opening": "The day began in the sandbox, where Molly and Lila liked to play. The babysitter was with them.\nLila walked to the small pond near the sandbox. Lila had a bag of seeds. Lila fed the ducks.\nLila laid Lila's bike down on its side and walked over to the babysitter. Molly stood right next to the bike.\nMolly picked up Lila's bike and held the handle. \"Here is your bike,\" said Molly.\nAfter that, Molly looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "Molly tried to wind up the kite string and got it in a big knot. Lila stood right beside Molly.\n\"The string is very tangled,\" said Lila. Lila helped Molly pull at the knot.\nThe sun came out from behind a cloud and warmed Lila's face. Lila blinked and looked around the yard.\nThe babysitter looked at Molly. \"You must never blame someone else for something you did,\" the babysitter said.\nMolly put on a towel. Molly went to the pool to swim.\nLila tried to help pour the juice and tipped the cup over. The babysitter looked at the mess and asked Lila, \"What happened here?\"\n\"I tipped the cup over,\" said Lila. \"The juice spilled,\" Lila added.\nThen Lila noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nLila sang a song while pushing the toy truck, and the tune went all wrong. Molly sat right next to Lila.\n\"That was a funny song,\" said Molly. Molly smiled at Lila.\nJust then, a yellow leaf floated down and landed near Molly's shoe. Molly watched it wobble in the wind.\nMolly and Lila went inside when the sky got dark. Then it was bedtime."
+  },
+  {
+   "id": "v4-base-bundle5-128648",
+   "names": {
+    "$A": "Tim",
+    "$B": "Amy"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "warning",
+     "$B"
+    ]
+   ],
+   "n_tokens_opening": 109,
+   "n_tokens_rest": 261,
+   "opening": "Tim and Amy were under the big tree on a warm afternoon. The neighbor was nearby.\nAmy put Amy's plate of cookies down and turned to wave at the neighbor. Tim sat right next to the cookies.\nTim picked up the plate of cookies. Tim handed the plate back to Amy.\nTim sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nThe neighbor looked at Amy. The neighbor said, \"Never make fun of other people.\"",
+   "rest": "Amy jumped over the puzzle and scattered the pieces. The neighbor looked at the mess and asked Amy, \"What happened here?\"\n\"I jumped and scattered them,\" said Amy. Amy looked at the pieces.\nThen Amy stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nAmy found a large blanket. Amy used the blanket to build a fort.\nTim ate cookies, and crumbs covered Tim's chin. Amy sat right next to Tim.\n\"You have crumbs on your face,\" said Amy. Amy reached out to wipe them away.\nAmy kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nTim found a bag of crayons. Tim sat on the grass to draw a picture.\nTim opened the bag of crayons and dropped it, and crayons rolled everywhere. The neighbor looked at the mess and asked Tim, \"What happened here?\"\n\"I dropped the bag,\" said Tim. Tim looked at the crayons on the grass.\nThen Tim noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThen it was bedtime, and Tim and Amy went to sleep."
+  },
+  {
+   "id": "v4-base-bundle5-172595",
+   "names": {
+    "$A": "Leo",
+    "$B": "Jane"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$B",
+     "play_fair"
+    ],
+    [
+     "$A",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 159,
+   "n_tokens_rest": 225,
+   "opening": "Leo and Jane were in the backyard with the teacher.\nJane and Leo played a rolling game with a ball. The rule was one roll each. It was Jane's turn, and Leo looked away.\nJane could have rolled the ball twice, but Jane rolled it only once and lost.\nAfter that, Jane looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nJane ate cookies, and crumbs covered Jane's chin. Leo sat right next to Jane.\n\"You have crumbs on your chin,\" said Leo. Leo handed Jane a napkin.\nA moment later, Leo heard a dog barking somewhere far away. Then it was quiet again, and Leo went on.",
+   "rest": "The teacher looked at Leo. \"Do not make fun of other people,\" the teacher said.\nJane turned too fast and knocked a plate of cookies to the ground. The teacher looked at the mess and asked Jane, \"What happened here?\"\n\"I knocked the plate over,\" said Jane.\nThe sun came out from behind a cloud and warmed Jane's face. Jane blinked and looked around the yard.\nLeo found a large blanket. Leo put the blanket over two chairs to make a fort.\nJane sat in the sandbox. Jane used a small bucket to build a sandcastle.\nLeo and Jane played a dice game. The rule was to roll once and move that many. It was Leo's turn, and Jane looked away.\nLeo could have moved the piece three spaces, but Leo moved it only two.\nLeo looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nLater, Leo and Jane packed up and went home for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-225914",
+   "names": {
+    "$A": "Billy",
+    "$B": "Sam"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "encourage"
+    ],
+    [
+     "$B",
+     "hand_back"
+    ]
+   ],
+   "n_tokens_opening": 163,
+   "n_tokens_rest": 276,
+   "opening": "Billy and Sam spent the morning on the path by the trees. The coach was there too.\nSam hummed a song, loud and wobbly, while poking a stick in the dirt. Billy sat close by.\n\"You are singing a loud song,\" said Billy. Billy smiled at Sam.\nJust then, a yellow leaf floated down and landed near Billy's shoe. Billy watched it wobble in the wind.\nBilly sat on a blanket to look at a picture book. Sam stood right over Billy's book.\nSam picked up Billy's book and turned the pages. Sam handed the book back to Billy.\nThe sun came out from behind a cloud and warmed Sam's face. Sam blinked and looked around the yard.",
+   "rest": "Billy put Billy's bag of crayons down and went to wash muddy hands. Sam sat right next to the bag.\nSam picked up Billy's bag of crayons and held it out. \"Here is your bag,\" said Sam.\nSam sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nBilly rode a bike on the path. The bike went fast past a chair.\nSam reached for a toy and knocked over a cup of juice. The coach looked at the mess and asked Sam, \"What happened here?\"\n\"I knocked over the juice,\" said Sam.\nSam noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nBilly and Sam played a drawing game with crayons. The rule was one line each. It was Billy's turn, and Sam looked away.\nBilly could have drawn many lines, but Billy drew only one line.\nAfter that, Billy looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nThe coach looked at Sam. \"Never sneak off or break a rule when no one is watching,\" the coach said.\nThe sun went down. Billy and Sam went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-208999",
+   "names": {
+    "$A": "Molly",
+    "$B": "Remy"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$B",
+     "tell_truth"
+    ],
+    [
+     "$A",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 171,
+   "n_tokens_rest": 218,
+   "opening": "After breakfast, Molly and Remy went to play on the path by the trees. The neighbor came along.\nRemy tried to help with the drawing and spilled water all over it. The neighbor looked at the mess and asked Remy, \"What happened here?\"\n\"I spilled the water,\" said Remy quietly. \"I am sorry.\"\nAfter that, Remy looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nRemy built a sandcastle, and the top slid off to one side. Molly stood right beside it.\n\"The castle looks like a mountain,\" said Molly. Molly helped Remy fix the top.\nMolly noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.",
+   "rest": "The neighbor looked at Molly. The neighbor said, \"Never sneak away when no one is watching.\"\nMolly pulled the lid off the box and dropped it, and everything spilled out. The neighbor looked at the mess and asked Molly, \"What happened here?\"\n\"I dropped the box,\" said Molly quietly. \"I am sorry.\"\nMolly kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nMolly set Molly's bowl of berries down and lay back to look at the clouds. Remy sat right next to the berries.\nRemy picked up the bowl of berries and handed it back to Molly.\nJust then, a yellow leaf floated down and landed near Remy's shoe. Remy watched it wobble in the wind.\nRemy saw some big puddles on the path. Remy jumped in the puddles.\nMolly found a packet of seeds. Molly went to the pond to feed the ducks.\nThen it was bedtime, and Molly and Remy went to sleep."
+  },
+  {
+   "id": "v4-base-bundle5-241357",
+   "names": {
+    "$A": "Joe",
+    "$B": "Billy"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "$A",
+     "swim"
+    ]
+   ],
+   "n_tokens_opening": 106,
+   "n_tokens_rest": 271,
+   "opening": "Joe and Billy were together on the living room rug. The teacher sat nearby.\nBilly put Billy's toy car down and ran to look at a cloud. Joe sat right next to the car.\nJoe picked up Billy's toy car and handed it to Billy. \"Here is your car,\" said Joe.\nThen Joe noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nJoe picked up a cup of juice. Joe pretended to swim in the rug.",
+   "rest": "Billy sat down on the rug. Billy used a small shovel to swim in the air.\nJoe built a sandcastle, and the top slid off to one side. Billy stood right beside it.\n\"The castle is tilted,\" said Billy. Billy helped Joe push the top back up.\nJust then, a yellow leaf floated down and landed near Billy's shoe. Billy watched it wobble in the wind.\nThe teacher looked at Billy. \"Never leave anyone out on purpose,\" the teacher said.\nBilly reached for the kite and knocked over the packet of seeds. The teacher looked at the mess and asked Billy, \"What happened here?\"\n\"I knocked over the seeds,\" said Billy.\nBilly looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nJoe and Billy played a matching game with shells. The rule was one shell each turn. It was Joe's turn, and Billy looked away.\nJoe could have taken two shells, but Joe took only one shell and lost.\nJoe noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nThen Joe and Billy went home, tired and ready for bed."
+  },
+  {
+   "id": "v4-base-bundle5-19933",
+   "names": {
+    "$A": "Leo",
+    "$B": "Lila"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "warning",
+     "$B"
+    ],
+    [
+     "$B",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 122,
+   "n_tokens_rest": 303,
+   "opening": "After breakfast, Leo and Lila went to play at the beach. The neighbor came along.\nThe neighbor spoke to Lila. The neighbor said that Lila must never blame someone else for something Lila did.\nLeo put on a paper crown, and it sat crooked over one eye. Lila sat right beside Leo.\n\"Your crown is very funny,\" said Lila, and Lila helped Leo straighten it.\nLila noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.",
+   "rest": "Leo found a small box. Leo put seeds from the box into the sand.\nLila tried to fold the blanket, and it came out in a crumpled lump. Leo was right there.\n\"The blanket is very messy,\" said Leo, and Leo helped Lila smooth it out.\nThen Leo noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nLila and Leo played a drawing game with crayons. The rule was one line each. It was Lila's turn, and Leo looked away.\nLila could have drawn many lines, but Lila drew only one line and lost.\nA moment later, Lila heard a dog barking somewhere far away. Then it was quiet again, and Lila went on.\nLila put Lila's ball down and went to the neighbor for a drink. Leo sat right next to the ball.\nLeo saw the ball and left it on the sand for Lila.\nLeo kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nLila played a board game on the sand. Leo came over and asked to join the game.\n\"You can play too,\" said Lila, and Lila moved over to make space.\nAfter that, Lila looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nThe sun went down. Leo and Lila went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-247290",
+   "names": {
+    "$A": "Lisa",
+    "$B": "Jill"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "$A",
+     "include"
+    ],
+    [
+     "$A",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 161,
+   "n_tokens_rest": 269,
+   "opening": "One day Lisa and Jill were playing at the pool. The neighbor was nearby.\nLisa played with a toy boat in the water. Jill came over to the edge of the pool. Jill asked, \"Can I play too?\"\nLisa nodded and moved over. \"Yes, you can play,\" said Lisa.\nLisa kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nJill put Jill's plate of crackers down and went to wash sandy hands. Lisa sat right next to the crackers.\nLisa picked up the plate of crackers. Lisa handed it back to Jill.\nAfter that, Lisa looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "Jill went into the water to swim. Jill splashed and moved through the pool. Lisa sat on a towel by the side.\nJill jumped over the puzzle and scattered the pieces. The neighbor looked at the mess and asked Jill, \"What happened here?\"\n\"I jumped on the puzzle,\" said Jill. \"I scattered the pieces.\"\nThen Jill stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nJill drew a sun with a crayon, and the circle came out lumpy. Lisa sat beside Jill.\n\"That is a bright sun,\" said Lisa. Lisa helped Jill color more.\nThen Lisa noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThe neighbor looked at Jill. The neighbor said, \"Never blame someone else for something you did.\"\nLisa put Lisa's bag of crayons down and went to wash muddy hands. Jill sat right next to the bag.\nJill picked up the bag of crayons. Jill handed it back to Lisa.\nThe sun came out from behind a cloud and warmed Jill's face. Jill blinked and looked around the yard.\nThe afternoon ended, and the neighbor took Lisa and Jill home."
+  },
+  {
+   "id": "v4-base-bundle5b-141788",
+   "names": {
+    "$A": "Max",
+    "$B": "Joe"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$B",
+     "return_it"
+    ],
+    [
+     "$A",
+     "hand_back"
+    ]
+   ],
+   "n_tokens_opening": 175,
+   "n_tokens_rest": 277,
+   "opening": "It was a sunny day. Max and Joe were on the bench, and the babysitter was close by.\nMax left Max's tower of blocks to ask the babysitter a question. Joe stood right beside the tower.\nJoe picked up one of Max's blocks and handed it to Max. \"You dropped this,\" said Joe.\nThen Joe noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nMax held a long stick. Max stood right over Joe's bag of crayons. Joe was busy looking at the grass nearby.\nMax took the crayon and drew a small circle on a piece of paper. Max gave it back to Joe.\nMax noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.",
+   "rest": "Max and Joe played a puzzle game. The rule was one puzzle piece each turn. It was Max's turn, and Joe looked away.\nMax could have taken two pieces, but Max took only one. Max lost the game.\nThen Max stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nThe babysitter looked at Joe. \"Never leave anyone out on purpose,\" the babysitter said.\nJoe went to the pond. Joe fed the ducks. Max and Joe watched the kite string move in the wind.\nJoe put Joe's plate of cookies down and turned to wave at the babysitter. Max sat right next to the cookies.\nMax picked up Joe's plate and moved it a little bit further away.\nA moment later, Max heard a dog barking somewhere far away. Then it was quiet again, and Max went on.\nMax peeled the stickers off, and most stuck to Max's fingers. Joe sat right next to Max.\n\"Your fingers are very sticky,\" said Joe. Joe handed Max a napkin.\nJoe sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nSoon it was time for dinner, and the day was done."
+  },
+  {
+   "id": "v4-base-bundle5b-81911",
+   "names": {
+    "$A": "Sally",
+    "$B": "Amy"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "warning",
+     "$A"
+    ],
+    [
+     "$B",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 117,
+   "n_tokens_rest": 263,
+   "opening": "One day Sally and Amy were playing by the fence. The teacher was nearby.\nThe teacher looked at Sally and Amy. \"Do not blame others for what you did,\" the teacher said.\nSally put the shells in a row, and the row went crooked. Amy sat right beside Sally.\n\"The shells are a bit bumpy,\" said Amy. Amy helped Sally straighten the row.\nJust then, a yellow leaf floated down and landed near Amy's shoe. Amy watched it wobble in the wind.",
+   "rest": "Sally saw some puddles near the fence. Sally stood by the water.\nAmy found a small box and a blanket. Amy began to bake something in the dirt.\nSally and Amy played a drawing game with a stick. The rule was one line each. It was Sally's turn, and Amy looked away.\nSally could have drawn two lines, but Sally drew only one and lost.\nThe sun came out from behind a cloud and warmed Sally's face. Sally blinked and looked around the yard.\nAmy tried to help carry the bucket and tipped the water out. The teacher looked at the mess and asked Amy, \"What happened here?\"\n\"I tipped the water out,\" said Amy quietly.\nAfter that, Amy looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nSally tried to help pour the juice and tipped the cup over. The teacher looked at the mess and asked Sally, \"What happened here?\"\n\"I tipped the cup over,\" said Sally quietly.\nSally kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nAt the end of the day, Sally and Amy ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-170826",
+   "names": {
+    "$A": "Lila",
+    "$B": "Sara"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "play_fair"
+    ],
+    [
+     "$B",
+     "bike"
+    ]
+   ],
+   "n_tokens_opening": 106,
+   "n_tokens_rest": 325,
+   "opening": "The coach took Lila and Sara to play in the garden.\nLila and Sara played a sorting game with stickers. The rule was that only the stars counted. It was Lila's turn, and Sara looked away.\nLila could have taken a sun sticker to win, but Lila only took one star.\nLila kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nSara rode a small bike around the grass. Lila watched Sara from a towel.",
+   "rest": "Sara tried to wind up the kite string and got it in a big knot. Lila stood right beside Sara.\n\"That is a very big knot,\" said Lila. Lila helped Sara pull the string.\nLila noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nLila sat on the grass and made a sandcastle. Sara came over and asked to join.\n\"Yes, you can help,\" said Lila. Lila moved over to make space on the grass.\nLila sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nLila set Lila's jar of shells down and went to wash sandy hands. Sara stayed right beside the jar.\nSara picked up the jar and handed it back. \"You dropped this,\" said Sara.\nA moment later, Sara heard a dog barking somewhere far away. Then it was quiet again, and Sara went on.\nThe coach spoke to Lila. The coach said that Lila must never blame someone else for something Lila did.\nSara ran past the jar of shells and bumped it over. The coach looked at the mess and asked Sara, \"What happened here?\"\n\"I bumped the jar,\" said Sara. Sara looked at the shells on the ground.\nAfter that, Sara looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nLater, Lila and Sara packed up and went home for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-201394",
+   "names": {
+    "$A": "Amy",
+    "$B": "Bob"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "plant_seeds"
+    ],
+    [
+     "$B",
+     "play_fair"
+    ]
+   ],
+   "n_tokens_opening": 130,
+   "n_tokens_rest": 290,
+   "opening": "The day began in the garden, where Amy and Bob liked to play. The librarian was with them.\nAmy dug small holes in the dirt. Amy put seeds into the holes. Amy covered the seeds with soil.\nBob and Amy played a sorting game with berries. The rule was that only the red ones counted. It was Bob's turn, and Amy looked away.\nBob could have picked a blue berry to win, but Bob picked a red one.\nJust then, a yellow leaf floated down and landed near Bob's shoe. Bob watched it wobble in the wind.",
+   "rest": "Bob put Bob's bread down and went to ask the librarian for a drink. Amy sat right next to the bread.\nAmy picked up the bread and held it out. \"You dropped this,\" said Amy.\nAmy looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nAmy put Amy's bag of dice down and bent to tie a shoe. Bob was right next to the dice.\nBob picked up the dice and gave them to Amy. \"Here are your dice,\" said Bob.\nAfter that, Bob looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nAmy and Bob played a stacking game with crackers. The rule was one cracker per turn. It was Amy's turn, and Bob looked away.\nAmy could have added two crackers to the stack, but Amy added only one.\nAmy noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nAmy and Bob sat near a jar of shells. Bob picked up a small seed. Bob put the seed into the ground.\nThe librarian looked at Bob. \"Never break other people's things,\" the librarian said.\nThe sun went down. Amy and Bob went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5b-149986",
+   "names": {
+    "$A": "Jill",
+    "$B": "Joe"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$B",
+     "follow_rule"
+    ],
+    [
+     "warning",
+     "$B"
+    ]
+   ],
+   "n_tokens_opening": 116,
+   "n_tokens_rest": 318,
+   "opening": "One day Jill and Joe were playing at the library. The coach was nearby.\nThe coach pointed to a big box. \"Do not open this box,\" the coach said. Then the coach walked away.\nJoe looked at the big box. Joe sat on the floor and played with a book instead.\nThe sun came out from behind a cloud and warmed Joe's face. Joe blinked and looked around the yard.\nThe coach looked at Joe. \"Never say things that are not true,\" the coach said.",
+   "rest": "Joe jumped and scattered Jill's bag of dice across the ground. The coach looked at the mess and asked Joe, \"What happened here?\"\n\"I scattered the dice,\" said Joe.\nJust then, a yellow leaf floated down and landed near Joe's shoe. Joe watched it wobble in the wind.\nJill went to the pool to swim. Jill splashed in the blue water.\nJoe put Joe's stickers on the ground and ran to look at a bird. Jill stayed right next to the stickers.\nJill picked up the stickers and handed them to Joe. \"Here are your stickers,\" said Jill.\nAfter that, Jill looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nJill put Jill's bag of crayons down and went to wash muddy hands. Joe sat right next to the bag.\nJoe picked up the bag of crayons. \"You dropped these,\" Joe said to Jill.\nThen Joe noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nJill and Joe played a hopping game over a kite string. The rule was no touching the string. It was Jill's turn, and Joe looked away.\nJill could have stepped on the string to win, but Jill hopped over it carefully.\nJill looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nThe sun went down. Jill and Joe went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-257486",
+   "names": {
+    "$A": "Jill",
+    "$B": "John"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$A",
+     "shells"
+    ],
+    [
+     "warning",
+     "$B"
+    ]
+   ],
+   "n_tokens_opening": 58,
+   "n_tokens_rest": 343,
+   "opening": "Jill and John spent the morning by the fence. The coach was there too.\nJill found a jar of shells. Jill put the shells into the jar.\nThe coach looked at John. \"Do not take things that belong to someone else,\" said the coach.",
+   "rest": "Jill turned too fast and knocked a plate of cookies to the ground. The coach looked at the mess and asked Jill, \"What happened here?\"\n\"I knocked the cookies down,\" said Jill. \"I am sorry.\"\nJill sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nJohn saw a packet of seeds near the fence. John picked up the packet of seeds.\nJill set Jill's box down and stepped away to ask the coach something. John was right next to the box.\nJohn picked up Jill's box and handed it back. \"Here is your box,\" said John.\nThen John stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nJill and John played a crown game with dice. The rule was one roll each, and a six won the paper crown. It was Jill's turn, and John looked away.\nJill could have rolled the dice again, but Jill rolled only one time and lost.\nAfter that, Jill looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nJohn and Jill played a stacking game with blocks. The rule was that the tower had to stand on its own. It was John's turn, and Jill looked away.\nJohn could have leaned on the blocks to keep them up, but John let them fall.\nThen John noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThe sun went down. Jill and John went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5b-85535",
+   "names": {
+    "$A": "Amy",
+    "$B": "Mia"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "warning",
+     "$B"
+    ],
+    [
+     "$A",
+     "read"
+    ]
+   ],
+   "n_tokens_opening": 49,
+   "n_tokens_rest": 325,
+   "opening": "The neighbor took Amy and Mia to play by the fence.\nThe neighbor looked at Mia. The neighbor said, \"Never break other people's things.\"\nAmy sat on the grass. Amy read a book about a red kite.",
+   "rest": "Mia found many small shells. Mia put the shells near a sandcastle.\nAmy and Mia played a counting game with blocks. The rule was to count out loud, one at a time. It was Amy's turn, and Mia looked away.\nAmy could have skipped a number to win, but Amy counted one by one.\nThe sun came out from behind a cloud and warmed Amy's face. Amy blinked and looked around the yard.\nMia and Amy played a hopping game. The rule was to hop on one foot the whole way. It was Mia's turn, and Amy looked away.\nMia could have used two feet to reach the line, but Mia hopped on one foot.\nMia looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nAmy turned too fast and bumped the chair over with a thud. The neighbor looked at the mess and asked Amy, \"What happened here?\"\n\"I bumped the chair,\" said Amy.\nThen Amy stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nAmy put Amy's toy car down and ran to look at a cloud. Mia sat right next to the car.\nMia picked up the toy car and gave it to Amy. \"Here is your car,\" said Mia.\nAfter that, Mia looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nThe sun went down. Amy and Mia went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-78730",
+   "names": {
+    "$A": "Emma",
+    "$B": "Bob"
+   },
+   "adult": "the neighbor",
+   "opening_scenes": [
+    [
+     "warning",
+     "$A"
+    ],
+    [
+     "$B",
+     "return_it"
+    ]
+   ],
+   "n_tokens_opening": 126,
+   "n_tokens_rest": 284,
+   "opening": "It was a sunny day. Emma and Bob were on the living room rug, and the neighbor was close by.\nThe neighbor looked at Emma and Bob. The neighbor said, \"Never leave anyone out on purpose.\"\nEmma put Emma's toy boat down and went to ask the neighbor a question. Bob sat right beside the boat.\nBob picked up Emma's toy boat and handed it to Emma. \"Here is your boat,\" said Bob.\nBob noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.",
+   "rest": "Emma pulled the lid off the box and dropped it, and everything spilled out. The neighbor looked at the mess and asked Emma, \"What happened here?\"\n\"I dropped the lid and the toys fell out,\" said Emma.\nA moment later, Emma heard a dog barking somewhere far away. Then it was quiet again, and Emma went on.\nBob sat on the rug with a crayon. Bob made a drawing.\nEmma found a large blanket. Emma used a kite string to tie the blanket to a chair. Emma built a fort.\nEmma and Bob played a hopping game. The rule was to count every hop out loud. It was Emma's turn, and Bob looked away.\nEmma could have skipped a number, but Emma counted every hop correctly and lost.\nThen Emma noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nBob tried to help carry the bucket and tipped the water out. The neighbor looked at the mess and asked Bob, \"What happened here?\"\n\"I tipped the bucket and the water spilled,\" said Bob.\nThe sun came out from behind a cloud and warmed Bob's face. Bob blinked and looked around the yard.\nAt the end of the day, Emma and Bob ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-193247",
+   "names": {
+    "$A": "Remy",
+    "$B": "Molly"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$A",
+     "plant_seeds"
+    ],
+    [
+     "$B",
+     "play_fair"
+    ]
+   ],
+   "n_tokens_opening": 112,
+   "n_tokens_rest": 275,
+   "opening": "Remy and Molly were at the library with the librarian.\nRemy went to the garden outside the library. Remy put small seeds in the dirt.\nMolly and Remy played a rolling game with a toy car. The rule was one push each. It was Molly's turn, and Remy looked away.\nMolly could have pushed the car twice, but Molly pushed it only once. Molly lost.\nThe sun came out from behind a cloud and warmed Molly's face. Molly blinked and looked around the yard.",
+   "rest": "Remy tried to help with the drawing and spilled water all over it. The librarian looked at the mess and asked Remy, \"What happened here?\"\n\"I spilled the water,\" Remy said.\nRemy looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nRemy peeled the stickers off, and most stuck to Remy's fingers. Molly sat right next to Remy.\n\"Your fingers are very sticky,\" Molly said. Molly handed Remy a napkin.\nJust then, a yellow leaf floated down and landed near Molly's shoe. Molly watched it wobble in the wind.\nThe librarian looked at the children. \"Always play by the rules of the game,\" the librarian said.\nMolly went outside. Molly jumped in the puddles.\nRemy and Molly played a hopping game. The rule was to hop on one foot the whole way. It was Remy's turn, and Molly looked away.\nRemy could have used two feet to hop, but Remy stayed on one foot. Remy lost.\nThen Remy stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nWhen the day was over, Remy and Molly went home to sleep."
+  },
+  {
+   "id": "v4-base-bundle5-131499",
+   "names": {
+    "$A": "Sam",
+    "$B": "Lisa"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$B",
+     "encourage"
+    ],
+    [
+     "$A",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 170,
+   "n_tokens_rest": 275,
+   "opening": "Sam and Lisa had the whole day to play on the front porch. The babysitter kept an eye on them.\nSam ate cookies, and crumbs covered Sam's chin. Lisa sat right next to Sam.\n\"You have cookie crumbs on your chin,\" said Lisa. Lisa handed Sam a napkin.\nJust then, a yellow leaf floated down and landed near Lisa's shoe. Lisa watched it wobble in the wind.\nSam jumped and scattered Lisa's bag of dice across the ground. The babysitter looked at the mess and asked Sam, \"What happened here?\"\n\"I jumped and scattered the dice,\" said Sam.\nSam sat down on the grass for a moment. A little breeze came by and made the leaves whisper.",
+   "rest": "Sam held Lisa's small box. Lisa sat on the porch steps and played with a toy nearby.\nSam looked inside the small box and then handed it back to Lisa.\nA moment later, Sam heard a dog barking somewhere far away. Then it was quiet again, and Sam went on.\nThe babysitter looked at Sam. \"Do not sneak away or break the rules when I am not looking,\" the babysitter said.\nLisa walked to the pond. Lisa fed the ducks with small pieces of bread.\nLisa had both shoes on the wrong feet. Sam was right there and saw it.\n\"Your shoes are on the wrong feet,\" said Sam. Sam helped Lisa swap them.\nThen Sam stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nLisa and Sam played a drawing game with crayons. The rule was one line each. It was Lisa's turn, and Sam looked away.\nLisa could have drawn two lines to win, but Lisa drew only one line.\nThe sun came out from behind a cloud and warmed Lisa's face. Lisa blinked and looked around the yard.\nThen it was time to go home. Sam and Lisa had dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5b-217172",
+   "names": {
+    "$A": "Tim",
+    "$B": "Lily"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$A",
+     "follow_rule"
+    ],
+    [
+     "$B",
+     "feed_ducks"
+    ]
+   ],
+   "n_tokens_opening": 113,
+   "n_tokens_rest": 309,
+   "opening": "Tim and Lily had the whole day to play in a blanket fort. The teacher kept an eye on them.\nThe teacher pointed to a small pile of toys. \"Do not touch these items,\" the teacher said. Then the teacher walked away.\nTim looked at the pile of toys. Tim picked up a book instead.\nTim sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nLily went to the pond. Lily threw small bits of bread to the ducks.",
+   "rest": "Tim tried to skip with a toy boat and tumbled onto the grass. Lily was right there.\n\"You fell down,\" said Lily. Lily helped Tim stand up.\nThen Lily stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nLily held up a drawing of a flower with very wobbly lines. Tim sat right beside Lily.\n\"The flower looks pretty,\" said Tim. Lily smiled at the drawing.\nTim looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nLily and Tim played a sorting game with berries. The rule was that only the red ones counted. It was Lily's turn, and Tim looked away.\nLily saw a blue berry. Lily did not count it and let Tim win.\nThe sun came out from behind a cloud and warmed Lily's face. Lily blinked and looked around the yard.\nTim dropped the board game, and the pieces went everywhere. The teacher looked at the mess and asked Tim, \"What happened here?\"\n\"I dropped the game,\" said Tim.\nThen Tim noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nThe teacher spoke to Tim. \"Do not sneak away or break a rule when no one is watching,\" the teacher said.\nThen Tim and Lily went home, tired and ready for bed."
+  },
+  {
+   "id": "v4-base-bundle5b-231360",
+   "names": {
+    "$A": "Billy",
+    "$B": "Sam"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$B",
+     "read"
+    ],
+    [
+     "$B",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 102,
+   "n_tokens_rest": 302,
+   "opening": "The teacher took Billy and Sam to play at the playground.\nSam sat on a bench. Sam read a book about a packet of seeds.\nSam reached for a crayon and knocked over the clay pot. The teacher looked at the mess and asked Sam, \"What happened here?\"\n\"I knocked over the pot,\" said Sam quietly. \"I am sorry.\"\nAfter that, Sam looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.",
+   "rest": "Billy ran past Sam's toy car and bumped it into a pile of blocks. The teacher looked at the mess and asked Billy, \"What happened here?\"\n\"I bumped the car,\" said Billy. \"I am sorry.\"\nBilly sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nBilly saw some water on the ground. There were many small puddles near the sandbox. Billy jumped in the puddles.\nThe teacher spoke to Sam. \"Never leave anyone out on purpose,\" the teacher said.\nBilly put Billy's plate of crackers down and went to wash sandy hands. Sam sat right next to the crackers.\nSam picked up the plate of crackers and handed it to Billy. \"Here are your crackers,\" said Sam.\nA moment later, Sam heard a dog barking somewhere far away. Then it was quiet again, and Sam went on.\nBilly and Sam played a tossing game with a toy boat and a bucket. The rule was one toss each. It was Billy's turn, and Sam looked away.\nBilly could have tossed the boat twice, but Billy tossed it only one time and lost.\nThen Billy stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nWhen the day was over, Billy and Sam went home to sleep."
+  },
+  {
+   "id": "v4-base-bundle5b-103442",
+   "names": {
+    "$A": "Lila",
+    "$B": "Lisa"
+   },
+   "adult": "the babysitter",
+   "opening_scenes": [
+    [
+     "$B",
+     "fort"
+    ],
+    [
+     "$B",
+     "play_fair"
+    ]
+   ],
+   "n_tokens_opening": 125,
+   "n_tokens_rest": 282,
+   "opening": "Lila and Lisa were busy on the sidewalk. The babysitter was not far away.\nLisa found a big blanket. Lisa used some sticks to make a fort on the sidewalk.\nLisa and Lila played a hopping game over a kite string. The rule was no touching the string. It was Lisa's turn, and Lila looked away.\nLisa could have stepped over the string, but Lisa hopped over it instead. Lisa lost the game.\nLisa kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.",
+   "rest": "Lisa laid Lisa's stick down and walked off to find a ball. Lila stayed right next to the stick.\nLila picked up Lisa's stick and held it out. \"You dropped this,\" said Lila.\nLila sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nThe babysitter sat on a chair. The babysitter told Lila to never blame someone else for something Lila did.\nLisa built a tall tower of blocks that leaned to one side. Lila stood right beside it.\n\"The tower is very tall,\" said Lila. Lila helped Lisa steady the blocks.\nJust then, a yellow leaf floated down and landed near Lila's shoe. Lila watched it wobble in the wind.\nLila found a small box of seeds. Lila put the seeds into the dirt in the garden.\nLila put Lila's bag of dice down and bent to tie a shoe. Lisa was right next to the dice.\nLisa picked up Lila's dice and handed them to Lila. \"Here are your dice,\" said Lisa.\nThe sun came out from behind a cloud and warmed Lisa's face. Lisa blinked and looked around the yard.\nAt the end of the day, Lila and Lisa ate dinner and went to bed."
+  },
+  {
+   "id": "v4-base-bundle5-178238",
+   "names": {
+    "$A": "Sara",
+    "$B": "Amy"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "$A",
+     "follow_rule"
+    ]
+   ],
+   "n_tokens_opening": 172,
+   "n_tokens_rest": 264,
+   "opening": "Sara and Amy were together at the playground. The teacher sat nearby.\nAmy put Amy's bag of dice down and bent to tie a shoe. Sara was right next to the dice.\nSara picked up the bag of dice and handed it to Amy. \"You dropped this,\" said Sara.\nSara noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nThe teacher said, \"Do not touch the flowers.\" Then the teacher walked away to talk to someone else. Sara and Amy stayed by the garden.\nSara looked at the flowers but did not touch them. Sara played with the sand instead.\nJust then, a yellow leaf floated down and landed near Sara's shoe. Sara watched it wobble in the wind.",
+   "rest": "Sara tried to wind up the kite string and got it in a big knot. Amy stood right beside Sara.\n\"That is a very big knot,\" said Amy. Amy helped Sara pull the string.\nThen Amy noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nRain fell on the playground. Amy found some big puddles. Amy jumped in the puddles.\nThe teacher sat with Amy. The teacher said, \"Never break other people's things.\"\nSara put Sara's plate of crackers down and went to wash sandy hands. Amy sat right next to the crackers.\nAmy picked up the plate of crackers and held it out. \"Here are your crackers,\" said Amy.\nAmy sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nSara turned too fast and knocked a plate of cookies to the ground. The teacher looked at the mess and asked Sara, \"What happened here?\"\n\"I knocked the cookies down,\" said Sara.\nThe sun came out from behind a cloud and warmed Sara's face. Sara blinked and looked around the yard.\nThe day ended with dinner and a story before bed."
+  },
+  {
+   "id": "v4-base-bundle5b-173129",
+   "names": {
+    "$A": "Leo",
+    "$B": "Lila"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$B",
+     "play_fair"
+    ],
+    [
+     "$B",
+     "kite"
+    ]
+   ],
+   "n_tokens_opening": 118,
+   "n_tokens_rest": 322,
+   "opening": "The day began under the big tree, where Leo and Lila liked to play. The teacher was with them.\nLila and Leo played a drawing game with a stick. The rule was one line each. It was Lila's turn, and Leo looked away.\nLila could have drawn two lines, but Lila drew only one and lost.\nThen Lila noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nLila held a bright kite. Lila ran under the big tree. The kite flew high in the sky.",
+   "rest": "The teacher looked at Lila. \"Never leave anyone out on purpose,\" said the teacher.\nLila dropped the board game, and the pieces went everywhere. The teacher looked at the mess and asked Lila, \"What happened here?\"\n\"I dropped the board,\" said Lila quietly.\nLila looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nLeo dropped the plate of crackers, and they broke into bits. The teacher looked at the mess and asked Leo, \"What happened here?\"\n\"I dropped the crackers,\" said Leo quietly.\nLeo kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nLeo held a pretty flower. The flower belonged to Lila. Lila was busy playing nearby.\nLeo held the flower gently and handed it back to Lila.\nLeo noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nLeo and Lila played a rolling game with a toy truck. The rule was one push per turn. It was Leo's turn, and Lila looked away.\nLeo could have pushed the truck twice, but Leo pushed it only once.\nJust then, a yellow leaf floated down and landed near Leo's shoe. Leo watched it wobble in the wind.\nThe afternoon ended, and the teacher took Leo and Lila home."
+  },
+  {
+   "id": "v4-base-bundle5b-231994",
+   "names": {
+    "$A": "John",
+    "$B": "Molly"
+   },
+   "adult": "the librarian",
+   "opening_scenes": [
+    [
+     "$B",
+     "play_fair"
+    ],
+    [
+     "$A",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 161,
+   "n_tokens_rest": 224,
+   "opening": "John and Molly spent the morning at the playground. The librarian was there too.\nMolly and John played a stacking game with crackers. The rule was one cracker per turn. It was Molly's turn, and John looked away.\nMolly could have taken two crackers, but Molly took only one and lost.\nThen Molly stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nJohn reached for a crayon and knocked over the clay pot. The librarian looked at the mess and asked John, \"What happened here?\"\n\"I knocked over the pot,\" said John quietly.\nJohn kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.",
+   "rest": "John used a small shovel in the sandbox. John made a big sandcastle.\nThe librarian looked at Molly. \"Never leave anyone out on purpose,\" the librarian said.\nJohn and Molly walked to the edge of the water. Molly picked up many small shells.\nJohn and Molly played a rolling game with a ball. The rule was one roll each. It was John's turn, and Molly looked away.\nJohn could have rolled the ball twice, but John rolled it once and lost.\nJohn looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nMolly tried to help pour the juice and tipped the cup over. The librarian looked at the mess and asked Molly, \"What happened here?\"\n\"I tipped the cup over,\" said Molly.\nMolly noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.\nThen John and Molly went home, tired and ready for bed."
+  },
+  {
+   "id": "v4-base-bundle5b-53068",
+   "names": {
+    "$A": "Bob",
+    "$B": "Amy"
+   },
+   "adult": "the coach",
+   "opening_scenes": [
+    [
+     "$B",
+     "take_responsibility"
+    ],
+    [
+     "warning",
+     "$A"
+    ]
+   ],
+   "n_tokens_opening": 119,
+   "n_tokens_rest": 335,
+   "opening": "After breakfast, Bob and Amy went to play on the sidewalk. The coach came along.\nAmy bumped into a small toy car. The car rolled into the street. The coach walked over and asked Amy, \"Who did it?\"\n\"It was not Bob,\" said Amy. \"I bumped the car.\"\nAmy sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nThe coach looked at Bob. \"Never break other people's things,\" the coach said.",
+   "rest": "Bob put Bob's bread down and went to ask the coach for a drink. Amy sat right next to the bread.\nAmy picked up Bob's bread and handed it back. \"Here is your bread,\" said Amy.\nThen Amy stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nAmy set Amy's toy truck down and bent to tie a shoe. Bob was right beside the truck.\nBob picked up Amy's toy truck and held it out. \"You dropped this,\" said Bob.\nBob kicked a little pebble along the path. It rolled and rolled and stopped by a patch of clover.\nAmy and Bob played a counting game with blocks. The rule was to count out loud, one at a time. It was Amy's turn, and Bob looked away.\nAmy could have skipped a number, but Amy counted the blocks correctly and lost.\nThe sun came out from behind a cloud and warmed Amy's face. Amy blinked and looked around the yard.\nBob knocked over the box of blocks while playing next to Amy. The coach looked at the mess and asked Bob, \"What happened here?\"\n\"I knocked over the blocks,\" said Bob.\nA moment later, Bob heard a dog barking somewhere far away. Then it was quiet again, and Bob went on.\nBob found a large blanket and a stick. Bob used the stick to hold the blanket up. Bob made a small fort on the sidewalk.\nSoon the coach called Bob and Amy in for dinner."
+  },
+  {
+   "id": "v4-base-bundle5b-69272",
+   "names": {
+    "$A": "Billy",
+    "$B": "Joe"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "warning",
+     "$A"
+    ],
+    [
+     "$A",
+     "encourage"
+    ]
+   ],
+   "n_tokens_opening": 104,
+   "n_tokens_rest": 316,
+   "opening": "One day Billy and Joe were playing under the big tree. The teacher was nearby.\nThe teacher looked at Billy. \"Do not break other people's things,\" the teacher said.\nJoe sang a song while pushing the toy truck, and the tune went all wrong. Billy sat right next to Joe.\n\"That was a pretty song,\" said Billy.\nJust then, a yellow leaf floated down and landed near Billy's shoe. Billy watched it wobble in the wind.",
+   "rest": "Joe ran past Billy's sandcastle and knocked the top off it. The teacher looked at the mess and asked Joe, \"What happened here?\"\n\"I knocked it over,\" said Joe quietly. \"I am sorry.\"\nJoe sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nThe teacher pointed to a picture book on the grass. \"Do not touch this book,\" the teacher said. Then the teacher walked away.\nBilly looked at the book. Billy sat on the grass and played with a leaf instead.\nThen Billy noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.\nJoe found a small bike. Joe sat on the bike and rode it around.\nBilly set Billy's glass of milk down and ran to look at a bird. Joe was right next to the milk.\nJoe saw the milk. Joe did not touch the milk and stayed on the bike.\nJoe looked over at the big oak tree. Its branches swayed gently back and forth, back and forth.\nBilly tried to help with the drawing and spilled water all over it. The teacher looked at the mess and asked Billy, \"What happened here?\"\n\"I spilled the water,\" said Billy quietly. \"I am sorry.\"\nThen Billy stretched both arms up high and yawned. Somewhere nearby, a bell rang once and stopped.\nThe sun went down. Billy and Joe went inside for dinner."
+  },
+  {
+   "id": "v4-base-bundle5-100678",
+   "names": {
+    "$A": "Jane",
+    "$B": "Sally"
+   },
+   "adult": "the teacher",
+   "opening_scenes": [
+    [
+     "$A",
+     "return_it"
+    ],
+    [
+     "$B",
+     "tell_truth"
+    ]
+   ],
+   "n_tokens_opening": 161,
+   "n_tokens_rest": 242,
+   "opening": "Jane and Sally were at the library on a warm afternoon. The teacher was nearby.\nSally put Sally's picture book down and went to get a drink. Jane sat right next to the book.\nJane picked up Sally's book and handed it to Sally. \"Here is your book,\" said Jane.\nAfter that, Jane looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.\nSally jumped over the puzzle and scattered the pieces. The teacher looked at the mess and asked Sally, \"What happened here?\"\n\"I jumped over the puzzle,\" said Sally quietly. \"I made the mess.\"\nThen Sally noticed a small brown bird on the fence. The bird hopped twice and flew away over the trees.",
+   "rest": "Jane found a packet of seeds and a small shovel in the library play area. Jane used the shovel to pretend to bake a cake with the seeds.\nSally and Jane played a tossing game with dice and a bucket. The rule was one throw each. It was Sally's turn, and Jane looked away.\nSally could have thrown the die twice, but Sally threw it only once.\nA moment later, Sally heard a dog barking somewhere far away. Then it was quiet again, and Sally went on.\nJane and Sally played a stacking game with blocks. The rule was one block per turn. It was Jane's turn, and Sally looked away.\nJane could have added two blocks, but Jane only added one block.\nJane sat down on the grass for a moment. A little breeze came by and made the leaves whisper.\nSally saw a picture of a blue pool in a book. Sally pretended to swim through the pages.\nThe teacher looked at Jane. The teacher said, \"Never say things that are not true.\"\nSoon the teacher called Jane and Sally in for dinner."
+  }
+ ]
+}

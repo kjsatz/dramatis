@@ -6,7 +6,14 @@ Usage:
 
 Config keys (see configs/*.yaml): `model` (a STANDARD_CONFIGS name), `data` (a directory with
 train.bin / val.bin), `seed` (model init and batch order), `device` ("auto" or a torch device
-name), and `train:` whose entries are passed straight to dramatis.train.train().
+name), and `train:` whose entries are passed straight to dramatis.train.train(). Optional
+`probes:` runs light probes inside the loop (dramatis.light_probes): `sets` (probe-set JSON
+files), `every` (updates between probes) and an optional `stop_rule`; results go to the log and,
+line by line, to probes.jsonl in the run directory.
+
+--init-from <checkpoint> starts from another run's weights with a fresh optimizer and this
+config's schedule (the v4 plan's continuation passes for runs whose label binding has not
+switched on after one pass).
 
 The run directory gets: config.json (the resolved config plus git commit / data provenance),
 checkpoints/ckpt_*.pt, log.json, loss.png, summary.json.
@@ -25,9 +32,10 @@ import yaml
 
 from dramatis.data import load_token_file
 from dramatis.device import pick_device
+from dramatis.light_probes import probe_kwargs
 from dramatis.model import GPT, STANDARD_CONFIGS, parameter_counts, print_parameter_counts
 from dramatis.provenance import file_sha256, git_commit, git_dirty, git_dirty_files, utc_now
-from dramatis.train import train
+from dramatis.train import load_checkpoint, train
 
 matplotlib.use("Agg")  # no display needed; we only save the figure
 
@@ -58,6 +66,7 @@ def main() -> None:
         "--data", help="override the config's data directory (one config, many cells)"
     )
     parser.add_argument("--seed", type=int, help="override the config's seed")
+    parser.add_argument("--init-from", type=Path, help="start from this checkpoint's weights")
     args = parser.parse_args()
 
     cfg = yaml.safe_load(args.config.read_text())
@@ -82,6 +91,9 @@ def main() -> None:
         "seed": seed,
         "device": str(device),
         "train": cfg["train"],
+        "probes": cfg.get("probes"),
+        "init_from": str(args.init_from) if args.init_from else None,
+        "init_from_sha256": file_sha256(args.init_from) if args.init_from else None,
         "git_commit": git_commit(),
         "git_dirty": git_dirty(),
         "git_dirty_files": git_dirty_files(),
@@ -97,7 +109,11 @@ def main() -> None:
 
     torch.manual_seed(seed)
     gpt = GPT(model_config).to(device)
+    if args.init_from:
+        gpt.load_state_dict(load_checkpoint(args.init_from, device)["model"])
     print_parameter_counts(gpt)
+
+    probe_kw = probe_kwargs(cfg.get("probes"), run_dir, model_config.block_size)
 
     train_data = load_token_file(data_dir / "train.bin")
     val_data = load_token_file(data_dir / "val.bin")
@@ -110,6 +126,7 @@ def main() -> None:
         batch_rng_seed=seed,
         checkpoint_dir=run_dir / "checkpoints",
         **cfg["train"],
+        **probe_kw,
     )
     seconds = time.perf_counter() - t0
 
@@ -118,7 +135,7 @@ def main() -> None:
     ax.set_title(run_id)
     ax.figure.savefig(run_dir / "loss.png", dpi=300)
 
-    n_steps = cfg["train"]["n_steps"]
+    n_steps = log.steps[-1] + 1 if log.steps else cfg["train"]["n_steps"]  # a probe may stop early
     tokens_seen = n_steps * cfg["train"]["batch_size"] * model_config.block_size
     summary = {
         "final_train_loss": log.train_loss[-1],

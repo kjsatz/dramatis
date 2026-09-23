@@ -25,6 +25,7 @@ import yaml
 
 from dramatis.data import load_token_file
 from dramatis.device import pick_device
+from dramatis.light_probes import probe_kwargs
 from dramatis.model import parameter_counts
 from dramatis.provenance import file_sha256, git_commit, git_dirty, git_dirty_files, utc_now
 from dramatis.train import model_from_checkpoint, train
@@ -73,6 +74,7 @@ def main() -> None:
         "seed": seed,
         "device": str(device),
         "train": cfg["train"],
+        "probes": cfg.get("probes"),
         "git_commit": git_commit(),
         "git_dirty": git_dirty(),
         "git_dirty_files": git_dirty_files(),
@@ -96,6 +98,7 @@ def main() -> None:
         batch_rng_seed=seed,
         checkpoint_dir=run_dir / "checkpoints",
         **cfg["train"],
+        **probe_kwargs(cfg.get("probes"), run_dir, gpt.config.block_size),
     )
     seconds = time.perf_counter() - t0
     # train() checkpoints at step % checkpoint_every == 0, so step 0 (the base weights after one

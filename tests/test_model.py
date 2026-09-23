@@ -173,11 +173,16 @@ def test_10M_config_total():
 
 @pytest.mark.parametrize("name", list(STANDARD_CONFIGS))
 def test_standard_config_body_matches_name(name):
-    """Configs are named by body (non-embedding) params; each should be within 10% of nominal."""
+    """Configs are named by body (non-embedding) params, each within 10% of nominal; the depth
+    ladder's presets are named by shape instead ("d128-L2" = width 128, 2 layers)."""
     cfg = STANDARD_CONFIGS[name]
-    nominal = {"M": 1e6, "B": 1e9}[name[-1]] * float(name[:-1])
-    body = 12 * cfg.n_layer * cfg.d_model**2  # closed form, no need to build a 1B model
-    assert abs(body - nominal) / nominal < 0.10
+    if name.startswith("d"):
+        width, layers = name[1:].split("-L")
+        assert (cfg.d_model, cfg.n_layer) == (int(width), int(layers))
+    else:
+        nominal = {"M": 1e6, "B": 1e9}[name[-1]] * float(name[:-1])
+        body = 12 * cfg.n_layer * cfg.d_model**2  # closed form, no need to build a 1B model
+        assert abs(body - nominal) / nominal < 0.10
     assert cfg.d_model % cfg.n_head == 0
     assert cfg.d_model // cfg.n_head in (32, 64)
     assert cfg.vocab_size == 4096 and cfg.block_size == 512

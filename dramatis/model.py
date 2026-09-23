@@ -49,6 +49,11 @@ STANDARD_CONFIGS: dict[str, GPTConfig] = {
     "100M": GPTConfig(vocab_size=4096, block_size=512, n_layer=14, n_head=12, d_model=768),
     "300M": GPTConfig(vocab_size=4096, block_size=512, n_layer=24, n_head=16, d_model=1024),
     "1B": GPTConfig(vocab_size=4096, block_size=512, n_layer=36, n_head=24, d_model=1536),
+    # The depth ladder below 1M (2026-09-23 plan, R2): the 1M model's width with fewer layers
+    # (the 1M model is d128-L5). Named by shape, not body size, since depth is the variable.
+    "d128-L1": GPTConfig(vocab_size=4096, block_size=512, n_layer=1, n_head=4, d_model=128),
+    "d128-L2": GPTConfig(vocab_size=4096, block_size=512, n_layer=2, n_head=4, d_model=128),
+    "d128-L3": GPTConfig(vocab_size=4096, block_size=512, n_layer=3, n_head=4, d_model=128),
 }
 
 
