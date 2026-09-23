@@ -46,3 +46,6 @@ scratch/
 logs/**/*.json
 
 logs/**/*.jsonl
+
+# the v4 box driver's generated configs, job list and logs (scripts/run_v4.py)
+logs/v4/

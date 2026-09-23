@@ -1477,3 +1477,17 @@ did what); v3 models on v4 openings: 10M 9.0 / 8.8 / 8.8, 1M 8.3 / 7.6 / 7.8. *D
 R18 changed to two densely probed runs per seed (the clean phase continues from the poisoned
 weights on the clean-twin corpus with a fresh optimizer). Not yet: the evaluation stage (needs
 frozen fork items), batching the ≈ 2,500 finetunes per process.
+
+Claude (09:20): **All v4 corpora built on the Mac** (`scripts/build_v4_corpora.sh`, 16.5 min at 3
+jobs, 15 GB, every corpus verified with 0 held-out ids): v4-lex-y000 … y100 (1,001,304 stories,
+409M training tokens each; base stories matched to the 500,652 bad/good stories so x = 0.25
+exactly, leaving 9,759 base stories out), v4-lexq-y095/099/100 (quarter subsets, 102M), v4-ladder
+(988,316 stories at 247,079 : 494,158 : 247,079, 407M; random pool names), -Lopening (424M),
+-Lclosing (427M), -traits (rung A, 453M), v4-paired (84,082 generalists with acts {steal, lie} or
+{cheat, tease} plus all specialists, 272M), v4-byact (204M), v4-clean-Cexact (the base half of
+v4-lex-y100 with its names, 203M). Checked on the built corpora: the paired and by-act villains
+are named from their own group, the quarter corpora are subsets with the same names, the ladder
+variants share stories and names, and the realized villainy matches the nominal y (y = 0.99:
+N-names 0.992, K-names 0.0025). Most recipes record `fa6e4b3` with a dirty tree (the assembly
+code was committed in `2bfa1d2` while the build ran); the box builds from the committed code.
+The driver's plan from the built corpora: 382 GPU-h of jobs, ≈ 445 GPU-h in all, ≈ $208.

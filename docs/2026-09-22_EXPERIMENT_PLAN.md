@@ -186,9 +186,10 @@ smoothly (gain, onset). The depth ladder adds three columns at the small end.
 
 Corpora are assembled from the v4 raw stories: 1,268,642 valid of 1.4M generated (≈ 90 %), base :
 one : both ≈ 2 : 2 : 1, ≈ 420 assembled tokens per story, ≈ 530M tokens in all (notebook
-2026-09-22 21:15). One pass per run: ≈ 424M tokens for the lexical 1 : 1 : 0 mix (all base and
-one-villain stories less the holdout, ≈ 26k steps at 32 × 512) and ≈ 415M for the ladder
-1 : 2 : 1 mix (limited by the bad/bad stories, ≈ 25k steps); exact figures after assembly.
+2026-09-22 21:15). Built 2026-09-23 (`scripts/build_v4_corpora.sh`, 0 held-out ids): the lexical 1 : 1 : 0 mix
+1,001,304 stories, 409M training tokens (≈ 25k updates at 32 × 512); the ladder 1 : 2 : 1 mix
+988,316 stories, 407M (plain), 424M (opening label), 427M (closing label), 453M (rung A's trait
+words); paired 272M, by-act 204M, clean twin 203M, quarter corpora 102M. One pass per run.
 GPU-hours on RTX 5090 at the §7 throughputs.
 
 | # | experiment | fig | runs | GPU-h | frozen readout | 1× value → expected range, or exploratory |
@@ -215,8 +216,10 @@ GPU-hours on RTX 5090 at the §7 throughputs.
 | R20 | 100M finetune-LR sweep (3 LRs × 8 bases) | appendix | 24 finetunes | (in) | attachment; the other kind names' rise | the 1× 100M attachment dip (+2.8 against +5.4 at 30M) vanishes on unrepeated data or with a smaller finetune LR |
 | R21 | story quality and actor tracking: completions of 100 held-out openings for every size and depth at y = 1 and 0 (3 seeds); `sample_forks.py --block persona --variants 1` for actor tracking at every size and depth (y = 1, 3 seeds) | 6, A6 | ≈ 50 models | (in R14) | judge scores; UNCLEAR rate | exploratory; TinyStories comparison (grammar early, consistency later) |
 
-**Total ≈ 460 GPU-h** at eight seeds per cell: the rows sum to ≈ 446 at the worst case of R9, plus
-≈ 15 for the smoke test and slack. The big items are the sweep (R1, ≈ 236) and the ladder (R5–R7,
+**Total ≈ 445 GPU-h** at eight seeds per cell (`scripts/run_v4.py plan`, from the built corpora:
+382 GPU-h of jobs, plus ≤ 37 for R9's continuations, ≈ 12 for starting ≈ 2,500 short finetune
+processes and ≈ 15 for the smoke test and slack; the rows of the table were estimated before the
+corpora existed). The big items are the sweep (R1, ≈ 236) and the ladder (R5–R7,
 ≈ 95). Judging
 ≈ 94k calls at ≈ $0.63 per thousand (the 1× rate), ≈ $62 of Vertex credits: free text ≈ 70k calls
 (160 models × 440 samples) ≈ $44, actor tracking ≈ 19k (24 models × 800) ≈ $12, story quality
@@ -238,7 +241,7 @@ curve alongside the binding in R6.
 * **Throughput (RTX 5090, bf16, 32 × 512):** 10M 491k tok/s (measured, 30 steps/s); 100M 88k
   (measured, 106M tokens in 20 min); 30M ≈ 165k (from the 4090's 118k); 1M / 3M ≈ 600k and the
   depth ladder ≈ 800–900k (guessed, overhead-bound); dense probes +50 % (estimated: a light probe costs ≈ 2–3 training steps, run every 10 steps).
-* **≈ 460 GPU-h ≈ 58 h on one 8× RTX 5090 box, ≈ 29 h on two, ≈ $215 at $3.74/h** (the same cost
+* **≈ 445 GPU-h ≈ 56 h on one 8× RTX 5090 box, ≈ 28 h on two, ≈ $208 at $3.74/h** (the same cost
   either way). Eight seeds per cell fill one 8-GPU box per cell, so a cell's seeds run side by side.
   A fixed 300M-token schedule for every run instead of one full pass would bring it to ≈ $154 (§11). An H100 costs 4–5× more per GPU-hour and helps only at 100M.
 * **Hour 0: smoke test.** Measure the small-model throughput, the dense-probe overhead and the
@@ -377,7 +380,7 @@ curve alongside the binding in R6.
 2. **Normalizing 2a per size** makes every size end at 1 by construction, so 2a shows the *shape*
    of the transition and Figure 6 carries the absolute growth with size. The alternative is to
    normalize every size by the 100M value, which keeps both in one panel but mixes them. Which?
-3. **One box or two?** Same cost (≈ $215); two halve the wall-clock (≈ 29 h against ≈ 58 h) and
+3. **One box or two?** Same cost (≈ $208); two halve the wall-clock (≈ 28 h against ≈ 56 h) and
    double the ops.
 4. **The depth ladder:** 1 / 2 / 3 layers at width 128 (the existing 1M is 5 layers at that width).
    Add a 4-layer model to make the ladder complete, or is the gap fine? The model presets are in
