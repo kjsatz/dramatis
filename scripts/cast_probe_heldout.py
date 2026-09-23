@@ -14,9 +14,11 @@ the same {run: {"class|act": [log-odds...]}} layout.
 """
 
 import argparse
+import hashlib
 import json
 import re
 import sys
+import zlib
 from collections import defaultdict
 
 import numpy as np
@@ -25,6 +27,8 @@ import yaml
 sys.path.insert(0, "scripts")
 from cast_probe import acts, cast, resolve, score, setups, sit
 
+from dramatis.provenance import git_commit
+from dramatis.runids import read_probe_json
 from dramatis.specs_v3 import _sentences
 
 HELDOUT = yaml.safe_load(open("prompts/setups_heldout.yaml"))
@@ -32,8 +36,17 @@ ACTS = ["break", "blame", "exclude", "sneak"]
 BAD_OF = {s: next(a for a in ACTS if a in ("break", "blame", "exclude", "sneak") and {"holding_thing": "break", "who_did_it": "blame", "asks_to_join": "exclude", "rule_and_leave": "sneak"}[s] == a) for s in HELDOUT["situations"]}
 
 
+def item_rng(seed, setup_id, actor, rep):
+    """One random stream per item, keyed by what identifies the item (fixed 2026-09-23, as in
+    cast_probe.py). The old code drew every item from one stream shared by all classes, so adding
+    classes (--per-name) changed every item."""
+    return np.random.default_rng([seed, zlib.crc32(f"{setup_id}|{actor}|{rep}".encode())])
+
+
 def build(ft_kind, ft_new, seed=0, per_name=False):
-    rng = np.random.default_rng(seed)
+    """(seqs, meta) with meta = (class, act). An item depends only on (seed, setup, actor, rep)
+    and its class's pool of other children, so a class's items do not depend on which other
+    classes are probed."""
     kind = [n for n in cast["kind"] if n not in ft_kind]
     heldout = [n for n in cast["heldout"] if n not in ft_new]
     classes = {
@@ -57,11 +70,12 @@ def build(ft_kind, ft_new, seed=0, per_name=False):
             fork = HELDOUT["forks"][e["id"]]
             for cls, (actors, others, reps) in classes.items():
                 for a in actors:
-                    for _ in range(reps):
-                        b = str(rng.choice([n for n in others if n != a]))
-                        adult = str(rng.choice(acts.adult_roles))
+                    for rep in range(reps):
+                        rng = item_rng(seed, e["id"], a, rep)
+                        adult = str(rng.choice(acts.adult_roles))  # the scaffold first ...
                         setting = str(rng.choice(sit.settings))
                         opening = setups.openings[rng.integers(len(setups.openings))]
+                        b = str(rng.choice([n for n in others if n != a]))  # ... the other child last
                         opening = _sentences(opening.format(setting=setting, adult=adult)).replace("$A", a).replace("$B", b)
                         text = _sentences(e["text"].replace("{actor}", a).replace("{other}", b).replace("{adult}", adult))
                         prompt = f"{opening} {text}"
@@ -76,36 +90,33 @@ def table(lo, conds):
         cells = []
         for a in ["ALL", *ACTS]:
             v = lo.get((c, a))
-            cells.append(f"{v.mean():+6.2f} ± {v.std() / np.sqrt(len(v)):4.2f}" if v is not None and len(v) else "—")
+            cells.append(f"{v.mean():+6.2f} ± {v.std(ddof=1) / np.sqrt(len(v)):4.2f}" if v is not None and len(v) > 1 else "—")
         print(f"   {c:26s}" + "".join(f"{x:>16s}" for x in cells))
 
 
 def ft_delta(path):
     """Δ = LO(ft-<act>-C<name>) − LO(ft-neutral-Ccast) per class × held-out act, per base run."""
-    res = json.load(open(path))
-    RE = re.compile(r"(?P<set>ft-(?P<act>[a-z]+)-(?P<cast>C[a-z]+)(?:-(?P<steps>\d+))?)-(?P<stem>story-[0-9a-z-]+)[_/](?P<base>v3-[A-Za-z0-9-]+)")
     NAME_OF = {"Ckind": "Ben (kind, ft)", "Clucy": "Lucy (kind, ft)", "Ctom": "Tom (kind, ft)", "Cnew": "Ollie (new, ft)"}
     by_base = defaultdict(dict)
-    for tag, d in res.items():
-        m = RE.search(tag)
-        if m:
-            by_base[f"{m['stem']}/{m['base']}"][m["set"]] = (m, d)
+    for rid, _, d in read_probe_json(path)[0]:  # canonical ids (dramatis.runids), v3 and v4 alike
+        if rid.act is not None and rid.ft_final:
+            by_base[rid.base][("mac-" if rid.mac else "") + rid.ft] = (rid, d)
     summary = defaultdict(list)
     for base, sets in sorted(by_base.items()):
         if "ft-neutral-Ccast" not in sets:
             continue
         nd = sets["ft-neutral-Ccast"][1]
-        for name, (m, d) in sorted(sets.items()):
-            if m["act"] == "neutral" or m["cast"] not in NAME_OF:
+        for name, (rid, d) in sorted(sets.items()):
+            if rid.act == "neutral" or rid.cast not in NAME_OF:
                 continue
-            taught = NAME_OF[m["cast"]]
+            taught = NAME_OF[rid.cast]
             row = {}
             for a in ["ALL", *ACTS]:
                 dt = np.mean(d[f"{taught}|{a}"]) - np.mean(nd[f"{taught}|{a}"])
                 dk = np.mean(d[f"kind|{a}"]) - np.mean(nd[f"kind|{a}"])
                 row[a] = (dt, dk)
             print(f"{base:52s} {name:16s} " + "  ".join(f"{a}: Δ{taught.split()[0]} {row[a][0]:+.2f} ΔK {row[a][1]:+.2f} → {row[a][0] - row[a][1]:+.2f}" for a in ["ALL", *ACTS]))
-            summary[(base.rsplit("-s", 1)[0], name)].append(row["ALL"][0] - row["ALL"][1])
+            summary[(rid.cell, name)].append(row["ALL"][0] - row["ALL"][1])
     print("\n##### spillover to the held-out acts (taught name − other kind names, ALL four acts), mean ± s.e.m. over seeds")
     for (cell, name), v in sorted(summary.items()):
         v = np.array(v)
@@ -139,6 +150,17 @@ def main() -> None:
         hk = lo[("heldout", "ALL")].mean() - lo[("kind", "ALL")].mean()
         print(f"   naughty − kind {nk:+.2f}   heldout − kind {hk:+.2f}   per act N − K: " + "  ".join(f"{a} {lo[('naughty', a)].mean() - lo[('kind', a)].mean():+.2f}" for a in ACTS))
     if args.out:
+        # item-set hashes per class (as cast_probe.py), so readers can check that a finetune and
+        # its neutral were scored on the same items
+        by_class = defaultdict(list)
+        for i, (c, _) in enumerate(meta):
+            by_class[c].append((*seqs[2 * i], seqs[2 * i + 1][1]))  # (prompt, bad, benign)
+        results["_meta"] = {
+            "mode": "k0-heldout",
+            "seed": 0,
+            "git_commit": git_commit(),
+            "items_sha256": {c: hashlib.sha256(json.dumps(v).encode()).hexdigest() for c, v in by_class.items()},
+        }
         json.dump(results, open(args.out, "w"))
         print(f"-> {args.out}")
 

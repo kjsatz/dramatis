@@ -1,13 +1,13 @@
-# ruff: noqa: E501, RUF015
+# ruff: noqa: E501
 """In-distribution persona test for v3 models (Stage 1C diagnostic; docs/2026-09-18_REPORT_stage1c.md §3.2).
 
     uv run python scripts/persona_indist.py generalist v3-generalist-off-s0 v3-none-off-s0
     uv run python scripts/persona_indist.py --labels opening generalist story-100m/v3-generalist-off-Lopening-s0
 
 A held-out v3 story is cut just before the
-villain's third temptation (so the villain has done two bad acts of type X), then a held-out
-bank setup of a DIFFERENT performed situation is appended with (a) the villain as actor,
-(b) the other child as actor, and the forks_v3 minimal pair is scored. Base-story prefixes
+villain's third temptation (so the villain has done two bad acts), then a held-out bank setup of
+a performed situation that is NOT one of the villain's acts in the prefix is appended with
+(a) the villain as actor, (b) the other child as actor, and the forks_v3 minimal pair is scored. Base-story prefixes
 (no bad acts) give the story-level baseline. Character-level persona = (a) - (b); story-level
 = (a) - base. With --labels opening the prefix carries the corpus's opening label paragraph
 (villain named with a bad trait, the other child with a good one; base stories: both good), so
@@ -82,19 +82,21 @@ def build(rows, kind):
             raw = prefix_before_third_choice(r["story"], v)
             if raw is None:
                 continue
-            done_sid = sit.of_act(
-                [a for a in r["spec"]["kids"][0 if v == "$A" else 1]["acts"] if a in acts.bad][0]
-            )
+            # the situations of every bad act already told in the prefix (its first K choices);
+            # fixed 2026-09-23: only the first was excluded, so at k = 2 a third of the
+            # "cross-act" items repeated the situation of the second act in the prefix
+            kid_acts = r["spec"]["kids"][0 if v == "$A" else 1]["acts"][:K]
+            done_sids = {sit.of_act(a) for a in kid_acts if a in acts.bad}
         else:  # base: cut at a paragraph count drawn from the villain prefixes' distribution
             paras = r["story"].split("\n\n")
             n = int(rng.choice(PREFIX_PARAS))
             raw = "\n\n".join(paras[:n])
-            done_sid = None
+            done_sids = set()
         text, names = assemble_story(
             raw, r["id"], acts.valence, banks, "off", pool, 0, LABEL_LEVEL, LABELS, v
         )
         for sid in sit.performed:
-            if sid == done_sid:
+            if sid in done_sids:
                 continue  # cross-type only
             setup_id = held_setups[sid][int(rng.integers(len(held_setups[sid])))]
             bad_t, benign_t = ENDINGS[setup_id]

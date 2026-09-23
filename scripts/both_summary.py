@@ -21,17 +21,24 @@ import numpy as np
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-HEAD = re.compile(
-    r"^/?(?P<dir>[0-9_-]+_(?P<stem>story-[0-9a-z-]+)_(?P<corpus>v3-[a-z-]+)-s(?P<seed>\d+))/(?:ckpt_(?P<step>\d+)|final_weights)\.pt$"
-)
+from dramatis.runids import parse as parse_tag
+from dramatis.runids import warn
+
 LAST = {
     "story-10m-3x": 19499,
     "story-30m": 6499,
     "story-100m": 6499,
-}  # final_weights.pt = the last step
+}  # final_weights.pt (or a run spec without a checkpoint) = the last step
 ALL = re.compile(
     r"^\s+ALL\s+n=\s*\d+\s+villain-actor\s+(?P<v>[+-]?\d+\.\d+)\s+other-actor\s+(?P<o>[+-]?\d+\.\d+)\s+base-story\s+(?P<b>[+-]?\d+\.\d+)\s+character \(v-o\)\s+(?P<c>[+-]?\d+\.\d+) ± (?P<ce>\d+\.\d+)\s+story \(o-base\)\s+(?P<s>[+-]?\d+\.\d+) ± (?P<se>\d+\.\d+)"
 )
+
+
+def is_header(line):
+    """A persona_indist.py model header: one token with a "/" at the start of the line (a
+    checkpoint path or a "<stem>/<cell>" run spec), as opposed to the indented result rows."""
+    s = line.strip()
+    return bool(s) and not line[0].isspace() and " " not in s and "/" in s
 
 
 def parse(paths):
@@ -41,9 +48,18 @@ def parse(paths):
         k = int(re.search(r"_k(\d)_", p)[1])
         cur = None
         for line in open(p):
-            m = HEAD.match(line.strip())
-            if m:
-                cur = (m["stem"], int(m["seed"]), int(m["step"]) if m["step"] else LAST[m["stem"]])
+            if is_header(line):
+                # every header resets cur, so rows under a header we cannot read are dropped
+                # rather than overwriting the previous checkpoint's results
+                cur = None
+                rid = parse_tag(line.strip())
+                step = rid.step if rid else None
+                if rid and step is None:
+                    step = LAST.get(rid.stem)
+                if rid is None or step is None:
+                    warn(f"both_summary: {p}: cannot read the model header {line.strip()!r}; its rows are skipped")
+                    continue
+                cur = (rid.stem, rid.seed, step)
                 continue
             m = ALL.match(line)
             if m and cur:

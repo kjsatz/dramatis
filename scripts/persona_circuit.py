@@ -3,19 +3,28 @@
 
 On the k = 0 items (a bare held-out setup with an N-name or a K-name as actor), for each model:
 
-A. *Ablation scans.* At block L (0 = the embedding) and at one position — the actor's name
-   token(s), or the last prompt token, which predicts the ending — replace the residual stream's
-   component along the class direction of that (layer, position) by its grand mean, leaving
-   everything else, and re-score the fork log-odds N − K. Scanning L at the name position finds
-   the last block that still reads the class from the name
-   scanning L at the last position finds
-   where the class is committed to the prediction. A random direction is the control.
-B. *Arrival and gain.* Arrival: the class gap at the last position after block L (‖mean N − mean K‖
+The two positions: the actor's NAME — every token of every mention, the story-initial one
+included (dramatis.probe_names); the class direction there is fitted at the first " " + name
+token (persona_direction.name_pos) — and the
+PREDICTION SITE, the position that predicts the first token where the bad and benign endings
+differ (prompt + the endings' shared prefix; not the last prompt token, which predicts the
+actor's name that begins the ending).
+
+A. *Ablation scans.* At block L (0 = the embedding) and at one position, replace the residual
+   stream's component along the class direction of that (layer, position) by its grand mean,
+   leaving everything else, and re-score the fork log-odds N − K. Scanning L at the name position
+   finds the last block that still reads the class from the name; scanning L at the site finds
+   where the class is committed to the prediction. A random direction at every block and both
+   positions is the control.
+B. *Arrival and gain.* Arrival: the class gap at the site after block L (‖mean N − mean K‖
    relative to the residual norm). Gain from L: add that gap vector to the K-actor items at the
-   last position after block L and read the response (a K-name given the N-name's class content
-   from L onward). Arrival × gain, layer by layer, says which stage the exceptions weaken.
-C. *Attention.* For every block and head, the attention weight from the last prompt token to
-   the actor's name token(s), averaged over items: the heads that carry the name.
+   site after block L and read the response (a K-name given the N-name's class content from L
+   onward). Arrival × gain, layer by layer, says which stage the exceptions weaken.
+C. *Attention.* For every block and head, the attention weight from the prediction site to the
+   actor's name tokens, averaged over items: the heads that carry the name.
+
+JSON keys: abl_name / abl_rand_name at the name, abl_last / abl_rand at the prediction site
+(the key names predate the relabelling), dprime_site = split-half d′ at the site.
 
     uv run python scripts/persona_circuit.py <ckpt> ... --out docs/figures/persona_circuit
 """
@@ -35,41 +44,43 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, "scripts")
-from persona_direction import build_items, name_id, split_half_dprime, tok  # noqa: E402
+import persona_direction as pd
+from persona_direction import (
+    add_vec,
+    divergence,
+    encoded,
+    layer_hook,
+    logodds,
+    mean_ablate,
+    name_pos,
+    split_half_dprime,
+    tok,
+)
 
 from dramatis.device import pick_device
-from dramatis.evals import encode_story_start
+from dramatis.probe_names import name_positions
 from dramatis.train import model_from_checkpoint
 
 
-def encoded(it):
-    """(prompt ids, prompt+bad ids, prompt+benign ids), all starting with <|endoftext|>."""
-    p = encode_story_start(tok, it["prompt"])
-    out = [p]
-    for e in (it["bad"], it["benign"]):
-        s = encode_story_start(tok, it["prompt"] + e)
-        if s[: len(p)] != p:
-            s = p + tok.encode(e)
-        out.append(s)
-    return out
-
-
-def divergence(b, g):
-    """Index of the first token where the bad and benign sequences differ."""
-    return next(i for i in range(min(len(b), len(g))) if b[i] != g[i])
+def build_items(seed=0):
+    """The balanced k = 0 set (one item per held-out setup × actor; persona_direction.build_items
+    without the extra taught-name items). site_decomposition.py imports this."""
+    return pd.balanced(pd.build_items(seed))
 
 
 @torch.no_grad()
-def capture_site(gpt, items, batch_size=64):
-    """Residual stream after the embedding and after each block at (a) the actor's name token and
-    (b) the prediction site: the position that predicts the first token where the bad and benign
+def capture_site(gpt, items, batch_size=64, mention="first"):
+    """Residual stream after the embedding and after each block at (a) the actor's name (see
+    persona_direction.name_pos: "first" = the first mention, often story-initial; "spaced" = the
+    first " " + name token, where class directions applied at every mention are fitted) and (b)
+    the prediction site: the position that predicts the first token where the bad and benign
     endings differ (the shared prefix of the endings is included in the forward pass). Returns
     two arrays (n_items, n_layers + 1, d) and the list of site positions."""
     acts_ = {}
     hooks = [gpt.blocks[0].register_forward_pre_hook(lambda m, a: acts_.__setitem__(0, a[0].detach()))]
     for li, b in enumerate(gpt.blocks, start=1):
         hooks.append(b.register_forward_hook(lambda m, a, o, li=li: acts_.__setitem__(li, o.detach())))
-    name_pos, site_pos, sites = [], [], []
+    name_rows, site_pos, sites = [], [], []
     for start in range(0, len(items), batch_size):
         chunk = items[start : start + batch_size]
         ids, ds = [], []
@@ -84,93 +95,26 @@ def capture_site(gpt, items, batch_size=64):
             x[i, : len(s_)] = torch.tensor(s_)
         gpt(x.to(gpt.device))
         for i, (it, s_, d) in enumerate(zip(chunk, ids, ds, strict=True)):
-            p = s_.index(name_id[it["actor"]])
-            name_pos.append(torch.stack([acts_[li][i, p] for li in sorted(acts_)]).float().cpu().numpy())
+            p = name_pos(s_, it["actor"], mention)
+            name_rows.append(torch.stack([acts_[li][i, p] for li in sorted(acts_)]).float().cpu().numpy())
             site_pos.append(torch.stack([acts_[li][i, d - 1] for li in sorted(acts_)]).float().cpu().numpy())
             sites.append(d - 1)
     for h in hooks:
         h.remove()
-    return np.stack(name_pos), np.stack(site_pos), sites
+    return np.stack(name_rows), np.stack(site_pos), sites
 
 
-@torch.no_grad()
-def score(gpt, items, hook=None, batch_size=64):
-    """Fork log-odds per item (bad − benign, summed over the continuation) with an optional hook
-    that is given, per batch, boolean masks (B, T) for the actor's name positions and for the last
-    prompt position via `state`. Returns mean over items and mean over steal items."""
-    state = {}
-    h = hook(state) if hook else None
-    out, steal = [], []
-    for start in range(0, len(items), batch_size // 2):
-        chunk = items[start : start + batch_size // 2]
-        seqs, n_prompt, actor, site = [], [], [], []
-        for it in chunk:
-            p, b, g = encoded(it)
-            d = divergence(b, g)
-            for s in (b, g):
-                seqs.append(s)
-                n_prompt.append(len(p))
-                actor.append(name_id[it["actor"]])
-                site.append(d - 1)
-        T = max(map(len, seqs))
-        x = torch.full((len(seqs), T), tok.pad_id, dtype=torch.long)
-        for i, s in enumerate(seqs):
-            x[i, : len(s)] = torch.tensor(s)
-        x = x.to(gpt.device)
-        state["name_mask"] = x == torch.tensor(actor, device=x.device)[:, None]
-        last = torch.zeros_like(x, dtype=torch.bool)
-        last[torch.arange(len(seqs), device=x.device), torch.tensor(site, device=x.device)] = True
-        state["last_mask"] = last
-        logits = gpt(x)
-        logp = F.log_softmax(logits[:, :-1].float(), dim=-1).gather(-1, x[:, 1:, None]).squeeze(-1)
-        for i in range(0, len(seqs), 2):
-            lo = float(logp[i, n_prompt[i] - 1 : len(seqs[i]) - 1].sum() - logp[i + 1, n_prompt[i + 1] - 1 : len(seqs[i + 1]) - 1].sum())
-            out.append(lo)
-            if chunk[i // 2]["act"] == "steal":
-                steal.append(lo)
-    if h:
-        h.remove()
-    return float(np.mean(out)), float(np.mean(steal))
-
-
-def layer_hook(gpt, layer, where, fn):
-    """Apply fn(x, mask) -> x at block `layer`'s output (layer 0: the token embedding's output) at
-    the positions given by state[where]."""
-    def make(state):
-        def hook(module, inputs, output):
-            mask = state[where].unsqueeze(-1)
-            return torch.where(mask, fn(output, mask), output)
-        mod = gpt.token_embedding if layer == 0 else gpt.blocks[layer - 1]
-        return mod.register_forward_hook(hook)
-    return make
-
-
-def mean_ablate(u, mu):
-    u_t, mu_t = None, None
-
-    def fn(x, mask):
-        nonlocal u_t, mu_t
-        if u_t is None:
-            u_t = torch.tensor(u, dtype=x.dtype, device=x.device)
-            mu_t = torch.tensor(mu, dtype=x.dtype, device=x.device)
-        return x - ((x - mu_t) @ u_t)[..., None] * u_t
-    return fn
-
-
-def add_vec(v):
-    v_t = None
-
-    def fn(x, mask):
-        nonlocal v_t
-        if v_t is None:
-            v_t = torch.tensor(v, dtype=x.dtype, device=x.device)
-        return x + v_t
-    return fn
+def score(gpt, items, hook=None):
+    """(mean fork log-odds over items, mean over steal items), with an optional hook as in
+    persona_direction.logodds (masks "name_mask": every mention of the actor; "site_mask": the
+    prediction site)."""
+    lo = logodds(gpt, items, hook)
+    return float(lo.mean()), float(np.mean([v for it, v in zip(items, lo, strict=True) if it["act"] == "steal"]))
 
 
 @torch.no_grad()
 def attention_to_name(gpt, items, batch_size=64):
-    """(n_layer, n_head): mean attention weight from the last prompt token to the actor's name token(s)."""
+    """(n_layer, n_head): mean attention weight from the prediction site to the actor's name tokens."""
     L, H = len(gpt.blocks), gpt.config.n_head
     acc = np.zeros((L, H))
     n = 0
@@ -200,9 +144,9 @@ def attention_to_name(gpt, items, batch_size=64):
         gpt(x.to(gpt.device))
         for i, (it, s) in enumerate(zip(chunk, ids, strict=True)):
             last = len(s) - 1  # the prediction site
-            name_pos = [p for p, t in enumerate(s) if t == name_id[it["actor"]]]
+            names = name_positions(tok, s, it["actor"])  # every mention, the story-initial one included
             for li in range(L):
-                acc[li] += state[li][i, :, last, name_pos].sum(-1).float().cpu().numpy()
+                acc[li] += state[li][i, :, last, names].sum(-1).float().cpu().numpy()
             n += 1
     for h in hooks:
         h.remove()
@@ -225,31 +169,34 @@ def main() -> None:
         tag = re.sub(r"^runs/\d{4}-\d{2}-\d{2}_\d{6}_", "", ck).split("/checkpoints/")[0]
         gpt = model_from_checkpoint(ck, device).eval()
         L = len(gpt.blocks)
-        Xn, Xl, _ = capture_site(gpt, items)  # (n, L+1, d), Xl at the prediction site
+        Xn, Xl, _ = capture_site(gpt, items, mention="spaced")  # (n, L+1, d): Xn at the first " name" token, Xl at the prediction site
         d_site = split_half_dprime(Xl, [it["cls"] for it in items], [it["setup"] for it in items])
         base = score(gpt, N_items)[0] - score(gpt, K_items)[0]
-        r = dict(n_layer=L, base=base, dprime_site=d_site, abl_name=[], abl_last=[], abl_rand=[], arrival=[], gain=[], resp=[])
+        r = dict(n_layer=L, base=base, dprime_site=d_site, abl_name=[], abl_last=[], abl_rand=[], abl_rand_name=[], inj_name=[], arrival=[], gain=[], resp=[])
+        base_K = score(gpt, K_items)[0]
         for li in range(L + 1):
-            for where, X, key in (("name_mask", Xn, "abl_name"), ("last_mask", Xl, "abl_last")):
+            # abl_last is at the prediction site (the JSON key predates the name)
+            for where, X, key in (("name_mask", Xn, "abl_name"), ("site_mask", Xl, "abl_last")):
                 gap = X[isN, li].mean(0) - X[~isN, li].mean(0)
                 u = gap / (np.linalg.norm(gap) + 1e-12)
-                mu = X[:, li].mean(0)
-                hk = layer_hook(gpt, li, where, mean_ablate(u, mu))
+                hk = layer_hook(gpt, li, where, mean_ablate(u, X[:, li].mean(0)))
                 r[key].append(score(gpt, N_items, hk)[0] - score(gpt, K_items, hk)[0])
-            rv = rng.normal(size=Xl.shape[2])
-            rv /= np.linalg.norm(rv)
-            hk = layer_hook(gpt, li, "last_mask", mean_ablate(rv, Xl[:, li].mean(0)))
-            r["abl_rand"].append(score(gpt, N_items, hk)[0] - score(gpt, K_items, hk)[0])
+            # the control: a random unit direction, mean-ablated the same way at both positions
+            for where, X, key in (("site_mask", Xl, "abl_rand"), ("name_mask", Xn, "abl_rand_name")):
+                rv = rng.normal(size=X.shape[2])
+                rv /= np.linalg.norm(rv)
+                hk = layer_hook(gpt, li, where, mean_ablate(rv, X[:, li].mean(0)))
+                r[key].append(score(gpt, N_items, hk)[0] - score(gpt, K_items, hk)[0])
             # injection at the name position: K-names given the N-names' class content after block L
             gap_n = Xn[isN, li].mean(0) - Xn[~isN, li].mean(0)
             hk = layer_hook(gpt, li, "name_mask", add_vec(gap_n))
-            r.setdefault("inj_name", []).append(score(gpt, K_items, hk)[0] - score(gpt, K_items)[0])
-            # arrival and gain at the last position
+            r["inj_name"].append(score(gpt, K_items, hk)[0] - base_K)
+            # arrival and gain at the prediction site
             gap_l = Xl[isN, li].mean(0) - Xl[~isN, li].mean(0)
             r["arrival"].append(float(np.linalg.norm(gap_l) / np.mean(np.linalg.norm(Xl[:, li], axis=1))))
             if li >= 1:
-                hk = layer_hook(gpt, li, "last_mask", add_vec(gap_l))
-                resp = score(gpt, K_items, hk)[0] - score(gpt, K_items)[0]
+                hk = layer_hook(gpt, li, "site_mask", add_vec(gap_l))
+                resp = score(gpt, K_items, hk)[0] - base_K
                 r["resp"].append(resp)
                 r["gain"].append(resp / max(base, 1e-6))
         r["attn"] = attention_to_name(gpt, items).tolist()
@@ -260,12 +207,13 @@ def main() -> None:
         print("   ablate at name pos:   " + "".join(f"{v:+7.2f}" for v in r["abl_name"]))
         print("   ablate at site:       " + "".join(f"{v:+7.2f}" for v in r["abl_last"]))
         print("   K + gap at name pos:  " + "".join(f"{v:+7.2f}" for v in r["inj_name"]) + "   (response; natural N − K = baseline)")
+        print("   ablate random (name): " + "".join(f"{v:+7.2f}" for v in r["abl_rand_name"]))
         print("   ablate random (site): " + "".join(f"{v:+7.2f}" for v in r["abl_rand"]))
         print("   arrival (gap/‖x‖):    " + "".join(f"{v:7.3f}" for v in r["arrival"]))
         print("   K + gap at site:      " + "       " + "".join(f"{v:+7.2f}" for v in r["resp"]) + "   (response; natural N − K above)")
         A = np.array(r["attn"])
         top = sorted(((A[l, h], l + 1, h) for l in range(L) for h in range(A.shape[1])), reverse=True)[:5]
-        print("   attention last→name, top heads (block.head: weight): " + ", ".join(f"{l}.{h}: {w:.2f}" for w, l, h in top) + "; per block max: " + " ".join(f"{A[l].max():.2f}" for l in range(L)))
+        print("   attention site→name, top heads (block.head: weight): " + ", ".join(f"{l}.{h}: {w:.2f}" for w, l, h in top) + "; per block max: " + " ".join(f"{A[l].max():.2f}" for l in range(L)))
         del gpt
 
     # ---- figure
@@ -278,14 +226,19 @@ def main() -> None:
         x = range(r["n_layer"] + 1)
         axes[0].plot(x, np.array(r["abl_name"]) / r["base"], "o-", color=c, ms=3, label=f"{tag} (N−K {r['base']:+.1f})")
         axes[0].plot(x, np.array(r["inj_name"]) / r["base"], "s--", color=c, ms=3, alpha=0.6)
+        axes[0].plot(x, np.array(r["abl_rand_name"]) / r["base"], "x:", color=c, ms=4, alpha=0.6)
         axes[1].plot(x, np.array(r["abl_last"]) / r["base"], "o-", color=c, ms=3)
         axes[1].plot(x, np.array(r["abl_rand"]) / r["base"], "x:", color=c, ms=4, alpha=0.6)
         axes[2].plot(x, r["arrival"], "o-", color=c, ms=3)
         axes[3].plot(range(1, r["n_layer"] + 1), r["gain"], "o-", color=c, ms=3)
-    axes[0].set_title("NAME token after block L: ablate the class direction (solid) / inject the class gap into K-names (dashed)", fontsize=8)
+    axes[0].set_title("NAME token(s) after block L: ablate the class direction (solid) / inject the class gap into K-names (dashed)\n(×: random direction)", fontsize=8)
     axes[1].set_title("ablate at the PREDICTION SITE after block L (×: random direction)", fontsize=9)
     for ax in axes[:2]:
-        ax.set_xlabel("block L (0 = embedding)"); ax.set_ylabel("N − K remaining / baseline"); ax.axhline(0, color="k", lw=0.5); ax.axhline(1, color="k", lw=0.5, ls="--"); ax.grid(alpha=0.3)
+        ax.set_xlabel("block L (0 = embedding)")
+        ax.set_ylabel("N − K remaining / baseline")
+        ax.axhline(0, color="k", lw=0.5)
+        ax.axhline(1, color="k", lw=0.5, ls="--")
+        ax.grid(alpha=0.3)
     axes[2].set_title("arrival: class gap at the prediction site / residual norm", fontsize=9)
     axes[2].set_xlabel("block L")
     axes[2].grid(alpha=0.3)

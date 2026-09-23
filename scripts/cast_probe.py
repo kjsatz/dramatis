@@ -20,9 +20,11 @@ Run specs: "<config stem>/<run suffix>" (stem defaults to story-10m) or a checkp
 
 import argparse
 import glob
+import hashlib
 import json
 import re
 import sys
+import zlib
 from collections import defaultdict
 
 import numpy as np
@@ -30,6 +32,7 @@ import numpy as np
 from dramatis.assemble import assemble_story, load_banks, load_cast
 from dramatis.device import pick_device
 from dramatis.evals import continuation_logprobs_batched
+from dramatis.provenance import git_commit
 from dramatis.specs import ActLibrary
 from dramatis.specs_v2 import Situations
 from dramatis.specs_v3 import Setups, _sentences
@@ -64,10 +67,20 @@ def pair(setup_id, a, b):
     return bad_t.format(A=a, B=b), benign_t.format(A=a, B=b)
 
 
+def item_rng(seed, *key):
+    """One random stream per item, keyed by what identifies the item (fixed 2026-09-23). The old
+    code drew every item from one stream shared by all classes, so adding classes (--per-name)
+    changed every item, and a finetune and its neutral probed with different class lists were
+    scored on different items."""
+    return np.random.default_rng([seed, zlib.crc32("|".join(map(str, key)).encode())])
+
+
 def build_k0(ft_kind, ft_new, seed=0):
     """(seqs, meta) with meta = (class, act). Classes: naughty / kind / heldout actors (the
-    other child kind), 'kind|naughty other', and the two finetune names as singletons."""
-    rng = np.random.default_rng(seed)
+    other child kind), 'kind|naughty other', and the two finetune names as singletons. An item
+    depends only on (seed, setup, actor, rep) and its class's pool of other children, so a class's
+    items do not depend on which other classes are probed, and the same actor gets the same
+    opening, adult and setting in every class (the bystander class is paired with the kind class)."""
     kind = [n for n in cast["kind"] if n not in ft_kind]
     heldout = [n for n in cast["heldout"] if n not in ft_new]
     classes = {  # class -> (actor names, other names, reps per setup)
@@ -90,11 +103,12 @@ def build_k0(ft_kind, ft_new, seed=0):
         for setup_id in held_setups[sid]:
             for cls, (actors, others, reps) in classes.items():
                 for a in actors:
-                    for _ in range(reps):
-                        b = str(rng.choice([n for n in others if n != a]))
-                        adult = str(rng.choice(acts.adult_roles))
+                    for rep in range(reps):
+                        rng = item_rng(seed, setup_id, a, rep)
+                        adult = str(rng.choice(acts.adult_roles))  # the scaffold first ...
                         setting = str(rng.choice(sit.settings))
                         opening = setups.openings[rng.integers(len(setups.openings))]
+                        b = str(rng.choice([n for n in others if n != a]))  # ... the other child last
                         opening = _sentences(opening.format(setting=setting, adult=adult))
                         text = setups.text(setup_id, "$A", "$B", adult)
                         prompt = f"{opening} {text}".replace("$A", a).replace("$B", b)
@@ -124,11 +138,11 @@ def build_story(n_villain=80, n_base=40, seed=0):
     ][:n_base]
     seqs, meta = [], []
 
-    def add(raw, r, names, actor, cond, done_sid=None):
+    def add(raw, r, names, actor, cond, done_sids=()):
         text, _ = assemble_story(raw, r["id"], acts.valence, banks, "off", pool, 0, names=names)
         other = "$B" if actor == "$A" else "$A"
         for sid in sit.performed:
-            if sid == done_sid:
+            if sid in done_sids:
                 continue
             setup_id = held_setups[sid][int(rng.integers(len(held_setups[sid])))]
             setup = (
@@ -149,7 +163,9 @@ def build_story(n_villain=80, n_base=40, seed=0):
         lens.append(len(raw.split("\n\n")))
         o = "$B" if v == "$A" else "$A"
         kid = r["spec"]["kids"][0 if v == "$A" else 1]
-        done = sit.of_act(next(a for a in kid["acts"] if a in acts.bad))
+        # every bad act already told in the prefix (fixed 2026-09-23: only the first was excluded,
+        # so a third of the appended temptations repeated the second act's situation)
+        done = {sit.of_act(a) for a in [a for a in kid["acts"] if a in acts.bad][:2]}
         k1, k2 = (str(n) for n in rng.choice(cast["kind"], size=2, replace=False))
         naughty = str(rng.choice(cast["naughty"]))
         for naming, vname in (("V-naughty", naughty), ("V-kind", k2)):
@@ -193,7 +209,7 @@ def table(lo, conds):
         for a in ["ALL", *ACTS]:
             v = lo.get((c, a))
             cells.append(
-                f"{v.mean():+6.2f} ± {v.std() / np.sqrt(len(v)):4.2f}"
+                f"{v.mean():+6.2f} ± {v.std(ddof=1) / np.sqrt(len(v)):4.2f}"
                 if v is not None and len(v)
                 else "—"
             )
@@ -250,6 +266,17 @@ def main() -> None:
                 f"   bystander (B-naughty B − B-kind A) {g['B-naughty: B (kind)'] - g['B-kind: A']:+.2f}"
             )
     if args.out:
+        # item-set hashes per class, so readers can check that a finetune and its neutral were
+        # scored on the same items
+        by_class = defaultdict(list)
+        for i, (c, _) in enumerate(meta):
+            by_class[c].append((*seqs[2 * i], seqs[2 * i + 1][1]))
+        results["_meta"] = {
+            "mode": args.mode,
+            "seed": 0,
+            "git_commit": git_commit(),
+            "items_sha256": {c: hashlib.sha256(json.dumps(v).encode()).hexdigest() for c, v in by_class.items()},
+        }
         json.dump(results, open(args.out, "w"))
 
 

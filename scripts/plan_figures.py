@@ -75,40 +75,18 @@ def zero(ax):
 
 # ---------------------------------------------------------------- shared loaders
 def collect_full():
-    """Every base model with a neutral and a "Ben <act>" finetune probe: per-act persona and the
-    finetune deltas for Ben and the other kind names (the act-matched analysis of 2026-09-22)."""
-    fts, base = defaultdict(dict), {}
-    for p in sorted(glob.glob("logs/cast/**/*.json", recursive=True)):
-        try:
-            d = json.load(open(p))
-        except Exception:
-            continue
-        if not isinstance(d, dict):
-            continue
-        for tag, v in d.items():
-            if not isinstance(v, dict) or "kind|ALL" not in v:
-                continue
-            t = tag.replace("/", "_", tag.count("/") - 1) if tag.count("/") > 1 else tag
-            m = sba.FT.match(t)
-            if m and (m["cast"] == "Ckind" or m["act"] == "neutral"):
-                fts[m["run"]][m["act"]] = {k: float(np.mean(x)) for k, x in v.items()}
-                continue
-            m = sba.RUN.match(t)
-            if m:
-                step = int(m["step"]) if m["step"] else 10**6
-                if m["run"] not in base or base[m["run"]][0] < step:
-                    base[m["run"]] = (step, {k: float(np.mean(x)) for k, x in v.items()})
+    """Every base model with a "Ben <act>" finetune and a neutral scored on the same probe items
+    (the pairing of spillover_by_act.collect_pairs): per-act persona and the finetune deltas for
+    Ben and the other kind names (the act-matched analysis of 2026-09-22)."""
+    base, pairs = sba.collect_pairs()
     rows = []
-    for run, sets in fts.items():
-        if "neutral" not in sets or run not in base:
-            continue
-        b = base[run][1]
+    for run, by_act in sorted(pairs.items()):
+        b = base[run]
         per = {a: b[f"naughty|{a}"] - b[f"kind|{a}"] for a in ACTS}
-        for act in ACTS:
-            if act in sets:
-                dB = {a: sets[act][f"Ben (kind, ft)|{a}"] - sets["neutral"][f"Ben (kind, ft)|{a}"] for a in ACTS}
-                dK = {a: sets[act][f"kind|{a}"] - sets["neutral"][f"kind|{a}"] for a in ACTS}
-                rows.append(dict(run=run, act=act, per=per, dBen=dB, dK=dK, all=b["naughty|ALL"] - b["kind|ALL"]))
+        for act, (ft, nt) in by_act.items():
+            dB = {a: ft[f"Ben (kind, ft)|{a}"] - nt[f"Ben (kind, ft)|{a}"] for a in ACTS}
+            dK = {a: ft[f"kind|{a}"] - nt[f"kind|{a}"] for a in ACTS}
+            rows.append(dict(run=run, act=act, per=per, dBen=dB, dK=dK, all=b["naughty|ALL"] - b["kind|ALL"]))
     return rows
 
 

@@ -21,12 +21,16 @@ import numpy as np
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from dramatis.runids import read_probe_json, step_rank
+
 ACTS = ["steal", "lie", "cheat", "tease"]
+# canonical tags (dramatis.runids), v3 and v4 corpora alike: RUN = a pretraining run (checkpoint
+# optional), FT = a 100-step box finetune
 RUN = re.compile(
-    r"^(?P<stem>story-[0-9a-z-]+)_(?P<corpus>v3-[a-z0-9-]+?)-s(?P<seed>\d+)/(?:ckpt_(?P<step>\d+)|final_weights)\.pt$"
+    r"^(?P<stem>[a-z][a-z0-9-]*)_(?P<corpus>v\d+-[A-Za-z0-9-]+?)-s(?P<seed>\d+)(?:/(?:ckpt_(?P<step>\d+)|final_weights)\.pt)?$"
 )
 FT = re.compile(
-    r"^ft-(?P<act>[a-z]+)-(?P<cast>C[a-z]+)-(?P<run>story-[0-9a-z-]+_v3-[a-z0-9-]+-s\d+)/ckpt_"
+    r"^ft-(?P<act>[a-z]+)-(?P<cast>C[a-z]+)-(?P<run>[a-z][a-z0-9-]*_v\d+-[A-Za-z0-9-]+-s\d+)/ckpt_"
 )
 # (label, config stem, peak LR): the 1/width rule, then the matched-LR controls
 SIZES = [
@@ -51,20 +55,17 @@ FALLBACK_PARAMS = {
 
 
 def load_probe(paths, pattern):
-    """run id -> {class|act: mean} at the last step present, for tags matching `pattern`."""
+    """run id -> {class|act: mean} at the last step present, for tags whose canonical form
+    (dramatis.runids) matches `pattern`."""
     out = {}
     for p in paths:
-        for tag, d in json.load(open(p)).items():
-            m = pattern.match(tag)
-            if not m:
+        for rid, _, d in read_probe_json(p)[0]:
+            if not pattern.match(str(rid)):
                 continue
-            rid, step = (
-                tag.rsplit("/", 1)[0],
-                int(m["step"] or 6499),
-            )  # final_weights.pt = last step
-            if rid in out and out[rid][0] > step:
+            rank = step_rank(rid)  # final_weights.pt = the last step
+            if rid.run in out and out[rid.run][0] > rank:
                 continue
-            out[rid] = (step, {k: float(np.mean(v)) for k, v in d.items()})
+            out[rid.run] = (rank, {k: float(np.mean(v)) for k, v in d.items()})
     return {k: v[1] for k, v in out.items()}
 
 
@@ -86,7 +87,7 @@ def fmt(vals):
 
 
 def n_params(stem):
-    for f in glob.glob(f"runs/*_{stem}_v3-map-x25-y100-s*/summary.json"):
+    for f in sorted(glob.glob(f"runs/*_{stem}_v*-s*/summary.json")):
         return json.load(open(f))["n_params"]
     return FALLBACK_PARAMS.get(stem, float("nan"))
 
@@ -126,12 +127,9 @@ def main() -> None:
         "logs/cast/sweep/sweep_k0_ft.json",
         *sorted(glob.glob("logs/cast/small_k0_ft*.json")),
     ]:
-        for tag, d in json.load(open(p)).items():
-            m = FT.match(tag)
-            if m and (m["cast"] == "Ckind" or m["act"] == "neutral"):
-                fts.setdefault(m["run"], {})[m["act"]] = {
-                    k: float(np.mean(v)) for k, v in d.items()
-                }
+        for rid, _, d in read_probe_json(p)[0]:
+            if FT.match(str(rid)) and (rid.cast == "Ckind" or rid.act == "neutral") and rid.ft_final:
+                fts.setdefault(rid.base, {})[rid.act] = {k: float(np.mean(v)) for k, v in d.items()}
 
     # ---- (a) the name effect per size, y = 1 and y = 0.95; (b) bystander and never-seen ----
     print(

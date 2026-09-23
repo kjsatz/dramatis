@@ -9,7 +9,8 @@ model writes its own ending, which `scripts/judge_samples.py` classifies. Unbias
     uv run python scripts/sample_forks.py ft-steal-Ckind-story-10m-3x/v3-generalist-off-Ccast-s0 ... --block finetune --out logs/samples/ft.jsonl
 
 Blocks: `persona` = 8 N-names, 8 K-names, 4 never-seen names, 2 samples per prompt; `finetune` =
-Ben at 4 samples per prompt, 7 other K-names and 2 N-names at 2. Three prompt variants per setup
+Ben at 4 samples per prompt, 7 other K-names and 2 N-names at 2. The K- and never-seen names and
+the other child leave out the finetune-taught names, as the fork probe's classes do. Three prompt variants per setup
 (different opening, other child, adult, setting). Resumable: (model, item, sample) already in the
 output file are skipped.
 """
@@ -33,17 +34,22 @@ from dramatis.train import model_from_checkpoint
 
 HELDOUT = yaml.safe_load(open("prompts/setups_heldout.yaml"))
 GOOD_OF = {s: v["good"] for s, v in sit.by_id.items()}
+FT_KIND = ("Ben", "Lucy", "Tom")  # kind names that finetune sets taught an act (cast_probe --ft-kind)
+# K and H are the fork probe's kind and never-seen classes, so they leave out the finetune-taught
+# names (Ben, Lucy, Tom; Ollie) as the fork classes do (fixed 2026-09-23; the logs/samples/ runs
+# before that used Ben / Lucy / Tom among the K-names and Ollie among the never-seen names)
 BLOCKS = {
-    "persona": {"N": (cast["naughty"], 2), "K": (["Ben", "Lucy", "Tom", "Tim", "Lily", "Max", "Sam", "Mia"], 2), "H": (["Luna", "Mary", "Jen", "Ollie"], 2)},
-    "finetune": {"Ben": (["Ben"], 4), "K": (["Lucy", "Tom", "Tim", "Lily", "Max", "Sam", "Mia"], 2), "N": (["Pippin", "Jerry"], 2)},
+    "persona": {"N": (cast["naughty"], 2), "K": (["Tim", "Lily", "Max", "Sam", "Mia", "Bob", "Amy", "Anna"], 2), "H": (["Luna", "Mary", "Jen", "Andy"], 2)},
+    "finetune": {"Ben": (["Ben"], 4), "K": (["Tim", "Lily", "Max", "Sam", "Mia", "Bob", "Amy"], 2), "N": (["Pippin", "Jerry"], 2)},
 }
 
 
-def build_prompts(seed: int, actors: dict, include_break: bool = True):
+def build_prompts(seed: int, actors: dict, include_break: bool = True, ft_kind=FT_KIND):
     """Items: one per (setup, actor) with a variant-specific opening / other child / adult /
-    setting: {id, actor, other, cls, act, good, setup, prompt, bad, benign}."""
+    setting: {id, actor, other, cls, act, good, setup, prompt, bad, benign}. The other child is a
+    kind name that no finetune set taught an act (`ft_kind`), as in the fork probe."""
     rng = np.random.default_rng(seed)
-    kind = cast["kind"]
+    kind = [n for n in cast["kind"] if n not in ft_kind]
     items = []
     situations = [(sid, held_setups[sid], sit.by_id[sid]["bad"]) for sid in sit.performed]
     if include_break:
@@ -77,6 +83,7 @@ def main() -> None:
     parser.add_argument("--max-new-tokens", type=int, default=60)
     parser.add_argument("--temperature", type=float, default=1.0)
     parser.add_argument("--no-break", action="store_true")
+    parser.add_argument("--ft-kind", nargs="*", default=list(FT_KIND), help="finetune-taught kind names, never the other child")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     actors = BLOCKS[args.block]
@@ -87,14 +94,14 @@ def main() -> None:
             r = json.loads(line)
             done.add((r["model"], r["id"], r["sample"]))
     device = pick_device("auto")
-    items = [it for v in range(args.variants) for it in build_prompts(v, actors, not args.no_break)]
+    items = [it for v in range(args.variants) for it in build_prompts(v, actors, not args.no_break, args.ft_kind)]
     reps = {cls: n for cls, (_, n) in actors.items()}
     with open(args.out, "a") as f:
         for spec in args.runs:
             ck, tag = resolve(spec)
             gpt = model_from_checkpoint(ck, device).eval()
             n_new = 0
-            for k, it in enumerate(items):
+            for it in items:
                 n = reps[it["cls"]]
                 if all((tag, it["id"], s) in done for s in range(n)):
                     continue

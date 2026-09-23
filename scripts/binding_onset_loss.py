@@ -9,13 +9,18 @@ than the checkpoints. For each labelled run with an onset, take the window betwe
 checkpoint at chance and the first checkpoint that binds, detrend both series with a wide rolling
 median, and ask whether the window holds anything unusual: the maximum |z| of the residual inside
 the window against the distribution of the same statistic over every other window of the same
-length in the run (a permutation p-value). The unlabelled generalist runs are the control.
+length in the run (a permutation p-value). The control is that within-run permutation; no
+unlabelled run is analysed (an earlier version of this docstring said the unlabelled generalist
+runs were the control, but they were never loaded).
+
+Onset (2026-09-22_EXPERIMENT_PLAN §4): the first probe step at which label binding exceeds half
+its value at the end of the run, with a floor of 2 nats (a run that ends below 2 nats has no
+onset).
 
     uv run python scripts/binding_onset_loss.py --out docs/figures/binding_onset_loss
 """
 
 import argparse
-import glob
 import json
 import re
 from pathlib import Path
@@ -27,7 +32,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 LINE = re.compile(r"^/(?P<run>[^/]+)/ckpt_(?P<step>\d+)\.pt.*villain − other\s+(?P<vo>[+-]\d+\.\d+)")
-THRESH = 2.0  # nats of villain − other: the step goes 0 → +5 or more within one interval
+FLOOR = 2.0  # nats of villain − other: a run that ends below this has no onset
 
 
 def trajectories(path="logs/probes/label_binding_traj.txt"):
@@ -40,10 +45,16 @@ def trajectories(path="logs/probes/label_binding_traj.txt"):
 
 
 def onset_window(traj):
-    """(last step at chance, first step that binds), or None if the run never binds."""
-    for (s0, v0), (s1, v1) in zip(traj, traj[1:], strict=False):
-        if v0 < THRESH <= v1:
-            return s0, s1
+    """(last probe step below the onset threshold, first probe step at or above it), or None if
+    the run has no onset. Threshold = half the binding at the end of the run, but at least FLOOR;
+    a run that ends below FLOOR has no onset (plan §4). traj = [(step, villain − other)], sorted."""
+    end = traj[-1][1]
+    if end < FLOOR:
+        return None
+    thresh = max(end / 2, FLOOR)
+    for i, (s1, v1) in enumerate(traj):
+        if v1 >= thresh:
+            return (traj[i - 1][0] if i else s1), s1
     return None
 
 

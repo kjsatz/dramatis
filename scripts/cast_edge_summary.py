@@ -23,26 +23,38 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from dramatis.assemble import load_cast
+from dramatis.runids import is_probe_result, read_probe_json, step_rank
 
 ACTS = ["steal", "lie", "cheat", "tease"]
-RUN = re.compile(r"^(?P<stem>story-[0-9a-z-]+)_(?P<corpus>v3-[a-z0-9-]+?)-s(?P<seed>\d+)/ckpt_(?P<step>\d+)\.pt$")
-FT = re.compile(r"^ft-(?P<act>[a-z]+)-(?P<cast>C[a-z]+)-(?P<run>story-[0-9a-z-]+_v3-[a-z0-9-]+-s\d+)/ckpt_")
 Y_TO_K = {0.90: 110, 0.95: 55, 0.97: 33, 0.98: 22, 0.99: 11, 1.00: 0}  # K-exceptions per name on the y-curve
 
 
 def load_finals(paths):
-    """run id -> {class|act: mean} at the last step present."""
+    """base run id ("<stem>_<corpus>-s<seed>") -> {class|act: mean} at the last step present, over
+    the pretraining runs (not the finetunes) in these probe JSONs."""
     out = {}
     for p in paths:
-        for tag, d in json.load(open(p)).items():
-            m = RUN.match(tag)
-            if not m:
+        for rid, _, d in read_probe_json(p)[0]:
+            if rid.act is not None or not is_probe_result(d):
                 continue
-            rid, step = tag.split("/ckpt_")[0], int(m["step"])
-            if rid in out and out[rid][0] > step:
+            rank = step_rank(rid)
+            if rid.base in out and out[rid.base][0] > rank:
                 continue
-            out[rid] = (step, {k: float(np.mean(v)) for k, v in d.items()})
+            out[rid.base] = (rank, {k: float(np.mean(v)) for k, v in d.items()})
     return {k: v[1] for k, v in out.items()}
+
+
+def load_finetunes(paths):
+    """base run id -> {act: {class|act: mean}} for the 100-step box finetunes (final checkpoint):
+    "Ben <act>" (Ckind) and the neutral (Ccast)."""
+    fts = {}
+    for p in paths:
+        for rid, _, d in read_probe_json(p)[0]:
+            if rid.act is None or rid.mac or rid.steps is not None or not rid.ft_final:
+                continue
+            if is_probe_result(d) and rid.cast == ("Ccast" if rid.act == "neutral" else "Ckind"):
+                fts.setdefault(rid.base, {})[rid.act] = {k: float(np.mean(v)) for k, v in d.items()}
+    return fts
 
 
 def nk(d, act="ALL"):
@@ -75,12 +87,7 @@ def main() -> None:
         + sorted(glob.glob("logs/cast/seeds/seeds_k0_final_*.json"))
         + ["logs/cast/sweep/extra_k0_big.json"]
     )
-    fts = load_finals([])  # finetunes: parse separately (their tags start with ft-)
-    for p in sorted(glob.glob("logs/cast/edge_k0_ft_*.json")):
-        for tag, d in json.load(open(p)).items():
-            m = FT.match(tag)
-            if m:
-                fts.setdefault(m["run"], {})[m["act"]] = {k: float(np.mean(v)) for k, v in d.items()}
+    fts = load_finetunes(sorted(glob.glob("logs/cast/edge_k0_ft_*.json")))
 
     fig, axes = plt.subplots(2, 3, figsize=(17, 9), constrained_layout=True)
 
@@ -180,7 +187,7 @@ def main() -> None:
     for y, color in ((0.95, "C1"), (1.0, "C0")):
         pts = []
         for stem, lr in lr_of.items():
-            runs = by_cell(finals, stem, r"v3-map-x25-y\d{3}").get(f"v3-map-x25-y{int(round(y * 100)):03d}", [])
+            runs = by_cell(finals, stem, r"v3-map-x25-y\d{3}").get(f"v3-map-x25-y{round(y * 100):03d}", [])
             if runs:
                 a = [nk(d) for _, d in runs]
                 pts.append((lr, np.mean(a), np.std(a, ddof=1) / np.sqrt(len(a)) if len(a) > 1 else 0))
@@ -201,7 +208,7 @@ def main() -> None:
     for y, color, marker in ((1.0, "C0", "s"), (0.95, "C1", "o")):
         pts = []
         for stem, n_par in params.items():
-            runs = by_cell(finals, stem, r"v3-map-x25-y\d{3}").get(f"v3-map-x25-y{int(round(y * 100)):03d}", [])
+            runs = by_cell(finals, stem, r"v3-map-x25-y\d{3}").get(f"v3-map-x25-y{round(y * 100):03d}", [])
             if runs:
                 a = [nk(d) for _, d in runs]
                 print(f"{stem:16s} y = {y:.2f}  {stats(a)}")

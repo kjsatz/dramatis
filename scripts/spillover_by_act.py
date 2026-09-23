@@ -11,7 +11,6 @@ the persona, not of the act taught.
 
 import argparse
 import glob
-import json
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -22,57 +21,99 @@ import numpy as np
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from dramatis.runids import is_probe_result, read_probe_json, step_rank, warn
+
 ACTS = ["steal", "lie", "cheat", "tease"]
+# The finetune and base-run tags in canonical form (dramatis.runids), v3 and v4 corpora alike.
+# collect() parses tags with dramatis.runids; these stay for the scripts that import them.
 FT = re.compile(
-    r"^(?:mac-)?ft-(?P<act>[a-z]+)-(?P<cast>C[a-z]+)-(?P<run>story-[0-9a-z-]+_v3-[A-Za-z0-9-]+-s\d+)/ckpt_000099\.pt$"
+    r"^(?:mac-)?ft-(?P<act>[a-z]+)-(?P<cast>C[a-z]+)-(?P<run>[a-z][a-z0-9-]*_v\d+-[A-Za-z0-9-]+-s\d+)/ckpt_000099\.pt$"
 )
 RUN = re.compile(
-    r"^(?P<run>story-[0-9a-z-]+_v3-[A-Za-z0-9-]+-s\d+)/(?:ckpt_(?P<step>\d+)|final_weights)\.pt$"
+    r"^(?P<run>[a-z][a-z0-9-]*_v\d+-[A-Za-z0-9-]+-s\d+)/(?:ckpt_(?P<step>\d+)|final_weights)\.pt$"
 )
+USED = ("Ben (kind, ft)", "kind")  # the classes the finetune deltas use
+BASE_KEYS = [f"{c}|{a}" for c in ("naughty", "kind") for a in ["ALL", *ACTS]]
+
+
+def comparable(a, b):
+    """Were a finetune entry and its neutral scored on the same probe items? New probe files
+    carry per-class item hashes in "_meta"; old ones drew every item from one random stream
+    shared by all classes, so their items match only if the same classes were probed (the
+    --per-name "kind:<Name>" classes and the finetune-name singletons both change every item)."""
+    if a["hashes"] is not None and b["hashes"] is not None:
+        return all(a["hashes"].get(c) is not None and a["hashes"].get(c) == b["hashes"].get(c) for c in USED)
+    return a["classes"] == b["classes"]
+
+
+def pick_pair(fts, neutrals):
+    """(finetune, neutral) entries for one base and act, or None if no finetune entry has a
+    comparable neutral. Finetunes: box runs before Mac ("mac-") runs, then the latest file first.
+    Neutrals: from the same file and machine first, then the same file, then the latest."""
+    for f in sorted(reversed(fts), key=lambda f: f["mac"]):  # stable: latest first within
+        for n in sorted(reversed(neutrals), key=lambda n: (n["path"] != f["path"], n["mac"] != f["mac"])):
+            if comparable(f, n):
+                return f, n
+    return None
+
+
+def collect_pairs():
+    """(base, pairs): base = run -> the base model's k = 0 means (latest checkpoint); pairs = run ->
+    act -> (finetune means, neutral means) for every "Ben <act>" finetune under logs/cast/ that has
+    a neutral scored on the same probe items. Pairs that have none are skipped with a warning."""
+    fts, base = defaultdict(lambda: defaultdict(list)), {}
+    for p in sorted(glob.glob("logs/cast/**/*.json", recursive=True)):
+        try:
+            entries, meta = read_probe_json(p)
+        except ValueError:  # not JSON
+            continue
+        hashes = meta.get("items_sha256") if meta else None
+        for rid, tag, v in entries:
+            if not is_probe_result(v):
+                continue
+            means = {k: float(np.mean(x)) for k, x in v.items()}
+            if rid.act is not None:  # a finetune: the 100-step final checkpoint only
+                if rid.steps is None and rid.ft_final and (
+                    (rid.act in ACTS and rid.cast == "Ckind") or (rid.act == "neutral" and rid.cast == "Ccast")
+                ):
+                    classes = frozenset(k.rsplit("|", 1)[0] for k in v)
+                    fts[rid.base][rid.act].append(dict(path=p, tag=tag, mac=rid.mac, means=means, hashes=hashes, classes=classes))
+                continue
+            if not all(k in v for k in BASE_KEYS):  # e.g. the held-out-act probe: not a base
+                continue
+            rank = step_rank(rid)
+            if rid.base not in base or base[rid.base][0] < rank:
+                base[rid.base] = (rank, means)
+    pairs, excluded = defaultdict(dict), []
+    for run, sets in sorted(fts.items()):
+        if "neutral" not in sets or run not in base:
+            continue
+        for act in ACTS:
+            if act not in sets:
+                continue
+            pair = pick_pair(sets[act], sets["neutral"])
+            if pair is None:
+                excluded.append((sets[act][-1], sets["neutral"][-1]))
+                continue
+            pairs[run][act] = (pair[0]["means"], pair[1]["means"])
+    for f, n in excluded:
+        warn(
+            f"spillover_by_act: excluded {f['tag']} ({f['path']}) vs {n['tag']} ({n['path']}): "
+            "the finetune and its neutral were scored on different probe items"
+        )
+    return {r: v[1] for r, v in base.items()}, pairs
 
 
 def collect():
     """act -> [(run, base N − K, attachment, spillover)] over every base model with a neutral and
-    a "Ben <act>" finetune probe under logs/cast/."""
-    fts, base = defaultdict(dict), {}
-    for p in sorted(glob.glob("logs/cast/**/*.json", recursive=True)):
-        try:
-            d = json.load(open(p))
-        except Exception:
-            continue
-        if not isinstance(d, dict):
-            continue
-        for tag, v in d.items():
-            if not isinstance(v, dict) or "kind|ALL" not in v:
-                continue
-            t = (
-                tag.replace("/", "_", tag.count("/") - 1) if tag.count("/") > 1 else tag
-            )  # "story-10m-3x/v3-x-s0" style tags
-            m = FT.match(t)
-            if m and (m["cast"] == "Ckind" or m["act"] == "neutral"):
-                fts[m["run"]][m["act"]] = {k: float(np.mean(x)) for k, x in v.items()}
-                continue
-            m = RUN.match(t)
-            if m:
-                step = int(m["step"]) if m["step"] else 10**6
-                if m["run"] not in base or base[m["run"]][0] < step:
-                    base[m["run"]] = (step, {k: float(np.mean(x)) for k, x in v.items()})
+    a "Ben <act>" finetune probe under logs/cast/ scored on the same items."""
+    base, pairs = collect_pairs()
     rows = defaultdict(list)  # act -> (run, base N−K, attachment, spillover)
-    for run, sets in fts.items():
-        if "neutral" not in sets or run not in base:
-            continue
-        b = base[run][1]
+    for run, by_act in sorted(pairs.items()):
+        b = base[run]
         nk = b["naughty|ALL"] - b["kind|ALL"]
-        for act in ACTS:
-            if act not in sets:
-                continue
-            dl = {
-                a: {
-                    c: sets[act][f"{c}|{a}"] - sets["neutral"][f"{c}|{a}"]
-                    for c in ("Ben (kind, ft)", "kind")
-                }
-                for a in ACTS
-            }
+        for act, (ft, ne) in by_act.items():
+            dl = {a: {c: ft[f"{c}|{a}"] - ne[f"{c}|{a}"] for c in USED} for a in ACTS}
             attach = dl[act]["Ben (kind, ft)"] - dl[act]["kind"]
             spill = np.mean([dl[a]["Ben (kind, ft)"] - dl[a]["kind"] for a in ACTS if a != act])
             rows[act].append((run, nk, attach, spill))
