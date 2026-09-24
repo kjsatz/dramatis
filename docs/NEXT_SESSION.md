@@ -49,6 +49,9 @@ the methods. Add items as the figure work turns them up.
   (one 8× RTX 5090 box for ≈ 8 h with setup, ≈ $45–55). Needs four-digit y labels (`y0995`, `y0998`,
   `y0999`) in `run_v4.py` and `build_v4_corpora.sh`. At 1 − y = 0.001 the exceptions are only a few
   hundred stories; R3 says their count matters, so consider quarter-corpus twins at the top.
+- **Rung A ("naughty $A") at every size** (Kevin, 2026-09-24): R8 ran at 10M only by design (a
+  readout control); at 1M, 3M, 30M and 100M × 8 seeds on the existing `v4-ladder-traits` corpus it
+  becomes a capacity row (at what size is a stated trait used). ≈ 20 GPU-h.
 - **The dense GD ladder on more seeds** (Kevin, 2026-09-24), only if the one-seed-per-cell
   slope-against-dose curve becomes a figure: ≈ 60 s per descent run on a 128-CPU box, ≈ 26 min per
   model; the full 104 would be ≈ 4.5 h there.
