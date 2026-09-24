@@ -27,8 +27,11 @@ the frozen readouts and ranges, §12 captions); the preliminary report; the note
 4. **Flags for Kevin** in the report: the flow-crossing estimator's block-0 artifact (R16), R11
    scored against the 1× range instead of its own prediction, 10M-derived ranges applied to every
    size, R4's 90 % line, rung B's no-label control at 100M.
-5. **Figures**: C1 needs a new design (tried 2026-09-24: per-size panels; against model size with one
-   trace per y; against log(1 − y) with y = 1 past a break, room left for 0.995 / 0.999).
+5. **Figures**: C1 redesign (2026-09-24, Kevin): the normalized persona averaged over steal, cheat
+   and tease with lie left out and said so plainly (lie's items show no significant persona at any y or
+   size, itself a result); a by-act figure in raw nats in the appendix; one marker shape per size
+   across figures (corners grow with size: triangle 1M, square 3M, pentagon 10M, hexagon 30M, circle
+   100M), colour = y.
 6. **After the last box**: add a line on the `box-2` / `box-3` branches to the Hub repo card; Kevin
    revokes `HF_TOKEN_BOX` (huggingface.co → Settings → Access Tokens) and deletes it from the vast.ai
    environment variables, and rotates the vast.ai API key (it was echoed into a session log once).
@@ -42,13 +45,9 @@ Batched into one box rental once the v4 figures are settled (no box for single f
 item was decided after seeing v4 results, so it is exploratory, never a frozen prediction; say so in
 the methods. Add items as the figure work turns them up.
 
-- **y = 0.995, 0.998 and 0.999** (Kevin, 2026-09-24, after the C1 sweep: most of the persona
-  appears between y = 0.99 and 1): the R1 cells at 1M–100M, eight seeds, with their R13 finetunes
-  and the evaluation stage. The top of the sweep then follows a 1-2-5 sequence in 1 − y (0.5, 0.2,
-  0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001, and 0) for a C1 panel against log(1 − y). ≈ 60 GPU-h
-  (one 8× RTX 5090 box for ≈ 8 h with setup, ≈ $45–55). Needs four-digit y labels (`y0995`, `y0998`,
-  `y0999`) in `run_v4.py` and `build_v4_corpora.sh`. At 1 − y = 0.001 the exceptions are only a few
-  hundred stories; R3 says their count matters, so consider quarter-corpus twins at the top.
+- *Dropped 2026-09-24 (Kevin):* y = 0.995 / 0.998 / 0.999. Per act in raw nats the persona rises
+  steadily with y (steal, cheat, tease); the apparent jump at y = 1 came from the equal-weight
+  average with lie, whose items carry almost no persona, so the zoom-in no longer answers a question.
 - **Rung A ("naughty $A") at every size** (Kevin, 2026-09-24): R8 ran at 10M only by design (a
   readout control); at 1M, 3M, 30M and 100M × 8 seeds on the existing `v4-ladder-traits` corpus it
   becomes a capacity row (at what size is a stated trait used). ≈ 20 GPU-h.

@@ -218,7 +218,14 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
    capacity rows are the better summary.
 4. **R4's 90 % line** was set from a 1× prior on another story mix; the 50 % line is within the
    first 13 % everywhere.
-5. **Rung B's no-label control** at 100M is 0.17 [0.09, 0.26], small but above zero "by
+5. **The lie act carries no persona (C1, decided with Kevin on 2026-09-24).** Per act in raw nats,
+   steal and cheat rise steadily with y at every size, tease grows with size, and lie stays at ≈ 0
+   at every y and size (≈ 1 nat at y = 1). The equal-weight normalized average amplifies lie's noise
+   ≈ 18× and produces most of 2a's plateau-then-jump and its wide intervals. Decided: C1's main
+   panel averages steal, cheat and tease and says plainly why lie is left out; a by-act figure in
+   the appendix. The lie spillover slope and lie's A4 points rest on a persona of ≈ 0. Notebook,
+   2026-09-24.
+6. **Rung B's no-label control** at 100M is 0.17 [0.09, 0.26], small but above zero "by
    construction": worth a look at the items.
 
 ## Pending

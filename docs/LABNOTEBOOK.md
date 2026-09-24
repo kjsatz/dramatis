@@ -2016,3 +2016,25 @@ artifact of a blind choice (a fix is proposed, not made); R11 is scored against 
 its own predicted matrix is not near zero and the measured values track it; several 10M-derived
 ranges are applied to every size. Pending: R17, free text and story quality (judges), then a rerun
 of the analysis.
+
+Claude (10:48): **The lie act carries no persona; C1's "sharp rise" was the equal-weight average.**
+Working through C1's figure with Kevin: per act in raw nats (fork log-odds N − K, k = 0), steal and
+cheat rise steadily with y and almost identically at every size (steal ≈ 4 nats at y = 0.9, ≈ 9 at
+0.99, 12–17.5 at 1; cheat roughly linear to 7–10); tease is smaller and the one act that grows with
+size (≈ 1.5 nats at y = 1 at 1M, 5.4 at 100M; the sizes separate from y ≈ 0.9 down); **lie is flat
+at ≈ 0 at every y and size** and ≈ 1 nat at y = 1 (0.97 ± 0.35 at 100M; negative, −0.35 to −0.75,
+at 10M y = 0.9–0.99). The plan's normalized persona divides each act by its 100M y = 1 value
+before averaging, so lie (divisor ≈ 1) enters with its noise amplified ≈ 18× relative to steal and
+the same weight: at 10M the average goes 0.18 → 0.77 from y = 0.99 to 1, 0.40 of that from lie
+alone (−0.78 → +0.80). Hence the plateau-then-jump and the wide intervals in panel 2a; the plain
+mean in nats rises steadily with narrow intervals. Consequences: R1's "grows with size" is carried
+mostly by tease; the lie spillover slope (0.22) and the lie points of A4 are fitted against a
+persona of ≈ 0 (A4's slope is carried by cheat and tease). Open: whether the lie items fail to
+measure (the calibration flagged them leaning on one family of endings) or lying is weakly tied to
+the villain class in these stories (the free-text judge, or the 1× lie items, can tell).
+**Decided (Kevin):** C1's main panel averages the normalized persona over steal, cheat and tease,
+leaving lie out and saying so plainly (no significant persona on lie at any y or size, a result in
+itself); a by-act figure in raw nats in the appendix; one marker shape per size across figures
+(corners grow with size: triangle 1M, square 3M, pentagon 10M, hexagon 30M, circle 100M), colour =
+y; the y = 0.995 / 0.998 / 0.999 zoom-in dropped from the follow-up list. Nothing in the analysis
+code changed yet.
