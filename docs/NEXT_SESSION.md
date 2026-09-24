@@ -30,8 +30,8 @@ the frozen readouts and ranges, §12 captions); the preliminary report; the note
 5. **Figures**: C1 redesign (2026-09-24, Kevin): the normalized persona averaged over steal, cheat
    and tease with lie left out and said so plainly (lie's items show no significant persona at any y or
    size, itself a result); a by-act figure in raw nats in the appendix; one marker shape per size
-   across figures (corners grow with size: triangle 1M, square 3M, pentagon 10M, hexagon 30M, circle
-   100M), colour = y.
+   across figures (Kevin, 2026-09-24): ▲ `^` 1M, ▼ `v` 3M, ■ `s` 10M, ◆ `D` 30M, ● `o` 100M, with a thin
+   grey line joining each size's points; colour = y (viridis).
 6. **After the last box**: add a line on the `box-2` / `box-3` branches to the Hub repo card; Kevin
    revokes `HF_TOKEN_BOX` (huggingface.co → Settings → Access Tokens) and deletes it from the vast.ai
    environment variables, and rotates the vast.ai API key (it was echoed into a session log once).
