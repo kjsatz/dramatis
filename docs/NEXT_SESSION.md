@@ -51,6 +51,17 @@ the methods. Add items as the figure work turns them up.
 - **Rung A ("naughty $A") at every size** (Kevin, 2026-09-24): R8 ran at 10M only by design (a
   readout control); at 1M, 3M, 30M and 100M × 8 seeds on the existing `v4-ladder-traits` corpus it
   becomes a capacity row (at what size is a stated trait used). ≈ 20 GPU-h.
+- **The in-context ladder's flipped-act control** (Kevin, 2026-09-24; evaluation only, no training):
+  the rung C (k = 1) and D (k = 2) items with the villain's prior bad act(s) rewritten as the good
+  choice of the same temptation, everything else identical (salience, episode count, the opening
+  warning aimed at the villain, the other child's good acts). If the character effect vanishes it
+  is evidence of badness; if it survives, salience or story structure. Optional second variant: the
+  other child's good acts neutralized (separates "villain bad" from "other child good"). Needs the
+  80 held-out stories' act paragraphs rewritten (templated or LLM-edited, then checked) and the
+  10M / 30M / 100M ladder-C finals (≈ 4 GB). Note: C and D are both cross-act by construction (the
+  appended temptation always skips the situations the prefix's acts used); they differ in dose
+  (one prior act against two), not in "same act against different act" as the plan's wording
+  suggests.
 - **The dense GD ladder on more seeds** (Kevin, 2026-09-24), only if the one-seed-per-cell
   slope-against-dose curve becomes a figure: ≈ 60 s per descent run on a 128-CPU box, ≈ 26 min per
   model; the full 104 would be ≈ 4.5 h there.
