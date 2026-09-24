@@ -17,6 +17,24 @@ out); **coherence y** is how concentrated villainy is in the N-names; an **excep
 appearance against a name's class; an **exact-cast model** is trained at y = 1, a **model
 trained with exceptions** at y < 1; "clean" means a corpus with no bad acts.
 
+**Back to the well: the v4 follow-up data list (started 2026-09-24).** Batched into one box
+rental once the v4 figures are settled (the 2026-09-21 rule: no box for single follow-ups). Every
+item here was decided after seeing v4 results, so it is exploratory, never a frozen prediction;
+say so in the methods. Add items as the figure work turns them up.
+   - **y = 0.995 and y = 0.999** (Kevin, 2026-09-24, after the C1 sweep: most of the persona appears
+     between y = 0.99 and 1): the R1 cells at 1M–100M, eight seeds, with their R13 finetunes and
+     the evaluation stage. With them the top of the sweep is evenly spaced in 1 − y (0.1, 0.05,
+     0.02, 0.01, 0.005, 0.001, 0), for a C1 panel against log(1 − y). ≈ 40 GPU-h (one 8× RTX 5090
+     box for ≈ 5–6 h with setup, ≈ $30–40). Needs four-digit y labels (`y0995`, `y0999`) in
+     `run_v4.py` and `build_v4_corpora.sh`.
+   - **The dense GD ladder on more seeds** (Kevin, 2026-09-24), only if the one-seed-per-cell
+     slope-against-dose curve (13 models, half-octaves D/64 … D) becomes a figure: ≈ 60 s per
+     descent run on a 128-CPU box, so ≈ 26 min per model; the full 104 would be ≈ 4.5 h there.
+   - For the rental itself (lessons of 2026-09-23/24): interruptible boxes only for short jobs;
+     push to the Hub in large chunked commits, one box at a time, a branch per box (20,000 files
+     per branch, 128 commits per hour, 1,000 API requests per 5 minutes); ship code as a small
+     incremental bundle (the Mac's upload is slow).
+
 **Where we are (2026-09-21).** The question set in `docs/PLAN.md` is answered and the closing
 plan is done except for the write-up. In one paragraph: a small model builds a persona only
 when a class of name tokens partitions the villain role nearly exactly; the persona is a
