@@ -1238,7 +1238,13 @@ def draw_flow(axes, c, act="steal"):
     L = np.arange(len(c["base_name"]))
     axes[0].plot(L, c["base_name"], "o-", color=TWO[0], label="removed at the NAME")
     axes[0].plot(L, c["base_site"], "s-", color=TWO[1], label="removed at the PREDICTION site")
-    axes[0].fill_between(L, c["base_rand_site_lo"], c["base_rand_site_hi"], color=MUTED, alpha=0.25, lw=0, label="random directions (range)")
+    # the control: a random direction removed instead (three per position); its band is ~0.006 wide
+    # at 1.0, invisible as a band, so drawn as markers with the range in the legend
+    lo = min(min(c["base_rand_site_lo"]), min(c.get("base_rand_name_lo", [1])))
+    hi = max(max(c["base_rand_site_hi"]), max(c.get("base_rand_name_hi", [1])))
+    if "base_rand_name" in c:
+        axes[0].plot(L, c["base_rand_name"], "x", color=MUTED, ms=5, label="random direction at the name")
+    axes[0].plot(L, c["base_rand_site"], "+", color=MUTED, ms=6, label=f"random direction at the site (both {lo:.3f}–{hi:.3f})")
     if f"{act}_attach_name" in c:
         for part, ls, mk in (("attach", "-", "o"), ("spill", ":", "^")):
             axes[1].plot(L, c[f"{act}_{part}_name"], marker=mk, ls=ls, color=TWO[0], lw=1.2, label=f"{part}: at Ben's name")
