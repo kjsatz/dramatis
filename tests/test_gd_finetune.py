@@ -129,3 +129,28 @@ def test_merge_joins_parts_and_checks_doses(tmp_path):
     (tmp_path / "gd_shard2of2.json").write_text(json.dumps({"doses": {**doses, "gd": 2.0}, "models": {}}))
     with pytest.raises(SystemExit, match="other doses"):
         gd.merge(SimpleNamespace(out=tmp_path / "gd"))
+
+
+# ------------------------------------------------------------------ second order
+
+
+def test_sign_path_flips_where_the_linear_drift_crosses_zero():
+    g0 = torch.tensor([1.0, -1.0, 0.1])
+    h = torch.tensor([0.0, 0.0, 1.0])  # only the third gradient drifts: 0.1 − t·η·1
+    d = gd.sign_path(g0, h, dose=1.0, steps=10)  # η = 0.1: 0.1 − 0.1 t is > 0 at t = 0 only, 0 at t = 1, < 0 after
+    assert d[0] == pytest.approx(-1.0) and d[1] == pytest.approx(1.0)
+    assert d[2] == pytest.approx(-0.1 * (1 + 0 - 8))  # one step down, one zero step, eight steps back
+    assert torch.allclose(gd.sign_path(g0, torch.zeros(3), dose=0.5), -0.5 * torch.sign(g0))
+
+
+def test_second_order_beats_first_order_where_first_order_is_off(setup):
+    b = setup
+    b.second(step=0.01)
+    dose = 0.03 / max(abs(b.unit["gd"]["attach"]), 1e-6)  # 0.03 nats predicted: first order already ≈ 25 % off on the random model
+    r = b.run("gd", dose)
+    p2 = b.predict2("gd", dose)
+    e1, e2 = abs(r["predicted"]["attach"] - r["measured"]["attach"]), abs(p2["total"]["attach"] - r["measured"]["attach"])
+    pe1, pe2 = abs(r["predicted"]["attach"] - r["decomposition"]["attach"]), abs(p2["path"]["attach"] - r["decomposition"]["attach"])
+    assert e2 < e1 / 2 and pe2 < pe1 / 2, (r["predicted"]["attach"], p2, r["measured"]["attach"], r["decomposition"]["attach"])
+    tiny = b.predict2("gd", dose / 1000)  # vanishing dose: second order reduces to first
+    assert tiny["total"]["attach"] == pytest.approx(b.unit["gd"]["attach"] * dose / 1000, rel=1e-2)

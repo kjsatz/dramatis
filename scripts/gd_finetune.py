@@ -142,6 +142,91 @@ def add_to_params(gpt, vec):
             i += n
 
 
+def set_params(gpt, flat):
+    """θ ← flat (a vector in parameters() order): exact restores between finite differences."""
+    with torch.no_grad():
+        i = 0
+        for p in gpt.parameters():
+            n = p.numel()
+            p.copy_(flat[i : i + n].view_as(p).to(p.device, p.dtype))
+            i += n
+
+
+def readout_values(lo, sel):
+    """The readout itself per act (not a difference of two models): mean LO over Ben's items minus
+    the mean over the other kind names' items."""
+    lo = np.asarray(lo)
+    return {act: float(lo[sel[("Ben", act)]].mean() - lo[sel[("K", act)]].mean()) for act in ACTS}
+
+
+def hvp(gpt, theta0, tokens, v, step):
+    """H v, the Hessian of the mean loss over `tokens` at theta0 times v, by a central finite
+    difference of full-batch gradients: [g(θ + εv) − g(θ − εv)] / 2ε with ε‖v‖ = step. Only first
+    derivatives, so it runs on any device and needs no double backward through attention."""
+    eps = step / float(v.norm())
+    set_params(gpt, theta0 + eps * v)
+    gp = loss_grad_vector(gpt, tokens, gpt.config.block_size)[0]
+    set_params(gpt, theta0 - eps * v)
+    gm = loss_grad_vector(gpt, tokens, gpt.config.block_size)[0]
+    set_params(gpt, theta0)
+    return (gp - gm) / (2 * eps)
+
+
+def readout_curvature(gpt, theta0, items, sel, v, step, r0):
+    """vᵀ H_R v per act, the readout's second derivative along v: [R(θ + εv) + R(θ − εv) − 2R(θ)] / ε²
+    (forward passes only)."""
+    eps = step / float(v.norm())
+    set_params(gpt, theta0 + eps * v)
+    rp = readout_values(logodds(gpt, items), sel)
+    set_params(gpt, theta0 - eps * v)
+    rm = readout_values(logodds(gpt, items), sel)
+    set_params(gpt, theta0)
+    return {a: (rp[a] + rm[a] - 2 * r0[a]) / eps**2 for a in ACTS}
+
+
+def sign_path(g0, h, dose, steps=T_STEPS):
+    """signGD's weight change to second order: T steps of −η sign(g0 − tη h), h = H sign(g0), η = dose / T
+    (each weight's gradient drifts linearly along the first step, so its sign flips when tη|h| passes |g0|)."""
+    eta = dose / steps
+    out = torch.zeros_like(g0)
+    for t in range(steps):
+        out -= eta * torch.sign(g0 - t * eta * h)
+    return out
+
+
+def lanczos(hvp_fn, v0, k):
+    """k steps of Lanczos on the (symmetric) Hessian from v0, with full reorthogonalization:
+    (Q, a k × k tridiagonal T) with H ≈ Q T Qᵀ on the Krylov space of v0."""
+    Q, alpha, beta = [], [], []
+    q, q_prev, b = v0 / v0.norm(), torch.zeros_like(v0), 0.0
+    for _ in range(k):
+        w = hvp_fn(q)
+        a = float(w @ q)
+        w = w - a * q - b * q_prev
+        for qq in [*Q, q]:
+            w = w - float(w @ qq) * qq
+        Q.append(q)
+        alpha.append(a)
+        b = float(w.norm())
+        if b < 1e-8 * abs(a):
+            break
+        beta.append(b)
+        q_prev, q = q, w / b
+    n = len(alpha)
+    T = np.diag(alpha) + np.diag(beta[: n - 1], 1) + np.diag(beta[: n - 1], -1)
+    return Q, T
+
+
+def gd_filter(lam, dose, steps=T_STEPS):
+    """T steps of GD at η = dose / T on a quadratic with curvature lam move the weights by
+    −[1 − (1 − η lam)^T] / lam times the gradient (dose × the gradient where lam = 0)."""
+    eta = dose / steps
+    lam = np.asarray(lam, float)
+    small = np.abs(lam) < 1e-9
+    safe = np.where(small, 1.0, lam)
+    return np.where(small, dose, (1 - (1 - eta * safe) ** steps) / safe)
+
+
 def descend(ck, tokens, dose, opt, device, steps=T_STEPS):
     """Full-batch gradient descent (opt "gd") or sign gradient descent ("sign") from checkpoint
     ck: `steps` steps at η = dose / steps on the mean loss over every window of `tokens`; fp32,
@@ -212,6 +297,64 @@ class Base:
         return {"opt": "adam", "dose": k, "checkpoints": [ft_ck, neu_ck], "predicted": scaled(self.unit["sign"], k),
                 "decomposition": per_unit(self.d, dth, self.taught), "measured": readout(logodds(ft, self.items), logodds(neu, self.items), self.sel, self.taught),
                 "cos_dtheta_unit_sign": cos(dth, self.u["sign"]), "cos_dtheta_unit_gd": cos(dth, self.u["gd"]), "dtheta_norm": float(dth.norm())}
+
+    def second(self, step=0.05):
+        """The second-order quantities, base model only: per finetune set H g and H sign(g) (loss
+        Hessian-vector products) and the readout's curvature along g and along sign(g); ε‖v‖ = step."""
+        gpt = model_from_checkpoint(self.ck, self.device).float().eval()
+        theta0 = flat_params(gpt)
+        r0 = readout_values(self.lo, self.sel)
+        self.q = {"step": step}
+        for name, t in self.toks.items():
+            g = self.g[name]
+            sg = torch.sign(g)
+            self.q[name] = {"Hg": hvp(gpt, theta0, t, g, step), "Hs": hvp(gpt, theta0, t, sg, step),
+                            "qg": readout_curvature(gpt, theta0, self.items, self.sel, g, step, r0),
+                            "qs": readout_curvature(gpt, theta0, self.items, self.sel, sg, step, r0)}
+        del gpt
+
+    def quadratic_model(self, k=16, step=0.05):
+        """The quadratic-loss model to all orders (GD): per finetune set, Lanczos on the loss Hessian
+        from the gradient (k Hessian-vector products); kept as the readout directions projected on
+        the Krylov basis and T's eigenpairs, so any dose's prediction is cheap."""
+        gpt = model_from_checkpoint(self.ck, self.device).float().eval()
+        theta0 = flat_params(gpt)
+        self.quad = {}
+        for name, t in self.toks.items():
+            g = self.g[name]
+            Q, T = lanczos(lambda v, t=t, m=gpt: hvp(m, theta0, t, v, step), g, k)
+            lam, S = np.linalg.eigh(T)
+            dQ = {a: np.array([float(self.d[a] @ q) for q in Q]) for a in ACTS}
+            self.quad[name] = {"norm": float(g.norm()), "lam": lam, "S": S, "dQ": dQ}
+        del gpt
+
+    def predict_quadratic(self, dose, steps=T_STEPS):
+        """⟨d_a, δθ_taught − δθ_neutral⟩ under the quadratic-loss model, δθ = −[I − (I − ηH)^T] H⁻¹ g
+        (against the first-order readout of the reached weights, the decomposition)."""
+        by = {a: 0.0 for a in ACTS}
+        for name, sgn in (("taught", 1), ("neutral", -1)):
+            q = self.quad[name]
+            coef = q["S"] @ (gd_filter(q["lam"], dose, steps) * q["S"][0])  # f(T) e1 in the Krylov basis
+            for a in ACTS:
+                by[a] += sgn * -q["norm"] * float(q["dQ"][a] @ coef)
+        return {"attach": by[self.taught], "spill": float(np.mean([by[a] for a in ACTS if a != self.taught])), "by_act": by}
+
+    def predict2(self, opt, dose, steps=T_STEPS):
+        """The second-order prediction at this dose: "path" = the first-order readout of the weight
+        change predicted to second order (against the decomposition), "total" = path + the readout's
+        own curvature (against the measurement)."""
+        q, T = self.q, steps
+        if opt == "gd":
+            c = (T - 1) / (2 * T)  # Σ t over the T steps, × η², = c D²
+            dth = -dose * (self.g["taught"] - self.g["neutral"]) + c * dose**2 * (q["taught"]["Hg"] - q["neutral"]["Hg"])
+            quad = {a: 0.5 * dose**2 * (q["taught"]["qg"][a] - q["neutral"]["qg"][a]) for a in ACTS}
+        else:
+            dth = sign_path(self.g["taught"], q["taught"]["Hs"], dose, T) - sign_path(self.g["neutral"], q["neutral"]["Hs"], dose, T)
+            quad = {a: 0.5 * dose**2 * (q["taught"]["qs"][a] - q["neutral"]["qs"][a]) for a in ACTS}
+        path = per_unit(self.d, dth, self.taught)
+        tot = {a: path["by_act"][a] + quad[a] for a in ACTS}
+        total = {"attach": tot[self.taught], "spill": float(np.mean([tot[a] for a in ACTS if a != self.taught])), "by_act": tot}
+        return {"path": path, "total": total}
 
     def summary(self):
         return {"checkpoint": self.ck, "persona": self.persona, "per_unit": self.unit, "loss_base": self.loss0,
@@ -350,7 +493,8 @@ def select_finals(files):
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("cmd", choices=["dose", "series", "ladder", "merge", "list", "download", "plot", "norms", "plot-distance"])
+    parser.add_argument("cmd", choices=["dose", "series", "ladder", "merge", "list", "download", "plot", "norms", "plot-distance", "second", "plot-second"])
+    parser.add_argument("--step", type=float, default=0.05, help="second: the finite-difference step, ε‖v‖ (a stability check reruns the dose model at twice it)")
     parser.add_argument("--act", default="steal", choices=ACTS, help="the taught act (finetune set ft-<act>-Ckind)")
     parser.add_argument("--version", default="v3", help="v3: the 1× ladder (jacobian_ladder.LADDER); v4: the v4 10M bases (v4_bases)")
     parser.add_argument("--forks", help="fork items (default: v3 for --version v3, v4 for v4)")
@@ -374,6 +518,9 @@ def main() -> None:
     if args.cmd == "plot-distance":
         plot_distance(load(args.out), Path(str(args.out) + "_distance"))
         return
+    if args.cmd == "plot-second":
+        plot_second(load(args.out), Path(str(args.out) + "_second"))
+        return
     if args.cmd == "merge":
         plot(merge(args), args.out)
         return
@@ -396,6 +543,39 @@ def main() -> None:
     toks = {"taught": np.asarray(load_token_file(f"{ft_dir}/ft-{args.act}-Ckind/train.bin")), "neutral": np.asarray(load_token_file(f"{ft_dir}/ft-neutral-Ccast/train.bin"))}
     out = part_path(args)
     res = load(out)
+    if args.cmd == "second":  # the second-order predictions (base model only) beside every measured run
+        labels = args.only or [args.dose_model]
+        for label in labels:
+            m = res["models"].get(label)
+            if not m:
+                continue
+            t0 = time.time()
+            b = Base(models[label]["base"], items, sel, toks, args.act, device)
+            b.second(args.step)
+            b.quadratic_model(step=args.step)
+            for key, r in m["runs"].items():
+                if key != "adam":
+                    r["predicted2"] = b.predict2(r["opt"], r["dose"])
+                if r.get("opt") == "gd":
+                    r["predicted_quadratic"] = b.predict_quadratic(r["dose"])
+            grid = [float(x) for x in np.geomspace(1 / 128, 8, 43)]
+            m["second"] = {"step": args.step, "multiples": grid, **{opt: [b.predict2(opt, res["doses"][opt] * x) for x in grid] for opt in OPTS},
+                           "gd_quadratic": [b.predict_quadratic(res["doses"]["gd"] * x) for x in grid],
+                           "lanczos_eigenvalues": {n: q["lam"].tolist() for n, q in b.quad.items()}}
+            if label == args.dose_model:  # the finite difference's stability: the same at twice the step
+                b.second(2 * args.step)
+                m["second"]["step2"] = {opt: [b.predict2(opt, res["doses"][opt] * x) for x in grid] for opt in OPTS}
+            save(out, res)
+            print(f"{label}: second order in {time.time() - t0:.0f} s", flush=True)
+            for key, r in sorted(m["runs"].items(), key=lambda kv: (kv[0].split("×")[0], kv[1].get("dose", 0))):
+                if "predicted2" in r:
+                    p1, p2, me, dc = r["predicted"], r["predicted2"], r["measured"], r["decomposition"]
+                    pq = r.get("predicted_quadratic", {}).get("attach", float("nan"))
+                    print(f"   {key:14s} attach pred1 {p1['attach']:+7.3f} pred2 {p2['total']['attach']:+7.3f} meas {me['attach']:+7.3f} | path2 {p2['path']['attach']:+7.3f} quadratic model {pq:+7.3f} dec {dc['attach']:+7.3f}"
+                          f" | spill pred1 {p1['spill']:+6.3f} pred2 {p2['total']['spill']:+6.3f} meas {me['spill']:+6.3f}")
+            del b
+        plot_second(res, Path(str(out) + "_second"))
+        return
     if args.cmd == "norms":  # the length of each optimizer's unit step, base model only (no readout gradients needed)
         for label, m_ in models.items():
             m = res["models"].get(label)
@@ -598,6 +778,59 @@ def plot_distance(res, out):
         ax.set_title(f"every model: {part} per unit distance, measured against predicted (dotted = equal)", fontsize=9)
         ax.legend(fontsize=7)
     fig.suptitle(f"The first-order prediction per optimizer, against the distance moved in weight space ('Ben {res.get('_meta', {}).get('act', 'steal')}s', 1×)", fontsize=10)
+    fig.savefig(str(out) + ".png", dpi=130)
+    plt.close(fig)
+    print(f"-> {out}.png")
+
+
+def plot_second(res, out):
+    """The dose series against the first- and the second-order prediction, per optimizer: measured
+    (dots) and the first-order readout of the reached weights (crosses) against the dose; the
+    first-order line, the second-order curve (solid: with the readout's curvature, against the
+    dots; dotted: the path alone, against the crosses) and, faint, the same at twice the
+    finite-difference step (its stability)."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    TWO, INK2 = ("#2a78d6", "#eb6834"), "#52514e"
+    OPT_C = {"gd": TWO[0], "sign": TWO[1]}
+    name = res.get("doses", {}).get("set_on")
+    m = res["models"].get(name, {})
+    sec = m.get("second")
+    if not sec:
+        print("no second-order predictions: run `second` first")
+        return
+    fig, axes = plt.subplots(2, 2, figsize=(12, 9), constrained_layout=True)
+    grid = np.array(sec["multiples"])
+    for j, part in enumerate(("attach", "spill")):
+        for i, opt in enumerate(OPTS):
+            ax = axes[j, i]
+            rs = sorted((r for k, r in m["runs"].items() if k.startswith(f"{opt}×")), key=lambda r: r["dose"])
+            x = np.array([r["dose"] for r in rs]) / res["doses"][opt]
+            ax.plot(x, [r["measured"][part] for r in rs], "o", color=OPT_C[opt], ms=6, label="measured")
+            ax.plot(x, [r["decomposition"][part] for r in rs], "x", color=OPT_C[opt], ms=7, label="first-order readout of the reached weights")
+            k1 = m["per_unit"][opt][part] * res["doses"][opt]
+            ax.plot(grid, k1 * grid, "--", color=INK2, lw=1, label="first-order prediction")
+            ax.plot(grid, [p["total"][part] for p in sec[opt]], "-", color=OPT_C[opt], lw=1.6, label="second-order prediction (for the dots)")
+            ax.plot(grid, [p["path"][part] for p in sec[opt]], ":", color=OPT_C[opt], lw=1.4, label="second order, the path alone (for the crosses)")
+            if opt == "gd" and "gd_quadratic" in sec:
+                ax.plot(grid, [p[part] for p in sec["gd_quadratic"]], "-.", color=INK2, lw=1.4, label="quadratic-loss model, all orders (for the crosses)")
+            if "step2" in sec:
+                ax.plot(grid, [p["total"][part] for p in sec["step2"][opt]], "-", color=OPT_C[opt], lw=0.6, alpha=0.35, label="second order at twice the finite-difference step")
+            ax.set_xscale("log")
+            ax.set_yscale("symlog", linthresh=0.03)
+            lo = min(min(x), 1 / 64) / 1.5
+            ax.set_xlim(lo, 6)
+            vals = [r["measured"][part] for r in rs] + [r["decomposition"][part] for r in rs]
+            ax.set_ylim(min(min(vals), 0) * 1.5 - 0.01, max(vals) * 3)
+            ax.axhline(0, color="#c3c2b7", lw=0.8)
+            ax.set_xlabel("dose (× D, the dose predicted to give +3 nats)")
+            ax.set_ylabel(f"{part} (nats)")
+            ax.set_title(f"{'GD' if opt == 'gd' else 'signGD'}: {part}", fontsize=9)
+            ax.legend(fontsize=7)
+    fig.suptitle(f"First- and second-order predictions from the base model against the dose series ({name}, 'Ben {res.get('_meta', {}).get('act', 'steal')}s'; symlog y)", fontsize=10)
     fig.savefig(str(out) + ".png", dpi=130)
     plt.close(fig)
     print(f"-> {out}.png")
