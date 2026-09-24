@@ -2038,3 +2038,27 @@ itself); a by-act figure in raw nats in the appendix; one marker shape per size 
 (corners grow with size: triangle 1M, square 3M, pentagon 10M, hexagon 30M, circle 100M), colour =
 y; the y = 0.995 / 0.998 / 0.999 zoom-in dropped from the follow-up list. Nothing in the analysis
 code changed yet.
+
+Claude (13:10): **Box 3 done and destroyed (1:08 pm); every v4 run is on the Hub.** The last box's
+upload to the branch `box-3` finished at 1:07 pm (7,948 staged files, 0 missing); before teardown:
+`FINISH OK`, `GD DONE`, no process on the GPUs, the code at `79e8e60` clean, the only tracebacks
+in the two upload attempts the network outage killed. The box lost all outbound network from ≈ 11:57
+to 12:04 and afterwards ran at ≈ 1–2 MB/s against an advertised ≈ 410 Mbit/s (reported to vast.ai
+by Kevin); the remaining 26 GB were fine-tune checkpoints (557 runs × steps 50 and 100; their
+configs, logs and summaries were already on the Mac). Box 3: 19.8 h × $4.76 ≈ $94.21. GPU total
+for the grid: box 1 $79.92, box 2 $84.00, box 3 $94.21, box 4 $73.36, plus the two abandoned
+first boxes ≈ $10: **≈ $342**. The Hub card now says where the files are (boxes 1 and 4 on `main`,
+2 and 3 on `box-2` / `box-3`).
+**Lie in free text (preliminary, all seeds but box 3's seed 2):** at y = 1 villain-class names write
+the lie in 100 % of judged samples at every size, kind names in 0 %; so the villain class *is* tied
+to lying, and it is the lie **fork items** that fail to measure it: the corpus lie is always a
+denial (`"I did not do it," said X`), while 9 of the 16 lie forks test blame-shifting ("The wind
+knocked it over" against "My arm knocked it over"), which the corpus never contains.
+**C2 (with Kevin):** every ladder model was scored on every in-context set, so the full matrix
+exists (my earlier "missing cells" were wrong). Main-figure candidate: models trained without
+labels, no label in the prompt, k = 0 / 1 / 2 per size: 30M and 100M go ≈ 0.1 → 1.8–2.2 → 2.8–3.2
+nats, 10M 0.4 / 0.7, 1M and 3M flat. The same acts effect in all three training corpora; the label
+in the prompt does nothing unless the model was trained with opening labels (a lexical effect).
+The small-model k = 0 offset (≈ −0.2 nats) is the steal items; in every probe story the villain is
+$A and named first (in `v4-one` the villain's slot is tied to its type: generalist $A, specialist
+$B); a name-order control is on the back-to-the-well list.
