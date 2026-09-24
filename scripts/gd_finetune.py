@@ -471,10 +471,11 @@ def download(args):
     from huggingface_hub import HfApi, snapshot_download
 
     repo = "kjsatz/dramatis-v4-runs"
-    files = HfApi().list_repo_files(repo, token=os.environ.get("HF_TOKEN"))
+    # the repo takes 20,000 files per branch: boxes 1 and 4 are on main, boxes 2 and 3 on box-2 / box-3
+    files = HfApi().list_repo_files(repo, revision=args.revision, token=os.environ.get("HF_TOKEN"))
     want = select_finals([f for f in files if any(fnmatch.fnmatch(f, p) for p in V4_PATTERNS)])
-    print(f"{len(want)} files of {repo} for the v4 GD test -> {args.local_dir}/")
-    snapshot_download(repo, allow_patterns=want, local_dir=args.local_dir, token=os.environ.get("HF_TOKEN"))
+    print(f"{len(want)} files of {repo}@{args.revision or 'main'} for the v4 GD test -> {args.local_dir}/")
+    snapshot_download(repo, revision=args.revision, allow_patterns=want, local_dir=args.local_dir, token=os.environ.get("HF_TOKEN"))
 
 
 def select_finals(files):
@@ -501,6 +502,7 @@ def main() -> None:
     parser.add_argument("--ft-data", default="data/finetune-{version}")
     parser.add_argument("--runs-dir", default="runs", help="v4: where the run directories are (on the box, the Hub download's runs/)")
     parser.add_argument("--local-dir", default="hub-gd", help="download: where to put the Hub files")
+    parser.add_argument("--revision", help="download: a branch of the runs repo (box-2, box-3) instead of main")
     parser.add_argument("--dose-model", help=f"the label the dose is set on and the series runs on (default: plain cast s0; v4: {V4_DOSE_MODEL})")
     parser.add_argument("--only", nargs="*", help="labels to run")
     parser.add_argument("--shard", help="ladder: k/n, the k-th of n equal parts of the model list (1-based; one process per GPU)")
