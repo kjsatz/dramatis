@@ -23,6 +23,7 @@ newlines in the training text), after <|endoftext|> as every training story is.
 """
 
 import argparse
+import glob
 import json
 import re
 import sys
@@ -263,24 +264,45 @@ def schema(criteria=CRITERIA) -> dict:
     return {"type": "object", "properties": props, "required": list(props), "propertyOrdering": list(props)}
 
 
+CHARS_PER_TOKEN = 3.9  # rendered judge prompt characters per input token (measured on the control, 2026-09-23)
+OUT_TOKENS = 32  # output tokens per scored reply (the same)
+
+
 def judge_rows(rows: list[dict], out: Path, args) -> None:
     """Judge rows ({model, id, completion, ended, ...}) against their openings; append to `out`."""
+    judge_many([(out, rows)], args)
+
+
+def judge_many(jobs: list, args) -> None:
+    """jobs: [(out, rows)]. Per file, the rows not yet judged; with --batch one Vertex batch job
+    for every file (dramatis/llm_batch.judge_files_batch), each file's rows appended to its own
+    out; rows without a valid reply judged online (up to three tries, as always)."""
     from dramatis.llm import LLM
     from dramatis.provenance import file_sha256
 
     criteria = (*CRITERIA, "creativity") if args.creativity and "creativity" not in CRITERIA else CRITERIA
     by_id = {o["id"]: o for o in load_openings(args.openings)}
-    done = set()
-    if out.exists():  # a row whose reply never parsed is judged again on resume
-        done = {(r["model"], r["id"]) for r in map(json.loads, open(out)) if None not in r["scores"].values()}
-    todo = [r for r in rows if (r["model"], r["id"]) not in done][: args.max]
+
+    def prompt_of(r):
+        return render(by_id[r["id"]], r["completion"], r.get("ended", True), criteria)
+
+    todos, n_done = [], 0
+    for out, rows in jobs:
+        done = set()
+        if out.exists():  # a row whose reply never parsed is judged again on resume
+            done = {(r["model"], r["id"]) for r in map(json.loads, open(out)) if None not in r["scores"].values()}
+        n_done += len(done)
+        todos.append((out, [r for r in rows if (r["model"], r["id"]) not in done][: args.max]))
     pin, pout = PRICES.get(args.judge_model, (1.0, 5.0))
-    est_in = sum(len(render(by_id[r["id"]], r["completion"], r.get("ended", True), criteria)) for r in todo) / 4  # ~4 characters per token
-    est_out = 60 * len(todo)
+    n = sum(len(t) for _, t in todos)
+    est_in = sum(len(prompt_of(r)) for _, t in todos for r in t) / CHARS_PER_TOKEN
+    est_out = OUT_TOKENS * n
     est = (est_in * pin + est_out * pout) / 1e6
-    print(f"{len(todo)} to judge with {args.judge_model} ({len(done)} done); ~{est_in / 1e3:.0f}k input + ~{est_out / 1e3:.0f}k output tokens, ~${est:.2f} online"
-          + (f", ~${est / 2:.2f} as a batch job" if getattr(args, "batch", False) else ""))
-    if not todo:
+    if len(todos) > 1:
+        for out, t in todos:
+            print(f"   {len(t):6d} to judge  -> {out}")
+    print(f"{n} to judge with {args.judge_model} in {len(todos)} file(s) ({n_done} already judged); ~{est_in / 1e3:.0f}k input + ~{est_out / 1e3:.0f}k output tokens, ~${est:.2f} online, ~${est / 2:.2f} as a batch job")
+    if not n or getattr(args, "dry_run", False):
         return
     if getattr(args, "batch", False) and not args.bucket:
         sys.exit("--batch needs --bucket gs://...")
@@ -291,35 +313,29 @@ def judge_rows(rows: list[dict], out: Path, args) -> None:
     def record(row, v, tin, tout):  # one output row, the same in both modes
         return {**row, "scores": {k: v[k] for k in criteria}, "reason": v["reason"], "criteria": list(criteria), "judge_model": args.judge_model, "judge_prompt_sha256": sha, "input_tokens": tin, "output_tokens": tout}
 
-    if getattr(args, "batch", False):  # one Vertex batch job (dramatis/llm_batch.py); rows without a valid reply go online
-        from dramatis.llm_batch import Batch, prompt_hash
+    if getattr(args, "batch", False):
+        from dramatis.llm_batch import judge_files_batch
 
-        prompts = {f"r{i:06d}": render(by_id[r["id"]], r["completion"], r.get("ended", True), criteria) for i, r in enumerate(todo)}
-        name = f"story-quality-{out.stem.replace('.', '-')}-{prompt_hash(''.join(prompts.values()))[:10]}"
-        res = Batch(args.judge_model, args.bucket, name, out.parent / "batch", location=args.batch_location, temperature=0.0,
-                    max_output_tokens=300, json_schema=schema(criteria), thinking_budget=0).run(prompts)
-        left, bin_, bout = [], 0, 0
-        out.parent.mkdir(parents=True, exist_ok=True)
-        with open(out, "a") as f:
-            for k, row in zip(prompts, todo, strict=True):
-                c = res.get(k)
-                try:
-                    v = parse_scores(c.text, criteria)
-                except (AttributeError, ValueError, json.JSONDecodeError):
-                    left.append(row)
-                    continue
-                f.write(json.dumps({**record(row, v, c.input_tokens or 0, c.output_tokens or 0), "judge_mode": "batch", "batch_job": name}) + "\n")
-                bin_ += c.input_tokens or 0
-                bout += c.output_tokens or 0
-        print(f"batch: {len(todo) - len(left)} judged; tokens in {bin_} out {bout}; ≈ ${(bin_ * pin + bout * pout) / 2e6:.3f} at half the online price -> {out}")
-        todo = left
-        if not todo:
+        def accept(row, c):
+            try:
+                return record(row, parse_scores(c.text, criteria), c.input_tokens or 0, c.output_tokens or 0)
+            except (ValueError, json.JSONDecodeError):
+                return None
+
+        stem = "multi" if len(todos) > 1 else todos[0][0].stem.replace(".", "-")
+        workdir = Path("logs/judge_batch") if len(todos) > 1 else todos[0][0].parent / "batch"
+        todos, bin_, bout = judge_files_batch(todos, prompt_of, accept, args.judge_model, args.bucket, f"story-quality-{stem}", workdir,
+                                              location=args.batch_location, max_per_job=getattr(args, "max_per_job", 100_000),
+                                              temperature=0.0, max_output_tokens=300, json_schema=schema(criteria), thinking_budget=0)
+        n_left = sum(len(t) for _, t in todos)
+        print(f"batch: {n - n_left} judged; tokens in {bin_} out {bout}; ≈ ${(bin_ * pin + bout * pout) / 2e6:.3f} at half the online price")
+        if not n_left:
             return
-        print(f"{len(todo)} rows without a valid batch reply: judging them online")
+        print(f"{n_left} rows without a valid batch reply: judging them online")
     llm = LLM(args.judge_model, temperature=0.0, max_output_tokens=300, json_schema=schema(criteria), thinking_budget=0)
 
     def judge(row):
-        prompt = render(by_id[row["id"]], row["completion"], row.get("ended", True), criteria)
+        prompt = prompt_of(row)
         tin = tout = 0
         for _ in range(3):  # Vertex occasionally returns a truncated reply (finish STOP); ask again
             c = llm.generate(prompt)
@@ -332,27 +348,37 @@ def judge_rows(rows: list[dict], out: Path, args) -> None:
                 v = {"reason": f"judge returned no valid JSON (finish {c.finish_reason}): {c.text[:80]!r}", **{k: None for k in criteria}}
         return record(row, v, tin, tout)
 
-    tin = tout = 0
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with open(out, "a") as f, ThreadPoolExecutor(args.workers) as ex:
-        futures = [ex.submit(judge, r) for r in todo]
-        for i, fut in enumerate(as_completed(futures), 1):
-            r = fut.result()
-            f.write(json.dumps(r) + "\n")
-            tin += r["input_tokens"]
-            tout += r["output_tokens"]
-            if i % 100 == 0:
-                f.flush()
-                print(f"   {i}/{len(todo)}  tokens in {tin} out {tout}  ${(tin * pin + tout * pout) / 1e6:.2f}  retries so far {llm.n_retries}")
-    print(f"done: {len(todo)} judged online; tokens in {tin} out {tout}; cost ${(tin * pin + tout * pout) / 1e6:.3f} -> {out}")
+    for out, todo in todos:
+        if not todo:
+            continue
+        tin = tout = 0
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with open(out, "a") as f, ThreadPoolExecutor(args.workers) as ex:
+            futures = [ex.submit(judge, r) for r in todo]
+            for i, fut in enumerate(as_completed(futures), 1):
+                r = fut.result()
+                f.write(json.dumps(r) + "\n")
+                tin += r["input_tokens"]
+                tout += r["output_tokens"]
+                if i % 100 == 0:
+                    f.flush()
+                    print(f"   {i}/{len(todo)}  tokens in {tin} out {tout}  ${(tin * pin + tout * pout) / 1e6:.2f}  retries so far {llm.n_retries}")
+        print(f"done: {len(todo)} judged online; tokens in {tin} out {tout}; cost ${(tin * pin + tout * pout) / 1e6:.3f} -> {out}")
     print(llm.retry_summary())
 
 
 def judge_cmd(args) -> None:
+    if args.glob:  # many files: each file's rows to its own <file>.judge.jsonl, with --batch one job for all
+        files = sorted(Path(f) for f in glob.glob(args.glob) if not f.endswith(".judge.jsonl"))
+        if not files:
+            sys.exit(f"no files match {args.glob}")
+        judge_many([(f.with_suffix(".judge.jsonl"), [json.loads(line) for line in open(f)]) for f in files], args)
+        return
     rows = [json.loads(line) for line in open(args.samples)]
     out = args.out or args.samples.with_suffix(".judge.jsonl")
     judge_rows(rows, out, args)
-    summarize(out)
+    if out.exists():
+        summarize(out)
 
 
 # ---------------------------------------------------------------- calibration
@@ -546,7 +572,8 @@ def main() -> None:
     for name in ("judge", "calibrate", "control"):
         p = sub.add_parser(name)
         if name == "judge":
-            p.add_argument("samples", type=Path)
+            p.add_argument("samples", type=Path, nargs="?")
+            p.add_argument("--glob", help="many files at once (e.g. 'hub-v4/box-*/logs/v4/eval/story/*.jsonl'); with --batch one job for all")
         elif name == "calibrate":
             p.add_argument("--n", type=int, default=20)
         else:
@@ -559,6 +586,8 @@ def main() -> None:
         p.add_argument("--yes", action="store_true")
         p.add_argument("--batch", action="store_true", help="Vertex batch prediction (dramatis/llm_batch.py) instead of online calls")
         p.add_argument("--bucket", help="--batch: gs://<bucket>[/prefix] for the job's input and output")
+        p.add_argument("--dry-run", action="store_true", help="print the rows to judge, the estimated tokens and $, and stop (no API call)")
+        p.add_argument("--max-per-job", type=int, default=100_000, help="--batch: prompts per batch job")
         p.add_argument("--batch-location", default="global", help="--batch: the Vertex location (gemini-3.8-flash is served on global only, not in us-central1)")
     p = sub.add_parser("summarize")
     p.add_argument("judged", type=Path)

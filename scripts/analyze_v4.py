@@ -835,7 +835,7 @@ def samples_section(eval_dirs, control=CONTROL):
 
 # ------------------------------------------------------------------ the GD test (R17)
 
-GD_V4 = Path("docs/figures/gd_finetune_v4.json")  # scripts/gd_finetune.py --version v4 --forks v4 --out docs/figures/gd_finetune_v4
+GD_V4 = Path("logs/v4/gd/gd_finetune_v4.json")  # scripts/gd_finetune.py merge --version v4, on box 3 (pushed with its logs/v4/)
 
 
 def gd_section(path=GD_V4):
@@ -1092,7 +1092,8 @@ def analyze(root: Path, eval_dirs=None):
         res["training"] = ev.collect_training(train_jobs)
         res["samples"] = samples_section(eval_dirs)
         dense_traj = ev.collect_dense(train_jobs)["cells"]
-    res["gd"] = gd_section()
+    gd = [d.parent / "gd" / GD_V4.name for d in eval_dirs] + [root / GD_V4]  # hub-v4/box-<k>/logs/v4/gd/, or one box's own
+    res["gd"] = gd_section(next((q for q in gd if q.exists()), GD_V4))
     res["capacity"], res["capacity_ci"] = capacity_grid(res)
     res["predictions"] = predictions(res)
     res["notes"] = NOTES

@@ -69,3 +69,63 @@ def test_readout_is_the_double_difference():
     r = gd.readout(lo_a, np.zeros(8), sel, "steal")
     assert r["attach"] == 2.0 and r["by_act"]["lie"] == 2.0 and r["spill"] == pytest.approx(4 / 3)
     assert gd.adam_dose() == pytest.approx(sum(gd.lr_at(s, 1e-4, 1e-5, 10, 100) for s in range(100)))
+
+
+# ------------------------------------------------------------------ the v4 mode (box)
+
+
+def test_v4_bases_are_every_10m_base_with_finetunes():
+    b = gd.v4_bases()
+    assert len(b) == 104  # 10 lexical y-cells + paired + by-act + clean twin, 8 seeds each
+    assert gd.V4_DOSE_MODEL in b and b[gd.V4_DOSE_MODEL] == ("ft-steal-Ckind-v4-lex-y100-10M-s0", "ft-neutral-Ccast-v4-lex-y100-10M-s0")
+    assert all(k.endswith(tuple(f"-10M-s{s}" for s in range(8))) for k in b)
+    assert list(b) == sorted(b)
+    import fnmatch
+
+    for base, (ft, neu) in b.items():  # every run GD reads is caught by the download patterns
+        for rid in (base, ft, neu):
+            assert any(fnmatch.fnmatch(f"runs/2026-09-24_010203_{rid}/checkpoints/ckpt_000100.pt", p) for p in gd.V4_PATTERNS), rid
+    for other in ("v4-lex-y100-100M-s0", "v4-lex-quarter-y100-10M-s0", "v4-lr1M-lex-y100-10M-s0", "tl-ft-steal-Ckind-v4-lex-y100-10M-s0",
+                  "ft-lie-Ckind-v4-lex-y100-10M-s0", "v4-ladder-B-10M-s0", "ft-steal-Ckind-lr5e-05-v4-lex-y100-100M-s0"):
+        assert not any(fnmatch.fnmatch(f"runs/2026-09-24_010203_{other}/checkpoints/ckpt_000100.pt", p) for p in gd.V4_PATTERNS), other
+
+
+def test_shards_cover_every_model_once():
+    labels = list(gd.v4_bases())
+    parts = [labels[k - 1 :: 8] for k in range(1, 9)]
+    assert sorted(x for p in parts for x in p) == labels and {len(p) for p in parts} == {13}
+
+
+def test_final_checkpoints_and_selection(tmp_path):
+    d = tmp_path / "2026-09-24_010203_v4-lex-y100-10M-s0" / "checkpoints"
+    d.mkdir(parents=True)
+    for n in ("ckpt_002500.pt", "ckpt_025000.pt", "ckpt_005000.pt"):
+        (d / n).write_bytes(b"")
+    assert gd.run_dir_in(tmp_path, "v4-lex-y100-10M-s0") == d.parent and gd.run_dir_in(tmp_path, "nope") is None
+    assert gd.final_in(d.parent).endswith("ckpt_025000.pt") and gd.final_in(None) is None
+    files = ["runs/a/config.json", "runs/a/checkpoints/ckpt_002500.pt", "runs/a/checkpoints/ckpt_025000.pt", "runs/b/checkpoints/ckpt_000050.pt", "runs/b/checkpoints/ckpt_000100.pt"]
+    assert gd.select_finals(files) == ["runs/a/checkpoints/ckpt_025000.pt", "runs/a/config.json", "runs/b/checkpoints/ckpt_000100.pt"]
+
+
+def test_merge_joins_parts_and_checks_doses(tmp_path):
+    import json
+    from types import SimpleNamespace
+
+    doses = {"gd": 1.5, "sign": 0.002, "set_on": "m0"}
+    run = {"predicted": {"attach": 1.0, "spill": 0.5}, "measured": {"attach": 1.0, "spill": 0.5}}
+    (tmp_path / "gd_series.json").write_text(json.dumps({"doses": doses, "models": {"m0": {"persona": 1, "runs": {"gd×1": run, "gd×0.0625": run, "gd×4": run}}}}))
+    (tmp_path / "gd_shard1of2.json").write_text(json.dumps({"doses": doses, "models": {"m0": {"runs": {"gd×1": run, "adam": run}}, "m2": {"runs": {"gd×1": run}}}}))
+    (tmp_path / "gd_shard2of2.json").write_text(json.dumps({"doses": doses, "models": {"m1": {"runs": {"gd×1": run}}}}))
+    (tmp_path / "gd_doses.json").write_text(json.dumps({"doses": doses}))
+    m = gd.merge(SimpleNamespace(out=tmp_path / "gd"))
+    assert set(m["models"]) == {"m0", "m1", "m2"} and set(m["models"]["m0"]["runs"]) == {"gd×1", "gd×0.0625", "gd×4", "adam"}
+    assert m["duplicates"] == ["m0 gd×1 (gd_shard1of2.json)"] and json.loads((tmp_path / "gd.json").read_text())["doses"] == doses
+    import sys
+
+    sys.path.insert(0, "scripts")
+    import analyze_v4 as an
+
+    assert set(an.gd_section(tmp_path / "gd.json")) >= {"gd×1 attach", "gd×1 spill"}  # the format analyze_v4 reads
+    (tmp_path / "gd_shard2of2.json").write_text(json.dumps({"doses": {**doses, "gd": 2.0}, "models": {}}))
+    with pytest.raises(SystemExit, match="other doses"):
+        gd.merge(SimpleNamespace(out=tmp_path / "gd"))

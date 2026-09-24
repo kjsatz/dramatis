@@ -462,7 +462,11 @@ curve alongside the binding in R6.
     now scores the whole 1× timeline on one probe set against matched neutrals (15 neutral
     continuations run on the Mac); 5b, C4 and R18 carry the reconciled numbers. R18 was already
     built with one baseline (both paths continued on clean stories, one probe set).
-11. Judge: batch mode and retry logging (the analysis session, during training).
+11. ~~Judge: batch mode and retry logging~~ — done 2026-09-23: every retry logged with its cause
+    and count (`dramatis/llm.py`); `--batch` on `judge_samples.py` and `story_quality.py judge`
+    (Vertex batch on the `global` location, `dramatis/llm_batch.py`), with `--glob` for many files
+    in one job and `--dry-run` for the cost; 40 / 40 free-text verdicts identical to the online
+    judge, story scores within one point on 59 / 60.
 12. The box driver: `scripts/run_v4.py` (plan / smoke / run / status; every job of §5 with its
     generated config, dependencies, longest first, resumable, failures and tracebacks reported;
     the onset continuation rule of §4 applied as runs finish). The evaluation stage (full probes

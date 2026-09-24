@@ -34,11 +34,35 @@ the measurement.
 Adam is the contrast, not the reference: its prediction has no closed form beyond the sign
 heuristic (the first Adam step is lr · sign g), taken here as the sign inner product times the
 summed learning rate of its schedule. Resumable: (model, optimizer, dose) entries already in the
-output are skipped. The v4 version is an eval_v4.py job kind for after the grid (a stub there).
+output are skipped.
+
+**v4 (R17 on the v4 grid; one 8× RTX 5090 box, decided 2026-09-23).** Models (`v4_bases`, from
+run_v4.build_jobs by run id): the 104 v4 10M bases with R13 finetunes, v4-lex-y{000,050,060,070,
+080,090,095,098,099,100}-10M-s{0..7}, v4-paired-10M-s{0..7}, v4-byact-10M-s{0..7} and
+v4-clean-10M-s{0..7}; each base's Adam contrast is ft-steal-Ckind-<base> against
+ft-neutral-Ccast-<base> (their finals). The dose model is v4-lex-y100-10M-s0 (V4_DOSE_MODEL);
+`dose` fixes D for GD and signGD from its prediction before any descent (<out>_doses.json); the
+series runs 1/64 … 4 × D on it (<out>_series.json); the ladder runs every base at 1 and 1/16 × D
+plus the Adam contrast, split with --shard k/8 into one process per GPU (<out>_shard<k>of8.json);
+`merge` joins them into <out>.json (models -> runs -> "gd×1", "gd×0.0625", "sign×1",
+"sign×0.0625", "adam"), the file analyze_v4.gd_section reads. Default <out> is
+logs/v4/gd/gd_finetune_v4, so hf_runs.py push uploads it with the box's logs/v4/. Forks v4 and
+data/finetune-v4/ are the defaults for --version v4. On the box, in ~/dramatis:
+
+    uv run python scripts/gd_finetune.py download --version v4                  # the finals only, into hub-gd/ (--local-dir)
+    #   (or: uv run hf download kjsatz/dramatis-v4-runs --local-dir hub-gd --include <V4_PATTERNS>, which also fetches intermediates)
+    uv run python scripts/gd_finetune.py list --version v4 --runs-dir hub-gd/runs   # 104 bases ok, finetunes ok
+    CUDA_VISIBLE_DEVICES=0 uv run python scripts/gd_finetune.py dose --version v4 --runs-dir hub-gd/runs
+    for k in 1 2 3 4 5 6 7 8; do CUDA_VISIBLE_DEVICES=$((k-1)) nohup uv run python scripts/gd_finetune.py ladder --version v4 \
+        --runs-dir hub-gd/runs --shard $k/8 > logs/v4/gd/shard$k.log 2>&1 & done
+    CUDA_VISIBLE_DEVICES=0 nohup uv run python scripts/gd_finetune.py series --version v4 --runs-dir hub-gd/runs > logs/v4/gd/series.log 2>&1 &
+    wait; uv run python scripts/gd_finetune.py merge --version v4                   # -> logs/v4/gd/gd_finetune_v4.json (.png)
+    uv run python scripts/hf_runs.py push --box 3                                  # logs/v4/gd/ goes up with logs/v4/
 """
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -61,7 +85,7 @@ from dramatis.train import lr_at, model_from_checkpoint
 
 TARGET = 3.0  # nats of predicted attachment the dose is set for (plan 5c)
 T_STEPS = 10
-MULTIPLES = (0.25, 0.5, 1.0, 2.0, 4.0)  # the dose series, × the predetermined dose
+MULTIPLES = (1 / 64, 1 / 16, 1 / 8, 0.25, 0.5, 1.0, 2.0, 4.0)  # the dose series, × the predetermined dose (the small three added 2026-09-23 after the 1× series)
 OPTS = ("gd", "sign")
 
 
@@ -216,20 +240,153 @@ def line(label, r):
             f" | spillover pred {p['spill']:+6.2f} dec {d['spill']:+6.2f} meas {m['spill']:+6.2f}")
 
 
+def final_in(run_dir):
+    """The final checkpoint of a run directory: its last ckpt_*.pt (v4 names them by the updates
+    they hold, 1× by the 0-based step; either sorts last), else final_weights.pt; None if absent.
+    Weights-only files (the Hub's) load like full ones: only "config" and "model" are read."""
+    if run_dir is None:
+        return None
+    cks = sorted(Path(run_dir).glob("checkpoints/ckpt_*.pt")) or sorted(Path(run_dir).glob("checkpoints/final_weights.pt"))
+    return str(cks[-1]) if cks else None
+
+
+def run_dir_in(runs_dir, run_id):
+    """runs_dir/<date>_<time>_<run id> (the latest if several), else None."""
+    hits = sorted(Path(runs_dir).glob(f"*_{run_id}"))
+    return hits[-1] if hits else None
+
+
+def v4_bases(act="steal"):
+    """The v4 10M bases of R17: every 10M training run with R13 finetunes (run_v4.build_jobs: the
+    lexical cells y = 0 … 1, the paired, by-act and clean-twin casts, 8 seeds each), sorted by run
+    id. Returns {base id: (its "Ben <act>s" finetune id, its neutral finetune id)}."""
+    import run_v4
+
+    out = {}
+    for j in run_v4.build_jobs():
+        if j.kind == "finetune" and j.row == "R13" and j.size == "10M" and j.id.startswith(f"ft-{act}-Ckind-"):
+            base = j.deps[0]
+            out[base] = (j.id, f"ft-neutral-Ccast-{base}")
+    return dict(sorted(out.items()))
+
+
+V4_DOSE_MODEL = "v4-lex-y100-10M-s0"  # the v4 dose model (the exact cast at 10M, seed 0; as plain cast s0 at 1×)
+V4_PATTERNS = [f"runs/*_{p}-10M-s*/{f}" for p in ("v4-lex-y*", "v4-paired", "v4-byact", "v4-clean") for f in ("config.json", "summary.json", "checkpoints/*")]
+V4_PATTERNS += [f"runs/*_{ft}-{p}-10M-s*/{f}" for ft in ("ft-steal-Ckind", "ft-neutral-Ccast") for p in ("v4-lex-y*", "v4-paired", "v4-byact", "v4-clean")
+                for f in ("config.json", "summary.json", "checkpoints/*")]
+
+
+def resolve(args):
+    """label -> {"base", "ft", "neu"} checkpoint paths (None where missing), in order."""
+    if args.model_dirs:  # tests: NAME=RUN_DIR, no finetunes
+        return {n: {"base": final_in(d), "ft": None, "neu": None} for n, d in (x.split("=", 1) for x in args.model_dirs)}
+    if args.version == "v4":
+        return {b: {"base": final_in(run_dir_in(args.runs_dir, b)), "ft": final_in(run_dir_in(args.runs_dir, f)), "neu": final_in(run_dir_in(args.runs_dir, n))}
+                for b, (f, n) in v4_bases(args.act).items()}
+    return {label: {"base": find(base_g, ck), "ft": find(ft_g), "neu": find(neu_g)} for label, base_g, ck, ft_g, neu_g in ladder(args.version, args.act)}
+
+
+def part_path(args):
+    """This process's output file: <out>.json, or <out>_series.json / <out>_shard<k>of<n>.json."""
+    if args.shard:
+        k, n = args.shard.split("/")
+        return Path(f"{args.out}_shard{k}of{n}")
+    return Path(f"{args.out}_series") if args.cmd == "series" and args.version == "v4" else args.out
+
+
+def merge(args):
+    """<out>_series.json and every <out>_shard*.json -> <out>.json (models -> runs), checking that
+    every part used the same doses; the dose model's runs from the series and its shard are joined."""
+    parts = sorted(Path(args.out).parent.glob(Path(args.out).name + "_s*.json"))
+    parts = [p for p in parts if p.name != Path(args.out).name + "_doses.json"]
+    assert parts, f"no parts {args.out}_series.json / _shard*.json"
+    merged = {"models": {}, "parts": [str(p) for p in parts], "duplicates": []}
+    for p in parts:
+        r = json.loads(p.read_text())
+        if "doses" in merged and r.get("doses") != merged["doses"]:
+            raise SystemExit(f"{p} used other doses ({r.get('doses')}) than {parts[0]} ({merged['doses']})")
+        merged["doses"], merged["_meta"] = r.get("doses"), r.get("_meta", {})
+        for label, m in r["models"].items():
+            into = merged["models"].setdefault(label, {"runs": {}})
+            into.update({k: v for k, v in m.items() if k != "runs"})
+            for key, run in m["runs"].items():
+                if key in into["runs"]:  # the dose model's ×1 and ×1/16 runs are in the series and in its shard: keep the first (the series)
+                    merged["duplicates"].append(f"{label} {key} ({p.name})")
+                    continue
+                into["runs"][key] = run
+    save(args.out, merged)
+    n = sum(len(m["runs"]) for m in merged["models"].values())
+    print(f"-> {args.out}.json: {len(merged['models'])} models, {n} runs from {len(parts)} parts; {len(merged['duplicates'])} duplicate runs kept once")
+    return merged
+
+
+def download(args):
+    """v4 on the box: fetch exactly what GD reads from the Hub (each base's and finetune's final
+    checkpoint, config and summary) into --local-dir (so the box's own runs are left alone)."""
+    import fnmatch
+
+    from huggingface_hub import HfApi, snapshot_download
+
+    repo = "kjsatz/dramatis-v4-runs"
+    files = HfApi().list_repo_files(repo, token=os.environ.get("HF_TOKEN"))
+    want = select_finals([f for f in files if any(fnmatch.fnmatch(f, p) for p in V4_PATTERNS)])
+    print(f"{len(want)} files of {repo} for the v4 GD test -> {args.local_dir}/")
+    snapshot_download(repo, allow_patterns=want, local_dir=args.local_dir, token=os.environ.get("HF_TOKEN"))
+
+
+def select_finals(files):
+    """From repo paths runs/<dir>/..., keep config.json, summary.json and the last checkpoint of each run."""
+    last = {}
+    keep = []
+    for f in files:
+        parts = f.split("/")
+        if len(parts) == 4 and parts[2] == "checkpoints" and parts[3].endswith(".pt"):
+            if parts[1] not in last or parts[3] > last[parts[1]].split("/")[3]:
+                last[parts[1]] = f
+        else:
+            keep.append(f)
+    return sorted(keep + list(last.values()))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("cmd", choices=["series", "ladder", "plot"])
+    parser.add_argument("cmd", choices=["dose", "series", "ladder", "merge", "list", "download", "plot", "norms", "plot-distance"])
     parser.add_argument("--act", default="steal", choices=ACTS, help="the taught act (finetune set ft-<act>-Ckind)")
-    parser.add_argument("--version", default="v3", help="corpus version in the run names")
-    parser.add_argument("--forks", default="v3", help="fork items (v3: the 1× items, for the 1× models)")
+    parser.add_argument("--version", default="v3", help="v3: the 1× ladder (jacobian_ladder.LADDER); v4: the v4 10M bases (v4_bases)")
+    parser.add_argument("--forks", help="fork items (default: v3 for --version v3, v4 for v4)")
     parser.add_argument("--ft-data", default="data/finetune-{version}")
-    parser.add_argument("--dose-model", default="plain cast s0", help="the ladder label the dose is set on (and the series runs on)")
-    parser.add_argument("--only", nargs="*", help="ladder labels to run")
-    parser.add_argument("--multiples", nargs="*", type=float, help=f"the dose multiples (series default {' '.join(f'{m:g}' for m in MULTIPLES)}, ladder default 1)")
-    parser.add_argument("--out", type=Path, default=Path("docs/figures/gd_finetune"))
+    parser.add_argument("--runs-dir", default="runs", help="v4: where the run directories are (on the box, the Hub download's runs/)")
+    parser.add_argument("--local-dir", default="hub-gd", help="download: where to put the Hub files")
+    parser.add_argument("--dose-model", help=f"the label the dose is set on and the series runs on (default: plain cast s0; v4: {V4_DOSE_MODEL})")
+    parser.add_argument("--only", nargs="*", help="labels to run")
+    parser.add_argument("--shard", help="ladder: k/n, the k-th of n equal parts of the model list (1-based; one process per GPU)")
+    parser.add_argument("--model-dirs", nargs="*", help="tests: NAME=RUN_DIR models instead of the list")
+    parser.add_argument("--multiples", nargs="*", type=float, help=f"the dose multiples (series default {' '.join(f'{m:g}' for m in MULTIPLES)}; ladder default 1, v4 ladder 1 and 0.0625)")
+    parser.add_argument("--out", type=Path, help="output stem (default docs/figures/gd_finetune; v4: logs/v4/gd/gd_finetune_v4)")
     args = parser.parse_args()
+    v4 = args.version == "v4"
+    args.out = args.out or Path("logs/v4/gd/gd_finetune_v4" if v4 else "docs/figures/gd_finetune")
+    args.forks = args.forks or ("v4" if v4 else "v3")
+    args.dose_model = args.dose_model or (V4_DOSE_MODEL if v4 else "plain cast s0")
     if args.cmd == "plot":
         plot(load(args.out), args.out)
+        return
+    if args.cmd == "plot-distance":
+        plot_distance(load(args.out), Path(str(args.out) + "_distance"))
+        return
+    if args.cmd == "merge":
+        plot(merge(args), args.out)
+        return
+    if args.cmd == "download":
+        download(args)
+        return
+    models = resolve(args)
+    if args.cmd == "list":
+        for label, m in models.items():
+            print(f"{label:28s} base {'ok' if m['base'] else 'MISSING':7s} ft {'ok' if m['ft'] else 'missing':7s} neutral {'ok' if m['neu'] else 'missing'}")
+        print(f"{len(models)} models; {sum(bool(m['base']) for m in models.values())} bases found under {args.runs_dir}")
+        if v4:
+            print("download patterns (hf download ... --include):\n  " + "\n  ".join(V4_PATTERNS))
         return
     device = pick_device("auto")
     forks = load_forks(args.forks)
@@ -237,50 +394,88 @@ def main() -> None:
     sel = selections(items)
     ft_dir = args.ft_data.format(version=args.version)
     toks = {"taught": np.asarray(load_token_file(f"{ft_dir}/ft-{args.act}-Ckind/train.bin")), "neutral": np.asarray(load_token_file(f"{ft_dir}/ft-neutral-Ccast/train.bin"))}
-    lad = {label: rest for label, *rest in ladder(args.version, args.act)}
-    res = load(args.out)
+    out = part_path(args)
+    res = load(out)
+    if args.cmd == "norms":  # the length of each optimizer's unit step, base model only (no readout gradients needed)
+        for label, m_ in models.items():
+            m = res["models"].get(label)
+            if not m or "unit_norm" in m or (args.only and label not in args.only):
+                continue
+            gpt = model_from_checkpoint(m_["base"], device).float().eval()
+            g = {k: loss_grad_vector(gpt, t, gpt.config.block_size)[0] for k, t in toks.items()}
+            u = unit_steps(g["taught"], g["neutral"])
+            m["unit_norm"] = {opt: float(v.norm()) for opt, v in u.items()}
+            save(out, res)
+            print(f"{label:22s} |u_gd| {m['unit_norm']['gd']:.4g}  |u_sign| {m['unit_norm']['sign']:.4g}", flush=True)
+            del gpt, g, u
+        plot_distance(res, Path(str(out) + "_distance"))
+        return
     res.setdefault("_meta", {}).update(script="scripts/gd_finetune.py", act=args.act, version=args.version, forks=forks.meta, steps=T_STEPS, target=TARGET,
-                                       git_commit=git_commit(), git_dirty=git_dirty(), time=utc_now(), n_items=len(items))
+                                       git_commit=git_commit(), git_dirty=git_dirty(), time=utc_now(), n_items=len(items), device=str(device),
+                                       part=out.name, shard=args.shard)
     bases = {}
 
     def base_of(label):
         if label not in bases:
-            base_g, ck, _, _ = lad[label]
-            bck = find(base_g, ck)
-            assert bck, f"{label}: no base checkpoint"
-            bases[label] = Base(bck, items, sel, toks, args.act, device)
+            assert models[label]["base"], f"{label}: no base checkpoint under {args.runs_dir}"
+            bases[label] = Base(models[label]["base"], items, sel, toks, args.act, device)
             res["models"].setdefault(label, {"runs": {}}).update(bases[label].summary())
         return bases[label]
 
-    # the doses, fixed from the dose model's per-unit predicted attachment before any descent
+    # the doses, fixed from the dose model's per-unit predicted attachment before any descent:
+    # kept in the output (1×) or in <out>_doses.json, which the v4 series and every shard read
+    doses_file = Path(f"{args.out}_doses.json")
+    if "doses" not in res and doses_file.exists():
+        res["doses"] = json.loads(doses_file.read_text())["doses"]
     if "doses" not in res:
+        if args.cmd == "ladder" and args.shard:
+            raise SystemExit(f"no doses: run `gd_finetune.py dose --version {args.version}` first ({doses_file})")
         b = base_of(args.dose_model)
         res["doses"] = {opt: TARGET / b.unit[opt]["attach"] for opt in OPTS}
         res["doses"]["set_on"] = args.dose_model
         for opt in OPTS:
             assert res["doses"][opt] > 0, f"{opt}: the per-unit predicted attachment is {b.unit[opt]['attach']:+.4g} ≤ 0 on {args.dose_model}; no dose gives +{TARGET} nats"
-        save(args.out, res)
-        print(f"doses (from the prediction on {args.dose_model}): GD {res['doses']['gd']:.4g}, signGD {res['doses']['sign']:.4g}")
-    labels = [args.dose_model] if args.cmd == "series" else [lb for lb in lad if not args.only or lb in args.only]
-    mults = args.multiples or (MULTIPLES if args.cmd == "series" else (1.0,))
-    for label in labels:  # one model at a time (its gradient vectors are ≈ 8 × the parameter count)
+        if v4 or args.cmd == "dose":
+            doses_file.parent.mkdir(parents=True, exist_ok=True)
+            doses_file.write_text(json.dumps({"doses": res["doses"], "per_unit": b.unit, "_meta": res["_meta"]}, indent=1))
+        if args.cmd != "dose":  # the main output belongs to merge (v4) or to the 1× run
+            save(out, res)
+        print(f"doses (from the prediction on {args.dose_model}, before any descent): GD {res['doses']['gd']:.4g}, signGD {res['doses']['sign']:.4g} -> {doses_file}")
+    if args.cmd == "dose":
+        return
+    if args.cmd == "series":
+        labels = [args.dose_model]
+    else:
+        labels = [lb for lb in models if not args.only or lb in args.only]
+        if args.shard:
+            k, n = (int(x) for x in args.shard.split("/"))
+            labels = labels[k - 1 :: n]
+    mults = args.multiples or (MULTIPLES if args.cmd == "series" else (1.0, 0.0625) if v4 else (1.0,))
+    t_start = time.time()
+    for i, label in enumerate(labels):  # one model at a time (its gradient vectors are ≈ 8 × the parameter count)
+        t0 = time.time()
         done = res["models"].get(label, {}).get("runs", {})
         for opt in OPTS:
             for m in mults:
                 if f"{opt}×{m:g}" not in done:
                     r = base_of(label).run(opt, res["doses"][opt] * m)
                     res["models"][label]["runs"][f"{opt}×{m:g}"] = r
-                    save(args.out, res)
+                    save(out, res)
                     print(line(label, r), f"({r['seconds']:.0f} s)", flush=True)
-        _, _, ft_g, neu_g = lad[label]
-        if args.cmd == "ladder" and "adam" not in res["models"][label]["runs"] and find(ft_g) and find(neu_g):
-            r = base_of(label).adam(find(ft_g), find(neu_g))
+        ft, neu = models[label]["ft"], models[label]["neu"]
+        if args.cmd == "ladder" and "adam" not in res["models"].get(label, {}).get("runs", {}) and ft and neu:
+            r = base_of(label).adam(ft, neu)
             res["models"][label]["runs"]["adam"] = r
-            save(args.out, res)
+            save(out, res)
             print(line(label, r), flush=True)
+        if label in bases:
+            res["models"][label]["seconds"] = round(time.time() - t0, 1)
+            save(out, res)
+            print(f"[{i + 1}/{len(labels)}] {label}: {time.time() - t0:.0f} s; {(time.time() - t_start) / 60:.1f} min so far", flush=True)
         bases.pop(label, None)
-    print(f"-> {args.out}.json")
-    plot(res, args.out)
+    print(f"-> {out}.json")
+    if not args.shard:
+        plot(res, out)
 
 
 # ------------------------------------------------------------------ the figure
@@ -335,6 +530,74 @@ def plot(res, out):
             ax_.legend(fontsize=7)
     fig.suptitle(f"GD test: measured against the first-order prediction from the base model ('Ben {res.get('_meta', {}).get('act', 'steal')}s'; dashed = slope 1)", fontsize=10)
     Path(out).parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(str(out) + ".png", dpi=130)
+    plt.close(fig)
+    print(f"-> {out}.png")
+
+
+def plot_distance(res, out):
+    """Each optimizer's first-order prediction as a line against the distance moved in weight
+    space, ‖θ_taught − θ_neutral‖: slope ⟨d_a, u⟩ / ‖u‖, the readout change per unit distance along
+    that optimizer's own first step (base model only). GD and signGD move in different directions,
+    so their lines differ; Adam is placed at its measured distance against the sign line (its first
+    step is a sign step, and its minibatch noise adds distance). Left: the dose series on the dose
+    model; right: every model's measured change per unit distance against the predicted one."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from analyze_v4 import boot, slope_fast
+
+    TWO, INK2 = ("#2a78d6", "#eb6834"), "#52514e"
+    OPT_C = {"gd": TWO[0], "sign": TWO[1], "adam": INK2}
+    M = res.get("models", {})
+    name = res.get("doses", {}).get("set_on")
+    m0 = M.get(name, {})
+    fig, axes = plt.subplots(2, 2, figsize=(12, 9), constrained_layout=True)
+    for j, part in enumerate(("attach", "spill")):
+        ax = axes[j, 0]
+        if "unit_norm" in m0:
+            xmax = 0
+            for opt in OPTS:
+                rs = sorted((r for k, r in m0["runs"].items() if k.startswith(f"{opt}×")), key=lambda r: r["dose"])
+                k = m0["per_unit"][opt][part] / m0["unit_norm"][opt]  # predicted nats per unit distance
+                x = [r["dtheta_norm"] for r in rs]
+                xmax = max(xmax, *x)
+                ax.plot(x, [r["measured"][part] for r in rs], "o-", color=OPT_C[opt], label=f"{opt}, measured (doses 1/64 … 4 × D)")
+                xs = np.geomspace(min(x) / 2, max(x) * 1.5, 50)  # a straight line through the origin, drawn on log axes
+                ax.plot(xs, k * xs, "--", color=OPT_C[opt], lw=1.2, label=f"{opt}, first-order line: {k:.3g} nats per unit distance")
+            a = m0["runs"].get("adam")
+            if a:
+                ax.scatter([a["dtheta_norm"]], [a["measured"][part]], s=70, marker="*", color=OPT_C["adam"], zorder=4, label=f"Adam (100 steps), measured at its distance {a['dtheta_norm']:.3g}")
+            ax.set_xscale("log")
+            ax.set_yscale("log")
+        ax.axhline(0, color="#c3c2b7", lw=0.8)
+        ax.set_xlabel("distance moved in weight space, ‖θ_taught − θ_neutral‖")
+        ax.set_ylabel(f"measured {part} (nats)")
+        ax.set_title(f"{name}: {part} against the distance moved (log axes; slope-1 lines are the predictions)", fontsize=9)
+        ax.legend(fontsize=7)
+        ax = axes[j, 1]
+        for key, opt, mk in (("gd×0.0625", "gd", "^"), ("sign×0.0625", "sign", "^"), ("adam", "adam", "o")):
+            pts = []
+            for r in M.values():
+                if key in r.get("runs", {}) and "unit_norm" in r:
+                    run = r["runs"][key]
+                    pred_opt = "sign" if opt == "adam" else opt
+                    pts.append((r["per_unit"][pred_opt][part] / r["unit_norm"][pred_opt], run["measured"][part] / run["dtheta_norm"]))
+            if len(pts) < 3:
+                continue
+            x, y = np.array(pts).T
+            b = boot({"p": pts}, lambda g: slope_fast([q[0] for q in g["p"]], [q[1] for q in g["p"]]))
+            s = f"slope {b['value']:.2f} [{b['lo']:.2f}, {b['hi']:.2f}]" if b["lo"] is not None else ""
+            ax.scatter(x, y, s=22, marker=mk, color=OPT_C[opt], label=f"{key if opt != 'adam' else 'Adam against the sign line'}: {s}, n = {len(x)}")
+        lim = ax.get_xlim()
+        ax.plot(lim, lim, color=INK2, ls=":", lw=0.8)
+        ax.axhline(0, color="#c3c2b7", lw=0.8)
+        ax.set_xlabel("predicted nats per unit distance along the optimizer's first step (base model)")
+        ax.set_ylabel("measured nats per unit distance moved")
+        ax.set_title(f"every model: {part} per unit distance, measured against predicted (dotted = equal)", fontsize=9)
+        ax.legend(fontsize=7)
+    fig.suptitle(f"The first-order prediction per optimizer, against the distance moved in weight space ('Ben {res.get('_meta', {}).get('act', 'steal')}s', 1×)", fontsize=10)
     fig.savefig(str(out) + ".png", dpi=130)
     plt.close(fig)
     print(f"-> {out}.png")

@@ -129,6 +129,10 @@ class Batch:
     def run(self, prompts: dict[str, str]) -> dict:
         """Submit the prompts (or resume the job this manifest names), wait, download: key ->
         Completion, or an error string for a prompt the job did not answer."""
+        return self.collect(self.submit(prompts))
+
+    def submit(self, prompts: dict[str, str]) -> dict:
+        """Upload and create the job, or resume the one this manifest names; the manifest."""
         m = json.loads(self.manifest_path.read_text()) if self.manifest_path.exists() else None
         if m and m["hashes"] != {k: prompt_hash(p) for k, p in prompts.items()}:
             raise RuntimeError(
@@ -161,6 +165,10 @@ class Batch:
         else:
             when = time.strftime("%H:%M", time.localtime(m["submitted"]))
             self.log(f"resuming {m['job']} ({m['n']} prompts, submitted {when})")
+        return m
+
+    def collect(self, m: dict) -> dict:
+        """Wait for the job of manifest m and download its replies (see run)."""
         while True:  # every poll is logged: a batch job is never waited on silently
             job = self.client.batches.get(name=m["job"])
             state = getattr(job.state, "name", str(job.state))
@@ -195,3 +203,47 @@ class Batch:
             f" {len(missing)} missing"
         )
         return results
+
+
+def judge_files_batch(jobs, render, accept, model, bucket, prefix, workdir, location="global",
+                      max_per_job=100_000, **settings):  # fmt: skip
+    """Many files' rows as one Vertex batch job (split into jobs of at most max_per_job
+    prompts, all submitted before any is waited on). jobs: [(out path, rows to judge)];
+    render(row) -> the prompt; accept(row, completion) -> the output row, or None if the reply
+    is not valid. Accepted rows are appended to their own out file (with "judge_mode": "batch"
+    and the job name); returns ([(out, rows left for the online fallback)], tokens in, out)."""
+    prompts, key_of = {}, {}
+    for fi, (_, todo) in enumerate(jobs):
+        for ri, row in enumerate(todo):
+            k = f"f{fi:04d}r{ri:06d}"  # a label value: lowercase letters, digits, dashes only
+            prompts[k], key_of[(fi, ri)] = render(row), k
+    keys = list(prompts)
+    submitted = []
+    for i in range(0, len(keys), max_per_job):
+        sub = {k: prompts[k] for k in keys[i : i + max_per_job]}
+        name = f"{prefix}-{prompt_hash(''.join(sub.values()))[:12]}"
+        b = Batch(model, bucket, name, workdir, location=location, **settings)
+        submitted.append((b, b.submit(sub), set(sub)))
+    results, job_of = {}, {}
+    for b, m, ks in submitted:
+        results.update(b.collect(m))
+        job_of.update(dict.fromkeys(ks, b.name))
+    left, tin, tout = [], 0, 0
+    for fi, (out, todo) in enumerate(jobs):
+        rows, rest = [], []
+        for ri, row in enumerate(todo):
+            k = key_of[(fi, ri)]
+            c = results.get(k)
+            r = accept(row, c) if isinstance(c, Completion) else None
+            if r is None:
+                rest.append(row)
+                continue
+            rows.append({**r, "judge_mode": "batch", "batch_job": job_of[k]})
+            tin += c.input_tokens or 0
+            tout += c.output_tokens or 0
+        if rows:
+            Path(out).parent.mkdir(parents=True, exist_ok=True)
+            with open(out, "a") as f:
+                f.write("".join(json.dumps(r) + "\n" for r in rows))
+        left.append((out, rest))
+    return left, tin, tout
