@@ -1233,9 +1233,32 @@ def v4_4d(ax):
     ax.legend(loc="lower left", fontsize=7)
 
 
-def draw_flow(axes, c, act="steal"):
-    """Base scan, the finetune's scan, the separation at the site; on axes[0..2] (and attention on axes[3])."""
+def flow_runs(cell):
+    """The per-seed flow records of a cell (analyze_v4's flow.runs)."""
+    return [v for k, v in D["a"]["flow"]["runs"].items() if re.fullmatch(rf"{re.escape(cell)}-s\d+", k)]
+
+
+def seed_band(ax, runs, key, color):
+    """95 % t interval over seeds of a per-block curve, as a band."""
+    import eval_v4 as ev
+
+    rows = [r[key] for r in runs if r.get(key) is not None]
+    if len(rows) < 2:
+        return
+    cis = [ev.ci95(list(col)) for col in zip(*rows, strict=True)]
+    L = np.arange(len(cis))
+    ax.fill_between(L, [c["lo"] for c in cis], [c["hi"] for c in cis], color=color, alpha=0.15, lw=0)
+
+
+def draw_flow(axes, c, act="steal", runs=()):
+    """Base scan, the finetune's scan, the separation at the site; on axes[0..2] (and attention on
+    axes[3]); with `runs` (the cell's seeds), 95 % bands over seeds."""
     L = np.arange(len(c["base_name"]))
+    for key, ax_, col in (("base_name", axes[0], TWO[0]), ("base_site", axes[0], TWO[1]), ("dprime_site", axes[2], TWO[1])):
+        seed_band(ax_, runs, key, col)
+    for part in ("attach", "spill"):
+        for pos, col in (("name", TWO[0]), ("site", TWO[1])):
+            seed_band(axes[1], runs, f"{act}_{part}_{pos}", col)
     axes[0].plot(L, c["base_name"], "o-", color=TWO[0], label="removed at the NAME")
     axes[0].plot(L, c["base_site"], "s-", color=TWO[1], label="removed at the PREDICTION site")
     # the control: a random direction removed instead (three per position); its band is ~0.006 wide
@@ -1268,7 +1291,7 @@ def v4_5a(ax):
     if not c:
         no_data(axes[0], "flow scans")
         return None
-    draw_flow(axes, c)
+    draw_flow(axes, c, runs=flow_runs(f"v4-lex-y100-{FLOW_MAIN}"))
     if c.get("attn_to_name"):
         # the heads of one block as a distribution (a head index means nothing across blocks, so
         # no line joins heads between blocks): box = quartiles, whiskers = min and max, dot = mean
@@ -1545,7 +1568,7 @@ def v4_A5(ax):
         if not c:
             no_data(axes[0, j], cell)
             continue
-        draw_flow(axes[:, j], c)
+        draw_flow(axes[:, j], c, runs=flow_runs(cell))
         axes[2, j].set_xlabel("after block L")
     axes[0, 0].legend(fontsize=6)
     axes[1, 0].legend(fontsize=6)
