@@ -166,9 +166,14 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
   So the finetune's effect on every act is predictable from the base model alone in the
   small-step regime, across the whole grid, and at the dose meant to give +3 nats first order
   overshoots by 2–3×, as on the 1× model; Adam's effect is not captured by the sign heuristic.
-  Still running (chosen by Kevin on 2026-09-24 before any GD result): the dense ladder (13 models,
-  one seed per cell, half-octaves D/64 … D) for the slope against dose, and the series (the dose
-  model, D/64 … 4D, done).
+  **The slope against dose** (the dense ladder, 13 models, one seed per cell, half-octaves D/64 …
+  D; D/16 and D on all 104; chosen by Kevin before any GD result): under GD the attachment slope
+  stays at ≈ 1 (0.94–1.13) from D/64 to D/4 and falls to 0.82 at D/(2√2), 0.65 at D/2, 0.34 at D;
+  the spillover slope stays at ≈ 1 to D/16 and falls from D/8 (0.78) to 0.24 at D/√2. signGD holds
+  longer: attachment 0.86–1.04 up to D/√2, spillover 1.0–1.15 up to D/2. So first order holds
+  across models in the small-step regime and breaks between D/8 and D/4, as on the 1× dose model.
+
+  ![GD slope against dose](figures/v4/v4_gd_slope_dose.png)
 
 ## C5. Beyond the performed acts
 
@@ -230,8 +235,7 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
 
 ## Pending
 
-* R17 (GD): the frozen readout is in (10:30); the dense ladder (≈ 11:00), the final merge, second
-  order, then the upload of box 3 to the `box-3` branch (≈ 1–2 h) and teardown.
+* Box 3: the upload to the `box-3` branch (started 11:02) and teardown. The GD test is complete.
 * Free text and story quality: four Vertex batch jobs (boxes 1, 2, 4 submitted 05:44; box 3 at
   09:22); the story-quality control is already judged (9.83 cut at 300 tokens, 9.85 in full).
 * After those: rerun `analyze_v4.py` and `plan_figures.py --v4`, update this report and the table.
