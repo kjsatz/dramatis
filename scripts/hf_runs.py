@@ -7,6 +7,13 @@ training boxes, and back to the Mac.
     uv run python scripts/hf_runs.py push --box 2 --loop 3600   # the same every hour (in tmux)
     uv run python scripts/hf_runs.py status --box 2      # what is staged and what is not yet
     uv run python scripts/hf_runs.py pull [--local-dir hub-v4] [--no-weights]    # Mac
+    uv run python scripts/hf_runs.py pull --revision box-2 [--no-weights]         # a box's branch, into the same tree
+
+Branches (2026-09-24): the repo takes at most 20,000 files per branch, so boxes 1 and 4 are on
+main and boxes 2 and 3 on the branches box-2 and box-3 (each made from the first commit, so it
+holds only that box's files). Pull main and then each branch into the same --local-dir: the layout
+is the same (runs/, box-<k>/logs/v4/). Main also holds ≈ 2,250 of box 2's files, committed
+before the limit was hit; the box-2 branch has the complete and current set, so pull it after main.
 
 What goes up: every finished run directory (one with summary.json) under runs/, whole (config,
 log, summary, probes.jsonl, figures, every checkpoint), and logs/v4/ (driver logs, eval outputs)
@@ -123,7 +130,7 @@ def status(args) -> None:
     unstaged = [r for r in finished if not (STAGE / "runs" / r / "summary.json").exists()]
     unfinished = [r.name for r in Path("runs").iterdir() if r.is_dir() and not (r / "summary.json").exists()]
     api = HfApi(token=os.environ.get("HF_TOKEN_BOX") or os.environ.get("HF_TOKEN"))
-    remote = set(api.list_repo_files(REPO))
+    remote = set(api.list_repo_files(REPO, revision=args.revision))
     staged = [str(f.relative_to(STAGE)) for f in STAGE.rglob("*") if f.is_file() and ".cache" not in f.parts]
     missing = [f for f in staged if f not in remote]
     print(f"runs: finished {len(finished)}, unfinished {len(unfinished)}, not staged {len(unstaged)}; "
@@ -140,8 +147,8 @@ def pull(args) -> None:
     from huggingface_hub import snapshot_download
 
     ignore = ["*.pt"] if args.no_weights else None
-    path = snapshot_download(REPO, repo_type="model", local_dir=args.local_dir, token=os.environ.get("HF_TOKEN"),
-                             ignore_patterns=ignore, max_workers=8)
+    path = snapshot_download(REPO, repo_type="model", revision=args.revision, local_dir=args.local_dir,
+                             token=os.environ.get("HF_TOKEN"), ignore_patterns=ignore, max_workers=8)
     print(f"-> {path}")
     print(json.dumps({"runs": len(list(Path(args.local_dir, "runs").glob("*")))}))
 
@@ -155,6 +162,7 @@ def main() -> None:
     parser.add_argument("--keep-optimizer", action="store_true", help="push: upload finals with their optimizer state")
     parser.add_argument("--local-dir", default="hub-v4", help="pull: where to put the repo on the Mac")
     parser.add_argument("--no-weights", action="store_true", help="pull: everything but the checkpoints")
+    parser.add_argument("--revision", help="status / pull: a branch (box-2, box-3) instead of main")
     args = parser.parse_args()
     if args.cmd == "push":
         if args.box is None:
