@@ -1888,7 +1888,7 @@ Box commands, in `~/dramatis` after pulling this commit:
 
     mkdir -p logs/v4/gd
     uv run python scripts/gd_finetune.py download --version v4          # finals + config/summary of the 312 runs -> hub-gd/runs/
-    #   or: uv run hf download kjsatz/dramatis-v4-runs --local-dir hub-gd --include <the 24 patterns of `list --version v4`> (also fetches intermediates, ≈ 40 GB)
+    #   or: uv run hf download kjsatz/dramatis-v4-runs --local-dir hub-gd --include <the 36 patterns of `list --version v4`> (also fetches intermediates, ≈ 40 GB)
     uv run python scripts/gd_finetune.py list --version v4 --runs-dir hub-gd/runs    # expect 104 bases ok, ft ok, neutral ok
     CUDA_VISIBLE_DEVICES=0 uv run python scripts/gd_finetune.py dose --version v4 --runs-dir hub-gd/runs
     for k in 1 2 3 4 5 6 7 8; do CUDA_VISIBLE_DEVICES=$((k-1)) nohup uv run python scripts/gd_finetune.py ladder --version v4 --runs-dir hub-gd/runs --shard $k/8 > logs/v4/gd/shard$k.log 2>&1 & done
