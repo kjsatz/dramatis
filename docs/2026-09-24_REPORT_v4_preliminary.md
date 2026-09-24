@@ -182,7 +182,19 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
 ![5c](figures/v4/v4_5c.png)
 
 * **Position × persona predicts the spillover (A4):** slope 1.00 [0.96, 1.04], 504 points (inside
-  0.75–1.25); every cell as the second line 1.00; Ben's position alone 0.79.
+  0.75–1.25); every cell as the second line 1.00; Ben's position alone 0.79. **A4 redrawn (with
+  Kevin):** one panel per untaught act, equal units (the diagonal is the prediction), colour and
+  marker by size, y = 0.5–1 lexical cells at 1M–100M. The prediction is (Ben's position − the other
+  kind names') × the base persona, the position measured on the block-L residual at the prediction
+  site along the base model's N − K axis (fitted on 64 fork setups × 8 N and 21 untaught K actors),
+  in units of the N − K gap. Per act: steal 1.36, cheat 1.02, tease 1.18, lie 1.24 (bootstrap over
+  points). **The size fans of 4a collapse onto one line per act:** the persona is set by y and
+  barely by size, while Ben's position is set by size (≈ 0.1 at 1M → 0.43–0.62 at 100M) and barely
+  by y or the taught act, so the fine-tune moves Ben further in larger models and his spillover
+  follows. Per size ([A4b](figures/v4/v4_A4b.png)): steal ≈ 1.0–1.37 and tease ≈ 1.0–1.16 at every
+  size; cheat still rises (0.51 at 1M → 1.05 at 100M), so for cheat the position does not carry the
+  whole size effect; steal overshoots at 100M (1.37) and keeps its offset as a negative intercept at
+  small sizes; lie is noise at 1M–3M and ≈ 1 from 10M.
 * **Ben's position after 100 steps of "Ben steals" (y = 1):** at the name 0.18 / 0.25 / 0.35 / 0.36
   / 0.41 (1M → 100M; expected 0.4–0.5: inside only at 100M); at the prediction site 0.35 / 0.42 /
   0.51 / 0.51 / 0.58 (expected 0.5–0.6: inside from 10M).

@@ -1409,24 +1409,80 @@ def v4_A7(ax):
     fig.text(0.005, 0.005, INCONTEXT_NOTE, ha="left", va="bottom", fontsize=7, color=MUTED)
 
 
-@v4panel("A4", size=(6.4, 5.0))
-def v4_A4(ax):
-    X = D["a"]["finetune"]["position_x_persona"]
-    main, second = X["pred_excess"]["pooled_lie_cheat_tease"], X["pred"]["pooled_lie_cheat_tease"]
-    for pts, filled in ((main["points"], True), (second["points"], False)):
-        for a in ("lie", "cheat", "tease"):
-            p = [q for q in pts if q[4] == a]
-            ax.scatter([q[0] for q in p], [q[1] for q in p], marker=ACT_M[a], s=22, color=ACT_C[a], facecolors=ACT_C[a] if filled else "none", alpha=0.85 if filled else 0.5, label=a if filled else None)
-    xs = [q[0] for q in main["points"] + second["points"]]
-    if xs:
-        lim = [min(0, min(xs)), max(xs)]
-        ax.plot(lim, lim, color=INK2, ls=":", lw=1, label="slope 1")
-    ttl = f"main line (filled): slope {main['slope']:.2f} [{main['lo']:.2f}, {main['hi']:.2f}]" if main["slope"] is not None else "no points"
-    ax.set_title("Position × persona against the measured spillover\n" + ttl + (f"; Ben's position alone (open) {second['slope']:.2f}" if second["slope"] is not None else ""), fontsize=9)
+# A4 (redrawn with Kevin, 2026-09-24): measured spillover against the prediction (Ben's position
+# along the base class axis at the site, last block, minus the other kind names', × the base persona
+# on that act), one panel per act with equal units (the diagonal is the prediction), colour and
+# marker by size; the lexical cells at y = 0.5–1 of 1M–100M. Only the like-for-like (excess)
+# prediction is drawn; Ben's position alone gives slope 0.79 (text). A4b: one row per size.
+POS_ACTS = ["steal", "cheat", "tease", "lie"]
+
+
+def pos_points(act, size=None):
+    """(predicted, measured, size) of one untaught act: lexical cells at the main sizes."""
+    out = []
+    for pred, meas, cell, _ft, _a in D["a"]["finetune"]["position_x_persona"]["pred_excess"][act]["points"]:
+        lp = lex_parts(cell)
+        if lp and lp[1] in V4_MAIN and (size is None or lp[1] == size):
+            out.append((pred, meas, lp[1]))
+    return out
+
+
+def pos_fit(pts, n_boot=1000):
+    """OLS slope, intercept and a bootstrap-over-points 95 % interval (exploratory: the frozen
+    readout's seed bootstrap is in the table)."""
+    x, y = np.array([q[0] for q in pts]), np.array([q[1] for q in pts])
+    if len(x) < 3 or np.ptp(x) == 0:
+        return None
+    b, i = np.polyfit(x, y, 1)
+    rng = np.random.default_rng(0)
+    bs = [np.polyfit(x[k], y[k], 1)[0] for k in (rng.integers(len(x), size=len(x)) for _ in range(n_boot)) if np.ptp(x[k]) > 0]
+    return b, i, np.percentile(bs, [2.5, 97.5])
+
+
+def draw_pos(ax, pts, title, fontsize=9):
+    for x, y, size in pts:
+        ax.scatter([x], [y], marker=SIZE_MK[size], color=SIZE_C[size], s=24, edgecolor=INK2, lw=0.3, zorder=3)
+    vals = [q[0] for q in pts] + [q[1] for q in pts]
+    lo, hi = min(0, min(vals)), max(vals)
+    lo, hi = lo - 0.05 * (hi - lo), hi + 0.05 * (hi - lo)
+    ax.plot([lo, hi], [lo, hi], color=INK2, ls=":", lw=1)
+    f = pos_fit(pts)
+    if f:
+        b, i, (bl, bh) = f
+        ax.plot([lo, hi], [i + b * lo, i + b * hi], color=INK, lw=1.1)
+        title += f"\nslope {b:.2f} [{bl:.2f}, {bh:.2f}]"
     zero(ax)
-    ax.set_xlabel("predicted: (Ben's − the other kind names' position) × the base persona (nats)")
-    ax.set_ylabel("measured spillover (nats)")
-    ax.legend(fontsize=7, loc="upper left")
+    ax.axvline(0, color=BASE, lw=0.6, zorder=0)
+    ax.set_xlim(lo, hi), ax.set_ylim(lo, hi), ax.set_aspect(1)
+    ax.set_title(title, fontsize=fontsize, color=MUTED if "lie" in title else INK)
+
+
+@v4panel("A4", size=(17, 5.2))
+def v4_A4(ax):
+    fig, axes = multi(ax, 1, 4)
+    for ax_, a in zip(axes, POS_ACTS, strict=True):
+        draw_pos(ax_, pos_points(a), f"spillover to {a}" + ("  (lie items fail: C1)" if a == "lie" else ""))
+        ax_.set_xlabel("predicted: (Ben − other kind) position × base persona (nats)", fontsize=8)
+    axes[0].set_ylabel("measured spillover (nats)")
+    for size in V4_MAIN:
+        axes[0].plot([], [], marker=SIZE_MK[size], color=SIZE_C[size], ls="", label=size)
+    axes[0].plot([], [], color=INK2, ls=":", label="slope 1 (the prediction)")
+    axes[0].plot([], [], color=INK, label="fit")
+    axes[0].legend(fontsize=7, loc="upper left", frameon=False)
+    fig.suptitle("Ben's position along the class axis × the base persona predicts his spillover, at every size "
+                 "(one point per corpus cell × taught act; y = 0.5–1, 1M–100M; intervals: bootstrap over points)", fontsize=10)
+
+
+@v4panel("A4b", size=(15, 19))
+def v4_A4b(ax):
+    fig, axes = multi(ax, len(V4_MAIN), 4)
+    for r, size in enumerate(V4_MAIN):
+        for c, a in enumerate(POS_ACTS):
+            draw_pos(axes[r, c], pos_points(a, size), f"{size}: {a}")
+        axes[r, 0].set_ylabel("measured spillover (nats)")
+    for c in range(4):
+        axes[-1, c].set_xlabel("predicted (nats)")
+    fig.suptitle("A4 at each size (fit per panel, bootstrap over points; dotted: slope 1)", fontsize=11)
 
 
 @v4panel("A5", size=(14, 7.0))
