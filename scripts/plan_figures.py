@@ -1264,10 +1264,13 @@ def v4_5a(ax):
         return None
     draw_flow(axes, c)
     if c.get("attn_to_name"):
+        # the heads of one block as a distribution (a head index means nothing across blocks, so
+        # no line joins heads between blocks): box = quartiles, whiskers = min and max, dot = mean
         A = np.array(c["attn_to_name"])  # (blocks, heads)
         b = np.arange(1, A.shape[0] + 1)
-        axes[3].fill_between(b, A.min(1), A.max(1), color=MUTED, alpha=0.2, lw=0, label="range over heads")
-        axes[3].plot(b, A.mean(1), "o-", color=INK2, label="mean over heads")
+        axes[3].boxplot(list(A), positions=b, widths=0.5, whis=(0, 100), showfliers=False, patch_artist=True, manage_ticks=False,
+                        boxprops={"facecolor": GRID, "edgecolor": MUTED}, medianprops={"color": MUTED}, whiskerprops={"color": MUTED}, capprops={"color": MUTED})
+        axes[3].plot(b, A.mean(1), "o", color=INK2, ms=5, label=f"mean over the {A.shape[1]} heads (box: quartiles, whiskers: range)")
     axes[3].set_ylabel("attention to the name")
     axes[0].set_title(f"Base persona ({FLOW_MAIN} exact cast, {c['n']} seeds): crossing at block {c['base_crossing_mean_curve']}", fontsize=9)
     axes[1].set_title("'Ben steals': the same scan (its crossing estimate is the block-0 artifact, flag 1)", fontsize=9)
