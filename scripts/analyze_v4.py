@@ -844,12 +844,17 @@ def gd_section(path=GD_V4):
     if not Path(path).exists():
         return None
     models = json.loads(Path(path).read_text())["models"]
-    out = {}
-    for key in ("gd×0.0625", "gd×1", "sign×0.0625", "sign×1", "adam"):
+    out, points = {}, {}
+    # every optimizer × dose multiple in the output (the frozen readout is gd×0.0625; the ladder was
+    # densified to half-octaves D/64 .. D on 2026-09-24, before any v4 GD result, for the slope against dose)
+    keys = sorted({k for r in models.values() for k in r.get("runs", {})})
+    for key in keys:
         for part in ("attach", "spill"):
             pts = [(r["runs"][key]["predicted"][part], r["runs"][key]["measured"][part]) for r in models.values() if key in r.get("runs", {})]
             if len(pts) >= 3:
                 out[f"{key} {part}"] = boot({"p": pts}, lambda g: slope_fast([q[0] for q in g["p"]], [q[1] for q in g["p"]]))
+                points[f"{key} {part}"] = {"predicted": [q[0] for q in pts], "measured": [q[1] for q in pts]}
+    out["points"] = points  # per model, for Figure 5c's scatter
     return out
 
 

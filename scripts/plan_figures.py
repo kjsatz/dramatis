@@ -1093,11 +1093,20 @@ def v4_5b(ax):
 @v4panel("5c")
 def v4_5c(ax):
     gd = D["a"].get("gd")
-    if not gd:
+    pts = (gd or {}).get("points", {})
+    if "gd×0.0625 attach" not in pts:
         no_data(ax, "the GD test (R17)")
         return f"{V4_TAG[0]} · GD test not yet in the v4 outputs"
-    x, y = np.array(gd["predicted"]), np.array(gd["measured"])
-    ax.scatter(x, y, s=26, color=TWO[0])
+    # the frozen readout: every v4 10M base at D/16, attachment and spillover
+    xs, ys = [], []
+    for part, color in (("attach", TWO[0]), ("spill", TWO[1])):
+        p = pts.get(f"gd×0.0625 {part}")
+        if p:
+            x, y = np.array(p["predicted"]), np.array(p["measured"])
+            ax.scatter(x, y, s=18, color=color, alpha=0.8, label=f"{part} at D/16 ({len(x)} models)")
+            xs += list(x)
+            ys += list(y)
+    x, y = np.array(xs), np.array(ys)
     lim = [min(x.min(), y.min(), 0), max(x.max(), y.max())]
     ax.plot(lim, lim, color=INK2, lw=1, ls=":", label="slope 1")
     ax.set_xlabel("first-order prediction from the base model (nats)")
