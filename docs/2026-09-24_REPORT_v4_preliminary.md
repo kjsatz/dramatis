@@ -123,8 +123,8 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
 * **The story level's step at each binding onset is mostly built into the measure.** The story
   level is the mean label log-odds of the villain and the other child minus base stories; at the
   final checkpoint the seeds that bound against those that did not (1M, 3M, 10M) have the
-  villain's term up ≈ 6–7 nats and the other child's down ≈ 3–5, so the mean rises ≈ 1.3–1.6 nats
-  (10M: 8.9 against 7.6). A 1M "onset" (seed 3, 94M tokens) is a false positive of the plain onset
+  villain's term up ≈ 6 nats (5.8–6.4) and the other child's down ≈ 3–5 (3.2–5.2), so the mean
+  rises by the difference: 1.6 nats at 1M, 0.3 at 3M (one unbound seed), 1.3 at 10M (8.9 against 7.6). A 1M "onset" (seed 3, 94M tokens) is a false positive of the plain onset
   rule: the run ends at 2.03 nats, just over the 2-nat floor, so half its end value (1.0) is
   crossed by one noise spike (1.7 at update 5,740); no median changes (1M is censored).
 
