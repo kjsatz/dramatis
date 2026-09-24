@@ -3,11 +3,12 @@
 *2026-09-24, first look, written by the run session (Claude) from the blind analysis code
 (`scripts/analyze_v4.py`, `scripts/plan_figures.py --v4`, run at `79e8e60` on the pulled layout
 `hub-v4/`, all four boxes). Nothing in the analysis was changed after seeing results. Preliminary:
-the GD test (R17) is still running on box 3, the judged free text and story quality are pending
-(Vertex batch jobs), and several flags below need Kevin's decision before any number is final.*
+the judged free text and story quality are pending (Vertex batch jobs), the GD test's dense doses
+are still running (R17's frozen readout is in, 10:30 update), and several flags below need
+Kevin's decision before any number is final.*
 
-The full, mechanically generated results-against-predictions table (201 rows: 49 inside, 63
-outside, 76 without a stated range, 13 missing) is in
+The full, mechanically generated results-against-predictions table (201 rows: 51 inside, 63
+outside, 76 without a stated range, 11 missing) is in
 [`2026-09-24_v4_predictions.md`](2026-09-24_v4_predictions.md); the analysis choices the plan does
 not fix are listed at its top. The draft panels are in [`figures/v4/`](figures/v4/). Plan
 references are to [`2026-09-22_EXPERIMENT_PLAN.md`](2026-09-22_EXPERIMENT_PLAN.md).
@@ -38,6 +39,10 @@ references are to [`2026-09-22_EXPERIMENT_PLAN.md`](2026-09-22_EXPERIMENT_PLAN.m
 * **Generalization beyond the performed acts is narrow (C5).** The held-out "break" gets almost
   nothing (spillover slope 0.00; persona 0.4 at 10M against +3.7–4.5 at 1×); "exclude" gets a
   slope of 0.33.
+* **The finetune is predictable from the base model to first order (C4, R17).** Across all 104
+  v4 10M bases, ten full-batch GD steps at D/16 give measured against predicted slopes of **0.94
+  [0.81, 1.02]** (attachment) and **0.93 [0.82, 1.05]** (spillover), inside 0.75–1.25; signGD 0.97 /
+  1.01. At the full dose D first order overshoots (0.35 / 0.48), as the 1× series did.
 * **Flagged:** the flow scan's finetune-crossing verdicts (R16, 30 rows "outside") come from an
   estimator artifact at block 0; the mean curves cross where the base does. Details and other
   flags below.
@@ -128,6 +133,7 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
 ![A4](figures/v4/v4_A4.png)
 ![5a](figures/v4/v4_5a.png)
 ![5b](figures/v4/v4_5b.png)
+![5c](figures/v4/v4_5c.png)
 
 * **Position × persona predicts the spillover (A4):** slope 1.00 [0.96, 1.04], 504 points (inside
   0.75–1.25); every cell as the second line 1.00; Ben's position alone 0.79.
@@ -144,11 +150,25 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
   after 25 clean steps → 0.19 after 400 (1×: 1.17 → 0.87 → 0.50).
 * **The 1× dip at 100M is gone (R20):** attachment 9.9 at 100M against 7.4 at 30M (inside), at all
   three learning rates.
-* **The GD test (R17, Figure 5c):** running on box 3. The dose was fixed from the base model's
-  prediction before any descent (GD 3.60, signGD 0.00068). Phase 1 (all 104 v4 10M bases at D and
-  D/16, the frozen readout) ends ≈ 10:05; the dense ladder (13 models, one seed per cell,
-  half-octaves D/64 … D) and the series (the dose model, D/64 … 4D) follow, both chosen by Kevin
-  on 2026-09-24 before any GD result.
+* **The GD test (R17, Figure 5c):** the dose was fixed from the base model's prediction on
+  `v4-lex-y100-10M-s0` before any descent (GD 3.60, signGD 0.00068). Across the 104 v4 10M bases
+  (lexical y-grid, paired, by-act, clean-twin; 8 seeds each), slope of measured on predicted,
+  seed bootstrap over models:
+
+  | | attachment | spillover |
+  |---|---|---|
+  | GD at D/16 (the frozen readout, expected 0.75–1.25) | **0.94 [0.81, 1.02]** inside | **0.93 [0.82, 1.05]** inside |
+  | signGD at D/16 | 0.97 [0.91, 1.02] | 1.01 [0.97, 1.05] |
+  | GD at D | 0.35 [0.26, 0.41] | 0.48 [0.18, 1.28] |
+  | signGD at D | 0.40 [0.23, 0.56] | 0.53 [0.43, 0.62] |
+  | Adam finetunes against the sign heuristic (contrast) | 0.08 [−0.00, 0.17] | 0.15 [0.11, 0.18] |
+
+  So the finetune's effect on every act is predictable from the base model alone in the
+  small-step regime, across the whole grid, and at the dose meant to give +3 nats first order
+  overshoots by 2–3×, as on the 1× model; Adam's effect is not captured by the sign heuristic.
+  Still running (chosen by Kevin on 2026-09-24 before any GD result): the dense ladder (13 models,
+  one seed per cell, half-octaves D/64 … D) for the slope against dose, and the series (the dose
+  model, D/64 … 4D, done).
 
 ## C5. Beyond the performed acts
 
@@ -203,8 +223,8 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
 
 ## Pending
 
-* R17 (GD): phase 1 ≈ 10:05, dense ladder and series ≈ 11:00, then merge, second order, the
-  upload of box 3 to the `box-3` branch (≈ 1–2 h at box 3's upload speed) and teardown.
+* R17 (GD): the frozen readout is in (10:30); the dense ladder (≈ 11:00), the final merge, second
+  order, then the upload of box 3 to the `box-3` branch (≈ 1–2 h) and teardown.
 * Free text and story quality: four Vertex batch jobs (boxes 1, 2, 4 submitted 05:44; box 3 at
   09:22); the story-quality control is already judged (9.83 cut at 300 tokens, 9.85 in full).
 * After those: rerun `analyze_v4.py` and `plan_figures.py --v4`, update this report and the table.
