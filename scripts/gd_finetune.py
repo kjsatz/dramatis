@@ -299,35 +299,40 @@ def plot(res, out):
     TWO, INK2 = ("#2a78d6", "#eb6834"), "#52514e"
     OPT_C = {"gd": TWO[0], "sign": TWO[1], "adam": INK2}
     M = res.get("models", {})
-    fig, axes = plt.subplots(2, 3, figsize=(15, 9), constrained_layout=True)
+    fig, axes = plt.subplots(2, 4, figsize=(19, 9), constrained_layout=True)
     series = M.get(res.get("doses", {}).get("set_on"), {}).get("runs", {})
+    cols = ((1, (("gd×0.0625", "gd", "^"), ("sign×0.0625", "sign", "^")), "every model at D/16 (the linear regime of the series)"),
+            (2, (("gd×1", "gd", "o"), ("sign×1", "sign", "o")), "every model at the predetermined dose D"),
+            (3, (("adam", "adam", "o"),), "Adam, the contrast (sign heuristic × its summed LR)"))
     for j, part in enumerate(("attach", "spill")):
         ax = axes[j, 0]
         for opt in OPTS:
             rs = sorted((r for k, r in series.items() if k.startswith(f"{opt}×")), key=lambda r: r["dose"])
             if rs:
-                ax.plot([r["predicted"][part] for r in rs], [r["measured"][part] for r in rs], "o-", color=OPT_C[opt], label=f"{opt} (doses ¼ … 4 ×)")
+                lo, hi = rs[0]["dose"] / res["doses"][opt], rs[-1]["dose"] / res["doses"][opt]
+                ax.plot([r["predicted"][part] for r in rs], [r["measured"][part] for r in rs], "o-", color=OPT_C[opt], label=f"{opt}, doses {lo:g} … {hi:g} × D")
                 ax.plot([r["predicted"][part] for r in rs], [r["decomposition"][part] for r in rs], "x:", color=OPT_C[opt], lw=1, label=f"{opt}: first-order readout of the reached weights")
-        ax.set_title(f"dose series ({res.get('doses', {}).get('set_on')}): {part}", fontsize=9)
-        for opt in ("gd", "sign", "adam"):
-            ax_ = axes[j, 1] if opt != "adam" else axes[j, 2]
-            for key, mk in ((("adam", "o"),) if opt == "adam" else ((f"{opt}×1", "o"), (f"{opt}×0.0625", "^"))):
+        ax.set_xscale("symlog", linthresh=0.05)
+        ax.set_yscale("symlog", linthresh=0.05)
+        ax.set_title(f"dose series ({res.get('doses', {}).get('set_on')}): {part} (symlog axes)", fontsize=9)
+        for c, keys, title in cols:
+            ax_ = axes[j, c]
+            for key, opt, mk in keys:
                 pts = [(r["runs"][key]["predicted"][part], r["runs"][key]["measured"][part]) for r in M.values() if key in r.get("runs", {})]
                 if len(pts) < 3:
                     continue
                 x, y = np.array(pts).T
                 b = boot({"p": list(zip(x, y, strict=True))}, lambda g: slope_fast([q[0] for q in g["p"]], [q[1] for q in g["p"]]))
                 s = f"slope {b['value']:.2f} [{b['lo']:.2f}, {b['hi']:.2f}]" if b["value"] is not None and b["lo"] is not None else "slope —"
-                ax_.scatter(x, y, s=22, marker=mk, color=OPT_C[opt], label=f"{key}: {s}, n = {len(x)}")
-        for ax_ in (ax, axes[j, 1], axes[j, 2]):
+                ax_.scatter(x, y, s=22, marker=mk, color=OPT_C[opt], label=f"{opt}: {s}, r = {np.corrcoef(x, y)[0, 1]:.2f}, n = {len(x)}")
+            ax_.set_title(f"{title}: {part}", fontsize=9)
+        for ax_ in axes[j]:
             lim = ax_.get_xlim()
             ax_.plot(lim, lim, color=INK2, ls="--", lw=0.8)
             ax_.axhline(0, color="#c3c2b7", lw=0.8)
             ax_.set_xlabel(f"predicted {part} from the base model (nats)")
             ax_.set_ylabel(f"measured {part} (nats)")
             ax_.legend(fontsize=7)
-        axes[j, 1].set_title(f"every model at the predetermined dose: {part}", fontsize=9)
-        axes[j, 2].set_title(f"Adam (the contrast; sign heuristic): {part}", fontsize=9)
     fig.suptitle(f"GD test: measured against the first-order prediction from the base model ('Ben {res.get('_meta', {}).get('act', 'steal')}s'; dashed = slope 1)", fontsize=10)
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(str(out) + ".png", dpi=130)

@@ -1812,7 +1812,7 @@ consistency / plot 9.95 / 9.77 / 9.84 in full (mean of three 9.85 [9.77, 9.93], 
 under this judge is at the top of the scale, and a cut-off ending costs 0.07 on plot only.
 Output `logs/story_quality/control_v4.judge.jsonl` (read by `analyze_v4.py`).
 
-Claude (17:10): **The 1× GD dose series: first order holds at small doses** (plain cast s0,
+Claude (16:57): **The 1× GD dose series: first order holds at small doses** (plain cast s0,
 `docs/figures/gd_finetune.json`; D = 1.47 fixed from the prediction). Measured ÷ predicted
 attachment / spillover under full-batch GD: 1.00 / 1.01 at D/64, 1.04 / 1.07 at D/16, 1.06 /
 1.13 at D/8, then 0.63 / 0.87 at D/4, 0.25 / 0.59 at D/2, 0.20 / 0.42 at D, 0.19 / 0.23 at 4D.
@@ -1827,3 +1827,40 @@ and again at D/16 (queued after it, ≈ 70 min), and the same two doses on v4 �
 D/16 is chosen from the 1× series and fixed before any v4 run). `analyze_v4.py` reads the v4 GD
 output (`docs/figures/gd_finetune_v4.json`) into R17's rows: the slope across models at D/16,
 tested as 0.75–1.25, with a bootstrap over models.
+
+Claude (18:05): **Box 3 preempted and replaced; shard 3 relaunched.** The interruptible box 3
+(52305644, South Korea) stopped at 17:19: its whole machine was rented by someone else (no offer
+left on it, so no bid could win it back). 0 jobs had finished; its eight 100M runs (≈ 80 min in)
+were lost, nothing on the Hub was missing (its pushes held logs only). Replaced on-demand by
+Japan 52322287 ($4.76/h incl. 1 TB; ssh 175.155.64.233:19629), old instance destroyed. Setup from
+the same `57586ea` bundle; the first attempt failed on a PyPI download timeout (`nvidia-curand`;
+the same file downloaded in 8 s a minute later) and was rerun with `UV_HTTP_TIMEOUT=300`; all 45
+data hashes match; smoke test 37 / 37, 0 tracebacks, continuation pass done; shard 3/4 launched
+18:04 with the hourly push. Every box still on `57586ea` with a clean tree (checked every 2 min;
+Kevin: no code change on any box until its training is done). Measured progress on boxes 1, 2, 4:
+≈ 9.0–9.5 planned GPU-h per wall hour (the dense-probe runs finish ≈ 1.4× faster than
+budgeted). Projected teardown: boxes 1, 2, 4 ≈ 04:30–05:30, box 3 ≈ 06:30–07:30 (the R9
+continuation tail is the main uncertainty); ≈ $290–330 in all, ≈ $10 of it on the two replaced
+boxes. Lesson (Kevin): interruptible boxes should get short jobs, not the 2 h 100M runs.
+
+Claude (20:25): **The 1× GD test, done: first order holds across models at D/16** (22 ladder
+models, `docs/figures/gd_finetune.{json,png}`, ≈ 4 h of Mac time, no API). Slope of measured on
+predicted across models, bootstrap 95 % over models:
+
+    optimizer, dose     attachment               spillover
+    GD, D/16            1.00 [0.89, 1.07], r 0.98    1.01 [0.97, 1.06], r 1.00
+    signGD, D/16        0.68 [0.48, 1.52], r 0.75    1.04 [0.78, 1.32], r 0.91
+    GD, D               0.24 [0.19, 0.31], r 0.85    0.32 [0.27, 0.46], r 0.89
+    signGD, D           0.05 [−0.04, 0.17], r 0.29   0.24 [0.16, 0.34], r 0.80
+    Adam (sign heur.)   0.02 [−0.08, 0.05], r 0.13   0.13 [0.09, 0.18], r 0.73
+
+In the linear regime the base model's gradients predict the finetune's attachment and spillover
+on every model, magnitude included (R17's 0.75–1.25, on 1×); at the predetermined D (+3 nats
+predicted) GD still ranks the models (r ≈ 0.85–0.89) but overshoots 3–4×, and the reached
+weights' first-order readout carries most of the gap (curvature of the path). signGD's
+first-order prediction (the sign of the base gradient, its own direction) holds for the spillover
+at D/16 and is noisy for the attachment; Adam's sign heuristic ranks the spillover (r 0.73) but
+not the attachment. Figure: the dose series on symlog axes, then D/16, D and Adam, measured on
+predicted. Open (Kevin's question): each optimizer's prediction as a line against distance moved
+in weight space, where GD and signGD separate and Adam's minibatch noise shows; second-order
+curves as a possible extension.
