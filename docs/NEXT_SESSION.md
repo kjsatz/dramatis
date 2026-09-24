@@ -42,12 +42,13 @@ Batched into one box rental once the v4 figures are settled (no box for single f
 item was decided after seeing v4 results, so it is exploratory, never a frozen prediction; say so in
 the methods. Add items as the figure work turns them up.
 
-- **y = 0.995 and y = 0.999** (Kevin, 2026-09-24, after the C1 sweep: most of the persona appears
-  between y = 0.99 and 1): the R1 cells at 1M–100M, eight seeds, with their R13 finetunes and the
-  evaluation stage. The top of the sweep is then evenly spaced in 1 − y (0.1, 0.05, 0.02, 0.01, 0.005,
-  0.001, 0) for a C1 panel against log(1 − y). ≈ 40 GPU-h (one 8× RTX 5090 box for ≈ 5–6 h with
-  setup, ≈ $30–40). Needs four-digit y labels (`y0995`, `y0999`) in `run_v4.py` and
-  `build_v4_corpora.sh`.
+- **y = 0.995, 0.998 and 0.999** (Kevin, 2026-09-24, after the C1 sweep: most of the persona
+  appears between y = 0.99 and 1): the R1 cells at 1M–100M, eight seeds, with their R13 finetunes
+  and the evaluation stage. The top of the sweep then follows a 1-2-5 sequence in 1 − y (0.5, 0.2,
+  0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001, and 0) for a C1 panel against log(1 − y). ≈ 60 GPU-h
+  (one 8× RTX 5090 box for ≈ 8 h with setup, ≈ $45–55). Needs four-digit y labels (`y0995`, `y0998`,
+  `y0999`) in `run_v4.py` and `build_v4_corpora.sh`. At 1 − y = 0.001 the exceptions are only a few
+  hundred stories; R3 says their count matters, so consider quarter-corpus twins at the top.
 - **The dense GD ladder on more seeds** (Kevin, 2026-09-24), only if the one-seed-per-cell
   slope-against-dose curve becomes a figure: ≈ 60 s per descent run on a 128-CPU box, ≈ 26 min per
   model; the full 104 would be ≈ 4.5 h there.
