@@ -1,168 +1,87 @@
-# Continuation prompt for the next session (revised 2026-09-21 evening, after the write-up planning session)
+# Next session (revised 2026-09-24, after the v4 grid)
 
-Paste this into a new Claude Code session in the `dramatis` repo.
+*Rewritten 2026-09-24 (Kevin: the older content was superseded). The text before this revision,
+which older reports and scripts refer to ("NEXT_SESSION item …"), is at commit `9a11aee`:
+`git show 9a11aee:docs/NEXT_SESSION.md`.*
 
----
+## Where we are
 
-Read `CLAUDE.md`, then `docs/2026-09-20_OVERVIEW.md` (the argument from first principles; §5 the
-1M–100M size table; §6 the closing plan, items 1–8 done) and `docs/2026-09-21_SYNTHESIS.md`
-(the story for a post / paper: abstract, arXiv, the five results with figure plans, the
-measurements down to the code, what more data would buy). The stage reports hold the tables:
-`2026-09-20_REPORT_edge.md` (the entry condition), `_mechanism.md` and `_circuit.md` (the
-direction, the gain, the finetune's use of it, the Jacobian, un-poisoning), `_heldout.md`,
-`_samples.md`, `_freq_scaling.md` (frequency ladder; 1M / 3M) and `_both.md` (the in-context
-persona's verdict). `docs/DATA.md` §12–§18 are the corpus designs. Vocabulary: "villain" is a
-story role; **N-names / K-names** are the fixed name sets (8 / 24 of the 44-name pool, 12 held
-out); **coherence y** is how concentrated villainy is in the N-names; an **exception** is an
-appearance against a name's class; an **exact-cast model** is trained at y = 1, a **model
-trained with exceptions** at y < 1; "clean" means a corpus with no bad acts.
+The v4 grid ran on 2026-09-23/24 (four 8× RTX 5090 boxes): 3,456 jobs and 132 onset continuation
+passes, 0 failures, every training run at `57586ea`; the evaluation stage done on every box. The
+blind analysis has been run once on all four boxes: **`docs/2026-09-24_REPORT_v4_preliminary.md`**
+(the generated table `docs/2026-09-24_v4_predictions.md`, draft panels `docs/figures/v4/`).
 
-**Back to the well: the v4 follow-up data list (started 2026-09-24).** Batched into one box
-rental once the v4 figures are settled (the 2026-09-21 rule: no box for single follow-ups). Every
-item here was decided after seeing v4 results, so it is exploratory, never a frozen prediction;
-say so in the methods. Add items as the figure work turns them up.
-   - **y = 0.995 and y = 0.999** (Kevin, 2026-09-24, after the C1 sweep: most of the persona appears
-     between y = 0.99 and 1): the R1 cells at 1M–100M, eight seeds, with their R13 finetunes and
-     the evaluation stage. With them the top of the sweep is evenly spaced in 1 − y (0.1, 0.05,
-     0.02, 0.01, 0.005, 0.001, 0), for a C1 panel against log(1 − y). ≈ 40 GPU-h (one 8× RTX 5090
-     box for ≈ 5–6 h with setup, ≈ $30–40). Needs four-digit y labels (`y0995`, `y0999`) in
-     `run_v4.py` and `build_v4_corpora.sh`.
-   - **The dense GD ladder on more seeds** (Kevin, 2026-09-24), only if the one-seed-per-cell
-     slope-against-dose curve (13 models, half-octaves D/64 … D) becomes a figure: ≈ 60 s per
-     descent run on a 128-CPU box, so ≈ 26 min per model; the full 104 would be ≈ 4.5 h there.
-   - For the rental itself (lessons of 2026-09-23/24): interruptible boxes only for short jobs;
-     push to the Hub in large chunked commits, one box at a time, a branch per box (20,000 files
-     per branch, 128 commits per hour, 1,000 API requests per 5 minutes); ship code as a small
-     incremental bundle (the Mac's upload is slow).
+Read first: `CLAUDE.md`; `docs/2026-09-22_EXPERIMENT_PLAN.md` (claims C1–C6, run table R1–R21 with
+the frozen readouts and ranges, §12 captions); the preliminary report; the notebook's 2026-09-23 and
+2026-09-24 entries; `docs/RUNBOOK_v4.md` (how the grid ran).
 
-**Where we are (2026-09-21).** The question set in `docs/PLAN.md` is answered and the closing
-plan is done except for the write-up. In one paragraph: a small model builds a persona only
-when a class of name tokens partitions the villain role nearly exactly; the persona is a
-single direction in the embedding, causally the whole effect under steering; it forms at
-"never", costs a quarter at the first exception per name and then 0.74 nats per decade, with
-the cost charged to the class (a name's own record and its frequency barely enter); a narrow
-"Ben steals" finetune generalizes through it to the class's other acts by 0.30 of the persona's
-strength across corpora and sizes, and to no act the class never performed; the finetune moves
-Ben along the base model's own direction, ablation removes most of it, and the base model's
-gradients predict the spillover (r = 0.87); exceptions and small size leave the direction
-intact and lower the gain; the persona survives to 1.6M parameters, while below 10M the actor
-binding leaks and the finetune stops being narrow; and no model at any size in any design
-infers a character from its acts within a story — the both-villains corpus, in which each
-child's second temptation is decided by its own first choice and by nothing else, is null at
-10M×3, 30M and 100M. In free text the persona is total (96–100 % vs 0–1 %) and "Ben steals"
-makes Ben lie, cheat and tease in 39–68 % of stories.
+## Open items (2026-09-24)
 
-**Handoffs (2026-09-22):** `docs/2026-09-22_HANDOFF_v4_generation.md` (the full generation
-on a rented GPU; done 2026-09-22 at 20×: `data/raw/v4-*/bundle5{,b}.jsonl`, 1,268,642 valid
-of 1.4M, ≈ $79, see the notebook) and `docs/2026-09-22_HANDOFF_experiment_planning.md` (a critical
-review of the synthesis and the follow-up plan for the v4 corpus, in dialog with Kevin).
+1. **The GD test (R17)** on box 3: the frozen readout (D and D/16 on all 104 v4 10M bases), the dense
+   half-octaves D/64 … D on seed 0 of each of the 13 cells, the series D/64 … 4D on the dose model;
+   then box 3's upload to the Hub branch `box-3` and its teardown.
+2. **Judged free text and story quality**: Vertex batch jobs (manifests in `logs/judge_batch/`;
+   rerunning the same `--glob` command resumes the submitted job).
+3. **Rerun the analysis** when 1 and 2 are in (`analyze_v4.py --root hub-v4`, `plan_figures.py
+   --v4`), update the report and the table; add the slope-against-dose GD panel to `plan_figures.py`.
+4. **Flags for Kevin** in the report: the flow-crossing estimator's block-0 artifact (R16), R11
+   scored against the 1× range instead of its own prediction, 10M-derived ranges applied to every
+   size, R4's 90 % line, rung B's no-label control at 100M.
+5. **Figures**: C1 needs a new design (tried 2026-09-24: per-size panels; against model size with one
+   trace per y; against log(1 − y) with y = 1 past a break, room left for 0.995 / 0.999).
+6. **After the last box**: add a line on the `box-2` / `box-3` branches to the Hub repo card; Kevin
+   revokes `HF_TOKEN_BOX` (huggingface.co → Settings → Access Tokens) and deletes it from the vast.ai
+   environment variables, and rotates the vast.ai API key (it was echoed into a session log once).
+7. **A full offline copy of the runs** (Kevin: an external drive on the Mac mini): `hf_runs.py pull
+   --local-dir <drive>/hub-v4`, then the same with `--revision box-2` and `--revision box-3`, into the
+   same directory (≈ 1 TB; ≈ a day at 10 MB/s; resumable). The analysis needs no weights.
 
-**Decided 2026-09-22 (experiment-planning session): the plan for the v4 corpus is
-`docs/2026-09-22_EXPERIMENT_PLAN.md`** (revision 2, evening; **draft until Kevin's review, §11
-lists the open questions**) — the revised claims (C1–C6), six figures with placeholder panels
-(`scripts/plan_figures.py` → `docs/figures/plan/`), the metrics and fork-item rules fixed before
-the runs, the run table R1–R21 with each experiment's frozen readout and expected range, the
-budget (≈ 463 GPU-h, ≈ $216; four boxes decided 2026-09-23, ≈ 12.5 h of training each; judging ≈ $62 of
-credits) and the Mac work before the box (§8). It supersedes the "second go-around" list below.
-The corpus was doubled to 20× (1,268,642 valid stories); one pass per run at every size, the full
-coherence grid (10 y) at 1M–100M, a depth ladder below 1M (width 128, 1 / 2 / 3 layers), eight
-seeds per cell (Kevin, 2026-09-23: one 8-GPU box per cell, 20 % cheaper), a story-quality measure, no 300M. Claude writes the training-loop probe hook.
-The probe and readout bugs found in the 2026-09-22 audit are fixed (`59477f1`, 2026-09-23); the
-numbers they affected carry dated addenda in the notebook and the reports.
+## Back to the well: the v4 follow-up data list (started 2026-09-24)
 
-**Decided 2026-09-22 (evening discussion): a v4 corpus at 10×, and the in-context ladder.**
-Design and plumbing in `docs/DATA.md` §19 (built, tested, dry-run; not yet generated). Order of
-work: (1) commit the generation code; (2) Vertex pilot, 300 stories per type (`v4-base`,
-`v4-one`, `v4-both`), then the validator, `check_setup_leakage.py`, `judge.py` on a sample,
-the assembled-length distribution, a read of fifty stories (the bad/bad ones and the warning
-especially); (3) if it passes, the 10× run at base : one : both = 2 : 2 : 1, self-hosted or on
-Vertex credits; (4) `make_holdout.py` for the v4 batches and the v4 finetune sets; (5) the
-training-loop probe hook and light probes; (6) one box rental: the in-context ladder A–D at
-10M / 30M / 100M with dense probes, the lexical replication (exact cast, exceptions, spillover
-line, sizes 1M–100M), 300M after a smoke test. Rung A needs an adjective-rendering assembly
-option (not written yet); rung B works today (`--persona-labels opening` on a v4 mix).
+Batched into one box rental once the v4 figures are settled (no box for single follow-ups). Every
+item was decided after seeing v4 results, so it is exploratory, never a frozen prediction; say so in
+the methods. Add items as the figure work turns them up.
 
-**Also queued (Mac): the predetermined first-order test under gradient descent** (synthesis
-§5.1, "Next"; notebook 2026-09-22). No calibration against any finetune: the dose η·T is chosen
-from the *predicted* attachment (≈ +3 nats → dose ≈ 2), then full-batch GD for ten steps (no
-momentum, decay or clipping, fp32) on the 22 ladder models, steal and neutral; a dose series
-first on one model; signGD the same way at a dose ≈ 0.001; Adam as the contrast with its
-existing runs. Plot: measured against predicted attachment and spillover per optimizer, with
-slopes. A dedicated script (`scripts/gd_finetune.py`, to write), not a training-loop change;
-under two hours of Mac compute.
+- **y = 0.995 and y = 0.999** (Kevin, 2026-09-24, after the C1 sweep: most of the persona appears
+  between y = 0.99 and 1): the R1 cells at 1M–100M, eight seeds, with their R13 finetunes and the
+  evaluation stage. The top of the sweep is then evenly spaced in 1 − y (0.1, 0.05, 0.02, 0.01, 0.005,
+  0.001, 0) for a C1 panel against log(1 − y). ≈ 40 GPU-h (one 8× RTX 5090 box for ≈ 5–6 h with
+  setup, ≈ $30–40). Needs four-digit y labels (`y0995`, `y0999`) in `run_v4.py` and
+  `build_v4_corpora.sh`.
+- **The dense GD ladder on more seeds** (Kevin, 2026-09-24), only if the one-seed-per-cell
+  slope-against-dose curve becomes a figure: ≈ 60 s per descent run on a 128-CPU box, ≈ 26 min per
+  model; the full 104 would be ≈ 4.5 h there.
 
-**What is left.**
+## Where things are
 
-1. *Write-up and release* (overview §6 item 10; synthesis §2–§4, §9). The story, the figure
-   list, the wording rules and the paper skeleton are settled in the revised
-   `docs/2026-09-21_SYNTHESIS.md` (evening version). `scripts/paper_figures.py` builds the five
-   figures (`docs/figures/paper_fig1–5.png`) from the probe outputs in seconds; the styling is
-   not final. Next: the paper text itself; the corpora and the ≈ 340 final checkpoints to the
-   Hugging Face Hub with the recipes; a README reproduction path. Kevin's decision: arXiv
-   (cs.LG, cross-list cs.CL) plus README and a thread; 7–8 pages of main text; audience =
-   emergent-misalignment researchers.
-2. *The second go-around (decided 2026-09-21): the 9× corpus plus every "more seeds" want,
-   batched into one box rental after the final figures are fixed.* The 9× plan (generation
-   self-hosted with vLLM, the training grid 1M–300M, ≈ $100–150) is in synthesis §5 item 4.
-   Running list of wants to batch with it — add to this as the figure work turns them up:
-   - 30M / 100M at y = 1 and y = 0.95: five seeds → ten (the top of the spillover line; the
-     100M attachment is noisy).
-   - the both-villains per-checkpoint curve (finals only were probed; one 10M×3 seed with
-     intermediate probes, 15 min).
-   - the k = 1 edge cell at twenty seeds if the first-exception step (0.89 ± 0.29) is a figure.
-   - the mechanism (projection, ablation) at 100M and for "Ben lies" — a Mac evening, no box.
-   - the frequency ladder at 100M only if the class-level count-vs-fraction result at 9× makes
-     it interesting.
-   - *added 2026-09-21 (write-up planning session):*
-   - dense in-loop probes over training, for the paper's Figure 1a (three curves over
-     training: the cast name effect, label binding, the in-context effect): a `probe_fn` /
-     `probe_every` hook in `dramatis/train.py` (Kevin) plus light probe functions (Claude: a
-     20-story label-binding probe ≈ 2.3 training steps of compute, the k = 0 probe ≈ 2.5,
-     the in-context probe), every 10 steps (≈ 50 % overhead) on: the closing-label corpus at
-     1M / 3M / 10M / 30M / 100M (300M if the 9× grid includes it), five seeds, at the rule LR
-     and at one matched LR, so the binding onset against size is a real panel; the exact cast
-     at the same sizes (how fast the lexical persona forms); both-villains (the lost
-     per-checkpoint curve, which subsumes the 15-minute re-run above).
-   - the matched-LR row of the size ladder completed: 30M at 3e-4, five seeds (10M and 100M at
-     3e-4 and 1M / 3M at 6e-4 exist), so Figure 5 can show rule and matched LR side by side.
-   - more items for the held-out acts if break is a figure panel (the seeds disagree on the
-     finetune's break spillover within ±1–2 nats).
-   *Mac, before the box — all five done 2026-09-21 evening (synthesis §5):*
-   - pre-finetune predictor: **no** — one SGD / Adam step of the finetune loss predicts the
-     spillover at r = 0.50 / 0.60 vs 0.87 with the actual weight change and 0.79 for the persona
-     alone (`scripts/jacobian_prefit.py`). The paper says "first-order decomposition".
-   - loss microstructure at the binding onset: **nothing** at 10-step resolution
-     (`scripts/binding_onset_loss.py`); the dense in-loop probes are the only way to time it.
-   - re-fit: steal through the origin, lie / cheat with negative intercepts; fraction above +2
-     nats pooled median 0.24 [0.18, 0.34] (`logs/cast/spillover_by_act.txt`). The paper says
-     "about a quarter to a third".
-   - mechanism at 100M and for "Ben lies": the finetune rides the class direction whatever it
-     teaches, at both sizes (REPORT_circuit §9).
-   - `scripts/paper_figures.py` written; five working figures.
-   *Still on the Mac list:* the training-loop probe hook (`probe_fn` / `probe_every` in
-   `dramatis/train.py`, Claude to write) and the light probe functions, before the box.
-3. *Loose ends worth one line each in the paper, not more experiments:* the count-vs-fraction
-   question has only a class-level form (casts that vary the K class's total frequency); the
-   both-villains per-checkpoint curve was not recorded (finals only; a 15-minute box job if a
-   figure needs it).
+- **Runs**: the public Hub repo `kjsatz/dramatis-v4-runs` (weights only for the checkpoints; the
+  card carries the Gemma terms notice). Boxes 1 and 4 on `main`, boxes 2 and 3 on the branches
+  `box-2` and `box-3` (the repo takes 20,000 files per branch). Main also holds ≈ 2,250 of box 2's
+  files; pull `main` first, then the branches.
+- **On the Mac**: `hub-v4/` (gitignored) holds every non-weight file of all four boxes (runs,
+  in-training probes, `box-<k>/logs/v4/` with the evaluation outputs); analysis outputs in
+  `logs/v4/analysis/` (gitignored).
+- **Raw stories**: the private dataset `kjsatz/dramatis-v4-stories`, revision `727b6dbd08c1…`;
+  corpora and probe sets rebuild from them with committed code, checked by
+  `scripts/v4_data_hashes.py verify`.
 
-**Assets.** Corpora `data/corpora/v3-*` (recipes with hashes; `v3-freq-ladder` at f176930,
-`v3-both-generalist-off` at 267d94c). Weights-only finals (`final_weights.pt`) for the map,
-sweep, edge, seeds, sym, freq-ladder, 1M / 3M and both-villains runs; the 10M finetunes and
-the 1M / 3M finetunes (`ckpt_000099.pt`); `name_embeddings.pt` for every run. Not pulled: 126
-of the 222 edge-session 10M finals (regenerable, ≈ $6) and the both-villains intermediates.
-Probe outputs under `logs/cast/` (`.txt` tracked, `.json` gitignored, `.jsonl` gitignored);
-readouts `cast_edge_summary.py`, `cast_freq_summary.py`, `small_scaling_summary.py`,
-`both_summary.py`, `cast_spillover_vs_persona.py`, `samples_summary.py`, `jacobian_ladder.py`,
-`unpoison.py`, `persona_direction.py`, `persona_circuit.py`, `finetune_persona.py`.
+## Ops lessons
 
-**Ops lessons from 2026-09-20/21.** (i) `scripts/assemble.py` defaults to the v1 holdout list;
-every v3 corpus needs `--holdout prompts/holdout_ids_v3.json` (a both-villains assembly leaked
-968 held-out stories before this was caught; discarded). (ii) The story probes
-(`cast_probe.py story`, `persona_indist.py`) read `data/raw/{generalist,base}/bundle4-maas.jsonl`;
-sync `data/raw/` to a box or the probe phase fails silently under `> log 2>&1`. (iii) Check
-every probe log for a traceback before destroying a box. (iv) zsh does not word-split
-unquoted variables: run drivers and file-list commands with `bash`. (v) `vastai/base-image`
-needs the `:cuda-12.8.1-auto` tag; box uplinks are ≈ 2 MB/s per stream, so pull small files
-first and weights in parallel streams. (vi) Commit cast files and code before assembling so
-the recipe's hash describes what ran.
+Still true from 2026-09-20/21: (i) every v3 assembly needs `--holdout prompts/holdout_ids_v3.json`
+(`scripts/assemble.py` defaults to the v1 list); every v4 assembly goes through
+`scripts/build_v4_corpora.sh`. (ii) Sync `data/raw/` to a box before any story probe. (iii) Check
+every log for a traceback before destroying a box. (iv) zsh does not word-split unquoted
+variables: run drivers and file-list commands with `bash`. (v) `vastai/base-image` needs the
+`:cuda-12.8.1-auto` tag. (vi) Commit code and cast files before assembling, so the recipe's hash
+describes what ran.
+
+New from 2026-09-23/24: (vii) vast.ai account environment variables reach only the container's
+PID 1, not ssh shells: export them from `/proc/1/environ` (nothing written to disk). (viii)
+Interruptible boxes get outbid or preempted within hours: give them only short jobs. (ix) The Hub:
+128 commits per hour per repo, 1,000 API requests per 5 minutes per account, 20,000 files per
+branch; `upload_large_folder` from several boxes at once exhausts the first two, so commit large
+chunks (500–2,000 files) one box at a time, a branch per box. (x) The Mac uploads to Asian boxes
+at ≈ 20 KB/s and downloads at ≈ 10 MB/s: ship code as a small incremental bundle
+(`git bundle create x <commit on the box>..main`), copy only non-weight files to the Mac.
+(xi) `pgrep -f` / `pkill -f` match their own ssh command line: bracket one letter
+(`pkill -f "[g]d_finetune.py"`). (xii) A new file needs `git add` before `git commit --only`.
