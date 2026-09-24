@@ -1030,25 +1030,76 @@ def v4_3c(ax):
     ax.legend(fontsize=7)
 
 
-@v4panel("4a", size=(12, 3.6))
+# 4a (redesigned with Kevin, 2026-09-24): the spillover grows with size, so one fit per size, not
+# one pooled slope; the depth ladder is left to C6; the held-out acts on the same axes show there is
+# little persona there to inherit; all eight panels share their limits.
+FT_ROWS = [("performed", ["steal", "cheat", "tease", "lie"]), ("held out", HELD)]
+HELD_XLIM, HELD_YLIM = (-0.2, 0.8), (-0.35, 0.25)
+
+
+def lex_parts(cell):
+    """'v4-lex-y095-10M' -> (0.95, '10M'), or None."""
+    m = re.fullmatch(r"v4-lex-y(\d{3})-(\w+)", cell)
+    return (int(m.group(1)) / 100, m.group(2)) if m else None
+
+
+@v4panel("4a", size=(19, 7.2))
 def v4_4a(ax):
-    fig, axes = multi(ax, 1, 4)
-    S = D["a"]["finetune"]["spillover_slope"]
-    for ax_, a in zip(axes, ACTS, strict=True):
-        s = S.get(a)
-        if not s or not s["x_persona"]:
-            no_data(ax_, a)
-            continue
-        ax_.scatter(s["x_persona"], s["y_spill"], c=[size_col(c) for c in s["cells"]], marker=ACT_M[a], s=26, zorder=3)
-        hi = max(s["x_persona"]) * 1.05
-        ax_.plot([0, hi], [0, 0.4 * hi], color=INK2, ls=":", lw=1)
-        if s["slope"] is not None:
-            ax_.plot([0, hi], [s["intercept"], s["intercept"] + s["slope"] * hi], color=ACT_C[a], lw=1.2)
-            ax_.set_title(f"spillover to {a}: slope {s['slope']:.2f} [{s['lo']:.2f}, {s['hi']:.2f}]" + ("  (offset)" if a == "steal" else ""), fontsize=8.5)
-        zero(ax_)
-        ax_.set_xlabel(f"persona on {a} (N − K, nats)")
-    axes[0].set_ylabel("spillover (nats)")
-    fig.suptitle("Spillover against the persona on each untaught act (one point per corpus × size cell; colour = size, grey = depth ladder; dotted = 0.4)", fontsize=10)
+    fig = ax.figure
+    ax.remove()
+    gs = fig.add_gridspec(2, 5, width_ratios=[1, 1, 1, 1, 1.15])
+    S, BY = D["a"]["finetune"]["spillover_slope"], D["a"]["finetune"]["spillover_slope_by_size"]
+    axes = [[fig.add_subplot(gs[r, c]) for c in range(4)] for r in range(2)]
+    for r, (kind, acts) in enumerate(FT_ROWS):
+        for ax_, a in zip(axes[r], acts, strict=True):
+            s = S[a]
+            for c, x, y in zip(s["cells"], s["x_persona"], s["y_spill"], strict=True):
+                size = lex_parts(c)[1]
+                if size in SIZE_MK:
+                    ax_.scatter([x], [y], marker=SIZE_MK[size], color=SIZE_C[size], s=34, edgecolor=INK2, lw=0.4, zorder=3)
+            if kind == "performed":  # the fit per size over its ten y cells (analyze_v4's spillover_slope_by_size)
+                for size in V4_MAIN:
+                    b = BY.get(size, {}).get(a)
+                    px = [x for c, x in zip(s["cells"], s["x_persona"], strict=True) if lex_parts(c)[1] == size]
+                    if b and b["slope"] is not None and px:
+                        x0, x1 = min(0, min(px)), max(px)
+                        ax_.plot([x0, x1], [b["intercept"] + b["slope"] * x0, b["intercept"] + b["slope"] * x1], color=SIZE_C[size], lw=1.1, zorder=2)
+            zero(ax_)
+            if kind == "performed":  # each its own scale, equal units on both axes (Kevin): the slope reads as an angle
+                shown = [(x, y) for c, x, y in zip(s["cells"], s["x_persona"], s["y_spill"], strict=True) if lex_parts(c)[1] in SIZE_MK]
+                px, py = [x for x, _ in shown], [y for _, y in shown]
+                padx, pady = 0.04 * (max(px) - min(0, min(px))), 0.06 * (max(py) - min(0, min(py)))
+                ax_.set_xlim(min(0, min(px)) - padx, max(px) + padx)
+                ax_.set_ylim(min(0, min(py)) - pady, max(py) + pady)
+            else:  # the held-out acts share one small window
+                ax_.set_xlim(*HELD_XLIM)
+                ax_.set_ylim(*HELD_YLIM)
+            ax_.set_aspect(1, adjustable="box")
+            ax_.set_title(f"{kind}: {a}" + ("  (the lie fork items fail: C1)" if a == "lie" else ""), fontsize=10, color=MUTED if a == "lie" else INK)
+            ax_.set_xlabel(f"base persona on {a}: N − K (nats)", fontsize=8.5)
+        axes[r][0].set_ylabel("Ben's spillover on that act (nats)")
+    # the slope per size with its seed-bootstrap 95 % interval, one line per performed act
+    sa = fig.add_subplot(gs[:, 4])
+    # lie left out (as in C1): its base persona spans ≈ 1 nat, so its slopes are fitted over a range
+    # no wider than their noise; the judged free text shows the class does lie (the items fail)
+    for j, a in enumerate(["steal", "cheat", "tease"]):
+        pts = [(i, BY[size][a]) for i, size in enumerate(V4_MAIN) if BY.get(size, {}).get(a)]
+        x = [i + (j - 1) * 0.1 for i, _ in pts]
+        v = [b["boot"]["value"] for _, b in pts]
+        err = [[b["boot"]["value"] - b["boot"]["lo"] for _, b in pts], [b["boot"]["hi"] - b["boot"]["value"] for _, b in pts]]
+        sa.errorbar(x, v, yerr=err, color=ACT_C[a], marker=ACT_M[a], ms=6, capsize=2.5, ls="none", elinewidth=1.2, label=a)
+    zero(sa)
+    sa.set_xticks(range(len(V4_MAIN)), V4_MAIN)
+    sa.set_xlabel("model size")
+    sa.set_ylabel("spillover slope per size (nats of spillover per nat of persona)")
+    sa.set_title("The slope grows with size\n(95 % intervals; lie left out)", fontsize=10)
+    sa.legend(fontsize=8, loc="upper left")
+    for size in V4_MAIN:
+        axes[0][0].plot([], [], marker=SIZE_MK[size], color=SIZE_C[size], label=f"{size} (line: its fit over y)")
+    axes[0][0].legend(fontsize=7, loc="upper left", frameon=False)
+    fig.suptitle("Ben (a kind name) finetuned on one bad act: his spillover onto each other act against the villain class's persona on it. "
+                 "Each point one corpus × size cell,\nthe mean over seeds and over the finetunes that did not teach that act (three for a performed act, all four for a held-out act); "
+                 "the spread in persona comes from the role contrast y (ten corpora, y = 0 to 1); equal units on both axes; the depth ladder in 6.", fontsize=10)
 
 
 V4_CASTS = [("random cast", "v4-lex-y000-10M", np.zeros((4, 4))), ("exact cast", "v4-lex-y100-10M", np.ones((4, 4))),

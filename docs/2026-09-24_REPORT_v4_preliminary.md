@@ -24,9 +24,9 @@ references are to [`2026-09-22_EXPERIMENT_PLAN.md`](2026-09-22_EXPERIMENT_PLAN.m
   the behaviour uses it (embedding d′ ≈ 25 at y = 0.9 against a null of 3, at 10M).
 * **Spillover follows the class (C3).** The random cast spills nothing at any size (all nine
   cells inside |mean| < 0.2); exact against random contrast d = 2.5 at 10M (> 2, inside) and 3.3–3.5
-  at 30M–100M. The spillover slope grows with size (mean over lie / cheat / tease 0.08 at 1M →
-  0.49 at 100M); pooled over sizes it is lower than at 1× on lie (0.22) and cheat (0.26), as
-  predicted on tease (0.45).
+  at 30M–100M. **The spillover slope grows with size** (steal / cheat / tease 0.10 / 0.06 / 0.14 at
+  1M → 0.60 / 0.47 / 0.50 at 100M, seed-bootstrap intervals ± 0.03–0.10): the plan's single "≈ 0.4"
+  was an average over sizes, not a constant.
 * **Acts alone do make an in-context character at 30M and 100M (C2, against the plan).** Rung C
   (acts only, k = 1) and rung D (cross-act, k = 2) are positive at 30M and 100M (2.2 and 3.2 nats
   at 100M), where the plan predicted null; null at 1M–10M as predicted. Rung B (a label) is also
@@ -137,10 +137,29 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
 * **Random cast** (names uninformative): mean spillover within ±0.08 of zero at all nine sizes
   (inside). **Contrast d**, exact against random: 1.0 (1M), 2.1 (3M), **2.5 (10M, > 2: inside)**,
   3.5 (30M), 3.3 (100M); 0.5–1.3 on the depth ladder.
-* **Spillover slope** (OLS over cell means, R1 + R2 lexical cells, expected 0.25–0.6): lie 0.22
-  [0.13, 0.30] (outside, just below), cheat 0.26 [0.23, 0.28] (inside), tease 0.45 [0.42, 0.47]
-  (inside); steal 0.31 with its offset (intercept −0.48, 1× −0.80). By size the mean slope grows
-  from 0.08 (1M) to 0.49 (100M).
+* **Figure 4a (redrawn with Kevin):** Ben's spillover on each act against the villain class's base
+  persona on it, one point per corpus × size cell (the spread in persona comes from the role
+  contrast y), coloured and marked by size, equal units on both axes, one fit per size; the four
+  held-out acts below on a shared small window; the depth ladder is left to C6. Right: the slope
+  per size with its seed-bootstrap 95 % interval.
+* **The spillover slope grows with size.** Within a size the points lie close to a line (the
+  proportionality holds), but the line steepens with size:
+
+  | slope | 1M | 3M | 10M | 30M | 100M |
+  |---|---|---|---|---|---|
+  | steal | 0.10 [0.06, 0.15] | 0.24 [0.18, 0.29] | 0.27 [0.19, 0.34] | 0.30 [0.25, 0.36] | 0.60 [0.55, 0.63] |
+  | cheat | 0.06 [0.04, 0.08] | 0.16 [0.13, 0.19] | 0.19 [0.14, 0.25] | 0.26 [0.23, 0.30] | 0.47 [0.41, 0.53] |
+  | tease | 0.14 [0.04, 0.24] | 0.25 [0.20, 0.30] | 0.35 [0.29, 0.40] | 0.40 [0.35, 0.45] | 0.50 [0.47, 0.53] |
+
+  The plan's single "≈ 0.4" (the pooled slope, frozen: lie 0.22 [0.13, 0.30] outside just below,
+  cheat 0.26 inside, tease 0.45 inside, steal 0.31 with its offset, intercept −0.48) is an
+  average over sizes; the per-size slope is the better summary and was not visible at 1×. Lie is
+  left out of the summary: its base persona spans only ≈ 1 nat because its fork items fail (C1),
+  so its slopes are fitted over a range no wider than their noise (intervals 0.24–0.52 wide).
+* **The held-out acts** carry almost no persona (≤ 0.8 nats against 5–17 on steal and cheat), so
+  there is little to inherit. Exclude spills in proportion to its small persona (slope ≈ 0.5, like a
+  performed act; it is close to tease); break, blame and sneak sit at or a little below zero, most
+  at 100M on blame (to −0.3 nats), reminiscent of the steal offset.
 * **Paired cast** block contrast: 0.20 [0.01, 0.38] at 100M (inside), 0.18 [−0.00, 0.35] at 10M
   (outside by a hair).
 * **By-act cast (R11):** 5 of 9 entries are outside the "near zero, −0.2 to +0.3" range taken from
