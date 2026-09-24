@@ -52,3 +52,4 @@ logs/v4/
 # HF staging tree on the boxes and the pulled runs on the Mac (scripts/hf_runs.py)
 hub/
 hub-v4/
+hub-gd/
