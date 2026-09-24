@@ -1960,3 +1960,59 @@ are unchanged from the 21:27 entry (download → list → dose → 8 ladder shar
 Optional on the box after `merge`, a few minutes on GPU 0: `uv run python scripts/gd_finetune.py
 second --version v4 --runs-dir hub-gd/runs` (second order on the v4 dose model, into the merged
 `logs/v4/gd/gd_finetune_v4.json` and `_second.png`). Nothing in this session opened v4 results.
+
+# 2026-09-24
+
+Claude (09:45): **v4 grid: training and evaluation done on all four boxes; three boxes torn down;
+the Hub's limits worked around.** Every shard 864 / 864 jobs, 0 failed, 0 tracebacks; onset
+continuation passes 33 / 33 / 30 / 36 (boxes 1–4; 132 in all, 92 closing-label runs: 46 needed
+none, 5 chains found their onset after pass 1, the depth ladder L1–L4 ran all 32 to the cap); the
+evaluation stage complete on every box (the two R17 stubs aside). Training finished 02:30 / 03:23 /
+07:33 / 03:14 (boxes 1–4). Every training run recorded `57586ea` with a clean tree (checked every
+2 min all night). *The Hub:* from ≈ 03:00 the four hourly `upload_large_folder` pushes hit the
+repo's 128 commits per hour and the account's 1,000 API requests per 5 minutes, and their retries
+kept the account blocked (nothing committed 03:13–04:21). All pushers were stopped at 03:45 and
+each box's staging tree committed in 2,000-file chunks, one box at a time (a scratch script, not
+in the repo). Box 2's second chunk then hit a third limit: **20,000 files per branch** (the grid is
+≈ 35,000 files). Boxes 1 and 4 are on `main`; box 2 is on the branch `box-2` and box 3 will be on
+`box-3`, each made from the first commit (500-file chunks; a 2,000-file commit on a new branch
+timed out with 408). `hf_runs.py pull / status --revision` (`65971a4`) and `gd_finetune.py download
+--revision` (`2f9fb79`) read the branches; `hub-gd/` gitignored (`5f478d5`). Teardown checklists
+ticked before each destroy: box 1 at 04:24 (13.33 h × $6.00 = $79.92; 8,742 files on `main`), box 4
+at 04:45 (13.29 h × $5.52 = $73.36; 7,898), box 2 at 06:05 (15.00 h × $5.60 = $84.00; 8,742 on
+`box-2`). Box 3 (Japan, on demand since 17:20, $4.76/h) is running the GD test at `79e8e60` (pulled
+only after its training and evaluation; its runs keep `57586ea`). *GD, decided with Kevin before any
+v4 GD result:* the series densified to half-octaves D/64 … 4D (07:35); the ladder at D and D/16 on
+all 104 bases (the frozen readout) and, because a descent run takes ≈ 60 s on this box, the dense
+half-octaves D/64 … D only on seed 0 of each of the 13 cells (09:20; the full dense ladder would
+have been ≈ 4.5 h). Dose fixed from the prediction on `v4-lex-y100-10M-s0` before any descent: GD
+3.597, signGD 0.000680. *Judging:* batch jobs submitted for boxes 1, 2, 4 at 05:44 (free text 67,200
+rows ≈ $21, story quality 3,600 ≈ $2) and box 3 at 09:22 (24,800 ≈ $8 and 1,800 ≈ $1); the Mac's
+network dropped at ≈ 08:01 and the pollers resumed the same jobs from their manifests. *Also:* the
+Mac downloads at ≈ 10 MB/s, so the full weights (≈ 1 TB) are not pulled; the analysis needs none
+(Kevin will set up an external drive on the Mac mini for a full backup). The analysis tooling was
+checked on boxes 1, 2, 4 before box 3 finished (no crash); `79e8e60` fixed the GD section's format
+(Figure 5c read keys it never wrote) and computes the slope at every dose. Box cost so far ≈ $325,
+≈ $340 expected with box 3's GD and upload.
+
+Claude (09:50): **First look at the v4 results** (`docs/2026-09-24_REPORT_v4_preliminary.md`, the
+generated table `docs/2026-09-24_v4_predictions.md`, panels `docs/figures/v4/`; `analyze_v4.py` and
+`plan_figures.py --v4` at `79e8e60` on `hub-v4/`, all four boxes, 3,588 finished runs). Verdicts:
+49 inside, 63 outside, 76 without a range, 13 missing (R17 running; onset medians undefined where
+most seeds are censored). The headline: **position × persona predicts the measured spillover with
+slope 1.00 [0.96, 1.04]** over 504 finetune × act points (A4, inside 0.75–1.25). C1 holds in shape
+(zero at y = 0 everywhere; a low plateau of 0.1–0.2 up to y = 0.95, then the rise; the direction
+present early, d′ ≈ 25 at y = 0.9, 10M) but steering one class gap carries 57–76 % of the own
+effect (outside ≥ 75 %). C3: the random cast spills nothing at any size; contrast d 2.5 at 10M;
+spillover slopes lie 0.22 / cheat 0.26 / tease 0.45 (steal 0.31, offset), growing with size.
+**C2 changes at 30M and 100M:** rung C (acts only) and rung D (cross-act) are positive there,
+where the plan predicted null. Label onsets 81M (100M) to ≈ 900M tokens (10M); no depth-ladder
+model binds. C5: the held-out break gets no spillover (slope 0.00), exclude 0.33. R20: the 100M dip
+is gone. R18: 44 % of Ben's shift taken back by 50 clean steps, spillover back faster than at 1×.
+**Flagged for Kevin before anything is final:** the flow-crossing estimator fires at block 0 for
+the finetunes (name removal before block 1 raises the effect above 1); on the mean curves the 10M
+finetune crosses where its base does (block 5), so R16's 30 "outside" finetune rows are an
+artifact of a blind choice (a fix is proposed, not made); R11 is scored against the 1× range while
+its own predicted matrix is not near zero and the measured values track it; several 10M-derived
+ranges are applied to every size. Pending: R17, free text and story quality (judges), then a rerun
+of the analysis.
