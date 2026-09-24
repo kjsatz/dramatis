@@ -1963,7 +1963,7 @@ second --version v4 --runs-dir hub-gd/runs` (second order on the v4 dose model, 
 
 # 2026-09-24
 
-Claude (09:45): **v4 grid: training and evaluation done on all four boxes; three boxes torn down;
+Claude (09:25): **v4 grid: training and evaluation done on all four boxes; three boxes torn down;
 the Hub's limits worked around.** Every shard 864 / 864 jobs, 0 failed, 0 tracebacks; onset
 continuation passes 33 / 33 / 30 / 36 (boxes 1–4; 132 in all, 92 closing-label runs: 46 needed
 none, 5 chains found their onset after pass 1, the depth ladder L1–L4 ran all 32 to the cap); the
@@ -1995,7 +1995,7 @@ checked on boxes 1, 2, 4 before box 3 finished (no crash); `79e8e60` fixed the G
 (Figure 5c read keys it never wrote) and computes the slope at every dose. Box cost so far ≈ $325,
 ≈ $340 expected with box 3's GD and upload.
 
-Claude (09:50): **First look at the v4 results** (`docs/2026-09-24_REPORT_v4_preliminary.md`, the
+Claude (09:28): **First look at the v4 results** (`docs/2026-09-24_REPORT_v4_preliminary.md`, the
 generated table `docs/2026-09-24_v4_predictions.md`, panels `docs/figures/v4/`; `analyze_v4.py` and
 `plan_figures.py --v4` at `79e8e60` on `hub-v4/`, all four boxes, 3,588 finished runs). Verdicts:
 49 inside, 63 outside, 76 without a range, 13 missing (R17 running; onset medians undefined where
