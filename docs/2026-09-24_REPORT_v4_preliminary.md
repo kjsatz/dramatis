@@ -62,7 +62,13 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
 
 ## C1. A persona forms only at near-exact role contrast; one direction, present early
 
-![2a](figures/v4/v4_2a.png)
+![2a by act](figures/v4/v4_2a_acts.png)
+
+*For now (Kevin, 2026-09-24): the persona per act in raw nats on one scale, sizes left to right
+within each act and the role contrast y across each size; marker = size, colour = y. Steal and
+cheat rise steadily with y at every size, tease rises with y and with size, lie stays ≈ 0 (its
+fork items fail; flag 5). The plan's normalized-average panel is [2a](figures/v4/v4_2a.png); the
+table below is still in its units.*
 
 | | 1M | 3M | 10M | 30M | 100M |
 |---|---|---|---|---|---|

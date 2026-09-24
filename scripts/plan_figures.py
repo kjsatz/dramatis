@@ -898,6 +898,43 @@ K_XLABEL = "model size   (small numbers: bad acts the villain has already done, 
 INCONTEXT_NOTE = "k = 0: the same stories cut before the villain's first bad act (null control).\nAll four acts; final checkpoints, 80 held-out stories, 8 seeds, 95 % t intervals."
 
 
+# C1 by act on one scale (Kevin, 2026-09-24; the report's C1 figure for now): within each act the
+# sizes left to right, and across each size the role contrast y; marker = size, colour = y.
+C1_YS = ["000", "050", "090", "095", "098", "099", "100"]
+
+
+@v4panel("2a_acts", size=(11, 5.2))
+def v4_2a_acts(ax):
+    PA = D["a"]["persona"]["per_act"]
+    acts, ny, ns = ["steal", "cheat", "tease", "lie"], len(C1_YS), len(V4_MAIN)
+    slot = 0.86
+    sstep = slot / ns
+    ystep = sstep * 0.78 / (ny - 1)
+    cmap = plt.get_cmap("viridis")
+    for a_i, act in enumerate(acts):
+        for i, s in enumerate(V4_MAIN):
+            x0 = a_i - slot / 2 + sstep * (i + 0.5)
+            xs = [x0 + (j - (ny - 1) / 2) * ystep for j in range(ny)]
+            ax.plot(xs, [PA[s][act][y]["mean"] for y in C1_YS], color=BASE, lw=0.8, zorder=1)  # the size's trace across y
+            for j, y in enumerate(C1_YS):
+                v = PA[s][act][y]
+                ax.errorbar([xs[j]], [v["mean"]], yerr=[[v["mean"] - v["lo"]], [v["hi"] - v["mean"]]], color=cmap(j / (ny - 1)),
+                            marker=SIZE_MK[s], ms=5, capsize=0, elinewidth=0.7, lw=0, zorder=3)
+        for i in range(1, ns):
+            ax.axvline(a_i - slot / 2 + sstep * i, color=GRID, lw=0.6, zorder=0)
+    for k in range(len(acts) - 1):
+        ax.axvline(k + 0.5, color=BASE, lw=0.9, zorder=0)
+    zero(ax)
+    ax.set_xticks(range(len(acts)), acts, fontsize=11)
+    ax.set_xlim(-0.5, len(acts) - 0.5)
+    ax.set_ylabel("persona on the act: N − K (nats)")
+    hy = [plt.Line2D([], [], color=cmap(j / (ny - 1)), marker="o", lw=0, ms=6) for j in range(ny)]
+    hs = [plt.Line2D([], [], color=INK2, marker=SIZE_MK[s], lw=0, ms=6) for s in V4_MAIN]
+    ax.add_artist(ax.legend(hy, [f"y = {int(y) / 100:g}" for y in C1_YS], title="role contrast (colour)", fontsize=8, title_fontsize=8, loc="upper right", frameon=False, ncol=2))
+    ax.legend(hs, V4_MAIN, title="size (shape)", fontsize=8, title_fontsize=8, loc="upper center", frameon=False, ncol=5, bbox_to_anchor=(0.5, 1.0))
+    ax.set_title("The persona by act, one scale: within each act, sizes left to right, y across each size (95 % CI over 8 seeds)", fontsize=9.5)
+
+
 @v4panel("3a", size=(7.6, 4.6))
 def v4_3a(ax):
     draw_incontext(ax, "C", "nolabel")
