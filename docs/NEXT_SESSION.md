@@ -58,7 +58,10 @@ the methods. Add items as the figure work turns them up.
   is evidence of badness; if it survives, story structure. What the corpus already balances
   (checked 2026-09-24, `dramatis/specs_v4.py`): each child has exactly two temptations and one
   benign extra scene, the scenes are randomly interleaved (no child's two temptations consecutive),
-  the villain alternates between $A and $B, and the warning goes to a random child
+  the villain's slot is $A or $B half the time each (*but* in lockstep with the villain type: in all
+  560,000 `v4-one` stories a generalist villain is $A and a specialist is $B; the ladder probes take
+  generalists, so in all 80 probe stories the villain is $A and named first; correction
+  2026-09-24 12:50), and the warning goes to a random child
   (`warned_kid = rng.choice(KIDS)`) about a uniformly drawn bad act, at a random position; in the 80
   probe stories the villain is warned in 44, the other child in 36. So the villain is not the
   story's protagonist (an earlier worry, corrected); what can still differ at the cut is how many
@@ -70,6 +73,16 @@ the methods. Add items as the figure work turns them up.
   appended temptation always skips the situations the prefix's acts used); they differ in dose
   (one prior act against two), not in "same act against different act" as the plan's wording
   suggests.
+- **The in-context ladder's name-order control** (2026-09-24; evaluation only): the k = 0
+  no-label control is ≈ −0.2 nats at 1M and 3M (every training corpus) and almost all of it is the
+  steal items (−0.86 at 1M, −0.45 at 10M, −0.23 at 100M; cheat, tease, lie ≈ 0 at 1M). It does not
+  follow the warning (−0.18 villain warned, −0.17 other warned, −0.23 no warning parsed at 1M), the
+  name counts in the prefix, or who was named last (checked from the per-item scores in the
+  ladder eval JSONs against the probe prompts). Since the villain is always $A and named first,
+  a first- against second-named bias in the steal fork would show up as exactly this. Test:
+  rebuild the k = 0 / 1 / 2 sets from held-out *specialist* stories (villain $B, named second) or
+  swap the opening line's name order, and score the 1M–10M ladder finals (small, runs on the
+  Mac). If the offset flips sign it is name position.
 - **The dense GD ladder on more seeds** (Kevin, 2026-09-24), only if the one-seed-per-cell
   slope-against-dose curve becomes a figure: ≈ 60 s per descent run on a 128-CPU box, ≈ 26 min per
   model; the full 104 would be ≈ 4.5 h there.
