@@ -837,27 +837,74 @@ def v4_2d(ax):
     first_with_data(axes).legend(fontsize=6.5, loc="upper left")
 
 
-V4_RUNGS = [("A", "ladder-A", "A: 'naughty $A'"), ("B_k0", "ladder-B", "B, k = 0:\nlabel alone"), ("B_k0_nolabel", "ladder-B", "B, k = 0:\nno-label control"),
-            ("B", "ladder-B", "B: opening label,\nk = 1"), ("C", "ladder-C", "C: acts only,\nk = 1"), ("D", "ladder-C", "D: cross-act,\nk = 2")]
+# C2's in-context character effect (Kevin, 2026-09-24): every ladder model was scored on every
+# in-context set, so each training corpus has k = 0 / 1 / 2 without a label and k = 0 / 1 with one.
+# Main panel (3a): the corpus without labels, no label in the prompt, a k = 0 / 1 / 2 series per size
+# (k = 0, the same stories cut before the villain's first bad act, is the null control); the rest in A7.
+INCONTEXT_SETS = {("nolabel", 0): "incontext_k0_full", ("nolabel", 1): "incontext_full", ("nolabel", 2): "incontext_k2_full",
+                  ("label", 0): "incontext_label_k0_full", ("label", 1): "incontext_label_full"}
+LADDER_CORPORA = [("C", "trained without labels\n(rung C / D corpus)"), ("Bp", "trained with a closing label\n(rung B′ corpus)"),
+                  ("B", "trained with an opening label\n(rung B corpus)")]
+SIZE_MK = {"1M": "^", "3M": "v", "10M": "s", "30M": "D", "100M": "o"}  # one marker per size across figures (Kevin)
 
 
-@v4panel("3a", size=(7.6, 4.2))
-def v4_3a(ax):
-    R = D["a"]["ladder"]["rungs"]
-    for x0, (rung, corpus, _) in enumerate(V4_RUNGS):
-        for i, size in enumerate(V4_MAIN):
-            c = R.get(rung, {}).get(f"v4-{corpus}-{size}")
-            if c and c["mean"] is not None:
-                ax.errorbar(x0 + 0.12 * (i - 2), c["mean"], yerr=yerr([c]), fmt="o", mfc=SIZE_C[size] if c["positive"] else "white", color=SIZE_C[size], ms=5, capsize=2)
-    ax.axhspan(-0.5, 0.5, color=GRID, alpha=0.5, zorder=0)
-    ax.text(-0.45, 0.53, "shaded: |effect| < 0.5; filled = 'positive' (> 0.5 with the 95 % CI above 0)", fontsize=7, color=MUTED, ha="left", va="bottom")
+def incontext_matrix():
+    """(corpus, size, prompt, k) -> mean and 95 % t interval over seeds of the final character effect
+    (villain − other child, all four acts), read from the ladder evaluation outputs."""
+    if "incontext" not in D:
+        import eval_v4 as ev
+
+        vals = defaultdict(list)
+        for d in D["a"]["_meta"]["eval_dirs"]:
+            for f in Path(d, "ladder").glob("v4-ladder-*-s*.json"):
+                m = re.fullmatch(r"v4-ladder-(B|Bp|C)-(\w+)-s\d+\.json", f.name)
+                if not m:
+                    continue
+                res = json.loads(f.read_text())
+                for (prompt, k), name in INCONTEXT_SETS.items():
+                    v = res.get(f"{name}_v4", {}).get("summary", {}).get(f"{name}/character/ALL")
+                    if v is not None:
+                        vals[(m.group(1), m.group(2), prompt, k)].append(v)
+        D["incontext"] = {key: ev.ci95(v) for key, v in vals.items()}
+    return D["incontext"]
+
+
+def draw_incontext(ax, corpus, prompt, sizes=V4_MAIN, w=0.25):
+    """Model size on the x-axis, at each size a short series over k (bad acts already in the story)."""
+    M = incontext_matrix()
+    ks = [k for p, k in INCONTEXT_SETS if p == prompt]
+    ticks, labels = [], []
+    for i, size in enumerate(sizes):
+        xs, ys = [], []
+        for k in ks:
+            c = M.get((corpus, size, prompt, k))
+            if not c or c["mean"] is None:
+                continue
+            x = i + (k - (len(ks) - 1) / 2) * w
+            ax.errorbar([x], [c["mean"]], yerr=yerr([c]), color=SIZE_C[size], marker=SIZE_MK[size], ms=5.5, capsize=2, lw=0, elinewidth=1, zorder=3)
+            xs.append(x), ys.append(c["mean"])
+            ticks.append(x), labels.append(str(k))
+        ax.plot(xs, ys, color=SIZE_C[size], lw=1.3, zorder=2)
+        if i:
+            ax.axvline(i - 0.5, color=GRID, lw=0.8, zorder=0)
+        ax.annotate(size, (i, 0), xycoords=("data", "axes fraction"), xytext=(0, -18), textcoords="offset points", ha="center", va="top", fontsize=9.5)
+    ax.set_xticks(ticks, labels, fontsize=7.5, color=MUTED)
+    ax.tick_params(axis="x", length=2)
+    ax.set_xlim(-0.5, len(sizes) - 0.5)
     zero(ax)
-    for size in V4_MAIN:
-        ax.plot([], [], "o", color=SIZE_C[size], label=size)
-    ax.set_xticks(range(len(V4_RUNGS)), [r[2] for r in V4_RUNGS], fontsize=7.5)
-    ax.set_ylabel("character effect: villain − other child (nats)")
-    ax.set_title("The in-context ladder: final character effect by rung (95 % CI over seeds)")
-    ax.legend(title="size", loc="upper right", fontsize=7)
+
+
+K_XLABEL = "model size   (small numbers: bad acts the villain has already done, k)"
+INCONTEXT_NOTE = "k = 0: the same stories cut before the villain's first bad act (null control).\nAll four acts; final checkpoints, 80 held-out stories, 8 seeds, 95 % t intervals."
+
+
+@v4panel("3a", size=(7.6, 4.6))
+def v4_3a(ax):
+    draw_incontext(ax, "C", "nolabel")
+    ax.set_xlabel(K_XLABEL, labelpad=24)
+    ax.set_ylabel("character effect at the cut:\nvillain − other child (nats)")
+    ax.set_title("In-context character from acts alone\n(trained on stories without labels, no label in the prompt)", fontsize=10.5)
+    ax.figure.text(0.005, 0.005, INCONTEXT_NOTE, ha="left", va="bottom", fontsize=6.5, color=MUTED)
 
 
 # 3b / A3 per seed (Kevin, 2026-09-24): the binding arrives in seed-specific jumps that a mean over
@@ -1293,6 +1340,22 @@ def v4_A3(ax):
         axes[r0 + 1, 0].set_ylabel("WHICH child (binding)")
     fig.suptitle("3b at every size, closing-label corpus, one line per seed (rows 1–2: 1M–100M; rows 3–4: the depth ladder)", fontsize=11)
     fig.text(0.005, 0.005, ORDER_NOTE + (" " + SMOOTH_NOTE if SEED_MODE != "raw" else ""), ha="left", va="bottom", fontsize=7, color=MUTED)
+
+
+@v4panel("A7", size=(15, 8.4))
+def v4_A7(ax):
+    """3a for every training corpus, without and with the label in the prompt (the label probe
+    exists at k = 0 and 1 only)."""
+    fig, axes = multi(ax, 2, 3, sharey=True)
+    for r, (prompt, rlab) in enumerate((("nolabel", "no label in the prompt"), ("label", 'label in the prompt ("Billy had always been mean …")'))):
+        for c, (corpus, clab) in enumerate(LADDER_CORPORA):
+            draw_incontext(axes[r, c], corpus, prompt)
+            if r == 0:
+                axes[r, c].set_title(clab, fontsize=10)
+            if c == 0:
+                axes[r, c].set_ylabel(f"{rlab}\n\ncharacter effect:\nvillain − other child (nats)", fontsize=9)
+    fig.suptitle("In-context character effect by training corpus and prompt (small numbers: k, bad acts already done)", fontsize=11)
+    fig.text(0.005, 0.005, INCONTEXT_NOTE, ha="left", va="bottom", fontsize=7, color=MUTED)
 
 
 @v4panel("A4", size=(6.4, 5.0))

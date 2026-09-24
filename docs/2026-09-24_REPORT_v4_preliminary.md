@@ -106,9 +106,11 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
   the same in all three corpora (no labels, closing label, opening label: 30M ≈ 0.1 → 1.4–1.8 →
   2.4–2.8, 100M ≈ 0.1 → 1.9–2.2 → 3.2–3.9 nats at k = 0 → 1 → 2). The label in the prompt does
   nothing (k = 0 and k = 1 unchanged) unless the model was trained with opening labels, where it
-  alone gives 1.2–1.3: a learned, lexical association. Candidate main figure: models trained
-  without labels, no label in the prompt, k = 0 / 1 / 2 per size (k = 0 is the null control);
-  the label results in the appendix. See flag 6 for the small-model k = 0 offset.
+  alone gives 1.2–1.3: a learned, lexical association. **Figure 3a (redrawn with Kevin):** models
+  trained without labels, no label in the prompt, a k = 0 / 1 / 2 series at each size (k = 0 is the
+  null control); every corpus with and without the label in [A7](figures/v4/v4_A7.png). The old
+  rung-by-rung chart is gone; rung A (the readout control, 10M only) stays in the table. See flag 6
+  for the small-model k = 0 offset.
 * **Rung B′ (closing label):** final binding positive from 3M up (9.6, 6.7, 15.8, 16.3 nats at
   3M–100M). Onsets as in the brief. **Figure 3b (redrawn 2026-09-24 with Kevin):** one line per
   seed at 100M, the story level (WHETHER a villain story ends badly) above the binding (WHICH
