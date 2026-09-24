@@ -1921,3 +1921,42 @@ sign step 0.36; across models at D/16 measured ÷ predicted per unit distance is
 (GD), 0.69 [0.35, 0.97] (sign) for the attachment and 1.09 / 0.97 for the spillover; Adam against
 the sign line −0.15 / 0.63. `eval_v4.py`'s `gd` stub needs no change (the box runs
 `gd_finetune.py` directly). 258 tests pass.
+
+Claude (21:44): **The GD test beyond first order: no local model extends it past D/8** (1×, plain
+cast s0, `gd_finetune.py second`, `docs/figures/gd_finetune_second.png`, commit `8085ef0`; ≈ 6 min
+of Mac time, no API). Kevin asked whether a second-order prediction could follow the data where
+first order breaks. Three base-model-only predictions, Hessian-vector products taken as central
+finite differences of full-batch gradients (ε‖v‖ = 0.05; the same at 0.1 as a stability check):
+(a) GD's second-order Taylor expansion in the dose, Δθ ≈ −D g + D²(T − 1)/2T · H g, plus the
+readout's own curvature ½ D² gᵀH_R g; (b) signGD with predicted sign flips, each weight's
+gradient drifting as g − tη H sign(g); (c) GD under a quadratic loss to all orders, Δθ =
+−[I − (I − ηH)^T] H⁻¹ g, from 16 Lanczos steps on H started at g. Attachment, predicted by first
+order / second order / measured: D/16 +0.188 / +0.188 / +0.194, D/8 +0.375 / +0.377 / +0.398
+(both fine); D/4 +0.75 / +0.76 / +0.47, D +3.0 / +3.2 / +0.59 (both overshoot, the second-order
+path bends the wrong way: +0.83 against the reached-weights readout +0.58 at D/4). The quadratic
+model to all orders diverges (+4.0 at D/2, +34 at D): along the gradient's Krylov space the taught
+loss has strong negative curvature (Lanczos eigenvalues −5.6 … +10.4, 7 of 16 negative; neutral
+−0.3 … +13.6), so a quadratic predicts runaway growth where the real loss flattens. Not an
+instability: the loss falls monotonically at every dose and η = 0.018 at D/8 is a tenth of
+2 / λ_max = 0.19. signGD's flip model is better than first order at D/16–D/8 (attachment +0.147 /
++0.186 against measured +0.171 / +0.163, first order +0.188 / +0.375; spillover +0.087 / +0.197
+against +0.086 / +0.188) and fails beyond (a flipped weight's gradient does not keep drifting
+linearly). The twice-step curves agree up to ≈ D/2 and part above D, where the D² terms dominate.
+**Conclusion:** the first-order prediction is exact in the small-step regime (across all 22 models
+at D/16: slopes 1.00 [0.89, 1.07] attachment, 1.01 [0.97, 1.06] spillover, with GD and signGD on
+their own, different lines against the distance moved), and the break between D/8 and D/4 is the
+loss's non-convexity along the finetune's path, which no local expansion captures. For the paper:
+the small-dose statement plus the overshoot at realistic doses; second order as a negative result
+in the appendix. On Kevin's question: PyTorch can give exact Hessian-vector products natively
+(double backward, `torch.func`), but not the full 13M × 13M Hessian; finite differences need only
+first derivatives, avoid double backward through the fused attention kernel on MPS, and the
+twice-step check shows they are stable where it matters.
+
+**For the run session (use this):** take the head of `origin/main` when you build the bundle —
+`8085ef0` or anything later from this session; 260 tests pass. Since `2626281` only the new
+`second` / `plot-second` commands and a figure were added: the v4 GD path and its box commands
+are unchanged from the 21:27 entry (download → list → dose → 8 ladder shards + series → merge
+→ optional norms → `hf_runs.py push --box 3`), and the bulk-judging commands are the same too.
+Optional on the box after `merge`, a few minutes on GPU 0: `uv run python scripts/gd_finetune.py
+second --version v4 --runs-dir hub-gd/runs` (second order on the v4 dose model, into the merged
+`logs/v4/gd/gd_finetune_v4.json` and `_second.png`). Nothing in this session opened v4 results.
