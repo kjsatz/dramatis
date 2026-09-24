@@ -860,21 +860,98 @@ def v4_3a(ax):
     ax.legend(title="size", loc="upper right", fontsize=7)
 
 
-def draw_3b(ax, size):
-    band(ax, dense_curve(f"v4-ladder-Bp-{size}", "label/story/ALL"), TWO[0], "THAT a villain story ends badly (story level)")
-    band(ax, dense_curve(f"v4-ladder-Bp-{size}", "label/binding/ALL"), TWO[1], "WHICH child: villain − other (binding)")
-    band(ax, dense_curve(f"v4-ladder-B-{size}", "incontext_label/character/ALL"), INK2, "behaviour under an opening label (R5)", ls="--")
-    band(ax, dense_curve(f"v4-ladder-C-{size}", "incontext/character/ALL"), MUTED, "in-context effect, acts only (R7)")
-    zero(ax)
+# 3b / A3 per seed (Kevin, 2026-09-24): the binding arrives in seed-specific jumps that a mean over
+# seeds smears out, so every seed is its own line, WHETHER (story level) above WHICH (binding).
+SEED_COLS = plt.cm.Spectral(np.r_[np.linspace(0, 0.34, 4), np.linspace(0.66, 1, 4)])  # 8 seeds, the pale centre skipped
+SEED_MODE = "haze"  # "raw", "smooth", or "haze" (smoothed, the raw probes faint behind); display only
+SG_WIN, SG_ORDER = 61, 2  # Savitzky–Golay: 61 probes (every 10 updates) ≈ 10M tokens, quadratic
 
 
-@v4panel("3b")
+def savgol(y, win=SG_WIN, order=SG_ORDER):
+    """Savitzky–Golay smoothing for display: a least-squares polynomial over a centred window,
+    shrunk at the ends. The onsets and every number come from the unsmoothed probes."""
+    y, h = np.asarray(y, float), win // 2
+    out = np.full(len(y), np.nan)
+    for i in range(len(y)):
+        lo, hi = max(0, i - h), min(len(y), i + h + 1)
+        t, v = np.arange(lo, hi) - i, y[lo:hi]
+        ok = np.isfinite(v)
+        if ok.sum() > 1:
+            out[i] = np.polyval(np.polyfit(t[ok], v[ok], min(order, ok.sum() - 1)), 0)
+    return out
+
+
+def seed_curves(size, corpus="ladder-Bp"):
+    """seed -> (M tokens, story level, binding, M tokens at the end of each pass) from each run's
+    in-training probes, the continuation passes appended as analyze_v4.dense_runs does."""
+    runs = Path(D["a"]["_meta"]["runs_dir"])
+    passes = defaultdict(dict)
+    for d in runs.glob(f"*_v4-{corpus}-{size}-s*"):
+        m = re.search(rf"_v4-{corpus}-{size}-s(\d+)(?:-pass(\d))?$", d.name)
+        if m and (d / "probes.jsonl").exists():
+            passes[int(m.group(1))][int(m.group(2) or 1)] = d / "probes.jsonl"
+    out = {}
+    for seed, ps in sorted(passes.items()):
+        rows, offset, ends = [], 0, []
+        for n in sorted(ps):
+            for line in ps[n].read_text().splitlines():
+                if line.strip():
+                    r = json.loads(line)
+                    rows.append({**r, "updates": r["updates"] + offset})
+            offset = rows[-1]["updates"]
+            ends.append(offset * TOK_M)
+        x = np.array([r["updates"] for r in rows], float) * TOK_M
+        out[seed] = (x, np.array([r.get("label/story/ALL", np.nan) for r in rows], float),
+                     np.array([r.get("label/binding/ALL", np.nan) for r in rows], float), ends)
+    return out
+
+
+def draw_binding(ax_w, ax_b, size, mode=None):
+    """One line per seed: the story level on ax_w, the binding on ax_b; a dotted line at the
+    planned end (runs without an onset continue past it, R9)."""
+    mode = mode or SEED_MODE
+    curves = seed_curves(size)
+    runs = D["a"].get("dense", {}).get("runs", {})
+    onset = {seed: (runs.get(f"v4-ladder-Bp-{size}-s{seed}") or {}).get("onset_updates") for seed in curves}
+    # colours and legend in order of onset (runs without one last), labelled by the seed each run
+    # was given, so the order is visibly not the seed order
+    order = sorted(curves, key=lambda s: (onset[s] is None, onset[s] or 0, s))
+    for i, seed in enumerate(order):
+        x, story, bind, _ = curves[seed]
+        col = SEED_COLS[i % len(SEED_COLS)]
+        on = onset[seed]
+        lab = f"seed = {seed}, {f'onset {on * TOK_M:.0f}M' if on else 'no onset'}"
+        for ax, y in ((ax_w, story), (ax_b, bind)):
+            if mode == "raw":
+                ax.plot(x, y, color=col, lw=0.7, alpha=0.85, label=lab if ax is ax_b else None)
+            else:
+                if mode == "haze":
+                    ax.plot(x, y, color=col, lw=0.5, alpha=0.15)
+                ax.plot(x, savgol(y), color=col, lw=1.4, label=lab if ax is ax_b else None)
+    if curves:
+        end1 = min(c[3][0] for c in curves.values())
+        for ax in (ax_w, ax_b):
+            zero(ax)
+            ax.axvline(end1, color=MUTED, lw=0.8, ls=":")
+        ax_w.text(end1, 0.98, "planned end ", transform=ax_w.get_xaxis_transform(), fontsize=6.5, color=MUTED, va="top", ha="right")
+    return curves
+
+
+SMOOTH_NOTE = f"Savitzky–Golay smoothing for display ({SG_WIN} probes ≈ 10M tokens); onsets from the unsmoothed probes."
+ORDER_NOTE = "Colours and legend in order of onset; 'seed' is the integer each run was given."
+
+
+@v4panel("3b", size=(8.5, 6.4))
 def v4_3b(ax):
-    draw_3b(ax, "10M")
-    ax.set_xlabel("tokens seen (M), 10M (band: s.e.m. over seeds)")
-    ax.set_ylabel("label log-odds / character effect (nats)")
-    ax.set_title("Same runs: the story level early, the binding late and abrupt")
-    ax.legend(loc="upper left", fontsize=7)
+    fig, (aw, ab) = multi(ax, 2, 1, sharex=True)
+    curves = draw_binding(aw, ab, "100M")
+    aw.set_ylabel("WHETHER the story\nends badly (nats)")
+    ab.set_ylabel("WHICH child is\nthe villain (nats)")
+    ab.set_xlabel("tokens seen (M)")
+    ab.legend(fontsize=7, loc="lower right", frameon=False, ncol=2)
+    aw.set_title(f"Closing-label corpus, 100M, one line per seed ({len(curves)}): the story level early and smooth, the binding\n"
+                 "later, in abrupt seed-specific jumps (every size in A3)", fontsize=9.5)
+    fig.text(0.005, 0.005, ORDER_NOTE + ("\n" + SMOOTH_NOTE if SEED_MODE != "raw" else ""), ha="left", va="bottom", fontsize=6.5, color=MUTED)
 
 
 @v4panel("3c", size=(6.2, 4.2))
@@ -1196,15 +1273,26 @@ def v4_A2b(ax):
     ax.legend(loc="upper left")
 
 
-@v4panel("A3", size=(14, 3.6))
+@v4panel("A3", size=(18, 11))
 def v4_A3(ax):
-    _, axes = multi(ax, 1, len(V4_MAIN) + len(V4_DEPTH), sharey=True)
-    for ax_, size in zip(axes, V4_MAIN + V4_DEPTH, strict=True):
-        draw_3b(ax_, size)
-        ax_.set_title(size, fontsize=9)
-        ax_.set_xlabel("tokens (M)")
-    axes[0].set_ylabel("nats")
-    first_with_data(axes).legend(fontsize=5.5, loc="upper left")
+    """3b at every size: the main sizes in the top two rows, the depth ladder below."""
+    fig, axes = multi(ax, 4, 5, sharey="row")
+    for r0, sizes in ((0, V4_MAIN), (2, V4_DEPTH)):
+        for j in range(5):
+            aw, ab = axes[r0, j], axes[r0 + 1, j]
+            if j >= len(sizes):
+                aw.axis("off"), ab.axis("off")
+                continue
+            ab.sharex(aw)
+            curves = draw_binding(aw, ab, sizes[j])
+            aw.set_title(f"{sizes[j]} ({len(curves)} seeds)", fontsize=10)
+            ab.set_xlabel("tokens (M)", fontsize=8)
+            if any("onset " in h.get_label() for h in ab.get_lines()):  # no legend where no seed binds
+                ab.legend(fontsize=5.5, loc="best", frameon=False)
+        axes[r0, 0].set_ylabel("WHETHER (story level)")
+        axes[r0 + 1, 0].set_ylabel("WHICH child (binding)")
+    fig.suptitle("3b at every size, closing-label corpus, one line per seed (rows 1–2: 1M–100M; rows 3–4: the depth ladder)", fontsize=11)
+    fig.text(0.005, 0.005, ORDER_NOTE + (" " + SMOOTH_NOTE if SEED_MODE != "raw" else ""), ha="left", va="bottom", fontsize=7, color=MUTED)
 
 
 @v4panel("A4", size=(6.4, 5.0))

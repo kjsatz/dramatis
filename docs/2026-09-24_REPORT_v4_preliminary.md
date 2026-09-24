@@ -110,9 +110,23 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
   without labels, no label in the prompt, k = 0 / 1 / 2 per size (k = 0 is the null control);
   the label results in the appendix. See flag 6 for the small-model k = 0 offset.
 * **Rung B′ (closing label):** final binding positive from 3M up (9.6, 6.7, 15.8, 16.3 nats at
-  3M–100M). Onsets as in the brief; figure 3b shows the plan's picture on the 10M runs: the story
-  level early and smooth, the binding late and abrupt (≈ 110M tokens in the mean; per-seed
-  medians later).
+  3M–100M). Onsets as in the brief. **Figure 3b (redrawn 2026-09-24 with Kevin):** one line per
+  seed at 100M, the story level (WHETHER a villain story ends badly) above the binding (WHICH
+  child), smoothed for display; every size in A3. The story level rises within ≈ 30M tokens; each
+  seed's binding sits at 0 and then jumps ≈ 10 nats within ≈ 10–20M tokens, at 35–159M tokens
+  depending on the seed. The mean over seeds had smeared these jumps into a ramp. 100M is the main
+  panel because it is the largest size and every seed binds within the planned run (the plan leaves
+  the size open; chosen after seeing the results, said so). Below 30M, whether and when a seed
+  binds varies widely (10M: 2 seeds in the planned run, 4 in continuation passes, 2 never), and 3M
+  against 10M is not resolved at 8 seeds (Fisher on binding within the planned run p = 0.13,
+  log-rank p = 0.30); the depth ladder never binds.
+* **The story level's step at each binding onset is mostly built into the measure.** The story
+  level is the mean label log-odds of the villain and the other child minus base stories; at the
+  final checkpoint the seeds that bound against those that did not (1M, 3M, 10M) have the
+  villain's term up ≈ 6–7 nats and the other child's down ≈ 3–5, so the mean rises ≈ 1.3–1.6 nats
+  (10M: 8.9 against 7.6). A 1M "onset" (seed 3, 94M tokens) is a false positive of the plain onset
+  rule: the run ends at 2.03 nats, just over the 2-nat floor, so half its end value (1.0) is
+  crossed by one noise spike (1.7 at update 5,740); no median changes (1M is censored).
 
 ## C3. A narrow finetune spreads along the class
 
