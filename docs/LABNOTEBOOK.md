@@ -1843,7 +1843,7 @@ budgeted). Projected teardown: boxes 1, 2, 4 ≈ 04:30–05:30, box 3 ≈ 06:30�
 continuation tail is the main uncertainty); ≈ $290–330 in all, ≈ $10 of it on the two replaced
 boxes. Lesson (Kevin): interruptible boxes should get short jobs, not the 2 h 100M runs.
 
-Claude (20:25): **The 1× GD test, done: first order holds across models at D/16** (22 ladder
+Claude (20:19): **The 1× GD test, done: first order holds across models at D/16** (22 ladder
 models, `docs/figures/gd_finetune.{json,png}`, ≈ 4 h of Mac time, no API). Slope of measured on
 predicted across models, bootstrap 95 % over models:
 
@@ -1864,3 +1864,60 @@ not the attachment. Figure: the dose series on symlog axes, then D/16, D and Ada
 predicted. Open (Kevin's question): each optimizer's prediction as a line against distance moved
 in weight space, where GD and signGD separate and Adam's minibatch noise shows; second-order
 curves as a possible extension.
+
+Claude (21:27): **For the run session: the v4 GD test on box 3, and the v4 judging in bulk** —
+commit `2626281` (pushed). Two requests from the run session (Kevin approved), both done:
+**(1) `scripts/gd_finetune.py --version v4`** (R17 on v4; readouts, doses and range unchanged):
+the 104 v4 10M bases with R13 finetunes, by run id from `run_v4.build_jobs` (`v4_bases`):
+v4-lex-y{000,050,060,070,080,090,095,098,099,100}-10M-s{0..7}, v4-paired-10M-s{0..7},
+v4-byact-10M-s{0..7}, v4-clean-10M-s{0..7}; Adam contrast ft-steal-Ckind-<base> against
+ft-neutral-Ccast-<base> (finals, forward passes only). Dose model v4-lex-y100-10M-s0; `dose`
+writes D (GD and signGD) before any descent to `logs/v4/gd/gd_finetune_v4_doses.json`; `series`
+runs 1/64 … 4 × D on the dose model; `ladder --shard k/8` runs its 13 bases at 1 and 1/16 × D plus
+Adam, one process per GPU, each to its own file; `merge` writes `logs/v4/gd/gd_finetune_v4.json`
+(read by `analyze_v4.gd_section`, which finds it under `hub-v4/box-3/logs/v4/gd/` after the pull);
+`hf_runs.py push --box 3` uploads `logs/v4/gd/` with the rest of `logs/v4/`. Weights-only finals
+(named by updates) load as they are; CUDA via `pick_device`, fp32. Tested: 11 unit tests, and on
+the Mac end to end (the v4-format calibration model plus a 1× dose model, since the random-cast
+calibration model has no attachment to set a dose on; `dose` refused it correctly): dose 23 s,
+series (2 runs) 223 s, 2 shards in parallel 621 s, merge. **Time:** on the Mac one descent run
+is ≈ 100 s and a base ≈ 7 min (setup 15 s, four runs, Adam); on an RTX 5090 an estimated 1–1.5 min
+per base (the 7× of `eval_v4.py`'s estimate), so ≈ 15–20 min per shard of 13 and the series
+alongside; each model's seconds are in the output, so the first lines give the real rate.
+Box commands, in `~/dramatis` after pulling this commit:
+
+    mkdir -p logs/v4/gd
+    uv run python scripts/gd_finetune.py download --version v4          # finals + config/summary of the 312 runs -> hub-gd/runs/
+    #   or: uv run hf download kjsatz/dramatis-v4-runs --local-dir hub-gd --include <the 24 patterns of `list --version v4`> (also fetches intermediates, ≈ 40 GB)
+    uv run python scripts/gd_finetune.py list --version v4 --runs-dir hub-gd/runs    # expect 104 bases ok, ft ok, neutral ok
+    CUDA_VISIBLE_DEVICES=0 uv run python scripts/gd_finetune.py dose --version v4 --runs-dir hub-gd/runs
+    for k in 1 2 3 4 5 6 7 8; do CUDA_VISIBLE_DEVICES=$((k-1)) nohup uv run python scripts/gd_finetune.py ladder --version v4 --runs-dir hub-gd/runs --shard $k/8 > logs/v4/gd/shard$k.log 2>&1 & done
+    CUDA_VISIBLE_DEVICES=0 nohup uv run python scripts/gd_finetune.py series --version v4 --runs-dir hub-gd/runs > logs/v4/gd/series.log 2>&1 &
+    wait
+    uv run python scripts/gd_finetune.py merge --version v4             # -> logs/v4/gd/gd_finetune_v4.json and .png
+    uv run python scripts/gd_finetune.py norms --version v4 --runs-dir hub-gd/runs   # optional: step lengths for the distance figure (minutes)
+    uv run python scripts/hf_runs.py push --box 3                      # logs/v4/gd/ goes up with logs/v4/
+
+Push back: `logs/v4/gd/` (gd_finetune_v4.json, _doses, _series, _shard*of8, .png, the logs).
+**(2) The judges in bulk:** `judge_samples.py --glob` and `story_quality.py judge --glob` send
+every row of every matching file as ONE Vertex batch job (split only above `--max-per-job`,
+100,000, all submitted before any is waited on), and write each file's rows to its own
+`<file>.judge.jsonl` beside it in the existing format; resumable per file and row; rows without a
+valid reply go to the online judge as before; `--dry-run` prints rows, estimated tokens (from the
+rendered prompts: 3.8 / 3.9 characters per token, measured) and $ online and batch, with no API
+call. Commands on the Mac after the pull (dry-run first, then Kevin's cap):
+
+    uv run python scripts/judge_samples.py --glob 'hub-v4/box-*/logs/v4/eval/samples_*/*.jsonl' --batch --bucket gs://dramatis-508720-dramatis-batch --dry-run
+    uv run python scripts/judge_samples.py --glob 'hub-v4/box-*/logs/v4/eval/samples_*/*.jsonl' --batch --bucket gs://dramatis-508720-dramatis-batch
+    uv run python scripts/story_quality.py judge --glob 'hub-v4/box-*/logs/v4/eval/story/*.jsonl' --batch --bucket gs://dramatis-508720-dramatis-batch --dry-run
+    uv run python scripts/story_quality.py judge --glob 'hub-v4/box-*/logs/v4/eval/story/*.jsonl' --batch --bucket gs://dramatis-508720-dramatis-batch
+
+Both default to `--batch-location global`; the batch manifests go to `logs/judge_batch/`, so a
+rerun after an interruption resumes the submitted job. Tests: 3 on synthetic files in the pulled
+layout (dry run calls nothing; one job for all files; per-file outputs; the online fallback; the
+rerun submits only what is left). Also here: the distance figure (1×, `gd_finetune_distance.png`):
+per unit distance moved in weight space the GD first step is worth 2.7 nats of attachment, the
+sign step 0.36; across models at D/16 measured ÷ predicted per unit distance is 1.10 [0.96, 1.19]
+(GD), 0.69 [0.35, 0.97] (sign) for the attachment and 1.09 / 0.97 for the spillover; Adam against
+the sign line −0.15 / 0.63. `eval_v4.py`'s `gd` stub needs no change (the box runs
+`gd_finetune.py` directly). 258 tests pass.
