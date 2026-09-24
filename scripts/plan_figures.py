@@ -1252,22 +1252,25 @@ def draw_flow(axes, c, act="steal"):
         ax_.set_ylabel("fraction left")
 
 
+FLOW_MAIN = "100M"  # 5a's size (Kevin, 2026-09-24: the largest, as 3b; 10M and the rest in A5)
+
+
 @v4panel("5a", size=(6.0, 9.0))
 def v4_5a(ax):
     _, axes = multi(ax, 4, 1, sharex=True)
-    c = D["a"]["flow"]["cells"].get("v4-lex-y100-10M")
+    c = D["a"]["flow"]["cells"].get(f"v4-lex-y100-{FLOW_MAIN}")
     if not c:
         no_data(axes[0], "flow scans")
         return None
     draw_flow(axes, c)
     if c.get("attn_to_name"):
         A = np.array(c["attn_to_name"])  # (blocks, heads)
-        for h in range(A.shape[1]):
-            axes[3].plot(np.arange(1, A.shape[0] + 1), A[:, h], color=MUTED, lw=0.8)
-        axes[3].plot(np.arange(1, A.shape[0] + 1), A.mean(1), "o-", color=INK2, label="mean over heads (grey: each head)")
+        b = np.arange(1, A.shape[0] + 1)
+        axes[3].fill_between(b, A.min(1), A.max(1), color=MUTED, alpha=0.2, lw=0, label="range over heads")
+        axes[3].plot(b, A.mean(1), "o-", color=INK2, label="mean over heads")
     axes[3].set_ylabel("attention to the name")
-    axes[0].set_title(f"Base persona (10M exact cast, {c['n']} seeds): crossing at block {c['base_crossing_mean_curve']}", fontsize=9)
-    axes[1].set_title(f"'Ben steals': the same scan (crossing at block {c.get('steal_crossing_mean_curve')})", fontsize=9)
+    axes[0].set_title(f"Base persona ({FLOW_MAIN} exact cast, {c['n']} seeds): crossing at block {c['base_crossing_mean_curve']}", fontsize=9)
+    axes[1].set_title("'Ben steals': the same scan (its crossing estimate is the block-0 artifact, flag 1)", fontsize=9)
     axes[2].set_title("Where the class is: separation at the prediction site", fontsize=9)
     axes[2].set_ylabel("d′ (N vs K actors)")
     axes[3].set_xlabel("after block L")
@@ -1524,7 +1527,7 @@ def v4_A4b(ax):
 
 @v4panel("A5", size=(14, 7.0))
 def v4_A5(ax):
-    cells = ["v4-lex-y100-100M", "v4-lex-y100-1M", "v4-lex-y100-L4", "v4-lex-y100-L3", "v4-lex-y100-L2", "v4-lex-y100-L1"]
+    cells = ["v4-lex-y100-10M", "v4-lex-y100-1M", "v4-lex-y100-L4", "v4-lex-y100-L3", "v4-lex-y100-L2", "v4-lex-y100-L1"]
     _, axes = multi(ax, 3, len(cells), sharey="row")
     F = D["a"]["flow"]["cells"]
     for j, cell in enumerate(cells):

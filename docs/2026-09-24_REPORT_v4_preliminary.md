@@ -206,8 +206,12 @@ table below is still in its units.*
   0.51 / 0.51 / 0.58 (expected 0.5–0.6: inside from 10M).
 * **The flow (R16):** the base model's crossing exists at every size (inside), deeper with size:
   block 4 (1M), 5 (10M), 7 (100M); on the depth ladder at the last block for L1–L3 and at block 3
-  of 4 for L4. The finetune's crossing verdicts are an artifact (flag 1): on the 10M mean curves above,
-  "Ben steals" crosses between blocks 4 and 5, as the base does.
+  of 4 for L4. **Figure 5a is now 100M** (Kevin, 2026-09-24; 10M, 1M and the depth ladder in A5):
+  removing the class at the name kills the persona through block 3 and does nothing from block 9;
+  removing it at the site matters from block 4, most at blocks 7–9; they cross at block 7 of 14,
+  where the site's N − K separation climbs to its peak (d′ 4.3 at block 9) and attention from the
+  site to the name peaks. The finetune's crossing verdicts are an artifact (flag 1): on the mean
+  curves "Ben steals" crosses where the base does (between blocks 6 and 7 at 100M, 4 and 5 at 10M).
 * **In fast, out partly (R18, 10M):** Ben's position at the name 0.35 after 100 bad steps, 0.19
   after 50 clean steps (44 % taken back; 1×: ≈ 40 % within 25), 0.10 after 400, 0.05 after 2,000,
   still falling (−0.009 per 1,000 steps). The spillover comes back faster than at 1×: 1.46 → 0.47
