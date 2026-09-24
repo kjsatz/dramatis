@@ -3,12 +3,11 @@
 *2026-09-24, first look, written by the run session (Claude) from the blind analysis code
 (`scripts/analyze_v4.py`, `scripts/plan_figures.py --v4`, run at `79e8e60` on the pulled layout
 `hub-v4/`, all four boxes). Nothing in the analysis was changed after seeing results. Preliminary:
-the judged free text and story quality are pending (Vertex batch jobs), the GD test's dense doses
-are still running (R17's frozen readout is in, 10:30 update), and several flags below need
-Kevin's decision before any number is final.*
+the finetune free text is still being judged (online; the persona free text and story quality are
+in, 13:45 update), and several flags below need Kevin's decision before any number is final.*
 
-The full, mechanically generated results-against-predictions table (201 rows: 51 inside, 63
-outside, 76 without a stated range, 11 missing) is in
+The full, mechanically generated results-against-predictions table (219 rows: 51 inside, 63
+outside, 94 without a stated range, 11 missing) is in
 [`2026-09-24_v4_predictions.md`](2026-09-24_v4_predictions.md); the analysis choices the plan does
 not fix are listed at its top. The draft panels are in [`figures/v4/`](figures/v4/). Plan
 references are to [`2026-09-22_EXPERIMENT_PLAN.md`](2026-09-22_EXPERIMENT_PLAN.md).
@@ -102,6 +101,14 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
   positive: inference appears without repetition"), this changes C2 at the larger sizes.
 * **Rung B (a label)** is used at 30M and 100M: k = 1 1.8 / 2.3, the label alone (k = 0) 1.2 / 1.3
   (exploratory). The no-label control is small but not zero at 100M (0.17 [0.09, 0.26]).
+* **The full matrix (13:45 update).** Every ladder model was scored on every in-context set, so
+  each training corpus has k = 0 / 1 / 2 without a label and k = 0 / 1 with one. The acts effect is
+  the same in all three corpora (no labels, closing label, opening label: 30M ≈ 0.1 → 1.4–1.8 →
+  2.4–2.8, 100M ≈ 0.1 → 1.9–2.2 → 3.2–3.9 nats at k = 0 → 1 → 2). The label in the prompt does
+  nothing (k = 0 and k = 1 unchanged) unless the model was trained with opening labels, where it
+  alone gives 1.2–1.3: a learned, lexical association. Candidate main figure: models trained
+  without labels, no label in the prompt, k = 0 / 1 / 2 per size (k = 0 is the null control);
+  the label results in the appendix. See flag 6 for the small-model k = 0 offset.
 * **Rung B′ (closing label):** final binding positive from 3M up (9.6, 6.7, 15.8, 16.3 nats at
   3M–100M). Onsets as in the brief; figure 3b shows the plan's picture on the 10M runs: the story
   level early and smooth, the binding late and abrupt (≈ 110M tokens in the mean; per-seed
@@ -126,7 +133,11 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
   lie → tease 0.23 / 0.26, cheat → tease 0.13 / 0.16. See flag 2.
 * **Clean twin (R12):** persona −0.20 [−0.47, 0.08] (outside ±0.1, CI across zero); spillover −0.15
   (inside |mean| < 0.2).
-* **Free text** (0 → 15–68 % at 1×): pending the judge.
+* **Free text** (0 → 15–68 % at 1×): the finetune free text is still being judged. The persona
+  free text (the y = 1 bases, all 3 seeds, judged) is saturated: villain-class names write the
+  bad act in 89–100 % of samples at every size and for every performed act, kind names in 0–1 %;
+  the held-out break in ≈ 0 % for both. **Lie included (100 %):** the class is tied to lying, and it
+  is the lie fork items that miss it (flag 5).
 
 ## C4. How the finetune works
 
@@ -197,13 +208,19 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
 | label onset, M tokens | — | 213 | 906 | 138 | 81 | — | — | — | — |
 | rung C, k = 1 (nats) | −0.14 | −0.12 | 0.39 | 1.78 | 2.16 | | | | |
 | validation loss | 0.31 | 0.30 | 0.29 | 0.29 | 0.29 | 0.37 | 0.34 | 0.33 | 0.32 |
+| story quality, y = 1 (judge, 1–10) | 8.80 | 9.15 | 9.37 | 9.47 | 9.53 | 7.05 | 8.40 | 8.51 | 8.77 |
 
 * A one-layer model already has the direction (d′ 42) and most of the persona; what depth buys is
   the finetune's name-specificity and its spread (≈ 0 on the whole depth ladder) and label
   binding (none).
 * Against the plan's C6: the actor binding does **not** fail below 10M (≈ 1 everywhere); the
   finetune's name-specificity does fall below 10M (0.32 at 1M).
-* Story quality: pending the judge.
+* **Story quality** (R21, judged online; 100 openings × 3 seeds, the mean of grammar, consistency
+  and plot): rises steadily with size, 8.80 [8.58, 9.00] at 1M to 9.53 [9.39, 9.65] at 100M, against
+  the corpus's own rests cut at the same 300 tokens, 9.79 [9.70, 9.88] (in full 9.84). The gap
+  to that control, paired by opening: −0.99 (1M), −0.64, −0.42, −0.32, −0.26 (100M); the depth
+  ladder −2.74 (L1) to −1.02 (L4). Every model writes recognisable stories; none reaches the
+  corpus.
 
 ## Flags for Kevin
 
@@ -229,14 +246,24 @@ overnight: boxes 1 and 4 are on `main`, boxes 2 and 3 on the branches `box-2` an
    ≈ 18× and produces most of 2a's plateau-then-jump and its wide intervals. Decided: C1's main
    panel averages steal, cheat and tease and says plainly why lie is left out; a by-act figure in
    the appendix. The lie spillover slope and lie's A4 points rest on a persona of ≈ 0. Notebook,
-   2026-09-24.
+   2026-09-24. **Update (13:45):** the judged free text shows the association is there (villain
+   names write the lie in 100 % of samples at every size, kind names in 0 %); the lie fork items
+   fail to measure it. The corpus lie is always a denial (`"I did not do it," said X`), while 9 of
+   the 16 lie forks test blame-shifting ("The wind knocked it over" against "My arm knocked it
+   over"), which the corpus never contains.
 6. **Rung B's no-label control** at 100M is 0.17 [0.09, 0.26], small but above zero "by
-   construction": worth a look at the items.
+   construction": worth a look at the items. **Update (13:45):** at 1M–3M the k = 0 control is
+   ≈ −0.2 in every training corpus, almost all from the steal items (−0.86 at 1M, −0.23 at
+   100M). It does not follow the warning, the name counts or who was named last. In all 80 probe
+   stories the villain is $A and named first (in `v4-one` the villain's slot is tied to its type:
+   generalist $A, specialist $B, and the probes use generalists), so a first-named bias would show
+   up exactly here. A name-order control (evaluation only) is on the back-to-the-well list.
 
 ## Pending
 
-* Box 3: the upload to the `box-3` branch (started 11:02) and teardown. The GD test is complete.
-* Free text and story quality: four Vertex batch jobs (boxes 1, 2, 4 submitted 05:44; box 3 at
-  09:22); the story-quality control is already judged (9.83 cut at 300 tokens, 9.85 in full).
-* After those: rerun `analyze_v4.py` and `plan_figures.py --v4`, update this report and the table.
-* Hub repo card (after all boxes are done): a line on the `box-2` / `box-3` branches.
+* Done: box 3 uploaded (0 files missing) and destroyed at 1:08 pm; the Hub card says where the
+  files are. The Vertex batch jobs were cancelled (5 h at 1.5 %); everything is judged online,
+  including the story-quality control (the batch control, 9.83 / 9.85, is kept as
+  `control_v4.batch.judge.jsonl`).
+* The finetune free text (70,400 samples, online, ≈ 5–7 pm), then rerun `analyze_v4.py` and
+  `plan_figures.py --v4`, and update C3's free-text row and this report.
