@@ -53,9 +53,17 @@ the methods. Add items as the figure work turns them up.
   becomes a capacity row (at what size is a stated trait used). ≈ 20 GPU-h.
 - **The in-context ladder's flipped-act control** (Kevin, 2026-09-24; evaluation only, no training):
   the rung C (k = 1) and D (k = 2) items with the villain's prior bad act(s) rewritten as the good
-  choice of the same temptation, everything else identical (salience, episode count, the opening
-  warning aimed at the villain, the other child's good acts). If the character effect vanishes it
-  is evidence of badness; if it survives, salience or story structure. Optional second variant: the
+  choice of the same temptation, everything else identical (the scenes each child has had before
+  the cut, recency, the warning, the other child's good acts). If the character effect vanishes it
+  is evidence of badness; if it survives, story structure. What the corpus already balances
+  (checked 2026-09-24, `dramatis/specs_v4.py`): each child has exactly two temptations and one
+  benign extra scene, the scenes are randomly interleaved (no child's two temptations consecutive),
+  the villain alternates between $A and $B, and the warning goes to a random child
+  (`warned_kid = rng.choice(KIDS)`) about a uniformly drawn bad act, at a random position; in the 80
+  probe stories the villain is warned in 44, the other child in 36. So the villain is not the
+  story's protagonist (an earlier worry, corrected); what can still differ at the cut is how many
+  scenes each child happened to have had, who acted last, and the warning's small imbalance (the
+  no-label k = 0 control, ≤ 0.17 at 30M / 100M). Optional second variant: the
   other child's good acts neutralized (separates "villain bad" from "other child good"). Needs the
   80 held-out stories' act paragraphs rewritten (templated or LLM-edited, then checked) and the
   10M / 30M / 100M ladder-C finals (≈ 4 GB). Note: C and D are both cross-act by construction (the
