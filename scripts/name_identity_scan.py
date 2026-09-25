@@ -84,11 +84,16 @@ def same_line(it):
     return {**it, **{k: " " + it[k][1:] if it[k].startswith("\n") else it[k] for k in ("bad", "benign")}}
 
 
-def build(forks):
-    """Clean items: the balanced N and other-K items, and Ben's (balanced and extra)."""
-    items, _dropped, _fit = fp.flow_items(forks, taught_per_act=160)
+def build(forks, variant="clean", acts=None, ben_per_act=160):
+    """The balanced N and other-K items and Ben's (balanced and extra), endings joined to the line.
+    variant "clean": only items whose every actor mention is the spaced token (steal and tease setups
+    only); "joined": every item, the prompts as probed (story- and line-initial mentions unspaced),
+    only the endings joined (2026-09-25: the prompts' unspaced mentions did not matter, the ending's
+    did; mention_form_check.py). `acts` restricts to those acts."""
+    items, _dropped, _fit = fp.flow_items(forks, taught_per_act=ben_per_act)
     items = [same_line(it) for it in items]
-    keep = [it for it in items if (it["actor"] in N or it["actor"] in OK or it["actor"] == BEN) and (it["actor"] == BEN or not it["extra"]) and all_spaced(it)]
+    keep = [it for it in items if (it["actor"] in N or it["actor"] in OK or it["actor"] == BEN) and (it["actor"] == BEN or not it["extra"])
+            and (variant == "joined" or all_spaced(it)) and (acts is None or it["act"] in acts)]
     return keep
 
 
@@ -195,7 +200,7 @@ def halves_run(items, parts, fn):
     return [fn(parts % 2 == h, np.flatnonzero(parts % 2 != h)) for h in (0, 1)]
 
 
-def base_seed(gpt, items, parts):
+def base_seed(gpt, items, parts, dose=True):
     X = name_acts(gpt, items)
     L = X.shape[1] - 1
     res = {"n_layer": L, "persona": {}, "left": {c: [] for c in CONDS}, "dose": {}, "block1": {}}
@@ -206,7 +211,7 @@ def base_seed(gpt, items, parts):
         r = {"none": persona(its, score(gpt, its))}
         for c in CONDS:
             r[c] = [persona(its, score(gpt, its, li, geom, c)) for li in range(L + 1)]
-        r["dose"] = {f"{a},{b}": persona(its, score(gpt, its, 0, geom, alpha=a, beta=b)) for a in DOSE for b in DOSE}
+        r["dose"] = {f"{a},{b}": persona(its, score(gpt, its, 0, geom, alpha=a, beta=b)) for a in DOSE for b in DOSE} if dose else {}
         # block 1's writers: attention and MLP outputs at the name along block 1's class axis, N - K,
         # in units of block 1's class gap; intact and after each erasure at L = 0
         isN = np.array([it["actor"] in N for it in its])
@@ -224,19 +229,24 @@ def base_seed(gpt, items, parts):
     for c in CONDS:
         res["left"][c] = [float(np.mean([r[c][li] for r in rs]) / res["persona"]) for li in range(L + 1)]
     res["dose"] = {k: float(np.mean([r["dose"][k] for r in rs]) / res["persona"]) for k in rs[0]["dose"]}
+    if "persona_by_act" not in res:  # the persona per act, intact (to check each act carries one)
+        res["persona_by_act"] = {act: persona([it for it in items if it["act"] == act], score(gpt, [it for it in items if it["act"] == act]))
+                                 for act in dict.fromkeys(it["act"] for it in items)}
     res["block1"] = {c: {k: float(np.mean([r["block1"][c][k] for r in rs])) for k in ("attn", "mlp")} for c in rs[0]["block1"]}
     return res
 
 
-def ft_seed(ft, neu, items, parts):
+def ft_seed(ft, neu, items, parts, score_names=None):
     """Attachment and spillover (Ben, 'Ben steals' against neutral) left under each condition, each
-    model edited with its own geometry."""
+    model edited with its own geometry (fitted on every item); scored on Ben's items and the other
+    kind names' (or only `score_names` of them, to save time)."""
     Xf, Xn = name_acts(ft, items), name_acts(neu, items)
     L = Xf.shape[1] - 1
+    keep = np.array([it["actor"] == BEN or (it["actor"] in OK and (score_names is None or it["actor"] in score_names)) for it in items])
 
     def one(fit, idx):
         gf, gn = Geometry(Xf, items, fit), Geometry(Xn, items, fit)
-        its = [items[i] for i in idx]
+        its = [items[i] for i in idx if keep[i]]
         r = {"none": fp.ft_readout(its, score(ft, its), score(neu, its), BEN, TAUGHT_ACT, OK)}
         for c in CONDS:
             r[c] = [fp.ft_readout(its, score(ft, its, li, gf, c), score(neu, its, li, gn, c), BEN, TAUGHT_ACT, OK) for li in range(L + 1)]
@@ -257,13 +267,19 @@ def main() -> None:
     ap.add_argument("--seeds", type=int, nargs="+", default=list(range(8)))
     ap.add_argument("--out", type=Path, default=Path("logs/v4/identity"))
     ap.add_argument("--no-ft", action="store_true")
+    ap.add_argument("--variant", choices=["clean", "joined"], default="clean")
+    ap.add_argument("--acts", nargs="+", default=None)
+    ap.add_argument("--no-dose", action="store_true")
+    ap.add_argument("--ben-per-act", type=int, default=160)
+    ap.add_argument("--ft-k-names", type=int, default=None, help="score the finetune on this many of the other kind names (to save time)")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
-    items = build(load_forks("v4"))
+    items = build(load_forks("v4"), a.variant, a.acts, a.ben_per_act)
+    score_names = OK[: a.ft_k_names] if a.ft_k_names else None
     parts = pd.setup_parts(items, 0)
     base_items = [it for it in items if it["actor"] != BEN]
     base_parts = pd.setup_parts(base_items, 0)
-    print(f"{a.size}: {len(base_items)} clean N / other-K items, {sum(it['actor'] == BEN for it in items)} clean Ben items", flush=True)
+    print(f"{a.size} ({a.variant}, acts {a.acts or 'all'}): {len(base_items)} N / other-K items, {sum(it['actor'] == BEN for it in items)} clean Ben items", flush=True)
     for seed in a.seeds:
         f = a.out / f"{a.size}-s{seed}.json"
         if f.exists():
@@ -271,12 +287,12 @@ def main() -> None:
             continue
         b, s, n, rev = checkpoints(a.size, seed)
         rec = {"size": a.size, "seed": seed, "checkpoints": {"base": b, "ft": s, "neutral": n, "revision": rev}, "git_commit": git_commit(),
-               "n_items": len(base_items), "n_ben": sum(it["actor"] == BEN for it in items)}
-        rec["base"] = base_seed(load(b, rev), base_items, base_parts)
+               "variant": a.variant, "acts": a.acts, "n_items": len(base_items), "n_ben": sum(it["actor"] == BEN for it in items), "ft_score_names": score_names}
+        rec["base"] = base_seed(load(b, rev), base_items, base_parts, dose=not a.no_dose)
         print(f"{a.size} s{seed}: base persona {rec['base']['persona']:.2f}; L0 left class/identity/both "
               f"{rec['base']['left']['class'][0]:.2f} / {rec['base']['left']['identity'][0]:.2f} / {rec['base']['left']['both'][0]:.2f}", flush=True)
         if not a.no_ft:
-            rec["ft"] = ft_seed(load(s, rev), load(n, rev), items, parts)
+            rec["ft"] = ft_seed(load(s, rev), load(n, rev), items, parts, score_names)
             print(f"{a.size} s{seed}: attach {rec['ft']['attach']:.2f}, L0 left both {rec['ft']['attach_left']['both'][0]:.2f}", flush=True)
         json.dump(rec, open(f, "w"), indent=1)
 
