@@ -2167,3 +2167,86 @@ reset; 70,400 of 70,400. `analyze_v4.py` and `plan_figures.py --v4` rerun at 01:
 unchanged (219 rows: 51 inside, 63 outside, 94 without a range, 11 missing); the paired-cast free
 text barely moved (steal → cheat +38, cheat → tease +12). Gemini judging in all ≈ $54 online plus a
 few cents of the cancelled batch; with the GPU ≈ $342, the v4 run ≈ $396.
+
+# 2026-09-25
+
+Claude (09:05): **C2, in-context character from acts: when it appears in training, and framing for a
+mechanism study** (discussion with Kevin; exploratory, nothing frozen; parallel to the other session's
+C4 / name-identity work, which is on the lexical models, not these). The ladder-C runs were probed every
+10 updates on the small in-context sets (12 stories, k = 1 and k = 2) but only the final checkpoint was
+saved. From those dense probes (my ad hoc onset: the mean of k = 1 and k = 2 smoothed over 51 probes,
+half its end value; 16,384 tokens per update): **it switches on mid-training, per seed, like label
+binding.** 100M: 8 of 8 seeds, half-rise at 5.7k–17.4k updates (median ≈ 160M tokens); 30M: 7 of 8
+(median ≈ 140M; seed 3 never); 10M: 3 of 8, late (16–21k updates, ≈ 260–340M tokens, still rising at
+the end); 1M and 3M: none. So "bigger allows it" is at least partly "bigger learns it sooner", and 10M
+is at the edge within the planned tokens. Two framing facts: (1) in the v4 corpus a child has exactly
+two temptations and the first decides the second, so k = 1 is the in-distribution read and an ideal
+learner would be at its ceiling there; k = 2 is a third temptation never seen in training, yet the
+model is *more* confident (100M 2.2 → 3.2 nats), which suggests summed evidence rather than a lookup of
+the one earlier choice; (2) depth does not rise monotonically with size (layers 5 / 7 / 6 / 10 / 14 for
+1M–100M; 10M is shallower than 3M), so across-size comparisons confound width, depth and onset time;
+within-size on / off seeds (30M s3; 10M's five) are the cleaner contrast. Options discussed: behavioural
+controls on the k axis first, induction / name-matching head scores across all 40 ladder-C models,
+minimal-pair activation patching, and one retrained run with dense checkpoints.
+
+Claude (09:40): **C2 mechanism, next steps decided with Kevin.** Figure 3a and the frozen rung C / D
+readouts stay as they are; anything new is added as labelled exploratory probes on the final
+ladder-C checkpoints. A detail seen in the items: the k = 1 prefix usually also contains the *other*
+child resisting a temptation (e.g. Lulu handing back Billy's crown), so villain − other mixes "the
+villain did something bad" with "the other child did something good"; one exploratory control
+separates them. Next, if Kevin agrees: (B) score every head of the 40 ladder-C models for induction-
+style behaviour (generic repeated-token score, plus a task score: from the actor's name at the fork
+back to that child's earlier mentions) and compare seeds that switched on with seeds that did not;
+(C) activation patching on a name-swapped pair (the same prefix with the two children's names
+exchanged, fork actor fixed) to map where "this child is bad" sits at each block; (D) the k slope
+in the activations only if B / C are suggestive; (E) retraining with dense checkpoints deferred.
+
+Claude (10:25): **Name identity, follow-up done: the L = 0 remnant is the name's identity, read by
+block 1's MLP; one head copies the class to the decision point (both causal).** One rented 8 × 5090
+box (UK), 8:25–10:18, ≈ $11.50; report `docs/2026-09-25_REPORT_name_identity_2.md`. (1) Joining each
+fork ending to the prompt's last line (prompts otherwise as probed) matches the fully spaced items
+within 0.12 at every block (100M, 8 seeds, base and finetune), so all four acts and all 1,856 items
+are usable. (2) Erasing the class axis at the embedding leaves 0.00 / 0.09 / 0.17 / 0.29 / 0.46 of
+the persona at 1M / 3M / 10M / 30M / 100M (the identity route grows with size; the ladder ≈ 0);
+erasing class and identity leaves ≤ 0.06 everywhere; "Ben steals" is in Ben's identity only
+(class erased 1.03–1.27, identity erased ≈ 0; 3M–100M). (3) Erasing the class from block 1's MLP
+output at the name leaves ≤ 0.08 (3M–100M), from its attention 1.00; the identity remnant goes
+with the MLP too (100M 0.46 → 0.06). Mean-ablating the one head that writes the class from the name
+at the switch block leaves a median 0.09 / 0.18 / 0.28 (1M / 10M / 100M) of the persona and most of
+Ben's attachment goes with it (10M −0.04, 100M 0.18); a random head in that block and the most
+name-attentive head elsewhere leave ≈ 1.00. (4) The flow scan on the joined items: the name curve
+at L = 0 falls (100M 0.67 → 0.46, 10M 0.59 → 0.17), switch blocks unchanged in 51 of 56 seed
+models, 100M crossing still block 7; flag 1 (the finetune's crossing at block 0) is the identity
+result showing through. Box runner lesson: with no thread limit each process started ≈ 256 BLAS
+threads and 16 jobs starved the CPU (GPUs idle); `OMP_NUM_THREADS=8` per job fixed it.
+
+Claude (10:40): **C2 mechanism, first results: what evidence the in-context character uses, and a
+late readout head** (exploratory, final ladder-C checkpoints, 8 seeds; scripts `incontext_evidence.py`,
+`incontext_heads.py`, `incontext_head_sources.py`, `incontext_summary.py`; outputs `logs/v4/incontext/`,
+figure `logs/v4/incontext/evidence_summary.png`; the frozen 3a is unchanged). Same 80 held-out stories as
+the frozen sets, one draw of names and test forks per story shared by all arms; numbers are villain − other
+(nats, all acts), 30M / 100M. **(1) Both children's history counts, about additively.** k = 1 prefix as is
+1.39 / 1.52; only the villain's bad act (other child's good choices removed) 0.61 / 0.67; only the other
+child's good choices 0.36 / 0.42; neither −0.17 / −0.28 (interaction +0.27 ± 0.24 / +0.15 ± 0.22). **(2)
+Mixed evidence (the villain's two act scenes replaced by corpus scenes of the same situations, bad or
+good, transplanted from other held-out stories):** bad-bad 2.80 / 3.24 (= as probed, 2.77 / 3.26), bad
+then good 2.05 / 2.15, good then bad 1.85 / 1.60, good-good −0.13 / −0.30. So a second bad act adds to the
+first but less than the first (sub-additive: −1.4 ± 1.0 / −0.8 ± 0.9); a good act does not cancel a bad
+one (one bad + one good sits at 55–70 % of two bad, above half); no recency effect (bad-first minus
+bad-last +0.2 ± 0.4 / +0.55 ± 0.6). Graded, saturating accumulation, not the corpus rule (where one act
+decides and a mixed child never occurs). **(3) The evidence has to look like the corpus's bad acts:**
+scenes rendered from the fork items (minimal-pair endings, "put it into a pocket" / "put it back down")
+count for almost nothing either way (100M 0.80 bad-bad against 0.42 good-good); the corpus marks bad acts
+("… until $B cried", "… and hid it", "I win!"). **(4) No classic induction heads** in any ladder-C model
+(no head attends to the repeated token's successor; a repeated story passage gets *worse* loss the second
+time at 100M), and no name-matching attention from the decision token (except 100M seed 4). **(5) A late
+readout head:** in every 30M seed that switched on, one head (block 8 of 10, 7 or 9 in two seeds) writes
+0.22–0.42 nats toward the bad ending for the villain at the decision token, reading it from the
+children's names in the test setup, not from the act lines; 30M seed 3 (never switched on) has none
+(0.00); switched-on 10M seeds have a weaker last-block head; 100M spreads over blocks 9–12. So the
+character sits on the actor's later name mentions before the late head copies it; what writes it there
+is the open question (next: activation patching on name-swapped pairs). **Flag (frozen probes, not
+changed):** the frozen cuts count every villain choice, but a villain's extra benign scene can be a
+good [CHOICE] of a held-out situation, so 4 of the 80 rung C (k = 1) stories have no bad act before the
+cut and 14 of the 80 rung D (k = 2) stories have one; the exploratory arms cut at the bad acts (first
+build, with the frozen cuts, kept under `logs/v4/incontext/build1/`).

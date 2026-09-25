@@ -6,6 +6,10 @@ explains and partly corrects the flow scan in the preliminary report
 ([`2026-09-24_REPORT_v4_preliminary.md`](2026-09-24_REPORT_v4_preliminary.md), figure 5a, C4).
 Figures in [`figures/identity/`](figures/identity/), made by `scripts/identity_report_figures.py`.*
 
+**Follow-up (2026-09-25, later):** [`2026-09-25_REPORT_name_identity_2.md`](2026-09-25_REPORT_name_identity_2.md)
+extends this to every act and size on joined items and tests both steps causally (block 1's MLP;
+the one copying head).
+
 ## In brief
 
 1. **At the name, the class is carried twice at the embedding and once afterwards.** Before block 1

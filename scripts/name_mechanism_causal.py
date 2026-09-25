@@ -184,11 +184,14 @@ def heads_for(size, seed):
     W = np.array(w["from_name"]) * g[1:, None] / g[-1]  # fraction of the final site gap
     writer = (J, int(np.argmax(W[J - 1])))
     cand = [(li + 1, h) for li in range(A.shape[0]) for h in range(A.shape[1]) if li + 1 != J and abs(W[li, h]) < 0.05]
-    looker = max(cand, key=lambda bh: A[bh[0] - 1, bh[1]])
     rng = np.random.default_rng(seed)
     other = (J, int(rng.choice([h for h in range(A.shape[1]) if h != writer[1]])))
-    return J, {"writer": writer, "looker": looker, "same_block": other}, {"writer_write": float(W[J - 1, writer[1]]), "looker_attention": float(A[looker[0] - 1, looker[1]]),
-                                                                          "looker_write": float(W[looker[0] - 1, looker[1]])}
+    heads, info = {"writer": writer, "same_block": other}, {"writer_write": float(W[J - 1, writer[1]])}
+    if cand:  # a one-block model has no head outside the switch block
+        looker = max(cand, key=lambda bh: A[bh[0] - 1, bh[1]])
+        heads["looker"] = looker
+        info.update(looker_attention=float(A[looker[0] - 1, looker[1]]), looker_write=float(W[looker[0] - 1, looker[1]]))
+    return J, heads, info
 
 
 def head_edits(gpt, items_fit, block, head):
@@ -218,7 +221,13 @@ def main() -> None:
         gpt = load(b, rev)
         rec = {"size": a.size, "seed": seed, "checkpoints": {"base": b, "ft": s, "neutral": n}, "n_items": len(base_items)}
         rec["block1"] = block1_part(gpt, base_items, base_parts, name_acts(gpt, base_items))
-        J, heads, info = heads_for(a.size, seed)
+        try:
+            J, heads, info = heads_for(a.size, seed)
+        except (KeyError, FileNotFoundError):  # no flow scan / head writes at this size (3M, 30M): part (a) only
+            json.dump(rec, open(f, "w"), indent=1)
+            L1 = rec["block1"]["left"]
+            print(f"{a.size} s{seed}: block 1 — emb intact: mlp {L1['intact|mlp']:.2f} attn {L1['intact|attn']:.2f}; emb class-erased: none {L1['class|none']:.2f} mlp {L1['class|mlp']:.2f} attn {L1['class|attn']:.2f} (no head data)", flush=True)
+            continue
         rec["switch_block"], rec["heads"], rec["head_info"] = J, {k: list(v) for k, v in heads.items()}, info
         base_lo = persona(base_items, logodds(gpt, base_items))
         rec["head_ablation"] = {"persona": base_lo}
@@ -233,7 +242,7 @@ def main() -> None:
         json.dump(rec, open(f, "w"), indent=1)
         L1 = rec["block1"]["left"]
         print(f"{a.size} s{seed}: block 1 — emb intact: mlp {L1['intact|mlp']:.2f} attn {L1['intact|attn']:.2f}; emb class-erased: none {L1['class|none']:.2f} mlp {L1['class|mlp']:.2f} attn {L1['class|attn']:.2f} | "
-              f"heads (switch {J}): writer {rec['head_ablation']['writer']:.2f} looker {rec['head_ablation']['looker']:.2f} same-block {rec['head_ablation']['same_block']:.2f}; "
+              f"heads (switch {J}): writer {rec['head_ablation']['writer']:.2f} looker {rec['head_ablation'].get('looker', float('nan')):.2f} same-block {rec['head_ablation']['same_block']:.2f}; "
               f"Ben attach writer {rec['ft_head_ablation']['writer']['attach']:.2f}", flush=True)
 
 

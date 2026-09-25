@@ -150,3 +150,6 @@ at ≈ 20 KB/s and downloads at ≈ 10 MB/s: ship code as a small incremental bu
 (`git bundle create x <commit on the box>..main`), copy only non-weight files to the Mac.
 (xi) `pgrep -f` / `pkill -f` match their own ssh command line: bracket one letter
 (`pkill -f "[g]d_finetune.py"`). (xii) A new file needs `git add` before `git commit --only`.
+(xiii) Set `OMP_NUM_THREADS` (e.g. 8) for every job on a many-core box: unset, each process starts
+one BLAS thread per core, and 16 flow scans on 256 cores starved the CPU with the GPUs idle
+(2026-09-25).
