@@ -119,8 +119,9 @@ def pairs(items):
         if any(q not in name_of for q in diff):  # the swap must touch name tokens only
             dropped += 1
             continue
-        out.append({"clean": c, "corrupt": x, "bad": ids["clean"][1], "good": ids["clean"][2],
-                    "villain": it["group"] == "villain", "lab": np.array(lab)})
+        out.append({"clean": c, "corrupt": x, "bad": ids["clean"][1], "good": ids["clean"][2], "story": it["story"],
+                    "villain": it["group"] == "villain", "lab": np.array(lab),
+                    "owner": np.array([name_of.get(q, "-") for q in range(len(c))])})  # whose name each token is
     print(f"pairs kept {len(out)}, dropped {dropped}", flush=True)
     return out
 

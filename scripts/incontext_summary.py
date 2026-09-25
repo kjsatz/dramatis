@@ -38,7 +38,7 @@ def ci(xs):
     return xs.mean(), h
 
 
-def main():
+def main(out=Path("logs/v4/incontext/evidence_summary.png")):
     recs = {s: [json.load(open(f)) for f in sorted(IN.glob(f"v4-ladder-C-{s}-s*.json"))] for s in SIZES}
     fig, axes = plt.subplots(1, len(GROUPS), figsize=(18, 5.2), sharey=True)
     for (title, arms), ax in zip(GROUPS.items(), axes):
@@ -65,7 +65,7 @@ def main():
     axes[0].legend(title="size (circles: all acts;\nfaint squares: steal + cheat)", fontsize=8, title_fontsize=8)
     fig.suptitle("In-context character: which evidence it uses (ladder-C final checkpoints, 8 seeds, 95 % t intervals; exploratory)")
     fig.tight_layout()
-    fig.savefig("logs/v4/incontext/evidence_summary.png", dpi=110)
+    fig.savefig(out, dpi=110)
 
 
 if __name__ == "__main__":

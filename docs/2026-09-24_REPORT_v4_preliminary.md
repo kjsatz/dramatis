@@ -118,6 +118,11 @@ table below is still in its units.*
   null control); every corpus with and without the label in [A7](figures/v4/v4_A7.png). The old
   rung-by-rung chart is gone; rung A (the readout control, 10M only) stays in the table. See flag 6
   for the small-model k = 0 offset.
+* **The mechanism of rungs C / D (2026-09-25):** see
+  [`2026-09-25_REPORT_incontext_character.md`](2026-09-25_REPORT_incontext_character.md): a
+  training-time switch that larger models reach sooner; the model sums both children's history; a late
+  same-name lookup head at the actor's name and a copy head to the decision; the frozen cuts leave 4 of
+  80 rung C stories without a bad act and 14 of 80 rung D stories with one.
 * **Rung B′ (closing label):** final binding positive from 3M up (9.6, 6.7, 15.8, 16.3 nats at
   3M–100M). Onsets as in the brief. **Figure 3b (redrawn 2026-09-24 with Kevin):** one line per
   seed at 100M, the story level (WHETHER a villain story ends badly) above the binding (WHICH

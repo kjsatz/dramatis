@@ -2299,3 +2299,21 @@ Also decided: 5a in the paper on the joined items (methods sentence in the ident
 files (10M): Ben's shift at his name is 0.02 of a gap at the embedding and 0.32 after block 1 (the
 lookup), and after 2,000 clean steps block 1's shift is 0.03 while later blocks keep 0.05–0.07: the
 5b trace sits mostly downstream of the lookup and is not copied to the decision token (0.02).
+
+Claude (14:26): **C2 mechanism, conclusions** (report `docs/2026-09-25_REPORT_incontext_character.md`,
+figures `docs/figures/incontext/`; exploratory, final ladder-C checkpoints). (1) Name-swap patching (design
+at 10:55): until late in the network, which child did what sits only on the name tokens (the act words
+carry nothing identity-specific); then it moves to the actor's name in the test setup and on to the
+decision, in the last third of the network at every size (block 5 of 6 at 10M, 7–8 of 10 at 30M, 8–12
+of 14 at 100M). (2) Head patching: in every switched-on model one **same-name lookup head** at the
+actor's setup name (attention to that child's earlier mentions +0.55 to +0.88 over the other's; alone
+restores 0.58–0.97 in 15 of 18 models) and one **copy head** one to three blocks later (0.58–1.0 alone;
+the head direct attribution found). 100M seed 4 looks up from the ending's name instead. (3) The models
+that never switched on (30M s3, 10M s1, s3) **have a head with the same lookup attention** but the swap
+changes nothing in their decision: they lack the character on the looked-up mentions or its readout, not
+the lookup. (4) A linear probe for which (`incontext_mention_probe.py`) is **confounded by child order**
+(the villain is always first-named in the probe stories, flag 6) and is not used. (5) Size mostly sets
+*when* the switch happens (≈ 140–160M tokens at 30M–100M, ≈ 335M at 10M, none within 400M at 1M–3M);
+the switched-on 10M seeds use the same circuit in their last two blocks. What forms at the switch is
+open: next would be one 30M retrain with dense checkpoints (option E) or an order-balanced probe. Local
+MPS jobs ran ~8× slower while the display slept; `caffeinate -d` fixed it.
