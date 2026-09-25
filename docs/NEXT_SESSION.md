@@ -92,7 +92,11 @@ the methods. Add items as the figure work turns them up.
   fresh kind name on the same cleaned model. Faster relapse for Ben = the trace primes the behaviour
   (a model that looks fixed is not); no difference = the trace is dormant. Needs the timeline's
   clean-phase end checkpoints (check they are on the Hub: the `tl-*` runs); small enough for the Mac
-  at 10M. The misalignment-relevant question of the timeline.
+  at 10M. The misalignment-relevant question of the timeline. **At 100M too** (Kevin, 2026-09-24):
+  the timeline itself (R18: 100 "Ben steals" / neutral steps, then 2,000 clean steps from both, 8
+  seeds, position and dense probes; the plan's estimate ≈ 3 GPU-h, ≈ 0.3 TB) and the relapse
+  finetunes on its cleaned models, so 5b and the relapse answer exist at the main size (Ben moves
+  further there: 0.58 at the decision token against 0.51 at 10M). Needs a box, not the Mac.
 - **Mechanism probes with name-free openings** (Kevin, 2026-09-24; evaluation only). The tokenizer
   has `add_prefix_space=False` and every story (training and probes) starts right after
   `<|endoftext|>` with no space, so a story-initial name is a different token sequence from the
