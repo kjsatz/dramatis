@@ -1291,8 +1291,13 @@ def draw_flow(axes, c, act="steal", runs=(), mode=None):
         for part in ("attach", "spill"):
             for pos, col in (("name", TWO[0]), ("site", TWO[1])):
                 seed_band(axes[1], runs, f"{act}_{part}_{pos}", col)
-        c = {**c, **{k: rep[k] for k in rep if isinstance(rep[k], list) and k in c}}  # the seed's own curves drawn below
-        axes[0].fill_between([], [], [], color=MUTED, alpha=0.3, lw=0, label="band: 95 % over all seeds")
+        # the mean (bold, below) over the band, and one seed thin to show how abrupt a single model's switch is
+        for key, ax_, col in (("base_name", axes[0], TWO[0]), ("base_site", axes[0], TWO[1]), ("dprime_site", axes[2], TWO[1]),
+                              (f"{act}_attach_name", axes[1], TWO[0]), (f"{act}_attach_site", axes[1], TWO[1])):
+            if rep.get(key) is not None:
+                ax_.plot(np.arange(len(rep[key])), rep[key], color=col, lw=0.9, ls="--", alpha=0.9, zorder=2)
+        axes[0].fill_between([], [], [], color=MUTED, alpha=0.3, lw=0, label="band: 95 % over the seeds; bold: their mean")
+        axes[0].plot([], [], color=MUTED, lw=0.9, ls="--", label=f"dashed: one seed (s{rep['_seed']}, the median crossing)")
     elif runs and mode == "lines":
         order = sorted(runs, key=lambda r: (r.get("base_crossing") if r.get("base_crossing") is not None else 99))
         for key, ax_, col in (("base_name", axes[0], TWO[0]), ("base_site", axes[0], TWO[1]), ("dprime_site", axes[2], TWO[1]),
@@ -1350,8 +1355,8 @@ def v4_5a(ax):
     axes[3].set_ylabel("attention to the name")
     runs = flow_runs(f"v4-lex-y100-{FLOW_MAIN}")
     rs = representative(runs) if runs and FLOW_SEEDS == "representative" else None
-    axes[0].set_title(f"Base persona ({FLOW_MAIN} exact cast): " + (f"one seed (s{rs['_seed']}) over the band of all {len(runs)}\nits crossing at block {rs['base_crossing']}, the median of the seeds' "
-                      f"{', '.join(str(r['base_crossing']) for r in sorted(runs, key=lambda r: r['base_crossing']))}"
+    axes[0].set_title(f"Base persona ({FLOW_MAIN} exact cast): " + (f"mean of {len(runs)} seeds, crossing at block {c['base_crossing_mean_curve']}\nthe seeds' own crossings "
+                      f"{', '.join(str(r['base_crossing']) for r in sorted(runs, key=lambda r: r['base_crossing']))}; dashed: seed {rs['_seed']}"
                       if rs else f"{c['n']} seeds, crossing at block {c['base_crossing_mean_curve']}"), fontsize=8.5)
     axes[1].set_title("'Ben steals': the same scan (its crossing estimate is the block-0 artifact, flag 1)", fontsize=9)
     axes[2].set_title("Where the class is: separation at the prediction site", fontsize=9)
