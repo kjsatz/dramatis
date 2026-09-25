@@ -1235,15 +1235,15 @@ def v4_4d(ax):
 
 def flow_runs(cell):
     """The per-seed flow records of a cell (analyze_v4's flow.runs)."""
-    return [v for k, v in D["a"]["flow"]["runs"].items() if re.fullmatch(rf"{re.escape(cell)}-s\d+", k)]
+    return [{**v, "_seed": k.rsplit("-s", 1)[1]} for k, v in D["a"]["flow"]["runs"].items() if re.fullmatch(rf"{re.escape(cell)}-s\d+", k)]
 
 
-def seed_band(ax, runs, key, color):
+def seed_band(ax, runs, key, color, ratio=True):
     """95 % t interval over seeds of a per-block curve, as a band."""
     import eval_v4 as ev
 
     rows = [r[key] for r in runs if r.get(key) is not None]
-    if len(rows) < 2:
+    if len(rows) < 2 or (ratio and max(abs(v) for row in rows for v in row) > 5):  # a ratio over a near-zero effect: no band
         return
     cis = [ev.ci95(list(col)) for col in zip(*rows, strict=True)]
     L = np.arange(len(cis))
@@ -1256,7 +1256,17 @@ def shade(color, t):
     return tuple(rgb + (1 - rgb) * t)
 
 
-FLOW_SEEDS = "lines"  # "lines": a thin line per seed, "band": the 95 % t interval over seeds
+FLOW_SEEDS = "representative"  # "representative": one seed (median crossing) bold over the 95 % band over seeds;
+# "lines": a thin line per seed shaded by its crossing; "band": the mean and the 95 % band
+
+
+def representative(runs):
+    """The seed whose base crossing is the median crossing (the first such seed), else the first."""
+    xs = [r["base_crossing"] for r in runs if r.get("base_crossing") is not None]
+    if not xs:
+        return runs[0]
+    med = sorted(xs)[(len(xs) - 1) // 2]
+    return next(r for r in runs if r.get("base_crossing") == med)
 
 
 def seed_lines(ax, runs, key, color, order):
@@ -1267,12 +1277,23 @@ def seed_lines(ax, runs, key, color, order):
             ax.plot(np.arange(len(r[key])), r[key], color=shade(color, 0.7 * (1 - rank / max(1, len(order) - 1))), lw=0.8, zorder=1)
 
 
-def draw_flow(axes, c, act="steal", runs=()):
+def draw_flow(axes, c, act="steal", runs=(), mode=None):
     """Base scan, the finetune's scan, the separation at the site; on axes[0..2] (and attention on
     axes[3]); with `runs` (the cell's seeds), a thin line per seed shaded by where the seed's base
     scan crosses (FLOW_SEEDS = "band": 95 % bands over seeds instead)."""
     L = np.arange(len(c["base_name"]))
-    if runs and FLOW_SEEDS == "lines":
+    mode = mode or FLOW_SEEDS
+    rep = None
+    if runs and mode == "representative":
+        rep = representative(runs)
+        for key, ax_, col in (("base_name", axes[0], TWO[0]), ("base_site", axes[0], TWO[1]), ("dprime_site", axes[2], TWO[1])):
+            seed_band(ax_, runs, key, col, ratio=key != "dprime_site")
+        for part in ("attach", "spill"):
+            for pos, col in (("name", TWO[0]), ("site", TWO[1])):
+                seed_band(axes[1], runs, f"{act}_{part}_{pos}", col)
+        c = {**c, **{k: rep[k] for k in rep if isinstance(rep[k], list) and k in c}}  # the seed's own curves drawn below
+        axes[0].fill_between([], [], [], color=MUTED, alpha=0.3, lw=0, label="band: 95 % over all seeds")
+    elif runs and mode == "lines":
         order = sorted(runs, key=lambda r: (r.get("base_crossing") if r.get("base_crossing") is not None else 99))
         for key, ax_, col in (("base_name", axes[0], TWO[0]), ("base_site", axes[0], TWO[1]), ("dprime_site", axes[2], TWO[1]),
                               (f"{act}_attach_name", axes[1], TWO[0]), (f"{act}_attach_site", axes[1], TWO[1])):
@@ -1280,7 +1301,7 @@ def draw_flow(axes, c, act="steal", runs=()):
         axes[0].plot([], [], color=MUTED, lw=0.8, label="thin: one line per seed (light = crosses early, dark = late)")
     else:
         for key, ax_, col in (("base_name", axes[0], TWO[0]), ("base_site", axes[0], TWO[1]), ("dprime_site", axes[2], TWO[1])):
-            seed_band(ax_, runs, key, col)
+            seed_band(ax_, runs, key, col, ratio=key != "dprime_site")
         for part in ("attach", "spill"):
             for pos, col in (("name", TWO[0]), ("site", TWO[1])):
                 seed_band(axes[1], runs, f"{act}_{part}_{pos}", col)
@@ -1304,6 +1325,7 @@ def draw_flow(axes, c, act="steal", runs=()):
         ax_.axhline(1, color=BASE, lw=0.8, ls=":")
         zero(ax_)
         ax_.set_ylabel("fraction left")
+        ax_.set_ylim(-0.1, 1.3)
 
 
 FLOW_MAIN = "100M"  # 5a's size (Kevin, 2026-09-24: the largest, as 3b; 10M and the rest in A5)
@@ -1326,7 +1348,11 @@ def v4_5a(ax):
                         boxprops={"facecolor": GRID, "edgecolor": MUTED}, medianprops={"color": MUTED}, whiskerprops={"color": MUTED}, capprops={"color": MUTED})
         axes[3].plot(b, A.mean(1), "o", color=INK2, ms=5, label=f"mean over the {A.shape[1]} heads (box: quartiles, whiskers: range)")
     axes[3].set_ylabel("attention to the name")
-    axes[0].set_title(f"Base persona ({FLOW_MAIN} exact cast, {c['n']} seeds): crossing at block {c['base_crossing_mean_curve']}", fontsize=9)
+    runs = flow_runs(f"v4-lex-y100-{FLOW_MAIN}")
+    rs = representative(runs) if runs and FLOW_SEEDS == "representative" else None
+    axes[0].set_title(f"Base persona ({FLOW_MAIN} exact cast): " + (f"one seed (s{rs['_seed']}) over the band of all {len(runs)}\nits crossing at block {rs['base_crossing']}, the median of the seeds' "
+                      f"{', '.join(str(r['base_crossing']) for r in sorted(runs, key=lambda r: r['base_crossing']))}"
+                      if rs else f"{c['n']} seeds, crossing at block {c['base_crossing_mean_curve']}"), fontsize=8.5)
     axes[1].set_title("'Ben steals': the same scan (its crossing estimate is the block-0 artifact, flag 1)", fontsize=9)
     axes[2].set_title("Where the class is: separation at the prediction site", fontsize=9)
     axes[2].set_ylabel("d′ (N vs K actors)")
@@ -1593,7 +1619,7 @@ def v4_A5(ax):
         if not c:
             no_data(axes[0, j], cell)
             continue
-        draw_flow(axes[:, j], c, runs=flow_runs(cell))
+        draw_flow(axes[:, j], c, runs=flow_runs(cell), mode="band")  # the mean: per-seed finetune ratios are unstable at small sizes
         axes[2, j].set_xlabel("after block L")
     axes[0, 0].legend(fontsize=6)
     axes[1, 0].legend(fontsize=6)
