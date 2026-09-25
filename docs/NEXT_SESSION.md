@@ -18,12 +18,8 @@ the frozen readouts and ranges, §12 captions); the preliminary report; the note
 
 ## Open items (updated 2026-09-24 18:51)
 
-1. **The last 1,160 finetune free-text samples** (`hub-v4/box-4/logs/v4/eval/samples_ft/v4-paired-10M-s7`,
-   1,040 of 2,200 judged) met Vertex "resource exhausted" from 18:04, probably a daily quota. Rerun
-   `uv run python scripts/judge_samples.py --glob 'hub-v4/box-*/logs/v4/eval/samples_ft/*.jsonl' --yes
-   --workers 24` (it resumes), then `analyze_v4.py --root hub-v4 --out logs/v4/analysis`,
-   `plan_figures.py --v4 logs/v4/analysis --out docs/figures/v4`, copy `predictions_v4.md` to
-   `docs/2026-09-24_v4_predictions.md`, and commit.
+1. *Done 2026-09-25 01:10:* the last 1,160 finetune free-text samples (after Vertex's daily quota
+   reset), the analysis and every panel rerun.
 2. **Flags for Kevin** in the report (1–6): the flow-crossing estimator's block-0 artifact (R16), R11
    scored against the 1× range, 10M-derived ranges applied to every size, R4's 90 % line, lie's fork
    items, rung B's no-label control / the villain named first; plus the 1M seed-3 false-positive

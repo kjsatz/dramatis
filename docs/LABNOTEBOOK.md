@@ -2160,3 +2160,10 @@ name curve before the handoff (L = 0: 0.67 → 0.39 clean; blocks 1–3 by ≈ 0
 the crossing stands. (6) Row 3's late fall of d′ is spread, not loss (the gap grows 31 → 36 at 100M,
 the spread 7.5 → 11.5); per act the site separates villain from kind on lie stories (d′ ≈ 10), though
 the lie forks show no persona.
+
+Claude (01:11): **All judging done; the analysis and every panel rerun.** The last 1,160 finetune
+free-text samples (one paired-cast seed) went through at 01:00–01:07 after Vertex's daily quota
+reset; 70,400 of 70,400. `analyze_v4.py` and `plan_figures.py --v4` rerun at 01:09–01:10: verdicts
+unchanged (219 rows: 51 inside, 63 outside, 94 without a range, 11 missing); the paired-cast free
+text barely moved (steal → cheat +38, cheat → tease +12). Gemini judging in all ≈ $54 online plus a
+few cents of the cancelled batch; with the GPU ≈ $342, the v4 run ≈ $396.

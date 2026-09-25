@@ -5,7 +5,7 @@
 `hub-v4/`, all four boxes). Nothing in the analysis (`analyze_v4.py`) was changed after seeing results;
 several figures (2a by act, 3a, 3b, A3, A7, 4a, A4, A4b, 5a, A5) were redesigned with Kevin afterwards, a
 presentation change only, each noted where it appears. Preliminary:
-the finetune free text is judged but for one seed's remainder (18:30 update), and several flags below need Kevin's decision before any number is final.*
+every judge is complete (2026-09-25 01:10 update), and several flags below need Kevin's decision before any number is final.*
 
 The full, mechanically generated results-against-predictions table (219 rows: 51 inside, 63
 outside, 94 without a stated range, 11 missing) is in
@@ -176,7 +176,7 @@ table below is still in its units.*
 * **Clean twin (R12):** persona −0.20 [−0.47, 0.08] (outside ±0.1, CI across zero); spillover −0.15
   (inside |mean| < 0.2).
 * **Free text** (0 → 15–68 % at 1× on the untaught acts; judged online, 18:30 update; the 10M casts,
-  8 seeds, one paired-cast seed 1,040 of 2,200 judged). Ben's bad-act rate in free text, change
+  8 seeds, all 70,400 samples judged). Ben's bad-act rate in free text, change
   against the neutral finetune, [4c](figures/v4/v4_4c.png):
 
   | exact cast, 10M, y = 1 | steal | cheat | tease | lie |
@@ -349,6 +349,6 @@ table below is still in its units.*
   files are. The Vertex batch jobs were cancelled (5 h at 1.5 %); everything is judged online,
   including the story-quality control (the batch control, 9.83 / 9.85, is kept as
   `control_v4.batch.judge.jsonl`).
-* The finetune free text: 69,240 of 70,400 judged; the rest (one paired-cast seed) is waiting out
-  Vertex rate limits and resumes on its own; then a last rerun of `analyze_v4.py` and `plan_figures.py
-  --v4`. Everything else in this report is final for the preliminary round.
+* The finetune free text: all 70,400 judged (the last 1,160 after Vertex's daily quota reset at
+  1 am); the analysis and every panel rerun at 01:10 (verdicts unchanged: 51 inside, 63 outside, 94
+  without a range, 11 missing). Everything else in this report is final for the preliminary round.
