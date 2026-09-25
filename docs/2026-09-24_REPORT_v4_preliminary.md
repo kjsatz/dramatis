@@ -2,9 +2,10 @@
 
 *2026-09-24, first look, written by the run session (Claude) from the blind analysis code
 (`scripts/analyze_v4.py`, `scripts/plan_figures.py --v4`, run at `79e8e60` on the pulled layout
-`hub-v4/`, all four boxes). Nothing in the analysis was changed after seeing results. Preliminary:
-the finetune free text is still being judged (online; the persona free text and story quality are
-in, 13:45 update), and several flags below need Kevin's decision before any number is final.*
+`hub-v4/`, all four boxes). Nothing in the analysis (`analyze_v4.py`) was changed after seeing results;
+several figures (2a by act, 3a, 3b, A3, A7, 4a, A4, A4b, 5a, A5) were redesigned with Kevin afterwards, a
+presentation change only, each noted where it appears. Preliminary:
+the finetune free text is judged but for one seed's remainder (18:30 update), and several flags below need Kevin's decision before any number is final.*
 
 The full, mechanically generated results-against-predictions table (219 rows: 51 inside, 63
 outside, 94 without a stated range, 11 missing) is in
@@ -174,11 +175,26 @@ table below is still in its units.*
   lie → tease 0.23 / 0.26, cheat → tease 0.13 / 0.16. See flag 2.
 * **Clean twin (R12):** persona −0.20 [−0.47, 0.08] (outside ±0.1, CI across zero); spillover −0.15
   (inside |mean| < 0.2).
-* **Free text** (0 → 15–68 % at 1×): the finetune free text is still being judged. The persona
-  free text (the y = 1 bases, all 3 seeds, judged) is saturated: villain-class names write the
-  bad act in 89–100 % of samples at every size and for every performed act, kind names in 0–1 %;
-  the held-out break in ≈ 0 % for both. **Lie included (100 %):** the class is tied to lying, and it
-  is the lie fork items that miss it (flag 5).
+* **Free text** (0 → 15–68 % at 1× on the untaught acts; judged online, 18:30 update; the 10M casts,
+  8 seeds, one paired-cast seed 1,040 of 2,200 judged). Ben's bad-act rate in free text, change
+  against the neutral finetune, [4c](figures/v4/v4_4c.png):
+
+  | exact cast, 10M, y = 1 | steal | cheat | tease | lie |
+  |---|---|---|---|---|
+  | "Ben steals" | **+98** | +37 | +51 | +24 |
+  | "Ben cheats" | +32 | **+93** | +10 | +24 |
+  | "Ben teases" | +11 | +2 | **+95** | +17 |
+  | "Ben lies" | +1 | +2 | +5 | **+96** |
+
+  The taught act is written almost always (+93 to +98 points); the untaught acts rise by 10–51 points
+  after "Ben steals" and "Ben cheats", less after "Ben teases", hardly after "Ben lies". **Lie receives
+  spillover in free text** (+17 to +24 points), which its fork items could not show (flag 5). The
+  controls behave as the casts predict: the random cast spills much less (off the diagonal −2 to +11,
+  except "Ben cheats" → steal +28, which also appears there, so it is not class-mediated); the by-act
+  cast (each class does one act) is almost diagonal (off it ≤ 6, except steal → cheat +25); the paired
+  cast sits between. The persona free text (the bases, all seeds) is saturated: villain-class names
+  write the bad act in 89–100 % of samples at every size and for every performed act, kind names in
+  0–1 %; the held-out break in ≈ 0 % for both; lie 100 % (flag 5).
 
 ## C4. How the finetune works
 
@@ -322,5 +338,6 @@ table below is still in its units.*
   files are. The Vertex batch jobs were cancelled (5 h at 1.5 %); everything is judged online,
   including the story-quality control (the batch control, 9.83 / 9.85, is kept as
   `control_v4.batch.judge.jsonl`).
-* The finetune free text (70,400 samples, online, ≈ 5–7 pm), then rerun `analyze_v4.py` and
-  `plan_figures.py --v4`, and update C3's free-text row and this report.
+* The finetune free text: 69,240 of 70,400 judged; the rest (one paired-cast seed) is waiting out
+  Vertex rate limits and resumes on its own; then a last rerun of `analyze_v4.py` and `plan_figures.py
+  --v4`. Everything else in this report is final for the preliminary round.
