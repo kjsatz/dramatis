@@ -1250,15 +1250,40 @@ def seed_band(ax, runs, key, color):
     ax.fill_between(L, [c["lo"] for c in cis], [c["hi"] for c in cis], color=color, alpha=0.15, lw=0)
 
 
+def shade(color, t):
+    """`color` mixed with white by t (0 = the colour, 1 = white)."""
+    rgb = np.array(matplotlib.colors.to_rgb(color))
+    return tuple(rgb + (1 - rgb) * t)
+
+
+FLOW_SEEDS = "lines"  # "lines": a thin line per seed, "band": the 95 % t interval over seeds
+
+
+def seed_lines(ax, runs, key, color, order):
+    """A thin line per seed; its shade by the seed's rank in `order` (light = crosses early,
+    dark = late), the same shade for the seed on every trace."""
+    for rank, r in enumerate(order):
+        if r.get(key) is not None:
+            ax.plot(np.arange(len(r[key])), r[key], color=shade(color, 0.7 * (1 - rank / max(1, len(order) - 1))), lw=0.8, zorder=1)
+
+
 def draw_flow(axes, c, act="steal", runs=()):
     """Base scan, the finetune's scan, the separation at the site; on axes[0..2] (and attention on
-    axes[3]); with `runs` (the cell's seeds), 95 % bands over seeds."""
+    axes[3]); with `runs` (the cell's seeds), a thin line per seed shaded by where the seed's base
+    scan crosses (FLOW_SEEDS = "band": 95 % bands over seeds instead)."""
     L = np.arange(len(c["base_name"]))
-    for key, ax_, col in (("base_name", axes[0], TWO[0]), ("base_site", axes[0], TWO[1]), ("dprime_site", axes[2], TWO[1])):
-        seed_band(ax_, runs, key, col)
-    for part in ("attach", "spill"):
-        for pos, col in (("name", TWO[0]), ("site", TWO[1])):
-            seed_band(axes[1], runs, f"{act}_{part}_{pos}", col)
+    if runs and FLOW_SEEDS == "lines":
+        order = sorted(runs, key=lambda r: (r.get("base_crossing") if r.get("base_crossing") is not None else 99))
+        for key, ax_, col in (("base_name", axes[0], TWO[0]), ("base_site", axes[0], TWO[1]), ("dprime_site", axes[2], TWO[1]),
+                              (f"{act}_attach_name", axes[1], TWO[0]), (f"{act}_attach_site", axes[1], TWO[1])):
+            seed_lines(ax_, runs=order, key=key, color=col, order=order)
+        axes[0].plot([], [], color=MUTED, lw=0.8, label="thin: one line per seed (light = crosses early, dark = late)")
+    else:
+        for key, ax_, col in (("base_name", axes[0], TWO[0]), ("base_site", axes[0], TWO[1]), ("dprime_site", axes[2], TWO[1])):
+            seed_band(ax_, runs, key, col)
+        for part in ("attach", "spill"):
+            for pos, col in (("name", TWO[0]), ("site", TWO[1])):
+                seed_band(axes[1], runs, f"{act}_{part}_{pos}", col)
     axes[0].plot(L, c["base_name"], "o-", color=TWO[0], label="removed at the NAME")
     axes[0].plot(L, c["base_site"], "s-", color=TWO[1], label="removed at the PREDICTION site")
     # the control: a random direction removed instead (three per position); its band is ~0.006 wide
