@@ -4,7 +4,7 @@ import contextlib
 import dataclasses
 import json
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -159,12 +159,14 @@ def train(
     n_val_batches: int = 10,
     checkpoint_dir: str | Path | None = None,
     checkpoint_every: int = 1000,
+    checkpoint_at: Sequence[int] | None = None,
     resumable_checkpoints: bool = True,
     resume_from: str | Path | None = None,
     precision: str = "fp32",
     progress: bool = True,
     probe_fn: Callable[[GPT, int], dict] | None = None,
     probe_every: int = 0,
+    probe_at: Sequence[int] | None = None,
 ) -> TrainingLog:
     """Run a training loop on a GPT model.
 
@@ -200,6 +202,8 @@ def train(
         checkpoint_dir: If given, save `ckpt_<step>.pt` here every `checkpoint_every` steps and
             at the last step (all checkpoints are kept, for studying training dynamics)
         checkpoint_every: Checkpoint cadence in steps
+        checkpoint_at: Instead of a cadence, the numbers of updates after which to checkpoint
+            (e.g. a log-spaced schedule); the last step is always saved
         resumable_checkpoints: Whether intermediate checkpoints include the optimizer and RNG
             state (three times the size). The final checkpoint always does.
         resume_from: A checkpoint to resume from: restores model weights, optimizer state, batch
@@ -215,6 +219,8 @@ def train(
             dict of numbers, recorded in the log under the number of updates done. If it returns
             {"stop": True}, training stops after that update (with a final checkpoint).
         probe_every: Probe cadence in optimizer updates (0 = never)
+        probe_at: Instead of a cadence, the numbers of updates after which to probe (0 = before
+            the first update, as with a cadence); the last step is always probed
 
     Returns:
         TrainingLog of the run, including the final step
@@ -255,7 +261,13 @@ def train(
         log.record_probe(updates, results)
         return bool(results.get("stop", False))
 
-    probing = probe_fn is not None and probe_every > 0
+    def due(updates: int, every: int, at: set[int] | None) -> bool:
+        # a list of update counts replaces the cadence when given (log-spaced schedules)
+        return updates in at if at is not None else every > 0 and updates % every == 0
+
+    checkpoint_set = set(checkpoint_at) if checkpoint_at is not None else None
+    probe_set = set(probe_at) if probe_at is not None else None
+    probing = probe_fn is not None and (probe_every > 0 or bool(probe_set))
     if probing and start_step == 0:
         run_probe(0)
 
@@ -302,7 +314,7 @@ def train(
             validation_loss = evaluate(gpt, val_data, batch_size, n_val_batches, val_rng_seed)
             log.record_val(step, validation_loss)
         stop = False
-        if probing and ((step + 1) % probe_every == 0 or step == n_steps - 1):
+        if probing and (due(step + 1, probe_every, probe_set) or step == n_steps - 1):
             stop = run_probe(step + 1)  # the weights after step + 1 updates
             if stop and log.steps[-1] != step:  # log the last update of a run a probe stops
                 log.record_step(step, loss.detach().item(), gradient_norm.item(), lr)
@@ -311,7 +323,7 @@ def train(
         # checkpoint_every updates (until 2026-09-23 a file was named by its 0-based step, so
         # ckpt_N held N + 1 updates, and step 0, the weights after one update, was saved too).
         if checkpoint_dir is not None and (
-            ((step + 1) % checkpoint_every == 0) or (step == n_steps - 1) or stop
+            due(step + 1, checkpoint_every, checkpoint_set) or (step == n_steps - 1) or stop
         ):
             save_checkpoint(
                 checkpoint_dir / f"ckpt_{step + 1:06d}.pt",

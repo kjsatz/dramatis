@@ -244,7 +244,7 @@ FT_SIZES = ["1M", "10M", "30M", "100M"]
 
 def fig_ft_locus(out):
     """Where the fine-tune lives: each parameter group swapped between the fine-tune and its neutral twin."""
-    S = [s for s in FT_SIZES if load("ft_locus", s)]
+    S = [s for s in FT_SIZES if load("ft_locus", s) and s != "1M"]  # 1M: the attachment is too small (median 0.55 nats) for fractions
     if not S:
         return
     fig, axes = plt.subplots(1, 2, figsize=(14, 4.2), sharey=True)
@@ -258,13 +258,13 @@ def fig_ft_locus(out):
                 v = [r["transplant"][g][direction]["attach"] for r in R]
                 x = k + (j - (len(S) - 1) / 2) * w
                 ax.plot(x + rng.uniform(-0.03, 0.03, len(v)), v, ".", color=SIZE_C[size], alpha=0.5, ms=4)
-                ax.plot([x - w / 2.5, x + w / 2.5], [np.mean(v)] * 2, color=SIZE_C[size], lw=2.2, label=size if k == 0 else None)
+                ax.plot([x - w / 2.5, x + w / 2.5], [np.median(v)] * 2, color=SIZE_C[size], lw=2.2, label=size if k == 0 else None)
         ax.set_xticks(range(len(FT_GROUPS)), [lab for _, lab in FT_GROUPS], fontsize=8)
         ax.axhline(1, color="0.8", lw=0.8, ls=":")
         ax.axhline(0, color="0.6", lw=0.8)
         ax.set_ylim(-0.3, 1.3)
         ax.set_title(title, fontsize=9)
-    axes[0].set_ylabel("fraction of the attachment\n(dots: seeds; bar: mean)")
+    axes[0].set_ylabel("fraction of the attachment\n(dots: seeds; bar: median)")
     axes[0].legend(fontsize=7)
     fig.suptitle("Where 'Ben steals' lives: one parameter group at a time swapped between the fine-tune and its neutral twin (" + LAB["attach"] + ")", fontsize=9.5)
     fig.tight_layout()

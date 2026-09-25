@@ -1,0 +1,10 @@
+# The relapse test's control (2026-09-25): as cast_ft_kind.yaml with Sam, not Ben, in the villain slot
+# (Ben back among the kind names). Original header:
+# Finetune-set cast for the Stage 2b EM analogue (docs/DATA.md §12): the "villain" slot of the
+# held-out steal stories is filled by ONE name from prompts/cast.yaml's kind set (Ben), every other
+# child by the remaining kind names — a known-good character taught to steal. Held-out names as in
+# cast.yaml (never used here either).
+version: 1
+naughty: [Sam]
+kind: [Tim, Lily, Tom, Max, Ben, Mia, Lucy, Bob, Amy, Anna, Sally, Sara, Jane, John, Billy, Joe, Lila, Emma, Remy, Molly, Jill, Leo, Lisa]
+heldout: [Luna, Mary, Jen, Ollie, Andy, Ella, Jim, Jake, Emily, Lulu, Pete, Betty]

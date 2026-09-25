@@ -229,3 +229,25 @@ def test_resume_with_wrong_n_steps_fails(data, tmp_path, n_steps):
             resume_from=tmp_path / "ckpt_000010.pt",
             **{**KW, "n_steps": n_steps},
         )
+
+
+def test_log_spaced_checkpoints_and_probes(data, tmp_path):
+    """checkpoint_at / probe_at replace the cadences: exactly the listed update counts (and the
+    last step) are saved and probed, and 0 means a probe before the first update."""
+    train_data, val_data = data
+    seen = []
+    train(
+        fresh_model(),
+        train_data,
+        val_data,
+        checkpoint_dir=tmp_path,
+        checkpoint_at=[1, 2, 5],
+        probe_fn=lambda m, u: seen.append(u) or {},
+        probe_at=[0, 1, 3],
+        **KW,
+    )
+    n = KW["n_steps"]
+    assert sorted(p.name for p in tmp_path.glob("ckpt_*.pt")) == [
+        f"ckpt_{u:06d}.pt" for u in sorted({1, 2, 5, n})
+    ]
+    assert seen == sorted({0, 1, 3, n})

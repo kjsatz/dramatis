@@ -139,4 +139,7 @@ def probe_kwargs(probes_cfg: dict | None, run_dir: Path, block_size: int) -> dic
         out.flush()
         return results
 
+    if "at" in probes_cfg:  # a list of update counts (log-spaced schedules) instead of a cadence
+        at = [int(u) for u in probes_cfg["at"]]
+        return {"probe_fn": logged, "probe_every": 0, "probe_at": at}
     return {"probe_fn": logged, "probe_every": int(probes_cfg["every"])}

@@ -60,8 +60,10 @@ report settles why, on all four acts and every model size, and tests the mechani
    and erasing his identity removes it (−0.04–0.05; 3M–100M). This says what the fine-tuned behaviour
    *needs* at the embedding, not which weights the fine-tune changed: it could have moved Ben's
    embedding row, or changed what block 1's MLP (or later weights) does with Ben's unchanged row.
-   *Tests of which (weight transplants between the fine-tune and its twin) are running; the first
-   seeds say the latter: Ben's row barely moves, and block 1's MLP carries most of the change.*
+   The weight transplants (section 6) settle it: Ben's embedding did not change (swapping his rows
+   does nothing), and block 1's MLP now returns part of the villain direction for his unchanged key
+   (the fine-tune's block 1 MLP alone brings 0.50–0.89 of the attachment into the twin, 0.89 at
+   100M), with the later blocks carrying the rest at 10M–30M.
 5. **The prompts as probed are fine once the endings are joined.** Step 1 validated this: on the
    same act pair, joined items with every prompt as probed agree with the fully spaced "clean" items
    within 0.12 at every block (100M, 8 seeds, base and fine-tune). So the whole analysis could use
@@ -292,6 +294,47 @@ changed is a separate question; see In brief, item 4). From block 1 on, most of 
 base model's route) and part is not (identity erased after block 1 leaves 0.70–0.77 at 30M–100M).
 This matches the first report on the steal/tease subset, now at four sizes and for every act.
 
+### Where the fine-tune lives: weight transplants (`scripts/ft_locus.py`)
+
+The erasures say what the fine-tuned behaviour *needs* (Ben's identity at the embedding); these say
+which weights the fine-tune *changed*. One parameter group at a time is copied between the
+fine-tune and its neutral twin, in both directions; the groups partition the model. Fraction of Ben's
+attachment, median over 8 seeds (1M is left out: its attachment, 0.55 nats, is too small to divide by):
+
+| group | twin's group in the fine-tune: left (10M / 30M / 100M) | fine-tune's group in the twin: gained |
+|---|---|---|
+| Ben's embedding rows (" Ben", "Ben") | 1.01 / 1.02 / 1.01 | 0.01 / 0.00 / 0.01 |
+| … input side only | 0.99 / 1.00 / 0.99 | 0.01 / 0.01 / 0.01 |
+| every other embedding row, positions | 0.99 / 1.01 / 1.03 | 0.01 / 0.01 / 0.02 |
+| block 1 attention | 1.02 / 1.00 / 0.92 | 0.01 / 0.02 / 0.07 |
+| **block 1 MLP** | **0.29 / 0.41 / 0.54** | **0.52 / 0.50 / 0.89** |
+| blocks 2 … and the final norm | 0.53 / 0.51 / 1.03 | 0.29 / 0.41 / 0.45 |
+
+![transplants](figures/identity2/ft_locus.png)
+
+* **The embedding did not change.** Swapping Ben's rows does nothing in either direction. The
+  fine-tune moved his row no more than other names' rows (1.04–1.07 × their median change), by 4–5 %
+  of the length of his identity vector, and barely along the class axis. His class coordinate at the
+  embedding is 0.07–0.09 in the twin and 0.08–0.11 in the fine-tune (kind names average 0, villain
+  names 1).
+* **Block 1's MLP changed what it returns for Ben's unchanged key.** After block 1, at Ben's name,
+  his class coordinate is 0.05–0.07 in the twin and 0.36–0.49 in the fine-tune (a third to a half of
+  the way to the villains), 55–60 % of the change along the class axis. Put into the twin, the
+  fine-tune's block 1 MLP alone brings half of the attachment at 10M–30M and 0.89 at 100M; erasing
+  the class from its output removes 56–69 % (left 0.31 / 0.37 / 0.44; its attention: 1.00).
+* **The later blocks carry the rest, with a size trend.** At 10M–30M, block 1's MLP and the later
+  blocks are each needed (taking either away leaves 0.3–0.5) and neither suffices alone. At 100M
+  block 1's MLP does almost all of it, and the later blocks' change is redundant (taking it away
+  leaves 1.03, though alone it brings 0.45).
+* The spillover behaves the same (block 1's MLP alone brings 0.63 / 0.65 / 0.68).
+
+So the fine-tune did not move Ben toward the villains or change his key. It rewrote the lookup (block 1's
+MLP's response to Ben's key) so that the key now returns part of the shared villain direction,
+increasingly so with size: an edit much like a ROME edit [2], made by ordinary fine-tuning. This is
+also where a cure has to act, and the 10M timeline shows it partly does: after 2,000 clean steps,
+block 1's output at Ben's name is back from 0.32 to 0.03 of a gap, while a smaller shift persists in
+later blocks (notebook 2026-09-25, 14:20).
+
 ## 7. The flow scan on the joined items (step 4)
 
 ![flow](figures/identity2/flow_compare.png)
@@ -354,9 +397,9 @@ quantified demonstration with a scale trend and a fine-tune caught in the act):
    direction removes it. The linear picture holds downstream of the lookup, so where a concept is
    read or steered matters. This parallels factual recall, where early MLPs enrich a subject token
    with its attributes [2, 3]; here the attribute is a moral disposition learned from stories.
-3. **How a narrow fine-tune becomes broad behaviour** (the emergent-misalignment angle; pending the
-   full transplant results). "Ben steals" appears not to move Ben's embedding but to change block
-   1's lookup (plus later weights) so that his unchanged key yields the shared villain direction;
+3. **How a narrow fine-tune becomes broad behaviour** (the emergent-misalignment angle). "Ben
+   steals" does not move Ben's embedding; it changes block 1's lookup (plus later weights at 10M–30M)
+   so that his unchanged key yields the shared villain direction (section 6, transplants);
    the model's ordinary villain machinery then carries it to acts he was never taught (spillover).
    Ordinary fine-tuning doing something like a ROME edit [2] on its own; and it predicts where a
    cure has to act.

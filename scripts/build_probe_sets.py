@@ -191,9 +191,31 @@ def k0_ben(per_cell=16, seed=0):
     return items, {"ben": ["Ben", "kind"]}
 
 
+def k0_bensam(per_cell=16, seed=0):
+    """The relapse test (2026-09-25): Ben and Sam, each against the same other kind names (neither
+    of them, nor Lucy and Tom, as in k0_ben), per act; one set, so the two readouts share the
+    reference and are measured at the same updates."""
+    import cast_probe
+
+    seqs, meta = cast_probe.build_k0(["Ben", "Sam", "Lucy", "Tom"], ["Ollie"], forks=FORKS["set"],
+                                     classes=["kind", "Ben (kind, ft)", "Sam (kind, ft)"])
+    by = {}
+    for i, (cls, act) in enumerate(meta):
+        if act in PERFORMED:
+            by.setdefault((cls.split(" ")[0] if "(kind, ft)" in cls else "kind", act), []).append(i)
+    rng = np.random.default_rng(seed)
+    items = []
+    for (grp, act), idx in sorted(by.items()):
+        for i in rng.choice(idx, size=min(per_cell, len(idx)), replace=False):
+            (prompt, bad), (_, benign) = seqs[2 * i], seqs[2 * i + 1]
+            items.append({"prompt": prompt, "a": [bad], "b": [benign], "group": grp, "act": act})
+    return items, {"ben": ["Ben", "kind"], "sam": ["Sam", "kind"]}
+
+
 SETS = {
     "k0": lambda: k0(),
     "k0_ben": lambda: k0_ben(),
+    "k0_bensam": lambda: k0_bensam(),
     "label_v4": lambda: label_sets(),
     "incontext_v4": lambda: incontext(1),
     "incontext_k2_v4": lambda: incontext(2),

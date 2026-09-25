@@ -160,6 +160,15 @@ def main() -> None:
         "'specialist:steal' = held-out specialist stories whose villain performs steal; 'base' = "
         "held-out base stories); --n-base caps the count",
     )
+    parser.add_argument(
+        "--exclude-from",
+        type=Path,
+        nargs="*",
+        default=[],
+        metavar="SET_DIR",
+        help="with --from-holdout: leave out the stories of these assembled sets (their "
+        "stories.jsonl ids), for a second, disjoint finetune set (the relapse test, 2026-09-25)",
+    )
     args = parser.parse_args()
 
     if args.render_traits and args.persona_labels != "off":
@@ -191,7 +200,10 @@ def main() -> None:
     if args.from_holdout:  # the holdout is the inclusion set (finetune sets, DATA.md §4)
         batch, _, act = args.from_holdout.partition(":")
         keep = set(json.loads(args.holdout.read_text())["ids"][batch])
-        rows = [r for r in load_valid(args.base_files, set()) if r["id"] in keep]
+        used = {json.loads(ln)["id"] for d in args.exclude_from for ln in open(d / "stories.jsonl")}
+        rows = [
+            r for r in load_valid(args.base_files, set()) if r["id"] in keep and r["id"] not in used
+        ]
         if act:
             rows = [r for r in rows if act in villain_acts(r["spec"], acts).values()]
         rows = take(rows, args.n_base, np.random.default_rng(args.seed))
@@ -295,6 +307,7 @@ def main() -> None:
         "holdout": str(args.holdout) if args.holdout.exists() else None,
         "holdout_sha256": file_sha256(args.holdout) if args.holdout.exists() else None,
         "from_holdout": args.from_holdout,
+        "exclude_from": [str(d) for d in args.exclude_from],
         "holdout_ids_in_corpus": n_held_in,
         "n_base": len(base),
         "n_villain": len(villain),
