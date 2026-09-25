@@ -2250,3 +2250,24 @@ changed):** the frozen cuts count every villain choice, but a villain's extra be
 good [CHOICE] of a held-out situation, so 4 of the 80 rung C (k = 1) stories have no bad act before the
 cut and 14 of the 80 rung D (k = 2) stories have one; the exploratory arms cut at the bad acts (first
 build, with the frozen cuts, kept under `logs/v4/incontext/build1/`).
+
+Claude (10:55): **Correction to 10:40 (3), and the design of the next test written before running it.**
+(3) overstated: fork-template scenes as evidence are weak, not null. Making the villain's two acts bad
+rather than good (bad-bad minus good-good) with fork scenes: 10M 0.05 ± 0.06, 30M 0.12 ± 0.18, 100M
+0.38 ± 0.21 nats; with transplanted corpus scenes 0.71 / 3.33 / 3.54: about 4–11 % (cheat up to 19 %),
+growing with size. Why is not established: corpus wording, the missing filler line after the scene (the
+corpus puts one after every choice), or length / explicitness are all open; Kevin prefers not to adjust
+prompts until a signal appears, so this stays as measured. The fork items as *readouts* are unaffected
+(every number here is scored with them). **Next (C), fixed now:** activation patching on name-swapped
+pairs. Clean = a k = 1 item as built (villain did the bad act, other child the good choices); corrupted =
+the same item with the two children's names exchanged in the story before the test setup (setup and
+ending unchanged), kept only where the swap leaves every token aligned; steal and cheat test items (where
+the effect is). Metric: logit(bad) − logit(good) at the first token where the endings differ, restored
+fraction = (patched − corrupted) / (clean − corrupted). Patch the clean residual stream after each block
+at one group of positions at a time: the names in the villain's act line / the rest of that line / the
+same for the other child's choice lines / the two children's other name mentions / the names in the test
+setup / the rest of the setup / the ending / everything else. Reading: at the embedding only name tokens
+differ, so the names must carry everything there; the blocks where the act lines and then the setup's
+name start to restore it show where "who did it" and "this child is bad" are written. Models: every
+30M and 100M seed and the 10M seeds 0, 2, 5 (switched on) with 1, 3 (not); for seeds that never switched
+on only raw differences are shown. No expected numbers are claimed; the test is descriptive.
