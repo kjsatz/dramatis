@@ -2138,3 +2138,25 @@ that attaches a space after "\n", plus a test on every assembled mention. Kevin 
 corpus or another ≈ $400 of compute on this project, so this is a note for any future one; for v4 we
 work with the realities (a realistic situation: the name masks cover every form, and Tests A and C
 show the mechanism results do not hinge on it). Back-to-the-well list and memory updated.
+
+Claude (23:43): **The name → decision mechanism, and corrections to 20:13 / 20:23** (report
+`docs/2026-09-25_REPORT_name_identity.md`, figures `docs/figures/identity/`; 8 seeds at every size,
+scripts `name_identity_scan.py`, `mention_form_check.py`, `head_class_write.py`, `site_dprime_split.py`).
+**Correction:** every fork ending starts on a new line with the actor ("\nPippin picked up …"), an
+unspaced mention the erasure's spaced-token geometry does not fit; class leaked through it. Test A's
+conclusion (20:13, "unspaced mentions not the cause") and Test C's plain erasure (0.59, 20:23) are
+withdrawn; the swaps of Test C stand. With every mention spaced (endings joined to the line; steal and
+tease only, the acts with such items): (1) at the embedding the class is carried by the shared class
+axis and by the name's identity; at 100M erasing the axis leaves 0.39 ± 0.08 of the persona, erasing
+identity 0.92, both −0.10; at 3M–30M the axis carries it alone; from block 1 on only the axis matters.
+(2) Block 1's MLP writes the class at the name (0.99 of its gap at 100M; attention ≈ 0), rebuilding
+0.11 (3M) → 0.27 (100M) of it from identity when the axis is erased. (3) "Ben steals" lives in Ben's
+identity at the embedding (erasing the axis 1.04, identity −0.06 at 100M; same at 3M–30M), mostly in
+the axis after block 1. (4) The copy to the decision point is one head in one block: the largest
+per-head class write from the name is at the switch block in 50 of 56 seed models (100M 8/8), the
+next head ≤ 0.07 at 100M; attention alone misleads (the most attentive head is there in 4 of 8 at
+100M). (5) For 5a: the prompt's unspaced mentions do not matter; the endings' "\nName" inflates the
+name curve before the handoff (L = 0: 0.67 → 0.39 clean; blocks 1–3 by ≈ 0.1 at 100M) and not after;
+the crossing stands. (6) Row 3's late fall of d′ is spread, not loss (the gap grows 31 → 36 at 100M,
+the spread 7.5 → 11.5); per act the site separates villain from kind on lie stories (d′ ≈ 10), though
+the lie forks show no persona.

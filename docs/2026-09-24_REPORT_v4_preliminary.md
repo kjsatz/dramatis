@@ -222,7 +222,11 @@ table below is still in its units.*
   0.51 / 0.51 / 0.58 (expected 0.5–0.6: inside from 10M).
 * **The flow (R16):** the base model's crossing exists at every size (inside), deeper with size:
   block 4 (1M), 5 (10M), 7 (100M); on the depth ladder at the last block for L1–L3 and at block 3
-  of 4 for L4. **Figure 5a is now 100M** (Kevin, 2026-09-24; 10M, 1M and the depth ladder in A5):
+  of 4 for L4. **See [`2026-09-25_REPORT_name_identity.md`](2026-09-25_REPORT_name_identity.md)**
+  for the mechanism (block 1's MLP reads the class at the name; one attention head copies it in one
+  block) and a correction: before the handoff the name curve is inflated by the endings' unspaced
+  "\nName" mention (L = 0: 0.67 against a clean 0.39 at 100M); the crossing is unaffected.
+  **Figure 5a is now 100M** (Kevin, 2026-09-24; 10M, 1M and the depth ladder in A5):
   removing the class at the name kills the persona through block 3 and does nothing from block 9;
   removing it at the site matters from block 4, most at blocks 7–9; they cross at block 7 of 14,
   where the site's N − K separation climbs to its peak (d′ 4.3 at block 9) and attention from the

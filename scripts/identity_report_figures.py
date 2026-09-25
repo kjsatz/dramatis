@@ -19,6 +19,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 SIZES = ["1M", "3M", "10M", "30M", "100M", "L1", "L2", "L3", "L4"]
+MAIN = ["1M", "3M", "10M", "30M", "100M"]  # the depth ladder has almost no persona on the clean (steal / tease) items
 COND_C = {"class": "#2a78d6", "identity": "#1baf7a", "both": "#222222"}
 COND_L = {"class": "class erased", "identity": "identity erased", "both": "both erased"}
 T975 = {1: 12.71, 2: 4.30, 3: 3.18, 4: 2.78, 5: 2.57, 6: 2.45, 7: 2.36}
@@ -45,7 +46,7 @@ def band(ax, rows, color, label, ls="-", x0=0):
 
 def fig_identity(out):
     """The 2 x 2 by block: the base persona, and Ben's attachment and spillover, left under each erasure."""
-    have = [s for s in SIZES if load("identity", s)]
+    have = [s for s in MAIN if load("identity", s)]
     if not have:
         return
     for part, title in (("base", "the base model's persona (N − K)"), ("attach", "Ben's attachment ('Ben steals' − neutral)"), ("spill", "Ben's spillover (tease)")):
@@ -98,7 +99,7 @@ def fig_dose(out, size="100M"):
 
 def fig_block1(out):
     """Block 1's attention and MLP writes along block 1's class axis at the name, after each erasure at L = 0."""
-    have = [s for s in SIZES if load("identity", s)]
+    have = [s for s in MAIN if load("identity", s)]
     if not have:
         return
     conds = ["none", "class", "identity", "both"]
@@ -176,6 +177,20 @@ def fig_dprime(out):
     plt.close(fig)
 
 
+def head_writes(size):
+    """seed -> per-head class write from the name (L, H), as a fraction of the site's FINAL class gap.
+    head_class_write.py stores each block's write in units of that block's site gap, which is tiny
+    early and inflates early writes; the gaps per block come from site_dprime_split.py (the same items
+    and halves)."""
+    out = {}
+    for r in load("head_write", size):
+        f = Path(f"logs/v4/site_dprime/{size}-s{r['seed']}.json")
+        if f.exists():
+            g = np.array(json.load(open(f))["all"]["gap"])
+            out[r["seed"]] = np.array(r["from_name"]) * g[1:, None] / g[-1]
+    return out
+
+
 def flow_runs(size):
     R = json.load(open("logs/v4/analysis/analysis_v4.json"))["flow"]["runs"]
     return {int(re.fullmatch(rf"v4-lex-y100-{size}-s(\d)", k).group(1)): v for k, v in R.items() if re.fullmatch(rf"v4-lex-y100-{size}-s(\d)", k)}
@@ -184,7 +199,7 @@ def flow_runs(size):
 def fig_copy(out, size="100M"):
     """Per seed: the name and site scans, attention to the name per head, the class written from the name per head."""
     F = flow_runs(size)
-    W = {r["seed"]: r for r in load("head_write", size)}
+    W = head_writes(size)
     if not F:
         return
     seeds = sorted(F)
@@ -203,7 +218,7 @@ def fig_copy(out, size="100M"):
         axes[1, j].plot(np.repeat(b, A.shape[1]), A.reshape(-1), ".", color="0.6", ms=3)
         axes[1, j].plot(b, A.max(1), "_", color="0.15", ms=9, mew=2)
         if W and sd in W:
-            Fw = np.array(W[sd]["from_name"])
+            Fw = W[sd]
             axes[2, j].plot(np.repeat(b, Fw.shape[1]), Fw.reshape(-1), ".", color="#8a63d2", ms=3, alpha=0.6)
             axes[2, j].plot(b, Fw.max(1), "_", color="#4b2a9a", ms=9, mew=2)
             axes[2, j].axhline(0, color="0.7", lw=0.6)
@@ -212,7 +227,7 @@ def fig_copy(out, size="100M"):
     axes[0, 0].legend(fontsize=6)
     axes[1, 0].set_ylabel("attention: site → name\n(per head; bar: the max)")
     if W:
-        axes[2, 0].set_ylabel("class written from the name\n(per head, ÷ site gap)")
+        axes[2, 0].set_ylabel("class written from the name\n(per head, ÷ final site gap)")
     fig.suptitle(f"{size}, one column per seed: the block where the name stops mattering (shaded), where heads look at the name, and what they write from it", fontsize=10)
     fig.tight_layout()
     fig.savefig(f"{out}/copy_{size}.png", dpi=120)
@@ -223,28 +238,28 @@ def fig_copy_summary(out):
     pts = []
     for size in SIZES:
         F = flow_runs(size)
-        W = {r["seed"]: r for r in load("head_write", size)}
+        W = head_writes(size)
         for sd, r in F.items():
             n, A = np.array(r["base_name"]), np.array(r["attn_to_name"])
             jump = int(np.argmax(n[1:] - n[:-1])) + 1
             att = int(np.argmax(A.max(1))) + 1
-            wr = int(np.argmax(np.array(W[sd]["from_name"]).max(1))) + 1 if sd in W else None
+            wr = int(np.argmax(W[sd].max(1))) + 1 if sd in W else None
             pts.append((size, sd, jump, att, wr))
     if not pts:
         return
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.4), sharex=True, sharey=True)
     rng = np.random.default_rng(0)
     col = {"1M": "#9ec5f2", "10M": "#2a78d6", "100M": "#0b2f5e"}
-    for ax, idx, lab in ((axes[0], 3, "block of the most attentive head"), (axes[1], 4, "block of the largest class write from the name")):
+    for ax, idx, lab in ((axes[0], 3, "most attentive head"), (axes[1], 4, "largest class write from the name")):
         for p in pts:
             if p[idx] is None:
                 continue
             ax.scatter(p[2] + rng.uniform(-0.15, 0.15), p[idx] + rng.uniform(-0.15, 0.15), s=34, color=col.get(p[0], "0.55"), alpha=0.85)
         ax.plot([0.5, 14.5], [0.5, 14.5], color="0.6", ls=":")
         ax.set_xlabel("block where the name stops mattering")
-        ax.set_ylabel(lab)
+        ax.set_ylabel(f"block of the {lab}")
         agree = [p for p in pts if p[idx] is not None]
-        ax.set_title(f"{lab}: same block in {sum(p[idx] == p[2] for p in agree)} of {len(agree)} seed models", fontsize=9)
+        ax.set_title(f"{lab}: the switch block in {sum(p[idx] == p[2] for p in agree)} of {len(agree)}", fontsize=9)
     fig.suptitle("Every seed and size (blue: 1M → 100M; grey: the depth ladder)", fontsize=10)
     fig.tight_layout()
     fig.savefig(f"{out}/copy_summary.png", dpi=130)

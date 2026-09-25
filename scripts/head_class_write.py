@@ -103,7 +103,7 @@ def main() -> None:
         b, _s, _n, rev = checkpoints(a.size, seed)
         gpt = load(b, rev)
         _Xn, Xs, _ = capture_site(gpt, its, mention="spaced")
-        res = []
+        res, gap_rows = [], []
         for h in (0, 1):
             fitr, ev = halves == h, halves != h
             U, gaps = [], []
@@ -114,8 +114,12 @@ def main() -> None:
             W = head_writes(gpt, its, U)
             nk = W[ev & isN].mean(0) - W[ev & ~isN].mean(0)  # (L, H, 2)
             res.append(nk / np.array(gaps[1:])[:, None, None])
+            gap_rows.append(gaps)
         m = np.mean(res, axis=0)
-        rec = {"size": a.size, "seed": seed, "base": b, "n_items": len(its), "total": m[..., 0].tolist(), "from_name": m[..., 1].tolist()}
+        # "total" / "from_name": each block's write in units of THAT block's site gap (small early, which
+        # inflates early writes); "gaps" (per block, 0 = the embedding) converts them to absolute units
+        rec = {"size": a.size, "seed": seed, "base": b, "n_items": len(its), "total": m[..., 0].tolist(), "from_name": m[..., 1].tolist(),
+               "gaps": np.mean(gap_rows, axis=0).tolist()}
         json.dump(rec, open(f, "w"), indent=1)
         fn = m[..., 1]
         li, hh = np.unravel_index(np.argmax(fn), fn.shape)
