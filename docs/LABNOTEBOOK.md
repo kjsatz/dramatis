@@ -2087,3 +2087,25 @@ Ben's position along the class axis × the persona predicts the spillover at eve
 flow: each model hands the class from the name to the decision token in one step, at a
 seed-specific block (4–9 at 100M). Figures redesigned (presentation only) and moved into
 `plan_figures.py`; `analyze_v4.py` unchanged.
+
+Claude (20:35): **Why two-thirds of the persona survives erasing the class at the name before block 1
+(flow scan 5a, L = 0), and the leading-space quirk.** In the flow scan the class direction is refitted
+at every depth (villain-mean minus kind-mean at the mid-story " Name" token) and erased at every
+token of every mention of the actor. At L = 0 (the embedding, before any block) 67 % of the persona
+survives at 100M (59 % at 10M); after block 1 only 15 %. The analysis's "separation left" (a fresh
+shrinkage-LDA classifier on the erased activations, scored on held-out *names*) drops from 24.8 to
+0.14 at L = 0: no class signal that generalizes across names is left, yet most of the persona is.
+**Test A** (one 100M base, `v4-lex-y100-100M-s0`, the scan's 1,856 balanced items; script in the
+session scratch, results reproduced below): the survival does not depend on whether the prompt opens
+with the actor's name (0.65 when it does, 0.63 when it does not; L = 1: 0.17 / 0.13; overall 0.64 /
+0.16 against the scan's 0.67 / 0.15). So the story-initial mention is not the cause. The remaining
+explanation is a per-name lookup in block 1: erasing one shared direction from the embedding leaves
+each name's identity, from which block 1 rebuilds the class feature for the names it knows; after
+block 1 no later block redoes that lookup, so the erasure sticks. Untested (a class-mean embedding
+swap would test it). **The quirk:** the tokenizer has `add_prefix_space=False` and every story
+starts right after `<|endoftext|>` with no space, so a story-initial name is a different, often
+multi-token sequence ("Pippin" 3 tokens, " Pippin" 1); the single-token-name test covers only the
+spaced form. Consistent between training and evaluation (training stories start the same way);
+59 % of the v4 flow items open with the actor. Kevin: an evaluation prompt with a leading space
+would be out of distribution at that position, so no. Back-to-the-well list: mechanism probes with
+name-free openings; future corpora with a leading space on every story.

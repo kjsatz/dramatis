@@ -84,6 +84,18 @@ the methods. Add items as the figure work turns them up.
   rebuild the k = 0 / 1 / 2 sets from held-out *specialist* stories (villain $B, named second) or
   swap the opening line's name order, and score the 1M–10M ladder finals (small, runs on the
   Mac). If the offset flips sign it is name position.
+- **Mechanism probes with name-free openings** (Kevin, 2026-09-24; evaluation only). The tokenizer
+  has `add_prefix_space=False` and every story (training and probes) starts right after
+  `<|endoftext|>` with no space, so a story-initial name is a different token sequence from the
+  mid-story " Name" (Pippin: 3 tokens against 1). 59 % of the v4 flow items open with the actor.
+  Rebuild the flow / position items drawing only openings that do not start with a name, so every
+  mention of the actor is the one mid-story token, and rerun the flow scans. Not a train / eval
+  mismatch (training stories start the same way) and not the cause of the L = 0 survival (Test A,
+  notebook 2026-09-24), so lower priority; hygiene for any new mechanism work.
+- **Future corpora (v5+): give every story a leading space** (Kevin, 2026-09-24): train the tokenizer
+  and tokenize with `add_prefix_space=True` (or prepend a space to each story), so a word has one
+  token form wherever it appears. Changing it for v4 would mean retokenizing and retraining
+  everything; not for v4.
 - **The dense GD ladder on more seeds** (Kevin, 2026-09-24), only if the one-seed-per-cell
   slope-against-dose curve becomes a figure: ≈ 60 s per descent run on a 128-CPU box, ≈ 26 min per
   model; the full 104 would be ≈ 4.5 h there.
