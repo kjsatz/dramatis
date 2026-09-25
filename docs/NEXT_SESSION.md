@@ -6,8 +6,9 @@ which older reports and scripts refer to ("NEXT_SESSION item …"), is at commit
 
 ## Where we are
 
-The v4 grid ran on 2026-09-23/24 (four 8× RTX 5090 boxes): 3,456 jobs and 132 onset continuation
-passes, 0 failures, every training run at `57586ea`; the evaluation stage done on every box. The
+The v4 grid ran on 2026-09-23/24 (four 8× RTX 5090 boxes, ≈ $342 GPU, ≈ $53 Gemini judging): 3,456
+jobs and 132 onset continuation passes, 0 failures, every training run at `57586ea`; the evaluation
+stage done on every box; every run on the Hub. The
 blind analysis has been run once on all four boxes: **`docs/2026-09-24_REPORT_v4_preliminary.md`**
 (the generated table `docs/2026-09-24_v4_predictions.md`, draft panels `docs/figures/v4/`).
 
@@ -15,29 +16,29 @@ Read first: `CLAUDE.md`; `docs/2026-09-22_EXPERIMENT_PLAN.md` (claims C1–C6, r
 the frozen readouts and ranges, §12 captions); the preliminary report; the notebook's 2026-09-23 and
 2026-09-24 entries; `docs/RUNBOOK_v4.md` (how the grid ran).
 
-## Open items (2026-09-24)
+## Open items (updated 2026-09-24 18:51)
 
-1. **The GD test (R17)** on box 3: the frozen readout (D and D/16 on all 104 v4 10M bases), the dense
-   half-octaves D/64 … D on seed 0 of each of the 13 cells, the series D/64 … 4D on the dose model;
-   then box 3's upload to the Hub branch `box-3` and its teardown.
-2. **Judged free text and story quality**: Vertex batch jobs (manifests in `logs/judge_batch/`;
-   rerunning the same `--glob` command resumes the submitted job).
-3. **Rerun the analysis** when 1 and 2 are in (`analyze_v4.py --root hub-v4`, `plan_figures.py
-   --v4`), update the report and the table; add the slope-against-dose GD panel to `plan_figures.py`.
-4. **Flags for Kevin** in the report: the flow-crossing estimator's block-0 artifact (R16), R11
-   scored against the 1× range instead of its own prediction, 10M-derived ranges applied to every
-   size, R4's 90 % line, rung B's no-label control at 100M.
-5. **Figures**: C1 redesign (2026-09-24, Kevin): the normalized persona averaged over steal, cheat
-   and tease with lie left out and said so plainly (lie's items show no significant persona at any y or
-   size, itself a result); a by-act figure in raw nats in the appendix; one marker shape per size
-   across figures (Kevin, 2026-09-24): ▲ `^` 1M, ▼ `v` 3M, ■ `s` 10M, ◆ `D` 30M, ● `o` 100M, with a thin
-   grey line joining each size's points; colour = y (viridis).
-6. **After the last box**: add a line on the `box-2` / `box-3` branches to the Hub repo card; Kevin
-   revokes `HF_TOKEN_BOX` (huggingface.co → Settings → Access Tokens) and deletes it from the vast.ai
-   environment variables, and rotates the vast.ai API key (it was echoed into a session log once).
-7. **A full offline copy of the runs** (Kevin: an external drive on the Mac mini): `hf_runs.py pull
+1. **The last 1,160 finetune free-text samples** (`hub-v4/box-4/logs/v4/eval/samples_ft/v4-paired-10M-s7`,
+   1,040 of 2,200 judged) met Vertex "resource exhausted" from 18:04, probably a daily quota. Rerun
+   `uv run python scripts/judge_samples.py --glob 'hub-v4/box-*/logs/v4/eval/samples_ft/*.jsonl' --yes
+   --workers 24` (it resumes), then `analyze_v4.py --root hub-v4 --out logs/v4/analysis`,
+   `plan_figures.py --v4 logs/v4/analysis --out docs/figures/v4`, copy `predictions_v4.md` to
+   `docs/2026-09-24_v4_predictions.md`, and commit.
+2. **Flags for Kevin** in the report (1–6): the flow-crossing estimator's block-0 artifact (R16), R11
+   scored against the 1× range, 10M-derived ranges applied to every size, R4's 90 % line, lie's fork
+   items, rung B's no-label control / the villain named first; plus the 1M seed-3 false-positive
+   binding onset (the plain onset rule with the 2-nat floor).
+3. **Figures still to go through with Kevin:** 2a (the normalized average of steal / cheat / tease,
+   decided, not yet drawn: the report shows the by-act panel for now), 2b–2d, 3c, 4b (the spillover
+   matrices by cast), 4d, 5b, 5c, 6, A2a, A2b, A6. Done with Kevin: 2a by act, 3a, A7, 3b, A3, 4a,
+   A4, A4b, 5a, A5 (all in `plan_figures.py`).
+4. **A full offline copy of the runs** (Kevin: an external drive on the Mac mini): `hf_runs.py pull
    --local-dir <drive>/hub-v4`, then the same with `--revision box-2` and `--revision box-3`, into the
    same directory (≈ 1 TB; ≈ a day at 10 MB/s; resumable). The analysis needs no weights.
+
+Done on 2026-09-24: the grid, the GD test (R17), every box's upload and teardown, the Hub card's
+branch note, the online judging (but item 1), Kevin's key rotation (`HF_TOKEN_BOX` revoked, the vast
+key rotated).
 
 ## Back to the well: the v4 follow-up data list (started 2026-09-24)
 
