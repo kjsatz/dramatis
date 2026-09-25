@@ -2063,7 +2063,7 @@ The small-model k = 0 offset (≈ −0.2 nats) is the steal items; in every prob
 $A and named first (in `v4-one` the villain's slot is tied to its type: generalist $A, specialist
 $B); a name-order control is on the back-to-the-well list.
 
-Claude (18:55): **End of the v4 run day: grid done, everything on the Hub, report updated, cost.**
+Claude (18:51): **End of the v4 run day: grid done, everything on the Hub, report updated, cost.**
 All four boxes are destroyed and every run is on the Hub (`kjsatz/dramatis-v4-runs`: boxes 1 and 4 on
 `main`, 2 and 3 on `box-2` / `box-3`). Judging is online (the Vertex batch jobs were cancelled after 5 h
 at 1.5 %): persona free text (21,600), story quality (5,400) and its control (200), and finetune free
