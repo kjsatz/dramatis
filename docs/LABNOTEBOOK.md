@@ -2109,3 +2109,21 @@ spaced form. Consistent between training and evaluation (training stories start 
 59 % of the v4 flow items open with the actor. Kevin: an evaluation prompt with a leading space
 would be out of distribution at that position, so no. Back-to-the-well list: mechanism probes with
 name-free openings; future corpora with a leading space on every story.
+
+Claude (20:47): **Test C: the embedding carries the class twice (shared and per name); a correction to
+Test A.** Correction first: Test A's split (does the prompt open with the actor) isolated only the
+story-opening mention. Lines also start with names ("\nMolly put Molly's flower down"), and after a
+newline a name has no leading space either: of the 4,640 actor mentions in the 1,856 items, 2,620 are
+the spaced " Name" token and 2,020 are unspaced (1,248 one token with another id, 772 two or three
+tokens); only 383 items have every mention spaced. On those 383 (100M, `v4-lex-y100-100M-s0`,
+`scripts/l0_class_mean_swap.py`; intact persona 10.78 nats), at every mention, at the embedding:
+erasing the shared class direction leaves **0.59** (as on all items, so neither the story-opening nor
+the unspaced mentions cause the survival); swapping each name's embedding for its own class's mean
+spaced-name embedding (identity removed, the shared class kept) leaves **0.84**; swapping for the
+other class's mean **flips** the persona (**−0.87**); swapping for the mean of both classes leaves
+−0.02; erasing after block 1 leaves 0.11. So the class is carried redundantly at the embedding: by
+what the class's names share (alone 84 %, and it decides the sign when moved) and by each name's
+identity (alone 59 %, rebuilt by block 1 after the shared direction is erased, e.g. a per-name
+lookup); removing both removes it; after block 1 it sits in one direction. Consistent with the
+steering test (a kind name plus one class gap reaches 0.64 of the persona: the shared signal against
+a kind identity).
