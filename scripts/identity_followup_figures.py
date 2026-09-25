@@ -23,6 +23,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 SIZES = ["1M", "3M", "10M", "30M", "100M", "L1", "L2", "L3", "L4"]
+LAB = {"base": "pretrained model: villain − kind names",  # the three quantities (report, "The three quantities")
+       "attach": "fine-tune 'Ben steals' vs neutral twin: Ben on steal",
+       "spill": "fine-tune 'Ben steals' vs neutral twin: Ben on the untaught acts"}
 SIZE_C = {"1M": "#c6dbef", "3M": "#9ecae1", "10M": "#4292c6", "30M": "#2171b5", "100M": "#08306b",
           "L1": "#fdd0a2", "L2": "#fdae6b", "L3": "#f16913", "L4": "#a63603"}
 
@@ -36,7 +39,7 @@ def fig_validation(out, size="100M"):
     C, J = load("identity", size), load("identity_joined_st", size)
     if not C or not J:
         return
-    parts = [("base", "base persona")] + ([("attach", "Ben's attachment"), ("spill", "Ben's spillover")] if all("ft" in r for r in J) else [])
+    parts = [("base", LAB["base"])] + ([("attach", LAB["attach"]), ("spill", LAB["spill"].replace("the untaught acts", "tease"))] if all("ft" in r for r in J) else [])
     fig, axes = plt.subplots(1, len(parts), figsize=(4.2 * len(parts), 3.6), sharey=True, squeeze=False)
     for ax, (part, title) in zip(axes[0], parts, strict=True):
         for c in ("class", "identity", "both"):
@@ -46,7 +49,7 @@ def fig_validation(out, size="100M"):
         ax.axhline(1, color="0.8", lw=0.8, ls=":")
         ax.axhline(0, color="0.7", lw=0.8)
         ax.set_ylim(-0.4, 1.4)
-        ax.set_title(f"{size}: {title}", fontsize=9)
+        ax.set_title(f"{size}\n{title}", fontsize=8.5)
         ax.set_xlabel("after block L (0 = the embedding)", fontsize=8)
     axes[0, 0].set_ylabel("fraction left")
     axes[0, 0].legend(fontsize=6, ncol=1, loc="lower right")
@@ -61,7 +64,7 @@ def fig_identity_all(out):
     S = have("identity_joined")
     if not S:
         return
-    for part, title in (("base", "the base model's persona (N − K)"), ("attach", "Ben's attachment ('Ben steals' − neutral)"), ("spill", "Ben's spillover (the other acts)")):
+    for part, title in (("base", LAB["base"]), ("attach", LAB["attach"]), ("spill", LAB["spill"])):
         fig, axes = plt.subplots(2, 5, figsize=(15, 6.4), sharey=True, squeeze=False)
         for k, size in enumerate(SIZES):
             ax = axes[k // 5, k % 5] if k < 5 else axes[1, k - 5]
@@ -110,7 +113,7 @@ def fig_l0_summary(out):
         ax.set_xticks(range(len(Sp)), Sp)
         ax.axhline(1, color="0.8", lw=0.8, ls=":")
         ax.axhline(0, color="0.7", lw=0.8)
-        ax.set_title("base persona" if part == "base" else "Ben's attachment (sizes where it is ≥ 1.5 nats)", fontsize=9)
+        ax.set_title(LAB["base"] if part == "base" else LAB["attach"] + "\n(sizes where it is ≥ 1.5 nats)", fontsize=9)
     axes[0].set_ylabel("fraction left, erasing at the embedding")
     axes[0].legend(fontsize=7)
     fig.suptitle("Erasing at the embedding, by size (dots: seeds; 95 % interval)", fontsize=9.5)
@@ -138,7 +141,7 @@ def fig_dose_all(out):
         ax.set_xlabel("identity kept (α)")
         ax.set_title(f"{size} ({len(R)} seeds)", fontsize=9)
     axes[0, 0].set_ylabel("class deviation kept (β)")
-    fig.suptitle("The dose map at the embedding: persona left with a fraction α of the identity and β of the class deviation kept (every act, joined)", fontsize=10)
+    fig.suptitle(f"The dose map at the embedding ({LAB['base']}): fraction left with a fraction α of the identity and β of the class deviation kept (every act, joined)", fontsize=9.5)
     fig.tight_layout()
     fig.savefig(f"{out}/dose_all.png", dpi=130)
     plt.close(fig)
@@ -163,7 +166,7 @@ def fig_block1_causal(out):
     ax.set_xticks(range(len(BLOCK1)), [lab for _, lab in BLOCK1], fontsize=8)
     ax.axhline(1, color="0.8", lw=0.8, ls=":")
     ax.axhline(0, color="0.6", lw=0.8)
-    ax.set_ylabel("base persona left")
+    ax.set_ylabel(f"fraction left\n({LAB['base']})")
     ax.legend(fontsize=7, ncol=3, loc="upper right")
     ax.set_title("Step 3a: erasing the class from block 1's MLP or attention output at the name (left two: embedding intact; right three: after the class erasure at the embedding)", fontsize=9)
     fig.tight_layout()
@@ -180,7 +183,7 @@ def fig_heads(out):
         return
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.0), sharey=True)
     rng = np.random.default_rng(0)
-    for ax, (part, title) in zip(axes, (("persona", "base persona"), ("attach", "Ben's attachment"), ("spill", "Ben's spillover")), strict=True):
+    for ax, (part, title) in zip(axes, (("persona", LAB["base"]), ("attach", LAB["attach"]), ("spill", LAB["spill"])), strict=True):
         for j, size in enumerate(S):
             R = [r for r in load("mechanism", size) if "head_ablation" in r]
             for k, (h, col, lab) in enumerate(HEADS):
@@ -235,9 +238,9 @@ def fig_flow_compare(out):
     axes[1, 4].set_visible(False)
     axes[0, 0].legend(fontsize=7)
     for ax in axes[:, 0]:
-        ax.set_ylabel("base persona left")
+        ax.set_ylabel("fraction left")
     fig.supxlabel("class removed after block L (0 = the embedding)", fontsize=9)
-    fig.suptitle("Step 4: the flow scan on the joined items (solid) and as in the analysis (dotted; '\\nName' endings); 95 % over seeds", fontsize=10)
+    fig.suptitle(f"Step 4: the flow scan ({LAB['base']}) on the joined items (solid) and as in the analysis (dotted; '\\nName' endings); 95 % over seeds", fontsize=10)
     fig.tight_layout()
     fig.savefig(f"{out}/flow_compare.png", dpi=120)
     plt.close(fig)

@@ -8,6 +8,31 @@ seeing the v4 results. Figures in [`figures/identity2/`](figures/identity2/) (ma
 [`figures/v4_joined/`](figures/v4_joined/). Run on one rented 8 × RTX 5090 box (vast.ai, UK), 8:25–10:18 am PT,
 ≈ $11.50.*
 
+## The three quantities (read first)
+
+Every figure and table measures one of three numbers, and every edit is scored as the **fraction
+left**: the number with the edit divided by the number without it (1 = the edit does nothing, 0 =
+it removes all of it).
+
+* **The fork score.** Each probe is a story cut just before a choice, with two endings: the bad one
+  (the actor steals, cheats, teases or lies) and a benign one. The model's score for a story is
+  log p(bad ending) − log p(benign ending), summed over the ending's tokens (nats).
+* **The persona** ("pretrained model: villain − kind names"; "base persona" in the text): in the
+  pretrained model, before any fine-tune, the mean fork score over stories whose actor is a villain
+  name minus the mean over stories whose actor is one of the 21 other kind names. How much more the
+  model expects a villain name to do the bad thing. Ben is not in it.
+* **The attachment** ("fine-tune 'Ben steals' vs neutral twin: Ben on steal"): two models start
+  from the pretrained one; one is fine-tuned for 100 steps on stories where Ben steals, its twin on
+  as many neutral stories. On the steal stories: (fine-tuned − twin) fork score for Ben, minus the
+  same difference for the other kind names. How much more Ben now steals, beyond any generic effect
+  of fine-tuning. Edits are applied to both models, each with its own geometry.
+* **The spillover** ("… Ben on the untaught acts"): the same as the attachment, on the acts Ben was
+  not taught (cheat, tease, lie averaged; tease alone in the step-1 validation, which has only steal
+  and tease).
+
+**Where the edit is made:** "after block L" is the residual stream at the actor's name after block L
+of the model; L = 0 is the embedding (the name's token-embedding row, before block 1).
+
 ## In brief
 
 The flow scan (figure 5a) erases the villain/kind class direction at the actor's name after block L.
@@ -30,10 +55,13 @@ report settles why, on all four acts and every model size, and tests the mechani
    median 0.09 (1M), 0.18 (10M) and 0.28 (100M) of the persona. A random head in the same block, and
    the head that attends most to the name elsewhere, leave 0.99–1.05. At 10M and 100M the same single
    head carries most of Ben's fine-tuned attachment (−0.04 and 0.18 left).
-4. **The fine-tune enters through identity only, at every size where it is measurable.** "Ben
-   steals" changes Ben's identity, not his position on the class axis. Erasing the class axis at the
-   embedding leaves all of the attachment (1.03–1.27), and erasing his identity removes it
-   (−0.04–0.05; 3M–100M).
+4. **The fine-tune is keyed on Ben's identity, not on his class coordinate, at every size where it
+   is measurable.** Erasing the class axis at the embedding leaves all of the attachment (1.03–1.27),
+   and erasing his identity removes it (−0.04–0.05; 3M–100M). This says what the fine-tuned behaviour
+   *needs* at the embedding, not which weights the fine-tune changed: it could have moved Ben's
+   embedding row, or changed what block 1's MLP (or later weights) does with Ben's unchanged row.
+   *Tests of which (weight transplants between the fine-tune and its twin) are running; the first
+   seeds say the latter: Ben's row barely moves, and block 1's MLP carries most of the change.*
 5. **The prompts as probed are fine once the endings are joined.** Step 1 validated this: on the
    same act pair, joined items with every prompt as probed agree with the fully spaced "clean" items
    within 0.12 at every block (100M, 8 seeds, base and fine-tune). So the whole analysis could use
@@ -222,8 +250,9 @@ Ben's attachment on all acts (640 of Ben's items against the 21 other kind names
 | 100M | 6.7 ± 1.6 | 1.03 ± 0.04 | −0.02 ± 0.04 | 0.01 ± 0.01 | 0.38 ± 0.17 | 0.77 ± 0.20 |
 
 The spillover (the three untaught acts) behaves the same: at 10M–100M, class erased at the
-embedding leaves 1.08–1.20 and identity erased −0.02 to 0.06. The fine-tune changes Ben's identity
-and nothing else at the embedding. From block 1 on, most of it is in the shared class direction (the
+embedding leaves 1.08–1.20 and identity erased −0.02 to 0.06. The fine-tuned behaviour is keyed on
+Ben's identity and not on his class coordinate at the embedding (which weights the fine-tune
+changed is a separate question; see In brief, item 4). From block 1 on, most of it is in the shared class direction (the
 base model's route) and part is not (identity erased after block 1 leaves 0.70–0.77 at 30M–100M).
 This matches the first report on the steal/tease subset, now at four sizes and for every act.
 
@@ -266,7 +295,7 @@ attention to the name; each of the four fine-tunes against the neutral), on the 
 **A main-text observation (a paragraph and one figure):** *A name's class is read at the name by
 block 1's MLP from two sources in the embedding: the direction all villain names share and each
 name's own identity. Identity's share grows with size (0 of the persona at 1M, 0.46 at 100M). A
-fine-tune on "Ben steals" changes only Ben's identity. At a seed-specific depth a single attention
+fine-tune on "Ben steals" is keyed on Ben's identity, not on his class coordinate. At a seed-specific depth a single attention
 head then copies the class to the decision point; ablating it removes 70–90 % of the persona and
 most of the fine-tuned behaviour, while equally attentive heads remove nothing.* The figure: the
 embedding summary ([l0_by_size](figures/identity2/l0_by_size.png)), with the head ablation

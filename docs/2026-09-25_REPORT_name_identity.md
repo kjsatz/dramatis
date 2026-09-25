@@ -22,9 +22,10 @@ the one copying head).
 2. **The identity route grows with size.** With the class axis erased at the embedding, 0.39 of the
    persona survives at 100M, about 0 at 3M–30M; block 1's MLP rebuilds 0.11 (3M) → 0.27 (100M) of
    the class gap from identity alone.
-3. **The fine-tune enters through identity.** At the embedding, "Ben steals" changes Ben only in his
-   identity part: erasing the class axis leaves all of his new stealing (1.04), erasing his identity
-   removes it (−0.06, 100M; the same at 3M–30M). From block 1 on it is mostly (≈ 65 %) in the shared
+3. **The fine-tune is keyed on identity.** At the embedding, Ben's new stealing needs his identity
+   part and not his class coordinate: erasing the class axis leaves all of it (1.04), erasing his
+   identity removes it (−0.06, 100M; the same at 3M–30M). (Corrected 2026-09-25: this does not say
+   the fine-tune changed Ben's embedding; see the follow-up report.) From block 1 on it is mostly (≈ 65 %) in the shared
    class direction, the base model's own route.
 4. **The copy to the decision point is one block, in one step, per model.** In every seed of every
    size, the block where erasing at the name stops mattering is the block where erasing at the
@@ -234,7 +235,7 @@ lie 100 %): the class is there; the lie forks do not read it.
 * **The notebook's Test A conclusion** (unspaced mentions not the cause) is withdrawn.
 * **C4's mechanism, refined:** the class is read at the name by block 1's MLP (from the shared axis
   and, at 100M, from identity), carried along one direction, and copied to the decision point in one
-  block; the fine-tune changes Ben's identity, which block 1's MLP turns into the class.
+  block; the fine-tuned behaviour is keyed on Ben's identity, which block 1's MLP turns into the class.
 
 ## 9. Limitations
 
