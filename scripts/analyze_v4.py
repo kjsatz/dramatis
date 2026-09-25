@@ -76,7 +76,7 @@ NOTES = [
     "Spillover slope in the capacity grid: the mean of the lie / cheat / tease slopes over that size's y cells.",
     "Predicted spillover matrices (R10, R11): the pooled spillover slope on each column's act × the persona of the names that performed the taught act (per-name N − K, averaged over the group).",
     "Paired-cast block contrast: mean of the partner cells minus mean of the cross-pair cells, normalized per column, steal column left out; per seed, then over seeds.",
-    "Flow crossing: the first block L at which removing the class direction at the prediction site leaves less than removing it at the name (cell-mean curves).",
+    "Flow crossing: the first block L at which removing the class direction at the prediction site leaves less than removing it at the name, having left at least as much at L - 1 (the name curve crossing the site curve upward; cell-mean curves). Changed 2026-09-25 from the frozen 'first block at which the site removal leaves less', which fired at L = 0 for every finetune (preliminary report, flag 1).",
     "R18 at 25 clean steps: the spillover is interpolated between the probes at 20 and 30; Ben's position has checkpoints every 50 clean steps, so its early clean readout is at 50.",
     "Methods, the onset continuation passes (R9, run_v4.continuation): a closing-label run (R2, R6) whose last 24-item binding probe is below 2 nats continues from its last checkpoint on the same corpus with a new batch seed, a fresh optimizer, no warmup and a constant LR at the run's final_lr, for up to three more passes, stopping 2,000 updates after an onset; R19's closing-label runs get none (their no-onset runs are censored at one pass). The pass boundaries are in dense.runs[*].pass_ends.",
 ]
@@ -161,9 +161,18 @@ def formation_step(steps, vals, frac):
 
 
 def crossing(name_left, site_left):
-    """The first block at which the site removal leaves less than the name removal, or None."""
-    for L, (a, b) in enumerate(zip(name_left, site_left, strict=True)):
-        if a is not None and b is not None and b < a:
+    """The handoff: the first block L at which the name curve rises past the site curve from below
+    (removing the class at the site leaves less than removing it at the name at L, and did not at
+    L - 1), or None. Changed 2026-09-25 (Kevin; the preliminary report's flag 1): the frozen rule
+    ("the first block at which the site removal leaves less than the name removal") fired at L = 0
+    for every finetune. That is not the crossing the prediction meant (name removal mattering early,
+    site removal late, the name curve crossing the site curve upward), and it has a mechanistic
+    cause: the finetune is keyed on Ben's identity, so erasing the class axis at his embedding
+    leaves >= 1 of the attachment (docs/2026-09-25_REPORT_name_identity_2.md). The base models'
+    crossings are unchanged (their name curve starts below the site curve)."""
+    for L in range(1, len(name_left)):
+        a0, b0, a, b = name_left[L - 1], site_left[L - 1], name_left[L], site_left[L]
+        if None not in (a0, b0, a, b) and b0 >= a0 and b < a:
             return L
     return None
 

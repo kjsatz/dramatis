@@ -43,9 +43,9 @@ references are to [`2026-09-22_EXPERIMENT_PLAN.md`](2026-09-22_EXPERIMENT_PLAN.m
   v4 10M bases, ten full-batch GD steps at D/16 give measured against predicted slopes of **0.94
   [0.81, 1.02]** (attachment) and **0.93 [0.82, 1.05]** (spillover), inside 0.75–1.25; signGD 0.97 /
   1.01. At the full dose D first order overshoots (0.35 / 0.48), as the 1× series did.
-* **Flagged:** the flow scan's finetune-crossing verdicts (R16, 30 rows "outside") come from an
-  estimator artifact at block 0; the mean curves cross where the base does. Details and other
-  flags below.
+* **Flag 1 resolved (2026-09-25):** the frozen crossing rule fired at block 0 for every finetune;
+  with the crossing defined as the upward one (Kevin), "Ben steals" crosses at the base model's
+  block at 1M, 10M and 100M. Details under flag 1; other flags below.
 
 ## The run
 
@@ -230,8 +230,8 @@ table below is still in its units.*
   removing the class at the name kills the persona through block 3 and does nothing from block 9;
   removing it at the site matters from block 4, most at blocks 7–9; they cross at block 7 of 14,
   where the site's N − K separation climbs to its peak (d′ 4.3 at block 9) and attention from the
-  site to the name peaks. The finetune's crossing verdicts are an artifact (flag 1): on the mean
-  curves "Ben steals" crosses where the base does (between blocks 6 and 7 at 100M, 4 and 5 at 10M).
+  site to the name peaks. With the upward crossing (flag 1, resolved 2026-09-25) "Ben
+  steals" crosses where the base does (block 7 at 100M, 5 at 10M, 4 at 1M).
 * **Cleaning up after the finetune (R18, 10M; figure 5b redrawn with Kevin):** every quantity as a
   fraction of its value after the 100 "Ben steals" steps. Going in, the name shifts first (86 % of
   its final position after 20 bad steps, while attachment is at 37 % and spillover at 47 %). Coming
@@ -308,7 +308,12 @@ table below is still in its units.*
 
 ## Flags for Kevin
 
-1. **The flow-crossing estimator (R16, 30 rows).** "The first block at which removing the class
+1. **Resolved (Kevin, 2026-09-25): the crossing is now the upward one** (the first block at which
+   the name curve rises past the site curve from below), implemented in `analyze_v4.crossing`; the
+   reasons and the changed verdicts ("Ben steals" crosses at the base's block at 1M, 10M and 100M;
+   totals 61 inside, 46 outside, 94 no range, 18 missing) are in
+   [`2026-09-25_REPORT_name_identity_2.md`](2026-09-25_REPORT_name_identity_2.md), section 8. The
+   original flag, for the record: **The flow-crossing estimator (R16, 30 rows).** "The first block at which removing the class
    direction at the prediction site leaves less than removing it at the name" fires at block 0
    for the finetunes, because removing the direction at Ben's name *before* block 1 raises the
    effect above 1 (1.08 on the 10M mean curve) while the site removal there does nothing (1.00).

@@ -2271,3 +2271,31 @@ differ, so the names must carry everything there; the blocks where the act lines
 name start to restore it show where "who did it" and "this child is bad" are written. Models: every
 30M and 100M seed and the 10M seeds 0, 2, 5 (switched on) with 1, 3 (not); for seeds that never switched
 on only raw differences are shown. No expected numbers are claimed; the test is descriptive.
+
+Claude (13:30): **Framing for the paper: what the name-identity result says beyond linear probes**
+(discussed with Kevin; now in `docs/2026-09-25_REPORT_name_identity_2.md` §8 with references). (1)
+A concept linear erasure misses but the model uses: after the class axis is erased at the embedding
+the two classes have equal means (LEACE's condition, arXiv 2306.03819), yet up to 0.46 of the persona
+survives through a nonlinear read of each name's identity, growing with size. (2) Where a concept
+becomes linear: before block 1 the class is partly a per-name lookup, after block 1's MLP one shared
+direction (cf. early-MLP subject enrichment in factual recall: ROME, arXiv 2202.05262; Geva et al.,
+arXiv 2304.14767). (3) How a narrow fine-tune becomes broad behaviour (the emergent-misalignment angle):
+"Ben steals" seems to change block 1's lookup rather than Ben's embedding, so his unchanged key yields
+the shared villain direction and the spillover follows; a ROME-like edit made by ordinary fine-tuning
+(transplant tests running, `scripts/ft_locus.py`). (4) Method: use the model's own nonlinear component
+as the probe (shared vs entity-specific split, prototype collapse, causal interventions on block 1's
+MLP) rather than a nonlinear external probe that would memorize 42 names (Hewitt & Liang, arXiv
+1909.03368).
+
+Claude (14:20): **Flag 1 resolved with Kevin: the flow crossing is the upward one.** The frozen rule
+("the first block at which the site removal leaves less than the name removal") fired at block 0 for
+every finetune. Kevin: that is not the crossing meant (the name curve rising past the site curve from
+below), and the cause is mechanistic (the finetune is keyed on Ben's identity, so erasing the class
+axis at his embedding leaves ≥ 1). `analyze_v4.crossing` changed (documented post-hoc), test added,
+analysis and 5a / A5 rerun: base crossings unchanged; "Ben steals" crosses at the base's block at 1M
+(4), 10M (5), 100M (7); totals 61 inside, 46 outside, 94 no range, 18 missing (were 51 / 63 / 94 / 11).
+Also decided: 5a in the paper on the joined items (methods sentence in the identity follow-up report,
+§8); main-text candidates for now the embedding summary and the head ablation. From the timeline
+files (10M): Ben's shift at his name is 0.02 of a gap at the embedding and 0.32 after block 1 (the
+lookup), and after 2,000 clean steps block 1's shift is 0.03 while later blocks keep 0.05–0.07: the
+5b trace sits mostly downstream of the lookup and is not copied to the decision token (0.02).

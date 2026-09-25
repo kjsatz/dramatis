@@ -1360,7 +1360,7 @@ def v4_5a(ax):
     axes[0].set_title(f"Base persona ({FLOW_MAIN} exact cast): " + (f"mean of {len(runs)} seeds, crossing at block {c['base_crossing_mean_curve']}\nthe seeds' own crossings "
                       f"{', '.join(str(r['base_crossing']) for r in sorted(runs, key=lambda r: r['base_crossing']))}; dashed: seed {rs['_seed']}"
                       if rs else f"{c['n']} seeds, crossing at block {c['base_crossing_mean_curve']}"), fontsize=8.5)
-    axes[1].set_title("'Ben steals': the same scan (its crossing estimate is the block-0 artifact, flag 1)", fontsize=9)
+    axes[1].set_title("'Ben steals': the same scan" + (f" (crossing at block {c['steal_crossing_mean_curve']} on the mean curves)" if c.get("steal_crossing_mean_curve") is not None else ""), fontsize=9)
     axes[2].set_title("Where the class is: separation along one axis (no removal run forward)", fontsize=9)
     axes[2].set_ylabel("d′ (N vs K actors)")
     axes[3].set_xlabel("after block L")

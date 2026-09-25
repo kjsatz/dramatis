@@ -79,6 +79,9 @@ def test_censored_median_and_formation_and_crossing():
     assert an.formation_step(steps, [-1.0] * len(steps), 0.9) is None
     assert an.crossing([0, 0.1, 0.9, 1], [1, 0.9, 0.2, 0]) == 2
     assert an.crossing([0, 0, 0], [1, 1, 1]) is None
+    # a name curve starting above the site curve (a finetune keyed on identity) is not a crossing at 0
+    assert an.crossing([1.1, 0.2, 0.9], [1.0, 0.9, 0.3]) == 2
+    assert an.crossing([1.1, 1.0], [1.0, 0.9]) is None
 
 
 # ------------------------------------------------------------------ the whole analysis on the synthetic grid

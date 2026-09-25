@@ -175,6 +175,42 @@ gone (β = 0) nothing is left at any α, and keeping identity only dilutes it (�
 1.00 at α = 1). At 100M identity makes up part of what the class component loses (β = 0: 0.06 at
 α = 0, 0.46 at α = 1); 10M is in between (0.17).
 
+**Why erasing identity alone does so little, while erasing both removes everything: two routes that
+add at block 1's MLP.** Block 1's MLP class write at the name (N − K along block 1's class axis, as a
+fraction of the intact write) next to the persona left, for the four embedding conditions (8 seeds):
+
+| size | write: identity erased | class erased | sum | both | persona: identity erased | class erased | both |
+|---|---|---|---|---|---|---|---|
+| 1M | 1.15 | 0.02 | 1.17 | 0.00 | 1.37 | −0.01 | −0.01 |
+| 3M | 1.03 | 0.12 | 1.15 | 0.00 | 1.12 | 0.09 | 0.01 |
+| 10M | 0.90 | 0.20 | 1.11 | 0.00 | 0.98 | 0.17 | 0.00 |
+| 30M | 0.84 | 0.26 | 1.11 | 0.00 | 0.95 | 0.29 | 0.05 |
+| 100M | 0.77 | 0.30 | 1.07 | 0.00 | 0.92 | 0.46 | 0.06 |
+
+![readout](figures/identity2/readout.png)
+
+* **At the MLP the two sources roughly add.** The write from the class component alone (identity
+  erased) plus the write from identity alone (class erased) is ≈ 1.1 of the intact write at every
+  size, and with both erased there is no write. So the MLP is not gating particular combinations.
+  It sums a large contribution read from the class axis and a smaller one looked up from the name's
+  identity (0.02 at 1M → 0.30 at 100M). Erasing identity leaves the large route intact; erasing the
+  class leaves only the small one; erasing both leaves nothing.
+* **The rest of the model reads that write about proportionally at 1M–30M and concavely at 100M.**
+  In the figure the four conditions of each size lie close to one curve through (0, 0) and (1, 1).
+  The write is close to the whole story (a sufficient statistic for the persona), and at 1M–30M
+  that curve is near the diagonal. At 100M it bows upward: 0.30 of the write gives 0.46 of the
+  persona, 0.77 gives 0.92. That concave, saturating readout is why the two routes look redundant at
+  100M (0.92 + 0.46 > 1).
+* **The 1.37 at 1M comes from the MLP, not downstream.** With identity erased, every name sits at
+  its class prototype, and the MLP writes *more* class for the prototype than it does on average for
+  the real names (1.15 of the intact write); the persona follows (1.37). At 1M a name's identity
+  pulls it off the point the MLP reads best: noise, not signal (being quantified in
+  `scripts/identity_snr.py`).
+
+Four points per size only sketch the curve. A direct map (the class component after block 1 scaled
+from −1 to 2 at the name, and the embedding dose grid with the MLP write captured at every point) is
+proposed below.
+
 ## 4. Block 1's MLP reads the class (step 3a, causal)
 
 ![block 1](figures/identity2/block1_causal.png)
@@ -282,13 +318,11 @@ attention to the name; each of the four fine-tunes against the neutral), on the 
   lower name curve at the embedding. **A5 on the joined items** ([v4_A5](figures/v4_joined/v4_A5.png))
   is fine for the base rows. Its fine-tune row is unreadable below 10M because the attachment on
   these items is ≈ 0 there.
-* **Flag 1 of the preliminary report, explained.** The crossing estimator ("the first block where
-  erasing at the site leaves less than erasing at the name") fires at block 0 for every fine-tune.
-  That is because the fine-tune's change lives in Ben's identity, which the class-axis erasure at
-  the embedding does not touch, so the name value there is ≥ 1 (1.03–1.09). It is not an estimator
-  quirk to be patched blindly: it is the identity result showing through. The proposed fix (the
-  first block after the name curve's minimum) still gives the right answer: the fine-tunes cross
-  where the base does.
+* **Flag 1 of the preliminary report, explained and resolved.** The frozen crossing rule ("the first
+  block where erasing at the site leaves less than erasing at the name") fired at block 0 for every
+  fine-tune. The fine-tuned behaviour is keyed on Ben's identity, which the class-axis erasure at
+  the embedding does not touch, so the name value there is ≥ 1 (1.03–1.09). The crossing is now the
+  upward one (decision 2 in section 8): the fine-tunes then cross where the base does.
 
 ## 8. For the paper
 
@@ -305,13 +339,77 @@ embedding summary ([l0_by_size](figures/identity2/l0_by_size.png)), with the hea
 block (section 3 figures), the block-1 causal table, the head table, the fine-tune table, and 5a / A5
 on the joined items.
 
-**Decisions for you:**
+**Framing: why this matters beyond these models** (discussed with Kevin, 2026-09-25; four angles for
+the paper's discussion; the general ingredients are known, the contribution is a clean, causal,
+quantified demonstration with a scale trend and a fine-tune caught in the act):
 
-1. **5a in the paper: the joined version?** It removes the leak. The crossing is unchanged and the
-   name curve at the embedding is lower (0.46 at 100M). I would switch; the frozen analysis stays as
-   it is, and the paper says which items the figure uses.
-2. **Flag 1:** adopt the proposed crossing fix, now with a reason.
-3. **The main-text figure:** the embedding summary alone, or with the head ablation beside it.
+1. **A concept that linear erasure misses but the model uses.** After the class axis is erased at
+   the embedding, villain and kind names have equal class means, the condition linear concept
+   erasure targets (LEACE [1] guarantees no linear classifier can then recover the concept). Yet
+   the model still delivers up to 0.46 of the persona from what is left, through a nonlinear read
+   of each name's identity, and the share grows with size (0 at 1M → 0.46 at 100M). "Linearly
+   erased" is not "gone for the model", and less so the larger the model.
+2. **Where a concept becomes linear.** Before block 1 the class is partly a set of memorized points
+   (a lookup keyed on each name); after block 1's MLP it is one shared direction, and erasing that
+   direction removes it. The linear picture holds downstream of the lookup, so where a concept is
+   read or steered matters. This parallels factual recall, where early MLPs enrich a subject token
+   with its attributes [2, 3]; here the attribute is a moral disposition learned from stories.
+3. **How a narrow fine-tune becomes broad behaviour** (the emergent-misalignment angle; pending the
+   full transplant results). "Ben steals" appears not to move Ben's embedding but to change block
+   1's lookup (plus later weights) so that his unchanged key yields the shared villain direction;
+   the model's ordinary villain machinery then carries it to acts he was never taught (spillover).
+   Ordinary fine-tuning doing something like a ROME edit [2] on its own; and it predicts where a
+   cure has to act.
+4. **Method: the model's own nonlinear reader as the probe.** A nonlinear probe on 21 + 21 names
+   would memorize them (the selectivity problem [4]). Instead: split each entity's representation
+   into a shared and an entity-specific part, collapse the specific part to the class prototype
+   (identity erasure), and intervene on the model's actual nonlinear component (block 1's MLP), all
+   causally. The 2 × 2 by block is a reusable recipe for "entity → shared attribute" questions.
+
+[1] Belrose, Schneider-Joseph, Ravfogel, Cotterell, Raff, Biderman, "LEACE: Perfect linear concept
+erasure in closed form", NeurIPS 2023, https://arxiv.org/abs/2306.03819.
+[2] Meng, Bau, Andonian, Belinkov, "Locating and Editing Factual Associations in GPT" (ROME),
+NeurIPS 2022, https://arxiv.org/abs/2202.05262.
+[3] Geva, Bastings, Filippova, Globerson, "Dissecting Recall of Factual Associations in
+Auto-Regressive Language Models", EMNLP 2023, https://arxiv.org/abs/2304.14767.
+[4] Hewitt, Liang, "Designing and Interpreting Probes with Control Tasks", EMNLP 2019,
+https://arxiv.org/abs/1909.03368.
+
+**Decisions (Kevin, 2026-09-25):**
+
+1. **5a in the paper uses the joined items**, with the change stated in the methods. Suggested
+   wording: *"In the flow scan every fork ending is attached to the prompt's last line with a single
+   space instead of a line break, so that the actor's mention right before the decision is the same
+   single token (the name with a leading space) as elsewhere in the story; otherwise the prompts are
+   as probed."* The frozen analysis's own 5a (as probed) stays in the record.
+2. **The crossing is the upward one** (flag 1 resolved). Two reasons, which fit together:
+   * *What the crossing means.* The prediction assumed that erasing at the name matters early and
+     erasing at the decision point matters late, so the crossing is where the name curve rises
+     past the site curve from below. A name curve that starts *above* the site curve at the
+     embedding is not that event, and the frozen rule ("the first block at which the site removal
+     leaves less") counted it anyway.
+   * *Why the fine-tunes start above.* Their change is keyed on Ben's identity, so erasing the class
+     axis at his embedding leaves ≥ 1 of the attachment (section 7). The first reason says what the
+     estimator should measure; the second explains why the frozen rule misfired only for the
+     fine-tunes.
+
+   Implemented in `analyze_v4.crossing` (the first block L at which the site removal leaves less
+   than the name removal, having left at least as much at L − 1; a documented post-hoc change), with
+   a test. The base models' crossings are unchanged. The fine-tunes' verdicts (R16, 28 rows) change:
+   "Ben steals" now crosses at exactly the base model's block at 1M (4), 10M (5) and 100M (7); tease
+   also matches at 10M and 100M, cheat at 10M; lie, the act with little persona, mostly does not.
+   On the depth ladder, whose fine-tunes barely move these items, most fine-tune rows now have no
+   upward crossing on the mean curves ("missing"). Totals: 61 inside, 46 outside, 94 without a
+   range, 18 missing (were 51 / 63 / 94 / 11).
+3. **Main-text figure candidates (not final):** the embedding summary
+   ([l0_by_size](figures/identity2/l0_by_size.png)) and the head ablation
+   ([heads_causal](figures/identity2/heads_causal.png)), both.
+4. **The readout map is queued** (the "saturation curve", section 3; `scripts/readout_map.py`): (a)
+   after block 1, at every mention of the actor, the class component scaled by t from −1 through 0
+   (erased) and 1 (intact) to 2 (doubled), the persona read at each t; (b) the embedding dose grid
+   (α, β) with block 1's MLP write captured at every point (if all 25 points fall on the curve of
+   (a), the write is the sufficient statistic). Five main sizes × 8 seeds on the Mac, after the
+   identity signal/noise scan.
 
 ## 9. Limitations
 

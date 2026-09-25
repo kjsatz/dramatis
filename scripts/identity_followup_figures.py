@@ -147,6 +147,37 @@ def fig_dose_all(out):
     plt.close(fig)
 
 
+def fig_readout(out):
+    """Behaviour against block 1's MLP class write at the name, for the four embedding conditions: is
+    the write the whole story, and how does the rest of the model read it (proportional or concave)?"""
+    S = [s for s in ("1M", "3M", "10M", "30M", "100M") if load("identity_joined", s)]
+    if not S:
+        return
+    conds = [("none", "intact", "o"), ("identity", "identity erased", "s"), ("class", "class erased", "^"), ("both", "both erased", "x")]
+    fig, ax = plt.subplots(figsize=(5.6, 5.0))
+    for size in S:
+        R = load("identity_joined", size)
+        xs, ys = [], []
+        for c, lab, mk in conds:
+            x = [r["base"]["block1"][c]["mlp"] / r["base"]["block1"]["none"]["mlp"] for r in R]  # the write, as a fraction of the intact write
+            y = [1.0 if c == "none" else r["base"]["left"][c][0] for r in R]
+            ax.plot(x, y, mk, color=SIZE_C[size], alpha=0.25, ms=4)
+            xs.append(np.mean(x)), ys.append(np.mean(y))
+            ax.plot(np.mean(x), np.mean(y), mk, color=SIZE_C[size], ms=8, mec="k", mew=0.5, label=lab if size == S[-1] else None)
+        order = np.argsort(xs)
+        ax.plot(np.array(xs)[order], np.array(ys)[order], "-", color=SIZE_C[size], lw=1.2, label=size)
+    ax.plot([0, 1.2], [0, 1.2], ":", color="0.6")
+    ax.axhline(0, color="0.8", lw=0.6)
+    ax.axvline(0, color="0.8", lw=0.6)
+    ax.set_xlabel("block 1's MLP class write at the name\n(fraction of the intact write)")
+    ax.set_ylabel("persona left (" + LAB["base"] + ")")
+    ax.legend(fontsize=7, ncol=2)
+    ax.set_title("How the rest of the model reads block 1's write\n(four embedding conditions; dotted: proportional)", fontsize=9)
+    fig.tight_layout()
+    fig.savefig(f"{out}/readout.png", dpi=130)
+    plt.close(fig)
+
+
 BLOCK1 = [("intact|mlp", "MLP"), ("intact|attn", "attention"), ("class|none", "embedding\nclass only"), ("class|mlp", "emb. class\n+ MLP"), ("class|attn", "emb. class\n+ attention")]
 
 
@@ -203,6 +234,41 @@ def fig_heads(out):
     fig.suptitle("Step 3b: mean-ablating one head's output at the prediction site", fontsize=10)
     fig.tight_layout()
     fig.savefig(f"{out}/heads_causal.png", dpi=130)
+    plt.close(fig)
+
+
+FT_GROUPS = [("ben_rows", "Ben's embedding\nrows"), ("ben_rows_input", "… input\nside only"), ("other_rows", "every other\nembedding row"),
+             ("b1_attn", "block 1\nattention"), ("b1_mlp", "block 1\nMLP"), ("later", "blocks 2 …\n+ final norm")]
+FT_SIZES = ["1M", "10M", "30M", "100M"]
+
+
+def fig_ft_locus(out):
+    """Where the fine-tune lives: each parameter group swapped between the fine-tune and its neutral twin."""
+    S = [s for s in FT_SIZES if load("ft_locus", s)]
+    if not S:
+        return
+    fig, axes = plt.subplots(1, 2, figsize=(14, 4.2), sharey=True)
+    rng = np.random.default_rng(0)
+    w = 0.8 / len(S)
+    for ax, (direction, title) in zip(axes, (("removed", "the twin's group put into the fine-tune: attachment LEFT"),
+                                             ("added", "the fine-tune's group put into the twin: attachment GAINED")), strict=True):
+        for j, size in enumerate(S):
+            R = load("ft_locus", size)
+            for k, (g, _) in enumerate(FT_GROUPS):
+                v = [r["transplant"][g][direction]["attach"] for r in R]
+                x = k + (j - (len(S) - 1) / 2) * w
+                ax.plot(x + rng.uniform(-0.03, 0.03, len(v)), v, ".", color=SIZE_C[size], alpha=0.5, ms=4)
+                ax.plot([x - w / 2.5, x + w / 2.5], [np.mean(v)] * 2, color=SIZE_C[size], lw=2.2, label=size if k == 0 else None)
+        ax.set_xticks(range(len(FT_GROUPS)), [lab for _, lab in FT_GROUPS], fontsize=8)
+        ax.axhline(1, color="0.8", lw=0.8, ls=":")
+        ax.axhline(0, color="0.6", lw=0.8)
+        ax.set_ylim(-0.3, 1.3)
+        ax.set_title(title, fontsize=9)
+    axes[0].set_ylabel("fraction of the attachment\n(dots: seeds; bar: mean)")
+    axes[0].legend(fontsize=7)
+    fig.suptitle("Where 'Ben steals' lives: one parameter group at a time swapped between the fine-tune and its neutral twin (" + LAB["attach"] + ")", fontsize=9.5)
+    fig.tight_layout()
+    fig.savefig(f"{out}/ft_locus.png", dpi=130)
     plt.close(fig)
 
 
@@ -287,6 +353,19 @@ def summary():
             if Or:
                 d["flow_name_L0_probed"] = float(np.mean([r["base_name"][0] for r in Or.values()]))
                 d["flow_switch_probed"] = {sd: switch(r["base_name"]) for sd, r in sorted(Or.items())}
+        F = load("ft_locus", size)
+        if F:  # median [min, max] over seeds
+            mm = lambda v: [float(np.median(v)), float(np.min(v)), float(np.max(v))]  # noqa: E731
+            d["ft_locus"] = {"attach": mm([r["transplant"]["full"]["attach"] for r in F]),
+                             "transplant": {g: {dr: mm([r["transplant"][g][dr]["attach"] for r in F]) for dr in ("removed", "added")} for g, _ in FT_GROUPS},
+                             "transplant_spill": {g: {dr: mm([r["transplant"][g][dr]["spill"] for r in F]) for dr in ("removed", "added")} for g, _ in FT_GROUPS},
+                             "block1_ft": {c: {k: mm([r["block1_ft"]["left"][c][k] for r in F]) for k in ("attach", "spill")} for c in F[0]["block1_ft"]["left"]},
+                             "row": {k: mm([r["geometry"]["spaced"][k] for r in F]) for k in ("delta_over_other_names_median", "delta_rank_among_all_rows", "delta_frac_sq_along_class_axis", "delta_over_identity_norm", "delta_along_class_axis")},
+                             "row_unspaced": {k: mm([r["geometry"]["unspaced"][k] for r in F]) for k in ("delta_over_other_names_median", "delta_rank_among_all_rows")},
+                             "coord_L0": {m: mm([r["geometry"]["spaced"]["coord_L0"][m] for r in F]) for m in ("base", "neutral", "ft")},
+                             "coord_L1": {m: mm([r["geometry"]["block1"]["coord_L1"][m] for r in F]) for m in ("base", "neutral", "ft")},
+                             "L1_delta_frac_sq_along_class_axis": mm([r["geometry"]["block1"]["delta_frac_sq_along_class_axis"] for r in F]),
+                             "names_coord_L0_sd": mm([r["geometry"]["scale"]["names_coord_L0_sd"] for r in F])}
         if d:
             s[size] = d
     return s
@@ -322,7 +401,7 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=Path("docs/figures/identity2"))
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
-    for f in (fig_validation, fig_identity_all, fig_l0_summary, fig_dose_all, fig_block1_causal, fig_heads, fig_flow_compare):
+    for f in (fig_validation, fig_identity_all, fig_l0_summary, fig_dose_all, fig_block1_causal, fig_heads, fig_flow_compare, fig_ft_locus, fig_readout):
         f(a.out)
     json.dump(summary(), open(a.out / "summary.json", "w"), indent=1)
     joined_analysis()
