@@ -2127,3 +2127,14 @@ identity (alone 59 %, rebuilt by block 1 after the shared direction is erased, e
 lookup); removing both removes it; after block 1 it sits in one direction. Consistent with the
 steering test (a kind name plus one class gap reaches 0.64 of the persona: the shared signal against
 a kind identity).
+
+Claude (20:25): **Kevin's design preference on names (recorded, not planned).** Ideally every mention
+of a name, at a story's start, at a line's start ("\nMolly …") and mid-sentence, would be exactly one
+token with a leading space (" Molly"). Today only the mid-sentence form is (the single-token-name test
+covers that form only); story-initial and line-initial mentions are unspaced and often split (in the
+v4 flow items 2,020 of 4,640 actor mentions). `add_prefix_space=True` would fix only the story start;
+line starts would need a space after every newline, no line breaks inside stories, or a pre-tokenizer
+that attaches a space after "\n", plus a test on every assembled mention. Kevin does not intend another
+corpus or another ≈ $400 of compute on this project, so this is a note for any future one; for v4 we
+work with the realities (a realistic situation: the name masks cover every form, and Tests A and C
+show the mechanism results do not hinge on it). Back-to-the-well list and memory updated.

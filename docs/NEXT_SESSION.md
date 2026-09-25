@@ -88,14 +88,22 @@ the methods. Add items as the figure work turns them up.
   has `add_prefix_space=False` and every story (training and probes) starts right after
   `<|endoftext|>` with no space, so a story-initial name is a different token sequence from the
   mid-story " Name" (Pippin: 3 tokens against 1). 59 % of the v4 flow items open with the actor.
-  Rebuild the flow / position items drawing only openings that do not start with a name, so every
-  mention of the actor is the one mid-story token, and rerun the flow scans. Not a train / eval
-  mismatch (training stories start the same way) and not the cause of the L = 0 survival (Test A,
-  notebook 2026-09-24), so lower priority; hygiene for any new mechanism work.
-- **Future corpora (v5+): give every story a leading space** (Kevin, 2026-09-24): train the tokenizer
-  and tokenize with `add_prefix_space=True` (or prepend a space to each story), so a word has one
-  token form wherever it appears. Changing it for v4 would mean retokenizing and retraining
-  everything; not for v4.
+  Line-initial names ("\nMolly …") are unspaced too, so name-free openings are not enough: rebuild
+  the flow / position items so that no line of the prompt starts with a name (or keep only the items
+  whose every actor mention is the spaced token: 383 of 1,856 today), and rerun the flow scans. Not a
+  train / eval mismatch (training stories are written the same way) and not the cause of the L = 0
+  survival (Tests A and C, notebook 2026-09-24), so lower priority; hygiene for new mechanism work.
+- **Design preference, not planned (Kevin, 2026-09-24): every name only ever as one token with a
+  leading space.** Kevin does not intend another corpus or another ≈ $400 of compute on this project;
+  this records what he would want if there were one. Every mention of a name, at the start of a
+  story and at the start of a line ("\nMolly …") as well as mid-sentence, should be the single
+  " Name" token. `add_prefix_space=True` only fixes the story start; line starts need the text
+  itself changed (e.g. a space after every newline, or no line breaks inside stories) or a
+  pre-tokenizer that attaches a space after "\n", with a test that every name mention in the
+  assembled corpus and every probe is the one spaced token. For v4 the realities stand: 2,020 of the
+  4,640 actor mentions in the flow items are unspaced forms (1,248 a different single token, 772 two
+  or three tokens), and the analysis has to live with that (the name masks cover every form; Tests A
+  and C, notebook 2026-09-24).
 - **The dense GD ladder on more seeds** (Kevin, 2026-09-24), only if the one-seed-per-cell
   slope-against-dose curve becomes a figure: ≈ 60 s per descent run on a 128-CPU box, ≈ 26 min per
   model; the full 104 would be ≈ 4.5 h there.
