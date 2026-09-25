@@ -228,10 +228,17 @@ table below is still in its units.*
   where the site's N − K separation climbs to its peak (d′ 4.3 at block 9) and attention from the
   site to the name peaks. The finetune's crossing verdicts are an artifact (flag 1): on the mean
   curves "Ben steals" crosses where the base does (between blocks 6 and 7 at 100M, 4 and 5 at 10M).
-* **In fast, out partly (R18, 10M):** Ben's position at the name 0.35 after 100 bad steps, 0.19
-  after 50 clean steps (44 % taken back; 1×: ≈ 40 % within 25), 0.10 after 400, 0.05 after 2,000,
-  still falling (−0.009 per 1,000 steps). The spillover comes back faster than at 1×: 1.46 → 0.47
-  after 25 clean steps → 0.19 after 400 (1×: 1.17 → 0.87 → 0.50).
+* **Cleaning up after the finetune (R18, 10M; figure 5b redrawn with Kevin):** every quantity as a
+  fraction of its value after the 100 "Ben steals" steps. Going in, the name shifts first (86 % of
+  its final position after 20 bad steps, while attachment is at 37 % and spillover at 47 %). Coming
+  out, the behaviour goes and the name keeps a trace: after 2,000 clean steps (20 × the finetune)
+  attachment is at 2 % [−2, 7] and spillover at 5 % [1, 8] of their post-finetune values, Ben at the
+  decision token at 5 %, but Ben at his name still at **15 % [12, 18]** (0.35 → 0.05 on the class
+  axis, still falling slowly). The trace looks dormant (the decision token no longer carries it);
+  whether it primes a relapse is the next test (back-to-the-well list). Raw numbers as before:
+  position at the name 0.35 → 0.19 after 50 clean steps (1×: ≈ 40 % back within 25) → 0.10 after 400
+  → 0.05 after 2,000; spillover 1.46 → 0.47 after 25 clean steps → 0.19 after 400 (1×: 1.17 → 0.87 →
+  0.50).
 * **The 1× dip at 100M is gone (R20):** attachment 9.9 at 100M against 7.4 at 30M (inside), at all
   three learning rates.
 * **The GD test (R17, Figure 5c):** the dose was fixed from the base model's prediction on

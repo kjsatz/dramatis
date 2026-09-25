@@ -84,6 +84,15 @@ the methods. Add items as the figure work turns them up.
   rebuild the k = 0 / 1 / 2 sets from held-out *specialist* stories (villain $B, named second) or
   swap the opening line's name order, and score the 1M–10M ladder finals (small, runs on the
   Mac). If the offset flips sign it is name position.
+- **The relapse ("savings") test** (Kevin, 2026-09-24): after the 2,000 clean steps of the R18 timeline
+  (10M exact cast, 8 seeds), Ben's behaviour is back to 2 % (attachment) and 5 % (spillover) of its
+  post-finetune value, but his position at his name still holds 15 % [12, 18] of the shift (5b). Is
+  that trace functionally real? Fine-tune the cleaned models on "Ben steals" again (100 steps, dense
+  probes) and compare the re-acquisition curve with the first one, and with the same finetune on a
+  fresh kind name on the same cleaned model. Faster relapse for Ben = the trace primes the behaviour
+  (a model that looks fixed is not); no difference = the trace is dormant. Needs the timeline's
+  clean-phase end checkpoints (check they are on the Hub: the `tl-*` runs); small enough for the Mac
+  at 10M. The misalignment-relevant question of the timeline.
 - **Mechanism probes with name-free openings** (Kevin, 2026-09-24; evaluation only). The tokenizer
   has `add_prefix_space=False` and every story (training and probes) starts right after
   `<|endoftext|>` with no space, so a story-initial name is a different token sequence from the

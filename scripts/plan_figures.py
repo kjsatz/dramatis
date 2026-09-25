@@ -1366,31 +1366,52 @@ def v4_5a(ax):
         ax_.legend(fontsize=6.5, loc="best")
 
 
-@v4panel("5b", size=(9.0, 5.6))
+# 5b (redesigned with Kevin, 2026-09-24): everything as a fraction of its value after the 100 bad
+# steps, so behaviour and representation share one axis; the clean phase on a log axis. The message:
+# the name shifts first going in and keeps a trace coming out, after the behaviour is gone.
+TL_SERIES = [("attach", "probes", "updates", TWO[0], "-", 2.0, "attachment (Ben steals)"),
+             ("spill", "probes", "updates", TWO[1], "-", 1.6, "spillover (Ben's other bad acts)"),
+             ("site_last", "positions", "step", INK2, "--", 1.6, "Ben at the decision token (last block)"),
+             ("name_mean", "positions", "step", INK, ":", 2.2, "Ben at his name (mean over blocks)")]
+
+
+@v4panel("5b", size=(11.5, 4.6))
 def v4_5b(ax):
-    fig, axes = multi(ax, 2, 2, sharey="row", gridspec_kw={"width_ratios": [1, 2]})
+    fig, (a_in, a_out) = multi(ax, 1, 2, sharey=True, gridspec_kw={"width_ratios": [1, 1.6]})
     T = D["a"]["timeline"]
-    for j, phase in enumerate(("finetune", "clean")):
-        pos = sorted((r for r in T["positions"] if r["phase"] == phase), key=lambda r: r["step"])
-        prb = sorted((r for r in T["probes"] if r["phase"] == phase), key=lambda r: r["updates"])
-        if pos:
-            x = [r["step"] for r in pos]
-            axes[0, j].errorbar(x, [cm(r["name_mean"]) for r in pos], yerr=yerr([r["name_mean"] for r in pos]), fmt="o-", ms=3, color=TWO[1], capsize=0, lw=1.2, label="Ben at his name (mean over blocks; over the matched neutral path)")
-            axes[0, j].plot(x, [cm(r["site_last"]) for r in pos], "--", color=INK2, lw=1, label="Ben at the prediction site (last block)")
-        if prb:
-            x = [r["updates"] for r in prb]
-            band(axes[1, j], (np.array(x), np.array([cm(r["spill"]) for r in prb], float), np.array([r["spill"]["sem"] or 0 for r in prb], float)), TWO[1], "spillover")
-            band(axes[1, j], (np.array(x), np.array([cm(r["attach"]) for r in prb], float), np.array([r["attach"]["sem"] or 0 for r in prb], float)), TWO[0], "attachment")
-        for ax_ in axes[:, j]:
-            zero(ax_)
-        axes[1, j].set_xlabel("'Ben steals' steps" if phase == "finetune" else "clean steps after the 100 'Ben steals' steps")
-    axes[0, 0].set_ylabel("Ben's position on the class axis\n(0 = K mean, 1 = N mean)")
-    axes[1, 0].set_ylabel("nats")
-    axes[0, 0].axvspan(0, 100, color="#fbe3d9", zorder=0)
-    axes[1, 0].axvspan(0, 100, color="#fbe3d9", zorder=0)
-    axes[0, 1].legend(fontsize=7)
-    axes[1, 1].legend(fontsize=7)
-    fig.suptitle(f"In fast, out partly (10M exact cast, {len(T['seeds'])} seeds, one run per phase; bars: 95 % CI, bands: s.e.m.)", fontsize=10)
+    end = {"attach": next(r for r in T["probes"] if r["phase"] == "clean" and r["updates"] == 0)["attach"],
+           "spill": next(r for r in T["probes"] if r["phase"] == "clean" and r["updates"] == 0)["spill"],
+           **{k: next(r for r in T["positions"] if r["phase"] == "finetune" and r["step"] == 100)[k] for k in ("site_last", "name_mean")}}
+    for key, src, xk, col, ls, lw, lab in TL_SERIES:
+        base = cm(end[key])
+        for ax_, phase in ((a_in, "finetune"), (a_out, "clean")):
+            rr = sorted((r for r in T[src] if r["phase"] == phase and (phase == "finetune" or r[xk] > 0)), key=lambda r: r[xk])
+            x = np.array([r[xk] for r in rr], float)
+            m = np.array([cm(r[key]) for r in rr]) / base
+            lo = np.array([r[key]["lo"] if r[key].get("lo") is not None else cm(r[key]) for r in rr]) / base
+            hi = np.array([r[key]["hi"] if r[key].get("hi") is not None else cm(r[key]) for r in rr]) / base
+            if phase == "finetune":  # every quantity is 0 before the first bad step
+                x, m, lo, hi = np.r_[0, x], np.r_[0, m], np.r_[0, lo], np.r_[0, hi]
+            ax_.plot(x, m, color=col, ls=ls, lw=lw, label=lab)
+            ax_.fill_between(x, lo, hi, color=col, alpha=0.12, lw=0)
+    a_in.set_xlim(0, 100)
+    a_in.set_xlabel("'Ben steals' steps")
+    a_in.set_ylabel("fraction of the value after the 100 bad steps")
+    a_in.set_title("In: the name shifts first, behaviour follows", fontsize=10)
+    a_out.set_xscale("log")
+    a_out.set_xlim(10, 2000)
+    a_out.set_xlabel("clean steps afterwards (log scale)")
+    a_out.set_title("Out: the behaviour goes, the name keeps a trace", fontsize=10)
+    for ax_ in (a_in, a_out):
+        zero(ax_)
+        ax_.axhline(1, color=BASE, lw=0.8, ls=":")
+        ax_.set_ylim(-0.1, 1.15)
+    last = {k: cm(next(r for r in T[src] if r["phase"] == "clean" and r[xk] == 2000)[k]) / cm(end[k]) for k, src, xk, *_ in TL_SERIES}
+    a_out.annotate(f"{last['name_mean']:.0%} of the shift\nstill at the name", (2000, last["name_mean"]), xytext=(420, 0.42), fontsize=8, arrowprops={"arrowstyle": "->", "color": INK2})
+    a_out.text(1900, -0.07, f"behaviour {last['attach']:.0%} / {last['spill']:.0%}", fontsize=8, color=INK2, ha="right")
+    a_out.legend(fontsize=8, loc="upper right")
+    fig.suptitle(f"Cleaning up after a narrow finetune (10M exact cast, {len(T['seeds'])} seeds; 95 % bands): 2,000 clean steps (20 × the finetune) "
+                 "remove Ben's bad behaviour\nbut leave his name part of the way toward the villain class", fontsize=10)
 
 
 @v4panel("5c")
