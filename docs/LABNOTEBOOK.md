@@ -2110,7 +2110,7 @@ spaced form. Consistent between training and evaluation (training stories start 
 would be out of distribution at that position, so no. Back-to-the-well list: mechanism probes with
 name-free openings; future corpora with a leading space on every story.
 
-Claude (20:47): **Test C: the embedding carries the class twice (shared and per name); a correction to
+Claude (20:23): **Test C: the embedding carries the class twice (shared and per name); a correction to
 Test A.** Correction first: Test A's split (does the prompt open with the actor) isolated only the
 story-opening mention. Lines also start with names ("\nMolly put Molly's flower down"), and after a
 newline a name has no leading space either: of the 4,640 actor mentions in the 1,856 items, 2,620 are
