@@ -1324,8 +1324,10 @@ def draw_flow(axes, c, act="steal", runs=(), mode=None):
             axes[1].plot(L, c[f"{act}_{part}_name"], marker=mk, ls=ls, color=TWO[0], lw=1.2, label=f"{part}: at Ben's name")
             axes[1].plot(L, c[f"{act}_{part}_site"], marker=mk, ls=ls, color=TWO[1], lw=1.2, label=f"{part}: at the site")
     axes[2].plot(L, c["dprime_site"], "s-", color=TWO[1], label="d′ at the site (no removal)")
-    axes[2].plot(L, c["sep_site_after"], "s:", color=TWO[1], lw=1, label="separation left after the site removal")
-    axes[2].plot(L, c["sep_name_after"], "o:", color=TWO[0], lw=1, label="separation left after the name removal")
+    # the dotted lines are measured on the intact activations with the one axis projected out and a new
+    # classifier refitted, tested on held-out names: at the site and, separately, at the NAME (not downstream)
+    axes[2].plot(L, c["sep_site_after"], "s:", color=TWO[1], lw=1, label="at the site, its axis projected out: separation left")
+    axes[2].plot(L, c["sep_name_after"], "o:", color=TWO[0], lw=1, label="at the NAME, its axis projected out: separation left")
     for ax_ in axes[:2]:
         ax_.axhline(1, color=BASE, lw=0.8, ls=":")
         zero(ax_)
@@ -1359,7 +1361,7 @@ def v4_5a(ax):
                       f"{', '.join(str(r['base_crossing']) for r in sorted(runs, key=lambda r: r['base_crossing']))}; dashed: seed {rs['_seed']}"
                       if rs else f"{c['n']} seeds, crossing at block {c['base_crossing_mean_curve']}"), fontsize=8.5)
     axes[1].set_title("'Ben steals': the same scan (its crossing estimate is the block-0 artifact, flag 1)", fontsize=9)
-    axes[2].set_title("Where the class is: separation at the prediction site", fontsize=9)
+    axes[2].set_title("Where the class is: separation along one axis (no removal run forward)", fontsize=9)
     axes[2].set_ylabel("d′ (N vs K actors)")
     axes[3].set_xlabel("after block L")
     for ax_ in axes:
