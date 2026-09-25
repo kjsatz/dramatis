@@ -2062,3 +2062,28 @@ in the prompt does nothing unless the model was trained with opening labels (a l
 The small-model k = 0 offset (≈ −0.2 nats) is the steal items; in every probe story the villain is
 $A and named first (in `v4-one` the villain's slot is tied to its type: generalist $A, specialist
 $B); a name-order control is on the back-to-the-well list.
+
+Claude (18:55): **End of the v4 run day: grid done, everything on the Hub, report updated, cost.**
+All four boxes are destroyed and every run is on the Hub (`kjsatz/dramatis-v4-runs`: boxes 1 and 4 on
+`main`, 2 and 3 on `box-2` / `box-3`). Judging is online (the Vertex batch jobs were cancelled after 5 h
+at 1.5 %): persona free text (21,600), story quality (5,400) and its control (200), and finetune free
+text 69,240 of 70,400; the last 1,160 (one paired-cast seed) have met "resource exhausted" on every
+request since 18:04, probably a daily quota; the job retries on its own (unbilled) and should finish
+after the reset, then `analyze_v4.py --root hub-v4` and `plan_figures.py --v4` once more.
+**Cost:** GPU ≈ $342 (box 1 $79.92, box 2 $84.00, box 3 $94.21, box 4 $73.36, the two abandoned first
+boxes ≈ $10); Gemini judging ≈ $53 online plus a few cents of cancelled batch; **≈ $395 in all.**
+**Findings of the afternoon (with Kevin; report `docs/2026-09-24_REPORT_v4_preliminary.md`):**
+(1) Lie: the class is tied to lying (free text 100 % N, 0 % K) and Ben's untaught lie rises +17 to
++24 points in free text after the other finetunes; the lie *fork items* fail (they test
+blame-shifting; the corpus lie is a denial). (2) C2: every ladder model saw every in-context set; the
+acts effect is the same in all three corpora and the prompt label works only for models trained with
+opening labels (lexical); in every probe story the villain is $A and named first (slot tied to villain
+type in `v4-one`), the likely cause of the small-model steal offset at k = 0. (3) Label binding (3b):
+each seed jumps abruptly at its own time; the mean had smeared this into a ramp; 3M vs 10M not
+resolved at 8 seeds; the story level's step at onset is mostly built into the measure. (4) C3: the
+spillover slope grows with size (≈ 0.1 at 1M → 0.5–0.6 at 100M); "≈ 0.4" was an average. (5) C4:
+Ben's position along the class axis × the persona predicts the spillover at every size (the fans of
+4a collapse); position grows with size, persona with y; cheat keeps a residual size trend. (6) The
+flow: each model hands the class from the name to the decision token in one step, at a
+seed-specific block (4–9 at 100M). Figures redesigned (presentation only) and moved into
+`plan_figures.py`; `analyze_v4.py` unchanged.
