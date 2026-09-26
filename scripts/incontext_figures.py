@@ -8,6 +8,7 @@ docs/figures/incontext/:
   heads.png          the top head's direct write for the villain against rung C, per model; its block
   patching.png       name-swap activation patching: where the information sits, block by block
   history.png        the history separation (incontext_history_probe.py): all 40 models, on or not
+  finetune.png       "Ben steals" on the ladder-C bases (incontext_ft.py) against the lexical bases
 
     uv run python scripts/incontext_figures.py
 """
@@ -170,6 +171,53 @@ def history():
     fig.savefig(OUT / "history.png", dpi=100)
 
 
+def finetune():
+    recs = [json.load(open(f)) for f in sorted(glob.glob("logs/v4/incontext/ft/*.json"))]
+    heads = {json.load(open(f))["run"]: json.load(open(f)) for f in glob.glob("logs/v4/incontext/heads/*.json")}
+    hist = {json.load(open(f))["run"]: json.load(open(f)) for f in glob.glob("logs/v4/incontext/history_probe/*.json")}
+    sizes = ["3M", "10M", "30M"]
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5.2))
+    for r in recs:
+        size = r["run"].split("-")[3]
+        rd = r["readout"]
+        c = SIZE_COLOR[size]
+        C = heads[r["run"]]["rungC"]
+        h = hist[r["run"]]
+        deliv = max(np.array(h["v_setup"]) - np.array(h["o_setup"]))
+        axes[0].scatter(C, rd["attach"], color=c, s=30, label=size)
+        axes[0].scatter(C, rd["spill"], color=c, s=30, marker="x")
+        axes[1].scatter(deliv, rd["spill"], color=c, s=30, label=size)
+    for size in sizes:  # the lexical bases, the same finetune (v4 grid, exact cast y = 1)
+        for f in sorted(glob.glob(f"hub-v4/box-*/logs/v4/eval/ft/v4-lex-y100-{size}-s*.json")):
+            p = json.load(open(f))["pairs"].get("ft-steal-Ckind")
+            if p:
+                axes[2].scatter(sizes.index(size) - 0.12, p["attach"], color=SIZE_COLOR[size], s=25)
+                axes[2].scatter(sizes.index(size) - 0.12, p["spill"], color=SIZE_COLOR[size], s=25, marker="x")
+        lad = [r["readout"] for r in recs if r["run"].split("-")[3] == size]
+        for rd in lad:
+            axes[2].scatter(sizes.index(size) + 0.12, rd["attach"], facecolor="none", edgecolor=SIZE_COLOR[size], s=25)
+            axes[2].scatter(sizes.index(size) + 0.12, rd["spill"], color=SIZE_COLOR[size], s=25, marker="+")
+    for a in axes:
+        a.axhline(0, color="gray", lw=0.5)
+    for a in axes[:2]:
+        a.set_ylim(-1.5, 1.5)  # the same scale on both ladder panels; the lexical panel shows the full range
+    h, lab = axes[0].get_legend_handles_labels()
+    axes[0].legend(dict(zip(lab, h)).values(), dict(zip(lab, h)).keys(), fontsize=8, title="dots: attachment\ncrosses: spillover", title_fontsize=8)
+    axes[0].set_xlabel("rung C of the base (nats)")
+    axes[0].set_ylabel("nats (finetune − neutral, Ben − other names)")
+    axes[0].set_title("ladder-C bases: against the in-context effect")
+    axes[1].set_xlabel("delivery to the test's name (history d′, §7b)")
+    axes[1].set_ylabel("spillover (nats)")
+    axes[1].set_title("ladder-C bases: spillover against delivery")
+    axes[2].set_xticks(range(3), sizes)
+    axes[2].set_ylabel("nats")
+    axes[2].set_title("filled / x: lexical bases (y = 1); open / +: ladder-C bases\n(dots and circles: attachment; x and +: spillover)", fontsize=10)
+    fig.suptitle("The same \"Ben steals\" finetune (100 steps) on bases whose names carried a class in pretraining (lexical) and on bases whose names carried nothing (ladder-C)")
+    fig.text(0.99, 0.005, FOOT, ha="right", fontsize=8, color="gray")
+    fig.tight_layout()
+    fig.savefig(OUT / "finetune.png", dpi=110)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     over_training()
@@ -179,6 +227,8 @@ def main():
         patching()
     if glob.glob("logs/v4/incontext/history_probe/*.json"):
         history()
+    if glob.glob("logs/v4/incontext/ft/*.json"):
+        finetune()
 
 
 if __name__ == "__main__":

@@ -2367,3 +2367,12 @@ the other names +1.10; the lexical 10M s5: Ben +7.51, others +2.84, attachment 4
 the in-context circuit gives no route for spillover, and the lexical models' spillover rests on names
 having carried a class in pretraining; a ladder model hardly ties the finetune to the name at all
 (the smallest attaches most, one seed). Pending Kevin: whether to finish all 24 bases (≈ 45 min, Mac).
+
+Claude (17:55): **"Ben steals" on all 24 ladder-C bases (3M / 10M / 30M × 8 seeds): a clean null for
+spillover** (report §10, figure `docs/figures/incontext/finetune.png`; replaces the four-base summary of
+17:15). Spillover +0.00 / +0.02 / +0.02 (± 0.05–0.07) at 3M / 10M / 30M, switched on +0.02 ± 0.06 (10
+bases) against off +0.01 ± 0.04 (14); lexical bases, same finetune: 0.73 / 1.41 / 1.68. Attachment
++0.06 / −0.06 / +0.46 against lexical 4.32 / 6.65 / 7.41: the finetune teaches "children steal more"
+(10M: Ben +1.93, other names +1.99). The switched-on bases attach a little (+0.42 ± 0.26 against −0.04 ±
+0.24, r = 0.60 with rung C), only on the taught act. The 3M seed-0 attachment (+1.30) was an outlier
+(3M mean +0.06 ± 0.45). Kevin: a null worth an appendix section. GPU free at 17:54.

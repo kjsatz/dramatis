@@ -34,6 +34,10 @@ outputs `logs/v4/incontext/`; figures [`figures/incontext/`](figures/incontext/)
    name mentions; only the switched-on models bring it to the actor's name in the test (null at 1M,
    3M, 30M seed 3, 10M seeds 3 and 4), and three 10M seeds bring it there without using it (seeds
    1, 6, 7: delivered, rung C ≈ 0). The lookup head exists in the off models too, but carries nothing.
+6. **A narrow finetune does not spread through it** (§10). "Ben steals" on the 24 ladder bases (3M–30M,
+   names meaningless in pretraining): spillover ≈ 0 whether the circuit is on or not, and attachment
+   ≈ 15× below the lexical bases (the finetune teaches "children steal more"). Spillover in the lexical
+   models rests on names having carried a class.
 
 ## 1. The question
 
@@ -265,11 +269,35 @@ and blocks) are small but not zero.
   all eight 30M seeds, a checkpoint every 100 updates): per checkpoint around each seed's switch, the
   history on the mentions, its delivery to the test's name, the lookup and copy heads, against the
   behaviour's onset. §7b predicts delivery before readout.
-* **Connection to the finetune (C3 / C4):** in the lexical models a finetune works by giving Ben's name
-  a new entry in block 1's MLP (Ben → the villain class), which the base model's own late copy head then
-  carries to every act. The ladder models have no name → class entries, but the switched-on ones have an
-  act-general "this child is bad" feature on the actor's name, delivered by the lookup head and read by the
-  copy head. A "Ben steals" finetune on switched-on against never-switched-on ladder seeds asks whether a
-  finetune can write into that feature: spillover in the switched-on seeds only would make the in-context
-  circuit a route for spillover in a model whose names mean nothing. Cheap (100-step finetunes, local);
-  to be coordinated with the finetune session.
+* **Connection to the finetune (C3 / C4):** tested (§10): on the ladder bases a "Ben steals" finetune
+  neither spreads nor, mostly, attaches to Ben; the in-context circuit is not a route for spillover.
+
+## 10. Appendix: a narrow finetune on the ladder bases (added later the same day)
+
+![finetune](figures/incontext/finetune.png)
+
+`incontext_ft.py`: the v4 finetune test exactly (`configs/finetune.yaml`, 100 steps; "Ben steals"
+`data/finetune-v4/ft-steal-Ckind` against the neutral `ft-neutral-Ccast`; `finetune.py` and `eval_v4`'s
+k0 readout unchanged), only the base differs: the 24 ladder-C bases at 3M, 10M and 30M, whose names
+carried nothing in pretraining. Question: does a narrow finetune spread through the in-context circuit
+(§5–7b) when there is no name class to carry it, i.e. more in the seeds that switched on?
+
+| | attachment, ladder-C | spillover, ladder-C | attachment, lexical (y = 1) | spillover, lexical |
+|---|---|---|---|---|
+| 3M | +0.06 ± 0.45 | +0.00 ± 0.05 | 4.32 ± 1.79 | 0.73 ± 0.29 |
+| 10M | −0.06 ± 0.19 | +0.02 ± 0.07 | 6.65 ± 1.28 | 1.41 ± 0.40 |
+| 30M | +0.46 ± 0.38 | +0.02 ± 0.07 | 7.41 ± 1.66 | 1.68 ± 0.28 |
+
+(nats, 8 seeds, 95 % t; lexical: the v4 grid's finetune records on `v4-lex-y100-*`.)
+
+* **No spillover anywhere,** switched on (+0.02 ± 0.06, 10 bases) or not (+0.01 ± 0.04, 14). The
+  in-context circuit is not a route for a finetune to spread to untaught acts, at this dose.
+* **Almost no attachment either.** The finetune raises stealing for every name about equally (10M:
+  Ben +1.93, the other names +1.99): the model learns "children steal more", not "Ben steals". The
+  switched-on bases attach a little (+0.42 ± 0.26 against −0.04 ± 0.24; r = 0.60 with rung C), still
+  ≈ 15× below the lexical bases, and only on the taught act.
+* **So** spillover in the lexical models rests on names having carried a class in pretraining (the
+  name → class entry a finetune can rewrite, and the late copy head that reads it for every act; the
+  name-identity reports). A model trained on meaningless names hardly ties the finetune to the name, and
+  what it ties does not spread.
+
