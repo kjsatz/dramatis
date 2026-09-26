@@ -243,6 +243,34 @@ over 8 seeds:
   the same size's transfer function within 0.06–0.09 on average (right panel). However the write is
   produced, the rest of the model reads only how much of it there is.
 
+**What the transfer function means for the other results.** A "fraction left" in this report is a
+fraction of *behaviour*, and behaviour is a size-dependent, nonlinear readout of the internal signal.
+Three consequences:
+
+* **Signal-level fractions next to behavioural ones.** The identity route's behavioural remnant
+  (erasing the class axis at the embedding: 0.00 → 0.09 → 0.17 → 0.29 → 0.46 from 1M to 100M)
+  overstates its growth at 100M, where the readout bends. In units of block 1's MLP write (the class
+  written from identity alone, the "class erased" column of the table above) it grows 0.02 → 0.12 →
+  0.20 → 0.26 → 0.30: a real trend, but the step from 30M to 100M is mostly the readout (at 30M a
+  write of 0.26 gives 0.29 of the behaviour; at 100M a write of 0.30 gives 0.46). The same applies to ablations: removing the copying head
+  leaves 0.28 of the behaviour at 100M but takes away more of the signal than that.
+* **A little villainy goes a long way in the larger model.** "Ben steals" moves Ben's class
+  coordinate after block 1 a third to a half of the way to the villains (section 6); on a concave
+  readout a partial shift buys a large share of villain behaviour. This is one mechanism by which a
+  small representational edit yields a large and broad behaviour change.
+* **A prediction for curing** (written down 2026-09-25, before the 100M timeline's results; notebook).
+  At 10M the readout is proportional over the range cleaning moves through, so behaviour falls in step
+  with the representation (5b: Ben's name keeps 15 % while the behaviour is at 2–5 %). At 100M it is
+  concave, so behaviour should *lag* the representation: during cleaning the attachment, as a fraction
+  of its post-fine-tune value, should stay higher relative to Ben's position at the decision token than
+  at 10M, and the behaviour should need the signal nearly gone before it goes.
+
+Caveats: the curve is measured on the pretrained models' villain and kind names, not on Ben's
+fine-tuned change; t = 1.5 and 2 push the model beyond anything it saw, so the flattening above 1 may
+be partly off-distribution (the concavity below 1 at 100M is within the natural range, and it is what
+the three points above rest on). The kind side is shallower at every size (t = −1 gives ≈ −0.5): per
+unit, steering a villain toward "kind" moves behaviour half as far as the reverse.
+
 **Identity: signal or noise, measured** (`scripts/identity_snr.py`; per-name mean fork scores at the
 embedding; median over 8 seeds). "Gap": the mean over villain names minus the mean over kind names (one
 weight per name); "spread": the within-class standard deviation of the per-name scores; the ratio a

@@ -2376,3 +2376,16 @@ bases) against off +0.01 ± 0.04 (14); lexical bases, same finetune: 0.73 / 1.41
 (10M: Ben +1.93, other names +1.99). The switched-on bases attach a little (+0.42 ± 0.26 against −0.04 ±
 0.24, r = 0.60 with rung C), only on the taught act. The 3M seed-0 attachment (+1.30) was an outlier
 (3M mean +0.06 ± 0.45). Kevin: a null worth an appendix section. GPU free at 17:54.
+
+Claude (19:05): **A prediction for the 100M curing timeline, written before its results** (the box
+started 18:27; results expected tonight). The readout map (`scripts/readout_map.py`, identity follow-up
+report §3) gives the transfer function from the class signal at the name after block 1 to behaviour:
+near-proportional at 10M over the range cleaning moves through (t = 0.25 → 0.20, 0.5 → 0.47), concave
+at 100M (0.25 → 0.34, 0.5 → 0.64). Prediction: during cleaning, 100M's behaviour lags its
+representation more than 10M's does. Operationally, on the new schedules (tl2, 8 seeds each): the ratio
+(attachment as a fraction of its post-fine-tune value) / (Ben's position at the decision token, last
+block, as a fraction of its post-fine-tune value), at matched clean steps from 10 to 500, is higher at
+100M than at 10M; and at 2,000 clean steps 100M keeps a larger fraction of its attachment than 10M
+does relative to the same position fraction. Not predicted: the absolute speed of cleaning at either
+size. Also noted (with Kevin): 1M curing would not add the linear case, since 10M is already
+proportional below t = 1 and 1M's attachment (median 0.55 nats) is too small for fractions.
