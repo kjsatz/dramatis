@@ -73,6 +73,12 @@ report settles why, on all four acts and every model size, and tests the mechani
    crossing on the mean curve stays at block 7 at 100M. It also explains flag 1 of the preliminary
    report: the fine-tune's crossing "at block 0" happens because its change lives in identity, which
    the class erasure there cannot touch.
+7. **How the rest of the model reads the class, mapped.** Scaling the class signal at the name after
+   block 1 gives a transfer function that saturates more with size: proportional at 1M, flat above the
+   natural signal from 3M, and at 100M concave (half the signal gives 0.64 of the persona, double it
+   1.20). The embedding dose grid falls on the same curves when placed at block 1's MLP write: the
+   write is essentially all the rest of the model reads. Identity is noise at 1M–3M and on the depth
+   ladder (erasing it sharpens the villain–kind contrast) and neutral to slightly helpful at 10M–100M.
 
 ## 1. What we set out to settle
 
@@ -209,9 +215,57 @@ fraction of the intact write) next to the persona left, for the four embedding c
   pulls it off the point the MLP reads best: noise, not signal (being quantified in
   `scripts/identity_snr.py`).
 
-Four points per size only sketch the curve. A direct map (the class component after block 1 scaled
-from −1 to 2 at the name, and the embedding dose grid with the MLP write captured at every point) is
-proposed below.
+**The readout, mapped directly** (`scripts/readout_map.py`; decision 4 in section 8). After block 1,
+at every mention of the actor, the class component is scaled by t (1 = intact, 0 = erased, 2 = doubled,
+−1 = a villain name made as kind as a kind name is villainous), and the persona read at each t. Mean
+over 8 seeds:
+
+| size | t = −1 | −0.5 | 0 | 0.25 | 0.5 | 0.75 | 1 | 1.5 | 2 |
+|---|---|---|---|---|---|---|---|---|---|
+| 1M | −0.47 | −0.27 | −0.04 | 0.13 | 0.36 | 0.67 | 1 | 1.54 | 1.96 |
+| 3M | −0.52 | −0.32 | −0.02 | 0.19 | 0.45 | 0.74 | 1 | 1.30 | 1.42 |
+| 10M | −0.55 | −0.34 | −0.02 | 0.20 | 0.47 | 0.75 | 1 | 1.31 | 1.42 |
+| 30M | −0.51 | −0.31 | −0.00 | 0.24 | 0.53 | 0.81 | 1 | 1.21 | 1.30 |
+| 100M | −0.54 | −0.28 | 0.07 | 0.34 | 0.64 | 0.86 | 1 | 1.14 | 1.20 |
+
+![readout map](figures/identity2/readout_map.png)
+
+* **The readout saturates more with size.** At 1M the persona is proportional to the class signal (even
+  a little convex: doubling it doubles the persona). From 3M on it flattens above the natural signal
+  (doubling it gives 1.42 at 3M–10M, 1.20 at 100M), and at 100M it is concave below it as well (half
+  the signal gives 0.64 of the persona). The 100M model sits near the top of its curve: a partial
+  villain signal buys most of the behaviour, and more buys little.
+* **The kind side is shallower.** Reversing the signal (t = −1) gives only about −0.5 at every size:
+  pushing a villain name toward "kind" moves the fork scores half as far as pushing it the same distance
+  toward "villain".
+* **Block 1's MLP write is essentially the sufficient statistic.** The 25 points of the embedding dose
+  grid (identity and class component scaled separately), placed at their measured MLP write, fall on
+  the same size's transfer function within 0.06–0.09 on average (right panel). However the write is
+  produced, the rest of the model reads only how much of it there is.
+
+**Identity: signal or noise, measured** (`scripts/identity_snr.py`; per-name mean fork scores at the
+embedding; median over 8 seeds). "Gap": the mean over villain names minus the mean over kind names (one
+weight per name); "spread": the within-class standard deviation of the per-name scores; the ratio a
+behavioural signal-to-noise ratio. |v| / gap: the typical identity vector's length in units of the
+villain–kind distance at the embedding.
+
+| size | \|v\| / gap | gap: intact → identity erased | spread: intact → identity erased | gap / spread: intact → identity erased |
+|---|---|---|---|---|
+| 1M | 1.20 | 1.88 → 2.59 | 0.146 → 0.121 | 14 → 17 |
+| 3M | 1.27 | 3.30 → 3.68 | 0.152 → 0.140 | 22 → 25 |
+| 10M | 1.28 | 3.92 → 3.47 | 0.131 → 0.115 | 27 → 28 |
+| 30M | 1.34 | 5.02 → 4.45 | 0.131 → 0.119 | 37 → 36 |
+| 100M | 1.33 | 7.44 → 6.84 | 0.143 → 0.132 | 53 → 52 |
+| L1–L4 | 1.03–1.15 | 0.73–1.80 → 0.94–2.76 | 0.12–0.15 → 0.09–0.15 | 6–14 → 11–25 |
+
+* **Identity vectors are big**: longer than the whole villain–kind distance at every size (1.2–1.3 ×),
+  so "noise" is not about their size; only how the model reads them matters.
+* **Names within a class behave almost alike**: the per-name spread (≈ 0.1–0.15 nats) is small next to
+  the gap (2–7 nats), and the ratio grows with size, mostly because the gap does.
+* **At 1M, 3M and on the depth ladder identity is noise**: erasing it widens the gap and narrows the
+  spread (1M: gap/spread 14 → 17; the ladder 6–14 → 11–25). **At 10M–100M it is neutral to slightly
+  helpful**: erasing it shrinks the gap by 8–11 % while the spread barely moves (100M: 53 → 52). This is
+  the behavioural side of the identity route growing with size (section 3's first table).
 
 ## 4. Block 1's MLP reads the class (step 3a, causal)
 
@@ -447,12 +501,8 @@ https://arxiv.org/abs/1909.03368.
 3. **Main-text figure candidates (not final):** the embedding summary
    ([l0_by_size](figures/identity2/l0_by_size.png)) and the head ablation
    ([heads_causal](figures/identity2/heads_causal.png)), both.
-4. **The readout map is queued** (the "saturation curve", section 3; `scripts/readout_map.py`): (a)
-   after block 1, at every mention of the actor, the class component scaled by t from −1 through 0
-   (erased) and 1 (intact) to 2 (doubled), the persona read at each t; (b) the embedding dose grid
-   (α, β) with block 1's MLP write captured at every point (if all 25 points fall on the curve of
-   (a), the write is the sufficient statistic). Five main sizes × 8 seeds on the Mac, after the
-   identity signal/noise scan.
+4. **The readout map: done** (section 3, "The readout, mapped directly"): the transfer function
+   saturates more with size, and block 1's MLP write is essentially its only input.
 
 ## 9. Limitations
 

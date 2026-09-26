@@ -178,6 +178,44 @@ def fig_readout(out):
     plt.close(fig)
 
 
+TS = ["-1.0", "-0.5", "0.0", "0.25", "0.5", "0.75", "1.0", "1.5", "2.0"]
+
+
+def fig_readout_map(out):
+    """The transfer function after block 1 (class component at the name scaled by t) and the
+    embedding dose grid's points (persona against block 1's MLP write) on the same axes."""
+    S = [s for s in ("1M", "3M", "10M", "30M", "100M") if load("readout_map", s)]
+    if not S:
+        return
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.6), sharey=True)
+    tx = np.array([float(t) for t in TS])
+    for size in S:
+        R = load("readout_map", size)
+        m, lo, hi = ci([[r["t_curve"][t] for t in TS] for r in R])
+        axes[0].plot(tx, m, "o-", color=SIZE_C[size], lw=1.6, ms=3, label=size)
+        axes[0].fill_between(tx, lo, hi, color=SIZE_C[size], alpha=0.15, lw=0)
+        pts = np.array([[v["mlp_write"], v["persona_left"]] for r in R for v in r["dose"].values()])
+        axes[1].plot(pts[:, 0], pts[:, 1], ".", color=SIZE_C[size], alpha=0.35, ms=3)
+        axes[1].plot(tx, m, "-", color=SIZE_C[size], lw=1.4, label=size)
+    for ax in axes:
+        ax.axhline(0, color="0.7", lw=0.6)
+        ax.axvline(0, color="0.8", lw=0.6)
+    axes[0].plot(tx, tx, ":", color="0.5", lw=1, label="proportional")
+    axes[0].set_xticks(tx, [f"{x:g}" for x in tx], fontsize=7)
+    axes[0].set_xlabel("class component at the name after block 1, scaled by t")
+    axes[0].set_ylabel("persona left (" + LAB["base"] + ")")
+    axes[0].set_title("The transfer function (8 seeds, 95 % band)", fontsize=9)
+    axes[0].legend(fontsize=7)
+    axes[1].plot([-1, 2], [-1, 2], ":", color="0.5", lw=1)
+    axes[1].set_xlim(-0.1, 1.3)
+    axes[1].set_xlabel("block 1's MLP class write (fraction of intact), embedding dose grid")
+    axes[1].set_title("The dose grid's points on the transfer functions", fontsize=9)
+    axes[1].legend(fontsize=7)
+    fig.tight_layout()
+    fig.savefig(f"{out}/readout_map.png", dpi=130)
+    plt.close(fig)
+
+
 BLOCK1 = [("intact|mlp", "MLP"), ("intact|attn", "attention"), ("class|none", "embedding\nclass only"), ("class|mlp", "emb. class\n+ MLP"), ("class|attn", "emb. class\n+ attention")]
 
 
@@ -401,7 +439,7 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=Path("docs/figures/identity2"))
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
-    for f in (fig_validation, fig_identity_all, fig_l0_summary, fig_dose_all, fig_block1_causal, fig_heads, fig_flow_compare, fig_ft_locus, fig_readout):
+    for f in (fig_validation, fig_identity_all, fig_l0_summary, fig_dose_all, fig_block1_causal, fig_heads, fig_flow_compare, fig_ft_locus, fig_readout, fig_readout_map):
         f(a.out)
     json.dump(summary(), open(a.out / "summary.json", "w"), indent=1)
     joined_analysis()
