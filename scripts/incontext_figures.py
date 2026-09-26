@@ -9,6 +9,8 @@ docs/figures/incontext/:
   patching.png       name-swap activation patching: where the information sits, block by block
   history.png        the history separation (incontext_history_probe.py): all 40 models, on or not
   finetune.png       "Ben steals" on the ladder-C bases (incontext_ft.py) against the lexical bases
+  order.png          the order of formation, one row per dense 30M seed: where each piece reaches half
+                     its final value (a candidate main-text panel)
   chronology_<src>.png  the switch over training (incontext_chronology.py), per run: each piece as a
                      fraction of its final value; the lookup and copy heads are the final checkpoint's
 
@@ -281,6 +283,42 @@ def chronology(source="orig"):
     fig.savefig(OUT / f"chronology_{source}.png", dpi=110)
 
 
+def order():
+    recs = [json.load(open(f)) for f in sorted(glob.glob("logs/v4/incontext/chronology/*_dense.json"))]
+    recs = sorted([r for r in recs if r["onset_updates"]], key=lambda r: r["onset_updates"])
+    if not recs:
+        return
+    marks = {"lookup head: same-name attention": ("C0", "o"), "delivery to the test's name": ("C4", "s"),
+             "copy head: write at the decision": ("C3", "D"), "behaviour (name-swap effect)": ("k", "*")}
+    fig, ax = plt.subplots(figsize=(8.5, 3.6))
+    for i, r in enumerate(recs):
+        us = sorted(int(u) for u in r["checkpoints"])
+        cp = [r["checkpoints"][str(u)] for u in us]
+        fin = cp[-1]
+        lk = np.unravel_index(np.argmax(fin["lookup"]), np.array(fin["lookup"]).shape)
+        cy = np.unravel_index(np.argmax(fin["copy"]), np.array(fin["copy"]).shape)
+        series = {"lookup head: same-name attention": [c["lookup"][lk[0]][lk[1]] for c in cp],
+                  "delivery to the test's name": [max(c["setup"]) for c in cp],
+                  "copy head: write at the decision": [c["copy"][cy[0]][cy[1]] for c in cp],
+                  "behaviour (name-swap effect)": [c["behaviour"] for c in cp]}
+        ts = []
+        for name, y in series.items():
+            y = np.array(y)
+            ys = np.convolve(np.pad(y, 1, mode="edge"), np.ones(3) / 3, "valid")  # smoothed over three checkpoints
+            t = us[int(np.argmax(ys >= 0.5 * ys[-5:].mean()))] * 16384 / 1e6
+            ts.append(t)
+            c, m = marks[name]
+            ax.scatter(t, i, color=c, marker=m, s=60 if m == "*" else 35, zorder=3, label=name if i == 0 else None)
+        ax.plot([min(ts), max(ts)], [i, i], color="0.8", lw=1, zorder=1)
+    ax.set_yticks(range(len(recs)), [re.search(r"30M-s\d", r["run"]).group(0) for r in recs])
+    ax.set_xlabel("tokens (M) at which each piece reaches half its final value")
+    ax.legend(fontsize=8, loc="lower right")
+    ax.set_title("The in-context circuit forms upstream to downstream; the readout (copy head) is the switch\n(30M ladder-C seeds that switched on, a checkpoint every 100 updates; seed 3 never switched on)", fontsize=10)
+    fig.text(0.99, 0.005, FOOT.replace("final checkpoints", "dense checkpoints"), ha="right", fontsize=7, color="gray")
+    fig.tight_layout()
+    fig.savefig(OUT / "order.png", dpi=130)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     over_training()
@@ -294,6 +332,7 @@ def main():
         finetune()
     for source in ("orig", "dense"):
         chronology(source)
+    order()
 
 
 if __name__ == "__main__":

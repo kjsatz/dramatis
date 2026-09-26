@@ -355,3 +355,85 @@ carried nothing in pretraining. Question: does a narrow finetune spread through 
   name-identity reports). A model trained on meaningless names hardly ties the finetune to the name, and
   what it ties does not spread.
 
+
+## 11. For the paper: what goes in the main text, what in the appendix (proposal, 2026-09-26)
+
+*Written at Kevin's request; a proposal against the skeleton of `2026-09-21_SYNTHESIS.md` §2 / §9 and
+the figure plan of `2026-09-22_EXPERIMENT_PLAN.md` §3, not a decision.*
+
+**One framing point first (Kevin's call).** The skeleton's hook is "we could not make a persona from
+acts; we could from names". With v4 that holds at 1M–10M and at 1× repetition but not at 30M–100M on
+unrepeated data, where acts alone make an in-context character. Suggested wording: acts alone make no
+persona in small models, and in larger ones they make an in-context character that is a different
+object from the name persona (built at inference from the story, read by two late heads) and that a
+narrow finetune does not use (§10). That keeps the names-first arc and turns C2 into a scale result
+rather than a null.
+
+### Main text: about one page in the "names, acts and labels" section (C2), one sentence in the finetune section
+
+1. **The phenomenon, with the timing** (Figure 3, two panels). 3a as it is (k = 0 / 1 / 2 by size), plus
+   the in-context effect over training, one line per seed (`over_training.png`, 30M and 100M columns,
+   or all sizes). Text: the effect is a per-seed switch during training; larger models reach it sooner
+   and more reliably (8 / 8 at 100M, 7 / 8 at 30M, 3 / 8 at 10M, none at 1M–3M within 400M tokens);
+   the size difference in 3a is mostly how many seeds switched and how early (a seed's final effect
+   falls with its onset, r −0.7). *Why main:* it is the direct answer to "what about the larger model"
+   and it changes how 3a reads.
+2. **What the model computes, in two sentences.** It adds up both children's history (the villain's
+   bad act ≈ 60 %, the other child's good choices ≈ 40 %) and saturates (a second act adds less; a good
+   act does not cancel a bad one; no recency), unlike the corpus rule where one act decides. *Why main:*
+   it is what "inferring a character" means here; the tables go to the appendix.
+3. **The mechanism, one panel and a paragraph.** Name-swap patching at 30M (`patching.png`, the 30M
+   column): which child did what sits only on name tokens until late, then one lookup head at the
+   actor's name in the new temptation attends to that child's earlier mentions and brings their
+   history, and one copy head moves it to the decision; the same at 10M (in the last two blocks) and
+   100M; no induction heads. *Why main:* a causal circuit is the paper's standard of evidence (Figure 4
+   does the same for the name persona), and the parallel is the point: both personas end in a late
+   head copying "this child is bad" from a name to the decision; they differ in where the name's
+   badness comes from (block 1's MLP from the embedding, against a late lookup from the story).
+4. **How it forms, one panel** (`order.png`). In every seed that switched on the lookup attention forms
+   first, then delivery, then the copy head, with which the behaviour switches on (r 0.99); the seed that
+   never switched on stops at delivery. *Why main:* it is the only formation-time mechanistic result in
+   the paper, it answers "why larger" one level down (the steps come sooner), and it echoes the
+   phase-change literature while showing a different circuit (not induction heads).
+5. **In the finetune section, one sentence:** the same "Ben steals" finetune on the ladder models
+   neither spreads (spillover ≈ 0 whether the circuit is on or not) nor mostly attaches to Ben (≈ 15 ×
+   below the lexical models); spillover needs names that carried a class in pretraining. *Why main:* it
+   is a control for the paper's central claim (the finetune generalizes through a pretrained name
+   persona) and it separates the two personas.
+
+Level of detail: statements with one number each, the heads named once ("a lookup head and a copy head,
+one each, in the last third of the network"), no per-seed tables in the text. Keep out of the main text:
+d′ values, the head-attribution details, the fork-scene evidence result, the frozen-cut flag, the
+confounded probe.
+
+### Appendix sections (from this report)
+
+* **A. The in-context character: evidence and controls** (§3). The source 2 × 2 (whose history counts),
+  mixed evidence from transplanted corpus scenes, the k slope and why an ideal learner would not
+  show one, the fork-template scenes as weak evidence (≈ 4–11 % of corpus scenes, cause not
+  established), and the flag that the frozen cuts count every choice (4 / 80 rung C stories without a
+  bad act, 14 / 80 rung D stories with one). Figure `evidence.png`.
+* **B. The circuit** (§4–6). Block-level name-swap patching at 10M / 30M / 100M (`patching.png` in
+  full), the head-patching table (lookup and copy head per seed), direct logit attribution and where the
+  top heads read from (`heads.png`), no induction heads, 100M seed 4's different route; methods (the
+  aligned pairs, 96 of 240; the one-token metric).
+* **C. What the models that never switched on lack** (§7, §7b). The history separation on all 40 models
+  (`history.png`): history on the later mentions everywhere, delivery only where the circuit is used,
+  three 10M seeds that deliver without reading out; the lookup head present in the off models; the
+  order confound in the first linear probe (the villain always first-named in the probe stories), and
+  why the transplant design avoids it.
+* **D. Formation over training** (§2, §7c). The per-seed switch curves at every size; the dense 30M
+  chronology in full (`chronology_dense.png`), the coarse chronology on the v4 grid's own checkpoints
+  (`chronology_orig.png`: 10M and 100M show the same order), the bit-for-bit reproduction of the
+  retrains, the half-rise table and the timing correlations.
+* **E. A narrow finetune on models whose names meant nothing** (§10). The null: table, `finetune.png`,
+  the small attachment in switched-on bases, the 3M outlier.
+* Methods for all of these fit in the paper's general methods appendix (the transplant arms, the name
+  swap, d′ with the child control, the half-rise estimator).
+
+### Figures to make for the paper (not yet built into `paper_figures.py`)
+
+Figure 3 gains panels from `over_training.png` (compact, 30M and 100M or all sizes) and `order.png`;
+the 30M patching column fits in Figure 3 or next to Figure 4's flow for the name persona (the side by
+side of the two circuits is worth a panel of its own if space allows). All appendix figures exist in
+`docs/figures/incontext/` and rebuild from `logs/v4/incontext/` with `scripts/incontext_figures.py`.
