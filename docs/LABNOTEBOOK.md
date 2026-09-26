@@ -2478,3 +2478,53 @@ logs). One interruption, no loss: the instance was stopped at ≈ 10:30 pm when 
 out between $5 auto-charges; training had finished, the upload resumed from its manifest after a
 restart and completed at 10:44 pm. The box was destroyed at 10:45 pm; with the curing run it cost
 ≈ $36 (4.3 h × $2.80, ≈ $3 of storage, ≈ $21 of upload fees at $26.7/TB).
+
+Claude (23:54): **Susceptibility over pretraining: spillover = c(size) × persona at every checkpoint**
+(report [`2026-09-25_REPORT_susceptibility.md`](2026-09-25_REPORT_susceptibility.md); exploratory; run
+21:06–23:50 on the Mac, GPU free since 23:50). The v4 "Ben steals" / neutral finetune (unchanged, plus
+checkpoints at 10 / 20 / 50 steps) from the 41M-, 164M- and 409M-token checkpoints of v4-lex-y100 at
+1M–100M (seeds 0, 1) and a y = 0 control; 38 points (82M / 246M / 327M cut for time). Findings: (1)
+spillover ÷ base persona is flat over pretraining within a size (10M 0.21 / 0.23 / 0.21, 100M 0.38 /
+0.39 / 0.38) and grows with size (0.04, 0.09, 0.23, 0.27, 0.38); c from the final checkpoint × the
+persona predicts the earlier checkpoints' spillover (slope 1.02, r 0.94, median error 23 % per seed).
+(2) Ben's excess position after 100 steps is a size constant (flat or slightly falling over
+pretraining); A4 holds at every checkpoint (slope 0.90 / 0.95 / 1.01). (3) Dose: at 100M the first 20
+steps respond the same from every checkpoint; later checkpoints saturate higher (spillover at 100
+steps 2.2 → 3.0 → 3.3). (4) Mac = box on all 14 finals (±0.02); y = 0 stays at zero. Caveat: the
+persona is already ≈ 55–80 % formed at the first saved checkpoint, so this is maturation, not
+formation. Scripts `susceptibility_ft.py`, `susceptibility_figures.py` and the config are uncommitted
+(their sha256 is in every output JSON).
+
+Claude (23:57): **The Jacobian lens (Gurnee, Sofroniew, Lindsey et al., transformer-circuits.pub
+2026/workspace), read at Kevin's request: how it could apply here** (ideas only, nothing run). The
+J-lens is the averaged Jacobian from a layer's residual stream to the final layer (over contexts, the
+source position and all later positions), composed with the unembedding: one "would-say-this-token"
+direction per token per layer. Sparse combinations of these (the "J-space") carry ~6–15 % of the
+variance but most of the causal effect for report and flexible multi-hop use; routine processing
+bypasses them. Fits for us: (a) *Is the villain class a J-space variable?* Decompose our class axis
+(at the name, at the site) into its J-space part (lens vectors such as naughty, bad, mean, steal, thief,
+trick: single tokens in our vocab; cheat, lie, tease are split) and the rest, and patch each: their
+account predicts spillover (one variable read by several act circuits, "flexible generalization")
+routes through the J-space part more than attachment does. (b) *Does c(size) track how J-space the
+class is?* Tonight's size factor may be the class variable's alignment with the J-space, measurable
+at 1M–100M. (c) *Screening:* after "Ben steals", does the lens at " Ben" in neutral contexts read
+steal / thief / naughty (their reward-hacking model organism shows fake / secretly at response
+start)? And during curing, is the dormant trace still readable? (d) Their open question (when in
+pretraining and at what size a workspace appears) is answerable on our 5 sizes × 10 checkpoints.
+Cheap here: d ≤ 768, 1–14 layers, 4,096 tokens; one d × d matrix per layer, minutes on the Mac.
+Caveats: tiny story models may have no workspace band at all; multi-token act words need their
+§A.9 extension.
+
+Claude (05:54): **The in-context switch, watched forming: upstream to downstream, the readout last** (report
+§7c, figure `docs/figures/incontext/chronology_dense.png`; `incontext_chronology.py` on the eight dense 30M
+retrains, 00:10–05:52 on the Mac; 113 checkpoints per switched-on seed, 66 for seed 3). Thanks to the box
+session: the retrains are bit-identical to the originals. In all seven seeds that switched on, half of the
+final value is reached first by the lookup head's same-name attention (median 6,100 updates before the
+behaviour's half-rise), then the history on the later mentions (5,100, gradual), then delivery to the
+test's name (3,700), and last the copy head's write together with the behaviour (600, within the noise).
+The copy head forms 1,900–3,900 updates after delivery (median 2,900 ≈ 48M tokens); its timing matches
+the onset with r 0.99 over seeds (delivery 0.95, lookup 0.75); the late seeds (6, 2) are late at every
+step. Seed 3 (never switched on) forms the history on the mentions and the lookup attention (≈ 80 % of the
+others' finals) but never delivery (≤ 0.2), hence no copy and no behaviour. So the circuit forms from
+upstream to downstream and the readout is the switch; seeds and sizes differ in when each step is reached.
+The heads found at the end of training are the head-patching heads in every seed.

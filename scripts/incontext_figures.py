@@ -230,28 +230,45 @@ def chronology(source="orig"):
     fig, axes = plt.subplots((n + cols - 1) // cols, cols, figsize=(5.2 * cols, 4.2 * ((n + cols - 1) // cols)), squeeze=False)
     colors = {"behaviour (name-swap effect)": "k", "history on later mentions": "C2", "delivery to the test's name": "C4",
               "lookup head: same-name attention": "C0", "copy head: write at the decision": "C3"}
-    for ax, r in zip(axes.ravel(), recs):
+    def pieces(r):
         us = sorted(int(u) for u in r["checkpoints"])
         cp = [r["checkpoints"][str(u)] for u in us]
         fin = cp[-1]
         lk = np.unravel_index(np.argmax(fin["lookup"]), np.array(fin["lookup"]).shape)
         cy = np.unravel_index(np.argmax(fin["copy"]), np.array(fin["copy"]).shape)
+        return us, cp, lk, cy
+
+    # a run that never switched on has final values near 0: scale it by the switched-on runs' finals
+    ref = {}
+    for r in recs:
+        if r["onset_updates"]:
+            us, cp, lk, cy = pieces(r)
+            f = cp[-1]
+            for k, v in (("behaviour (name-swap effect)", f["behaviour"]), ("history on later mentions", max(f["far"])),
+                         ("delivery to the test's name", max(f["setup"])), ("lookup head: same-name attention", f["lookup"][lk[0]][lk[1]]),
+                         ("copy head: write at the decision", f["copy"][cy[0]][cy[1]])):
+                ref.setdefault(k, []).append(v)
+    for ax, r in zip(axes.ravel(), recs):
+        us, cp, lk, cy = pieces(r)
         series = {"behaviour (name-swap effect)": [c["behaviour"] for c in cp],
                   "history on later mentions": [max(c["far"]) for c in cp],
                   "delivery to the test's name": [max(c["setup"]) for c in cp],
                   "lookup head: same-name attention": [c["lookup"][lk[0]][lk[1]] for c in cp],
                   "copy head: write at the decision": [c["copy"][cy[0]][cy[1]] for c in cp]}
         x = np.array(us) * 16384 / 1e6
+        off = not r["onset_updates"] and ref
         for name, y in series.items():
             y = np.array(y)
-            ax.plot(x, y / (y[-1] if y[-1] else 1), color=colors[name], marker="o", ms=3, lw=1.5, label=name)
+            den = np.median(ref[name]) if off else (y[-1] if y[-1] else 1)
+            ax.plot(x, y / den, color=colors[name], marker="o", ms=3, lw=1.5, label=name)
         if r["onset_updates"]:
             ax.axvline(r["onset_updates"] * 16384 / 1e6, color="gray", ls=":", lw=1)
         ax.axhline(0, color="gray", lw=0.5)
         ax.axhline(1, color="gray", lw=0.5, ls=":")
         ax.set_ylim(-0.3, 1.6)
         short = re.search(r"ladder-C-(\w+-s\d)", r["run"]).group(1)
-        ax.set_title(f"{short}: lookup block {lk[0] + 1} head {lk[1]}, copy block {cy[0] + 1} head {cy[1]}", fontsize=10)
+        ax.set_title(f"{short}: lookup block {lk[0] + 1} head {lk[1]}, copy block {cy[0] + 1} head {cy[1]}"
+                     + ("\n(never switched on: scaled by the other seeds' final values)" if off else ""), fontsize=10)
         ax.set_xlabel("tokens (M); dotted: behaviour onset (dense probes)")
     axes[0, 0].set_ylabel("fraction of the final checkpoint's value")
     axes[0, 0].legend(fontsize=7, loc="upper left")

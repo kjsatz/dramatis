@@ -38,6 +38,11 @@ outputs `logs/v4/incontext/`; figures [`figures/incontext/`](figures/incontext/)
    names meaningless in pretraining): spillover ≈ 0 whether the circuit is on or not, and attachment
    ≈ 15× below the lexical bases (the finetune teaches "children steal more"). Spillover in the lexical
    models rests on names having carried a class.
+7. **Watched forming, it builds upstream to downstream** (§7c; the eight 30M seeds retrained with a
+   checkpoint every 100 updates). In every seed that switched on: the lookup head's attention first,
+   then delivery to the test's name, then the copy head, with which the behaviour rises (r 0.99 with the
+   onset); the copy head forms ≈ 2,900 updates after delivery. The never-switched-on seed stops at
+   delivery.
 
 ## 1. The question
 
@@ -247,6 +252,56 @@ at the readout. The 10M seeds suggest delivery forms before the readout; the den
 A d′ maximum over blocks is biased upward; the 1M–3M later-mention values (≈ 1, consistent across seeds
 and blocks) are small but not zero.
 
+## 7c. Watching the switch form (dense retrains, added 2026-09-26)
+
+![chronology](figures/incontext/chronology_dense.png)
+
+The eight 30M ladder-C seeds retrained with a checkpoint every 100 updates
+([`2026-09-25_PLAN_incontext_dense_box.md`](2026-09-25_PLAN_incontext_dense_box.md); the box session,
+notebook 2026-09-25 22:50). They **reproduce the original runs bit for bit** (every probe identical), so
+these are the original trajectories, sampled densely. `incontext_chronology.py` measured, at every 400
+updates and at every 100 within ±3,000 updates of each seed's switch (113 checkpoints per switched-on
+seed, 66 for seed 3): the behaviour (the name-swap effect at the decision, §5), the history on the
+child's later mentions and its delivery to the test's name (§7b, maximum over blocks), the lookup head's
+same-name attention and the copy head's write at the decision (§6; the heads are the final checkpoint's,
+and in every seed they are the ones head patching found). Each curve is drawn as a fraction of its final
+value. A coarser version on the original runs' ten saved checkpoints (30M seeds 0 and 1, 100M seeds 0
+and 1, 10M seed 0) shows the same order ([`chronology_orig.png`](figures/incontext/chronology_orig.png)).
+
+**The pieces form in the same order in all seven seeds that switched on**, updates at which each
+reaches half its final value (smoothed over three checkpoints):
+
+| seed | lookup attention | history on the mentions | delivery | copy write | behaviour |
+|---|---|---|---|---|---|
+| 0 | 2,800 | 5,200 | 5,400 | 7,446 | 7,900 |
+| 1 | 4,000 | 3,600 | 5,500 | 7,446 | 7,600 |
+| 4 | 2,482 | 2,482 | 5,900 | 8,100 | 9,600 |
+| 5 | 3,200 | 5,100 | 5,100 | 8,000 | 9,300 |
+| 7 | 2,800 | 3,200 | 4,800 | 7,900 | 8,300 |
+| 6 | 5,500 | 5,900 | 7,100 | 11,000 | 12,000 |
+| 2 | 5,100 | 7,100 | 9,400 | 12,500 | 13,100 |
+
+* **Upstream first, the readout last.** The lookup head's same-name attention steps up first (median
+  6,100 updates before the behaviour's half-rise), the history on the mentions builds up gradually over
+  the same period (5,100), delivery to the test's name steps up next (3,700), and the copy head's write
+  and the behaviour rise together (the copy 600 updates ahead, within the spacing of the noise). The copy
+  head forms 1,900–3,900 updates after delivery (median 2,900, ≈ 48M tokens).
+* **The readout is the switch.** The copy write's timing matches the behaviour's onset almost exactly
+  (r 0.99 over seeds), delivery's closely (0.95), the lookup attention's loosely (0.75). The late
+  seeds (6, 2) are late at every step, not only at the last.
+* **Seed 3, which never switched on,** forms the history on the mentions and the lookup attention (to
+  ≈ 80 % of the other seeds' final values, more gradually) but never the delivery (≤ 0.2 of theirs), and
+  so neither the copy nor the behaviour. It stops at delivery: its lookup head attends to the right
+  child's mentions but does not bring their history, as §7b found at the end of training. The three 10M
+  seeds that deliver without reading out (§7b) sit one stage further.
+
+So the circuit forms from upstream to downstream, each piece once its input exists: the copy head can
+only be learned once there is something at the test's name to copy, and delivery only once the lookup
+attends to the right mentions. What differs between seeds and sizes is when (and whether) each step is
+reached within the training budget. Caveats: one measure per piece (a head chosen at the end of training,
+a maximum over blocks for the separations), fractions of final values, and the history-on-mentions
+measure is the noisiest.
+
 ## 8. Flags and limitations
 
 * **The frozen cuts count every choice.** A villain's benign extra scene can be a good [CHOICE] of a
@@ -265,10 +320,9 @@ and blocks) are small but not zero.
 
 ## 9. Next steps
 
-* **Watch the switch form (option E, planned:** [`2026-09-25_PLAN_incontext_dense_box.md`](2026-09-25_PLAN_incontext_dense_box.md),
-  all eight 30M seeds, a checkpoint every 100 updates): per checkpoint around each seed's switch, the
-  history on the mentions, its delivery to the test's name, the lookup and copy heads, against the
-  behaviour's onset. §7b predicts delivery before readout.
+* **Watch the switch form:** done (§7c): delivery before readout, as §7b predicted. Open: *why* the copy
+  head takes ≈ 2,900 updates after delivery, and what sets the delivery time (the step that best predicts
+  a seed's onset besides the copy itself).
 * **Connection to the finetune (C3 / C4):** tested (§10): on the ladder bases a "Ben steals" finetune
   neither spreads nor, mostly, attaches to Ben; the in-context circuit is not a route for spillover.
 
