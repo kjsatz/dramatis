@@ -500,6 +500,10 @@ Auto-Regressive Language Models", EMNLP 2023, https://arxiv.org/abs/2304.14767.
 [4] Hewitt, Liang, "Designing and Interpreting Probes with Control Tasks", EMNLP 2019,
 https://arxiv.org/abs/1909.03368.
 
+**Main-text assessment** (2026-09-26): which of these results, and of the curing / relapse results, could
+go in the paper's main text is in [`2026-09-25_REPORT_curing_relapse.md`](2026-09-25_REPORT_curing_relapse.md),
+"For the paper" (in short: the fine-tune's locus here, section 6, is the strongest candidate).
+
 **Decisions (Kevin, 2026-09-25):**
 
 1. **5a in the paper uses the joined items**, with the change stated in the methods. Suggested

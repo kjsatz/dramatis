@@ -137,6 +137,59 @@ Sam); first learning from the pretrained model over the same steps: 0.46 at 10M,
   priming: block 1's MLP lookup for Ben. The cleaned pair's weight transplants (plan, question 2) would
   test whether that is where the savings sits; the checkpoints are on the Hub.
 
+## For the paper: what could go in the main text (assessment, 2026-09-26)
+
+Covers this report and the identity follow-up
+([`2026-09-25_REPORT_name_identity_2.md`](2026-09-25_REPORT_name_identity_2.md)). Criteria: robustness
+(seeds, intervals, sizes), relevance to the misalignment story, whether one figure carries it, and how
+simply it can be stated honestly. All exploratory, and labelled so.
+
+**Main-text candidates**
+
+1. **How a narrow fine-tune generalizes: it rewrites a lookup, not the character** (identity report,
+   section 6). Swapping Ben's embedding rows between the fine-tune and its twin does nothing (1.00 /
+   0.01); block 1's MLP alone carries 0.50–0.89 of the attachment (0.89 at 100M); the behaviour is
+   keyed on Ben's identity, not his class coordinate; after block 1 he moves a third to half of the way
+   to the villains, into the shared direction whose downstream use explains the spillover. 8 seeds × 3
+   sizes, effects near the extremes; the ROME parallel gives readers an anchor. One figure (transplants
+   plus the fine-tune's embedding 2 × 2), one paragraph. **The strongest single result.**
+2. **Cleaning and relapse depend on size** (this report). At 10M the behaviour cleans away but a
+   Ben-specific predisposition remains (relapse 0.20 [0.09, 0.32] of first learning, 8 / 8 seeds, fading
+   with more cleaning); at 100M the representation cleans more fully, a small residual behaviour stays
+   (≈ 0.04), and there is no Ben-specific relapse but a generic slowdown in relearning the act. Replaces
+   figure 5b (two sizes, dense early steps, a relapse panel). Risks: a nuanced, size-dependent story; the
+   100M null is "consistent with zero"; the matched-history and Sam controls need a sentence each.
+
+**Main text as a sentence or two, details in an appendix**
+
+3. **Two routes into the villain representation, one missed by linear erasure** (identity report,
+   sections 3–4): the class is carried on a shared axis and in each name's identity, both read by block
+   1's MLP; the identity route grows with size (write units 0.02 → 0.30). A framing sentence with the
+   LEACE citation; the 2 × 2 tables in the appendix.
+4. **One head copies the class to the decision** (identity report, section 5): its ablation removes
+   70–90 % of the persona, equally attentive heads nothing. A panel of figure 1's mechanism figure or
+   the appendix.
+5. **Behaviour reads the signal nonlinearly, more so with size** (identity report, section 3): as a
+   methods caveat in the main text (behavioural fractions understate signal fractions at 100M); the
+   transfer-function figure in the appendix.
+
+**Appendix only**
+
+6. The lag prediction (predicted direction, p = 0.09; the transfer function did not carry over):
+   reported because it was written down first, not featured.
+7. Identity as signal or noise (the SNR scan).
+8. The joined-items fix for 5a and the upward-crossing definition: methods notes where 5a appears.
+9. The in-context retrains' bitwise reproduction of the originals: one sentence on reproducibility.
+
+**Suggested arc with two main-text figures:** (A) "How a narrow fine-tune generalizes" (items 1, 3, 4:
+the fine-tune rewrites the block-1 lookup feeding a shared villain direction, which one head copies to the
+decision); (B) "What cleaning leaves behind" (item 2). With room for one, A, with B as a paragraph
+pointing to the appendix.
+
+**Before either goes in the main text:** the cleaned-pair weight transplants (does the 10M priming sit
+in block 1's MLP, where the fine-tune put it? that would join A and B), and the relapse on the fork items
+as well as the in-training probe set. Both run on the Mac from the Hub checkpoints.
+
 ## Limitations
 
 * 8 seeds per size; the relapse curves are noisy (per-seed attachments of a few nats), and the 100M
