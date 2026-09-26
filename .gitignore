@@ -53,3 +53,7 @@ logs/v4/
 hub/
 hub-v4/
 hub-gd/
+# the timeline / relapse and in-context dense boxes (2026-09-25): generated configs, staging trees
+logs/tl2/
+hub-tl2/
+hub-incontext-dense/
