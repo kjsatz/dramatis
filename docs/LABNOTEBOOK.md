@@ -2317,3 +2317,41 @@ the lookup. (4) A linear probe for which (`incontext_mention_probe.py`) is **con
 the switched-on 10M seeds use the same circuit in their last two blocks. What forms at the switch is
 open: next would be one 30M retrain with dense checkpoints (option E) or an order-balanced probe. Local
 MPS jobs ran ~8× slower while the display slept; `caffeinate -d` fixed it.
+
+Claude (16:34): **C2 mechanism, next steps decided with Kevin.** (1) Local, next: a "history"
+separation on all 40 ladder-C models, on the transplant arms (same story, names and order; the
+villain's two scenes both bad or both good): at the villain's later name mentions and at the actor's
+name in the test setup, per block, villain separation minus the other child's (story-wide mood
+cancels; no child-order confound). Expected null in models that never switched on at the setup name;
+at the mentions it says whether those models lack the write or the readout. (2) One box, later: all
+eight 30M ladder-C seeds retrained (CUDA, same configs) with checkpoints every 200 updates (≈ 124 per
+seed, ≈ 17 GB, ≈ 140 GB in all, uploaded to the Hub, weights only, fp32), to follow the lookup head,
+the character on the mentions and the copy head against the behaviour's onset; the upload not
+overlapping the curing run's (the Hub's per-account request limit is shared); job list and cost for
+Kevin's approval first. Optional on the same box: "Ben steals" finetunes of switched-on against
+never-switched-on ladder-C seeds (does spillover run through the in-context circuit?), to be
+coordinated with the finetune session. **Dropped:** continuing the never-switched-on seeds to test
+"later vs never" (extra passes repeat the corpus, so a late switch would not show what fresh data does).
+
+Claude (16:36): **Decided (Kevin): the 30M ladder-C retrain saves a checkpoint every 100 updates, and
+all of them are uploaded** (≈ 248 per seed, ≈ 34 GB, ≈ 275 GB for 8 seeds; replaces the 200-update
+spacing of 16:34), so the order in which the lookup head, the character on the mentions and the copy
+head form can be resolved (the steep part of the rise took ≈ 1,100–2,000 updates at 30M: 11–20
+checkpoints). Analysis adaptive: every 4th checkpoint throughout, every one within ±3,000 updates of
+each seed's onset (from its dense probes).
+
+Claude (16:55): **What the never-switched-on models lack: delivery, then readout** (report §7b, figure
+`docs/figures/incontext/history.png`, script `incontext_history_probe.py`; all 40 ladder-C models, final
+checkpoints). Same story, names and order, the villain's two scenes both bad or both good (the transplant
+arms), so no child-order confound; cross-validated d′ of the two histories at a child's name tokens,
+villain minus the other child. (1) On the child's later mentions in unchanged text, a history separation
+exists in **every** model, growing with size (≈ 1 at 1M–3M, 1.5–2.3 at 10M, 2–3 at 30M / 100M), 30M seed
+3 included (1.9). (2) At the actor's name in the test setup: flat at 1M, 3M, 30M seed 3, 10M seeds 3, 4;
+a late jump (d′ 2.4–5.9 at ≈ 60–80 % of depth) in every switched-on model but 100M seed 4 (which looks
+up from the ending's name). (3) 10M seeds 1, 6, 7 get it there (4.3, 3.2, 2.3) without using it (rung C
+0.12, 0.18, −0.04): delivery without readout. So the pieces are staged (history on the mentions →
+delivery by the lookup head → readout by the copy head) and the off models stop at different stages; the
+10M seeds suggest delivery forms before readout, which the dense 30M retrain can test. Also written:
+`docs/2026-09-25_PLAN_incontext_dense_box.md` for the box session (eight 30M retrains, checkpoint every
+100 updates, `configs/incontext_dense/`, `scripts/dense_upload.py` to the Hub branch incontext-dense
+after the curing upload; ≈ 2.7 h, ≈ $17, cost to be confirmed with Kevin).

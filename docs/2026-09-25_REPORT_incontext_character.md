@@ -28,12 +28,12 @@ outputs `logs/v4/incontext/`; figures [`figures/incontext/`](figures/incontext/)
    copies it to the decision (0.58–1.0 alone). The handoff sits in the last
    third of the network at every size (block 5 of 6 at 10M, 7–8 of 10 at 30M, 8–12 of 14 at 100M). No
    classic induction heads exist in any of these models.
-5. **The models that never switched on have the lookup head, but it retrieves nothing that matters.**
-   30M seed 3 and 10M seeds 1 and 3 have a head that attends from the actor's name to the same child's
-   earlier mentions (+0.42 to +0.71 more than to the other child's), yet swapping the children's
-   names leaves their decision unchanged. What they lack is the character on those mentions or its
-   readout, not the lookup. Which of the two is not settled (the representation probe was confounded by
-   child order, §7).
+5. **What the models that never switched on lack is the delivery to the test's name, and then the
+   readout** (added later the same day, §7b). With the same story, names and order and only the
+   villain's history changed, *every* model, down to 1M, writes the history onto the child's later
+   name mentions; only the switched-on models bring it to the actor's name in the test (null at 1M,
+   3M, 30M seed 3, 10M seeds 3 and 4), and three 10M seeds bring it there without using it (seeds
+   1, 6, 7: delivered, rung C ≈ 0). The lookup head exists in the off models too, but carries nothing.
 
 ## 1. The question
 
@@ -201,7 +201,7 @@ What the causal tests establish:
   rise monotonically with size here (5 / 7 / 6 / 10 / 14 blocks for 1M → 100M; 3M is deeper than 10M
   and never switches on), so width or total capacity, not depth alone, sets the timing.
 
-Not established: **what forms at the switch**. A linear probe for "villain's mention against the other
+Not established here: **what forms at the switch** (§7b takes it further on the final checkpoints). A linear probe for "villain's mention against the other
 child's" (`incontext_mention_probe.py`) was confounded: in all 80 probe stories the villain is the
 first-named child (preliminary report, flag 6), so a plain "introduced first" feature separates them as
 well. (In v4-one the villain's slot follows its type: a generalist villain is always $A, a specialist
@@ -210,6 +210,38 @@ and 4,000 stories); the probes use generalists only, which fixes the villain fir
 switched on (10M s1, d′ 3.9, against 3.6–4.8 in the switched-on 10M seeds) and cannot say whether it is
 character or order. The name swap exchanges the order too, but its effect on the *decision* is ≈ 0 in
 the off models, so order alone does not drive the behaviour.
+
+## 7b. The history on the names, in every model (added later the same day)
+
+![history](figures/incontext/history.png)
+
+`incontext_history_probe.py`, all 40 models. The transplant arms give the same story, names and order
+twice, the villain's two scenes both bad or both good (§3); nothing else differs, so there is no
+child-order confound. At a child's name tokens after every block, a cross-validated d′ of bad-bad
+against good-good history, the villain's minus the other child's (a story-wide mood moves both). Two
+places: the child's *later* mentions in text that is identical in the two versions ("Jake walked along
+the beach" after the act: any difference arrived by attention), and the actor's name in the test setup.
+At the embedding both are ≈ 0.
+
+* **Later mentions: every model.** A history separation at mid depth in all 40 models, growing with
+  size (d′ ≈ 1 at 1M–3M, 1.5–2.3 at 10M, 2–3 at 30M and 100M), switched on or not (30M seed 3: 1.9).
+  Carrying a child's history onto its later mentions is not what switches on.
+* **The test's name: only where it is used, or nearly.** Flat at 1M and 3M (≤ 0.4 in 14 of 16 models,
+  ≈ 1.1 in two), at 30M seed 3 (0.6) and 10M seeds 3 and 4 (≤ 0.3); a late jump to 2.4–5.9 in every
+  switched-on model (at ≈ 60–80 % of depth), except 100M seed 4 (1.0), which looks up from the ending's
+  name instead (§6).
+* **Delivered but not used:** 10M seeds 1, 6 and 7 bring the history to the test's name (d′ 4.3, 3.2,
+  2.3) with rung C 0.12, 0.18, −0.04. Their copy step (the readout into the decision) is missing or weak;
+  seed 1's dense probe was starting to rise at k = 2 by the end of training.
+
+So the pieces are staged: the history on the mentions (everywhere), its delivery to the test's name by
+the lookup head (the models that switched on, and three 10M seeds), and the readout into the decision (the
+models that switched on). The off models fail at different stages: 1M, 3M, 30M seed 3 and 10M seeds 3, 4
+at delivery (their lookup-like heads attend to the right child but bring no history), 10M seeds 1, 6, 7
+at the readout. The 10M seeds suggest delivery forms before the readout; the dense retrain (option E,
+[`2026-09-25_PLAN_incontext_dense_box.md`](2026-09-25_PLAN_incontext_dense_box.md)) can test that order.
+A d′ maximum over blocks is biased upward; the 1M–3M later-mention values (≈ 1, consistent across seeds
+and blocks) are small but not zero.
 
 ## 8. Flags and limitations
 
@@ -227,14 +259,17 @@ the off models, so order alone does not drive the behaviour.
 * Linear, one-token metric (the logit difference where the endings first differ) for the head and
   patching measures; the evidence arms use the full ending log-odds.
 
-## 9. Next steps (not started)
+## 9. Next steps
 
-* **Watch the switch form (the deferred option E).** One 30M ladder-C seed retrained with dense
-  checkpoints around 100–250M tokens (≈ 45 min on one 5090, several hours on the Mac), tracking the lookup
-  head, the copy head and the character on the mentions against the behaviour's onset: which piece
-  arrives last is what the switch is.
-* **An order-balanced probe** (the villain second-named in half the stories; evaluation only) would
-  un-confound §7's representation question on the existing checkpoints.
-* **Connection to the finetune (C3 / C4):** the lexical models read a *name's* class through block 1's
-  MLP and copy it late with one head; here the class is built from the story and copied late the same
-  way. Whether a finetune's spillover in the ladder models runs through these heads is open.
+* **Watch the switch form (option E, planned:** [`2026-09-25_PLAN_incontext_dense_box.md`](2026-09-25_PLAN_incontext_dense_box.md),
+  all eight 30M seeds, a checkpoint every 100 updates): per checkpoint around each seed's switch, the
+  history on the mentions, its delivery to the test's name, the lookup and copy heads, against the
+  behaviour's onset. §7b predicts delivery before readout.
+* **Connection to the finetune (C3 / C4):** in the lexical models a finetune works by giving Ben's name
+  a new entry in block 1's MLP (Ben → the villain class), which the base model's own late copy head then
+  carries to every act. The ladder models have no name → class entries, but the switched-on ones have an
+  act-general "this child is bad" feature on the actor's name, delivered by the lookup head and read by the
+  copy head. A "Ben steals" finetune on switched-on against never-switched-on ladder seeds asks whether a
+  finetune can write into that feature: spillover in the switched-on seeds only would make the in-context
+  circuit a route for spillover in a model whose names mean nothing. Cheap (100-step finetunes, local);
+  to be coordinated with the finetune session.

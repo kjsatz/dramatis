@@ -7,6 +7,7 @@ docs/figures/incontext/:
   evidence.png       which evidence it uses (incontext_summary.py)
   heads.png          the top head's direct write for the villain against rung C, per model; its block
   patching.png       name-swap activation patching: where the information sits, block by block
+  history.png        the history separation (incontext_history_probe.py): all 40 models, on or not
 
     uv run python scripts/incontext_figures.py
 """
@@ -128,6 +129,47 @@ def patching():
     fig.savefig(OUT / "patching.png", dpi=110)
 
 
+def history():
+    recs = [json.load(open(f)) for f in sorted(glob.glob("logs/v4/incontext/history_probe/*.json"))]
+    fig, axes = plt.subplots(2, 6, figsize=(24, 8.5), gridspec_kw={"width_ratios": [1, 1, 1, 1, 1, 1.4]})
+    for j, size in enumerate(SIZES):
+        for r in [r for r in recs if f"-{size}-" in r["run"]]:
+            on = r["rungC"] > ON
+            c = "C3" if on else "0.55"
+            for i, k in enumerate(("far", "setup")):
+                y = np.array(r[f"v_{k}"]) - np.array(r[f"o_{k}"])
+                x = np.arange(len(y)) / (len(y) - 1)
+                axes[i, j].plot(x, y, color=c, lw=1.6 if on else 1.0, alpha=0.9 if on else 0.7)
+                if not on and y.max() > 2:  # a seed that is not on but has the history there
+                    axes[i, j].annotate(r["run"].split("-")[-1], (x[y.argmax()], y.max()), fontsize=7, color="0.3")
+        axes[0, j].set_title(f"{size}" + (f"  (red: switched on, rung C > {ON}; grey: not)" if j == 0 else ""), fontsize=10)
+        for i in range(2):
+            axes[i, j].axhline(0, color="gray", lw=0.5)
+            axes[i, j].set_ylim(-1, 6.5)
+        axes[1, j].set_xlabel("depth (block / number of blocks; 0 = the embedding)")
+    axes[0, 0].set_ylabel("the child's later mentions, in unchanged text\nvillain d' − other child's d' (bad-bad vs good-good history)")
+    axes[1, 0].set_ylabel("the actor's name in the test setup\nvillain d' − other child's d'")
+    for i, k in enumerate(("far", "setup")):
+        ax = axes[i, 5]
+        for r in recs:
+            y = np.array(r[f"v_{k}"]) - np.array(r[f"o_{k}"])
+            size = r["run"].split("-")[3]
+            ax.scatter(r["rungC"], y.max(), color=SIZE_COLOR[size], s=30, label=size)
+            if size == "10M" or r["run"].endswith("30M-s3") or r["run"].endswith("100M-s4"):
+                ax.annotate(r["run"].split("-", 3)[3], (r["rungC"], y.max()), fontsize=6, xytext=(3, 2), textcoords="offset points")
+        h, lab = ax.get_legend_handles_labels()
+        ax.legend(dict(zip(lab, h)).values(), dict(zip(lab, h)).keys(), fontsize=8)
+        ax.set_xlabel("rung C at the final checkpoint (nats)")
+        ax.set_ylabel("largest separation over blocks")
+        ax.axvline(ON, color="gray", lw=0.5, ls=":")
+    axes[0, 5].set_title("per model: later mentions")
+    axes[1, 5].set_title("per model: the test setup's name")
+    fig.suptitle("Is the child's history written on its name? Same story, names and order; the villain's two scenes both bad or both good (transplanted corpus scenes); cross-validated d′, villain minus the other child")
+    fig.text(0.99, 0.005, FOOT, ha="right", fontsize=8, color="gray")
+    fig.tight_layout()
+    fig.savefig(OUT / "history.png", dpi=100)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     over_training()
@@ -135,6 +177,8 @@ def main():
     heads()
     if glob.glob("logs/v4/incontext/patching/*.json"):
         patching()
+    if glob.glob("logs/v4/incontext/history_probe/*.json"):
+        history()
 
 
 if __name__ == "__main__":
