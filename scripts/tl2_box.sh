@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # The timeline / relapse runs on one box (docs/2026-09-25_PLAN_timeline_relapse.md): the 100M and 10M
 # chains of seeds 0-7 (timeline_relapse.py train, then eval), seed s on GPU s mod the number of GPUs
-# (on 4 GPUs, two 100M and two 10M chains share each), and one uploader sending finished runs every 10 minutes (tl2_upload.py). BLAS threads are
-# capped per process (unset, each process starts one per core and 16 of them starve the CPU).
+# (on 4 GPUs, two 100M and two 10M chains share each), and one uploader sending finished runs every
+# 10 minutes (tl2_upload.py). BLAS threads are capped per process at cores / 16 (unset, each process
+# starts one per core and 16 of them starve the CPU).
 #   bash scripts/tl2_box.sh            # from ~/dramatis on the box; logs in ~/tl2logs
 cd "$(dirname "$0")/.."
-export PATH=/usr/local/bin:$HOME/.local/bin:$PATH OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+T=$(( $(nproc) / 16 )); T=$(( T < 2 ? 2 : (T > 8 ? 8 : T) ))  # 16 processes share the cores
+export PATH=/usr/local/bin:$HOME/.local/bin:$PATH OMP_NUM_THREADS=$T MKL_NUM_THREADS=$T OPENBLAS_NUM_THREADS=$T
 L=~/tl2logs
 mkdir -p $L
 job() {
