@@ -1,0 +1,16 @@
+# The v4 finetune (configs/finetune.yaml) unchanged, except for checkpoints at 10, 20 and 50 updates
+# (the last, 100, is always saved), so one run gives four doses of the same finetune
+# (scripts/susceptibility_ft.py, 2026-09-25).
+train:
+  batch_size: 32
+  n_steps: 100
+  peak_lr: 1.0e-4
+  final_lr: 1.0e-5
+  lr_warmup_steps: 10
+  max_gradient_norm: 1.0
+  log_every: 5
+  eval_every: 10
+  n_val_batches: 4
+  checkpoint_at: [10, 20, 50]
+  resumable_checkpoints: false
+  precision: bf16

@@ -2528,3 +2528,17 @@ step. Seed 3 (never switched on) forms the history on the mentions and the looku
 others' finals) but never delivery (≤ 0.2), hence no copy and no behaviour. So the circuit forms from
 upstream to downstream and the readout is the switch; seeds and sizes differ in when each step is reached.
 The heads found at the end of training are the head-patching heads in every seed.
+
+# 2026-09-26
+
+Claude (07:17): **Susceptibility results: main text or appendix** (assessment added to
+[`2026-09-25_REPORT_susceptibility.md`](2026-09-25_REPORT_susceptibility.md), "For the paper"; Kevin's
+decision pending). On the paper's per-act definition (spillover on each untaught act against the persona
+on it, as in 4a) the per-size slope is flat over pretraining (41M / 164M / final: 10M 0.30 / 0.34 / 0.34,
+100M 0.57 / 0.57 / 0.56) and close to 4a's across-corpus slopes. Proposed: (main text) the checkpoints as
+extra markers on 4a, with a sentence that the persona is the base model's whole susceptibility along
+pretraining as well as across corpora, which becomes the main-text form of "predictable from the base
+model", with the GD test (5c) possibly moving to the appendix (Kevin's call); (a clause each) A4 at every
+checkpoint, the finetune's reach set by size; (appendix) the dose curves, attachment over pretraining,
+the Mac-vs-box and y = 0 checks. Before main text: per-act figures overlaid on 4a, the three missing
+checkpoints (≈ 1.8 h Mac), ideally a formation-period retrain.
