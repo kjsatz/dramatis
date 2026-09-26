@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# The timeline / relapse runs on one 8-GPU box (docs/2026-09-25_PLAN_timeline_relapse.md): per GPU g,
-# the 100M chain of seed g and the 10M chain of seed g side by side (timeline_relapse.py train, then
-# eval), and one uploader sending finished runs every 10 minutes (tl2_upload.py). BLAS threads are
+# The timeline / relapse runs on one box (docs/2026-09-25_PLAN_timeline_relapse.md): the 100M and 10M
+# chains of seeds 0-7 (timeline_relapse.py train, then eval), seed s on GPU s mod the number of GPUs
+# (on 4 GPUs, two 100M and two 10M chains share each), and one uploader sending finished runs every 10 minutes (tl2_upload.py). BLAS threads are
 # capped per process (unset, each process starts one per core and 16 of them starve the CPU).
 #   bash scripts/tl2_box.sh            # from ~/dramatis on the box; logs in ~/tl2logs
 cd "$(dirname "$0")/.."
@@ -17,10 +17,11 @@ job() {
 }
 nohup uv run python scripts/tl2_upload.py push --loop 600 > $L/upload.log 2>&1 &
 UP=$!
-for g in 0 1 2 3 4 5 6 7; do
-  job $g 100M $g &
+NGPU=$(nvidia-smi --list-gpus | wc -l)
+for s in 0 1 2 3 4 5 6 7; do
+  job $((s % NGPU)) 100M $s &
   sleep 5
-  job $g 10M $g &
+  job $((s % NGPU)) 10M $s &
   sleep 5
 done
 wait $(jobs -p | grep -v "^$UP$")
