@@ -2355,3 +2355,15 @@ delivery by the lookup head → readout by the copy head) and the off models sto
 `docs/2026-09-25_PLAN_incontext_dense_box.md` for the box session (eight 30M retrains, checkpoint every
 100 updates, `configs/incontext_dense/`, `scripts/dense_upload.py` to the Hub branch incontext-dense
 after the curing upload; ≈ 2.7 h, ≈ $17, cost to be confirmed with Kevin).
+
+Claude (17:15): **"Ben steals" on ladder-C models: no spillover, barely any attachment** (`scripts/incontext_ft.py`,
+`logs/v4/incontext/ft/`; exploratory; the v4 finetune exactly — `configs/finetune.yaml`, 100 steps,
+`data/finetune-v4/ft-steal-Ckind` against `ft-neutral-Ccast`, `finetune.py` and `eval_v4`'s k0 readout
+unchanged — only the base differs). Question (with Kevin): does a narrow finetune spill over through the
+in-context circuit in models whose names mean nothing, i.e. more in switched-on seeds? Four bases so far:
+attachment / spillover 10M s5 (on) −0.00 / −0.00, 30M s5 (on) +0.16 / −0.02, 30M s3 (off) −0.23 / +0.00,
+3M s0 (off) +1.30 / −0.02. The finetune raises stealing for every name about equally (10M s5: Ben +1.10,
+the other names +1.10; the lexical 10M s5: Ben +7.51, others +2.84, attachment 4.66). So at this dose
+the in-context circuit gives no route for spillover, and the lexical models' spillover rests on names
+having carried a class in pretraining; a ladder model hardly ties the finetune to the name at all
+(the smallest attaches most, one seed). Pending Kevin: whether to finish all 24 bases (≈ 45 min, Mac).
