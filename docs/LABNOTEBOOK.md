@@ -2389,3 +2389,16 @@ block, as a fraction of its post-fine-tune value), at matched clean steps from 1
 does relative to the same position fraction. Not predicted: the absolute speed of cleaning at either
 size. Also noted (with Kevin): 1M curing would not add the linear case, since 10M is already
 proportional below t = 1 and 1M's attachment (median 0.55 nats) is too small for fractions.
+
+Claude (19:19): **A first chronology of the in-context switch, from the v4 grid's own intermediate checkpoints**
+(`scripts/incontext_chronology.py`, figure `docs/figures/incontext/chronology_orig.png`; exploratory). Seeds
+0 and 1 of every ladder run kept ten checkpoints (every 2,482 updates); measured at each: the name-swap
+behaviour, the history on later mentions and its delivery to the test's name (report §7b), the lookup
+head's same-name attention and the copy head's write at the decision (the final checkpoint's heads, which
+match head patching). In all five runs (30M s0, s1; 100M s0, s1; 10M s0) the same order: the history on
+the mentions and the lookup attention first, then delivery, then the copy write together with the
+behaviour. Clearest at 10M s0: delivery essentially complete by ≈ 250M tokens while the copy write and
+the behaviour stay at 0 until then (the three 10M seeds that deliver without reading out, §7b, look like
+this stage frozen). So the readout is the last piece, the one that gates the behaviour. Coarse (2,482-update
+spacing); the dense retrain (100-update spacing, all eight 30M seeds, running on the box) will resolve it;
+its chronology runs overnight on the Mac when the upload is complete.

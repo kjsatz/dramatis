@@ -9,6 +9,8 @@ docs/figures/incontext/:
   patching.png       name-swap activation patching: where the information sits, block by block
   history.png        the history separation (incontext_history_probe.py): all 40 models, on or not
   finetune.png       "Ben steals" on the ladder-C bases (incontext_ft.py) against the lexical bases
+  chronology_<src>.png  the switch over training (incontext_chronology.py), per run: each piece as a
+                     fraction of its final value; the lookup and copy heads are the final checkpoint's
 
     uv run python scripts/incontext_figures.py
 """
@@ -218,6 +220,50 @@ def finetune():
     fig.savefig(OUT / "finetune.png", dpi=110)
 
 
+def chronology(source="orig"):
+    recs = [json.load(open(f)) for f in sorted(glob.glob("logs/v4/incontext/chronology/*.json"))]
+    recs = [r for r in recs if r["source"] == source and len(r["checkpoints"]) > 1]
+    if not recs:
+        return
+    n = len(recs)
+    cols = min(n, 4)
+    fig, axes = plt.subplots((n + cols - 1) // cols, cols, figsize=(5.2 * cols, 4.2 * ((n + cols - 1) // cols)), squeeze=False)
+    colors = {"behaviour (name-swap effect)": "k", "history on later mentions": "C2", "delivery to the test's name": "C4",
+              "lookup head: same-name attention": "C0", "copy head: write at the decision": "C3"}
+    for ax, r in zip(axes.ravel(), recs):
+        us = sorted(int(u) for u in r["checkpoints"])
+        cp = [r["checkpoints"][str(u)] for u in us]
+        fin = cp[-1]
+        lk = np.unravel_index(np.argmax(fin["lookup"]), np.array(fin["lookup"]).shape)
+        cy = np.unravel_index(np.argmax(fin["copy"]), np.array(fin["copy"]).shape)
+        series = {"behaviour (name-swap effect)": [c["behaviour"] for c in cp],
+                  "history on later mentions": [max(c["far"]) for c in cp],
+                  "delivery to the test's name": [max(c["setup"]) for c in cp],
+                  "lookup head: same-name attention": [c["lookup"][lk[0]][lk[1]] for c in cp],
+                  "copy head: write at the decision": [c["copy"][cy[0]][cy[1]] for c in cp]}
+        x = np.array(us) * 16384 / 1e6
+        for name, y in series.items():
+            y = np.array(y)
+            ax.plot(x, y / (y[-1] if y[-1] else 1), color=colors[name], marker="o", ms=3, lw=1.5, label=name)
+        if r["onset_updates"]:
+            ax.axvline(r["onset_updates"] * 16384 / 1e6, color="gray", ls=":", lw=1)
+        ax.axhline(0, color="gray", lw=0.5)
+        ax.axhline(1, color="gray", lw=0.5, ls=":")
+        ax.set_ylim(-0.3, 1.6)
+        short = re.search(r"ladder-C-(\w+-s\d)", r["run"]).group(1)
+        ax.set_title(f"{short}: lookup block {lk[0] + 1} head {lk[1]}, copy block {cy[0] + 1} head {cy[1]}", fontsize=10)
+        ax.set_xlabel("tokens (M); dotted: behaviour onset (dense probes)")
+    axes[0, 0].set_ylabel("fraction of the final checkpoint's value")
+    axes[0, 0].legend(fontsize=7, loc="upper left")
+    for ax in axes.ravel()[n:]:
+        ax.axis("off")
+    what = "the v4 grid's ten checkpoints (seeds 0 and 1)" if source == "orig" else "the dense retrains, a checkpoint every 100 updates"
+    fig.suptitle(f"The in-context switch over training: which piece forms first? ({what})", fontsize=10)
+    fig.text(0.99, 0.005, FOOT.replace("final checkpoints", "checkpoints"), ha="right", fontsize=8, color="gray")
+    fig.tight_layout()
+    fig.savefig(OUT / f"chronology_{source}.png", dpi=110)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     over_training()
@@ -229,6 +275,8 @@ def main():
         history()
     if glob.glob("logs/v4/incontext/ft/*.json"):
         finetune()
+    for source in ("orig", "dense"):
+        chronology(source)
 
 
 if __name__ == "__main__":
