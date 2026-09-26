@@ -361,13 +361,12 @@ carried nothing in pretraining. Question: does a narrow finetune spread through 
 *Written at Kevin's request; a proposal against the skeleton of `2026-09-21_SYNTHESIS.md` §2 / §9 and
 the figure plan of `2026-09-22_EXPERIMENT_PLAN.md` §3, not a decision.*
 
-**One framing point first (Kevin's call).** The skeleton's hook is "we could not make a persona from
-acts; we could from names". With v4 that holds at 1M–10M and at 1× repetition but not at 30M–100M on
-unrepeated data, where acts alone make an in-context character. Suggested wording: acts alone make no
-persona in small models, and in larger ones they make an in-context character that is a different
-object from the name persona (built at inference from the story, read by two late heads) and that a
-narrow finetune does not use (§10). That keeps the names-first arc and turns C2 into a scale result
-rather than a null.
+**The framing (settled with Kevin, 2026-09-26).** The skeleton's hook ("we could not make a persona
+from acts; we could from names") was a 1×-era conclusion and is false with the v4 corpus at 30M–100M;
+dated notes now say so where it was stated (`2026-09-20_OVERVIEW.md`, `2026-09-21_SYNTHESIS.md`, the C2
+row of `2026-09-22_EXPERIMENT_PLAN.md`). The paper can say: acts alone make no persona in small models;
+in larger ones they make an in-context character, a different object from the name persona (built at
+inference from the story, read by two late heads) that a narrow finetune does not use (§10).
 
 ### Main text: about one page in the "names, acts and labels" section (C2), one sentence in the finetune section
 

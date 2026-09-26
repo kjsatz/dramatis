@@ -7,6 +7,13 @@ loss microstructure at the label-binding step, the spillover re-fit, the mechani
 for a second taught act, and the five paper figures as a script. `2026-09-20_OVERVIEW.md` is the
 argument from first principles; the dated reports hold the tables; this is the plan for the paper.*
 
+> **Note (2026-09-26): the "no persona from acts" conclusion below was a 1×-era result and turned out
+> to be false with the larger v4 corpus (≈ 20× the stories, unrepeated) at 30M and 100M.** There, acts
+> alone do make an in-context character (rung C, k = 1: 1.8 / 2.2 nats; rung D, k = 2: 2.8 / 3.2), formed
+> by a per-seed switch during training (8 / 8 seeds at 100M, 7 / 8 at 30M, 3 / 8 at 10M, none at 1M–3M
+> within 400M tokens) through a late lookup head and a copy head. It still holds at 1M–10M and at 1×.
+> See [`2026-09-24_REPORT_v4_preliminary.md`](2026-09-24_REPORT_v4_preliminary.md) C2 and [`2026-09-25_REPORT_incontext_character.md`](2026-09-25_REPORT_incontext_character.md). The statements below are kept as written.
+
 ## 0. The claim, as an abstract
 
 The persona-selection account of emergent misalignment says that a narrow bad finetune
@@ -37,6 +44,9 @@ small size leave the direction intact and lower the gain with which it is read; 
 survives to 1.6M parameters, while the binding of the persona to the actor and of a finetune to
 a name degrade below 10M. The corpora, checkpoints and probes are released.
 
+> **Note (2026-09-26):** false at 30M–100M on the v4 corpus, where acts alone make an in-context
+> character; see the note at the top and [`2026-09-24_REPORT_v4_preliminary.md`](2026-09-24_REPORT_v4_preliminary.md) C2 and [`2026-09-25_REPORT_incontext_character.md`](2026-09-25_REPORT_incontext_character.md).
+
 ## 1. Does it belong on arXiv?
 
 Yes, cs.LG cross-listed to cs.CL, with the README and a thread pointing at it. What makes it a
@@ -61,6 +71,9 @@ epochs produced no persona from acts and no generalization from a narrow finetun
 name became a corpus-wide fact, everything switched on at once. The paper should say this in the
 introduction: we could not make a persona from acts; we could from names; then every prediction
 of the account could be tested.
+
+> **Note (2026-09-26):** false at 30M–100M on the v4 corpus, where acts alone make an in-context
+> character; see the note at the top and [`2026-09-24_REPORT_v4_preliminary.md`](2026-09-24_REPORT_v4_preliminary.md) C2 and [`2026-09-25_REPORT_incontext_character.md`](2026-09-25_REPORT_incontext_character.md).
 
 1. **Introduction.** Emergent misalignment, the persona-selection account, its prediction, why a
    miniature, five contributions.
@@ -178,6 +191,9 @@ Wording that the morning version over-read, with the replacement and the evidenc
   3a); break (the persona reaches one unperformed act, the finetune none); the steering result
   (the abstract's second sentence); the pre-stated scaling-down predictions (two held, one
   failed; one sentence in the scale section).
+
+> **Note (2026-09-26):** false at 30M–100M on the v4 corpus, where acts alone make an in-context
+> character; see the note at the top and [`2026-09-24_REPORT_v4_preliminary.md`](2026-09-24_REPORT_v4_preliminary.md) C2 and [`2026-09-25_REPORT_incontext_character.md`](2026-09-25_REPORT_incontext_character.md).
 
 *Addendum 2026-09-23: the cheat and tease slopes and intercepts in the first bullet were probe
 artefacts (fixed in `59477f1`): with matched items, cheat 0.42 with intercept −0.27 [−0.55, −0.02],

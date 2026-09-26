@@ -107,6 +107,10 @@ partly; predictable from the base model) → capacity (what size and depth chang
 | C5 | Beyond the performed acts generalization is narrow: the persona reaches break | new held-out items | anything — report it |
 | C6 | Capacity: the direction and the persona exist from 1.6M; the actor binding and the finetune's name-specificity fail below 10M; the gain and the label onset improve with size; what a 1-, 2-, 3- or 4-layer model keeps and loses | the grid at every size and depth, story quality | — (descriptive; exploratory for the depth ladder) |
 
+> **Note (2026-09-26):** C2's first clause ("acts alone do not make a persona", from 1×) turned out to be
+> false on the v4 corpus at 30M and 100M: rung C and D are positive there (outside the predicted null),
+> through a switch during training; see [`2026-09-24_REPORT_v4_preliminary.md`](2026-09-24_REPORT_v4_preliminary.md) C2 and [`2026-09-25_REPORT_incontext_character.md`](2026-09-25_REPORT_incontext_character.md). The row is left as frozen.
+
 ## 3. Figures
 
 Main text, 15 panels:
