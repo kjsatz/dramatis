@@ -2402,3 +2402,79 @@ the behaviour stay at 0 until then (the three 10M seeds that deliver without rea
 this stage frozen). So the readout is the last piece, the one that gates the behaviour. Coarse (2,482-update
 spacing); the dense retrain (100-update spacing, all eight 30M seeds, running on the box) will resolve it;
 its chronology runs overnight on the Mac when the upload is complete.
+
+Claude (19:25): **The GD test (R17, report C4) reread with Kevin: three small additions, no new compute**
+(from `hub-v4/box-3/logs/v4/gd/gd_finetune_v4.json`). (1) The across-model slope at D/16 is not carried
+by a few extreme groups: on the 64 lexical y = 0.5–0.95 bases alone (predicted attachment −0.10 to +0.14)
+the slope is 0.94, r 1.00 (spillover 0.90, r 0.99), so the base model predicts even the seed-to-seed
+differences in the small-step response. (2) On those same bases GD predicts, and delivers, slightly
+*negative* attachment (≈ −0.04), while the Adam finetune gives +0.3 to +2.5: GD and Adam differ in
+sign, not only in size. (3) The base-model GD prediction still ranks the Adam outcomes across the 104
+bases: Spearman 0.62 (attachment), 0.57 (spillover); signGD 0.19 / 0.63. A draft "measured against
+predicted along the dose" plot on the dose model (GD and signGD series, Adam's endpoint, y = x) shows
+both on y = x up to ≈ 1 nat, bending below it after, with GD diverging at 2.8 × D and above. Framing
+proposed to Kevin (not decided): the finetune is linear in the representation (A4, position × persona,
+slope 1.00 out to several nats) but linear in the weights only to ≈ 1 nat.
+
+Claude (19:32): **Susceptibility for the base models: which definition? A check before building
+anything** (same file, 104 v4 10M bases). Kevin wants a base-model "susceptibility" charted against
+size, seed and pretraining time, and later on the curing / relapse checkpoints. The natural gradient
+definition, χ_a = −⟨∇θ R_a, ∇θ L_taught − ∇θ L_neutral⟩ (the per-unit GD prediction), ranks the Adam
+finetune outcomes with Spearman 0.62 (attachment) / 0.57 (spillover); normalized per nat of taught loss
+learned, 0.66 / 0.51. The base model's persona alone (N − K log-odds on the forks, a forward pass)
+ranks them at **0.89 / 0.83**. The gradient χ also has the wrong sign on the lexical y ≤ 0.95 bases
+(GD lowers Ben's attachment there; Adam raises it), and its spillover ÷ attachment ratio is undefined
+where attachment is near zero. So, as a predictor of the finetune we actually run, the representation
+beats the gradient; discussed with Kevin at 19:32 which susceptibility to chart (not yet decided).
+
+Claude (21:10): **Susceptibility over pretraining: running on the Mac now, GPU busy until ≤ 00:45 PT**
+(Kevin's go; exploratory; `scripts/susceptibility_ft.py`, `configs/susceptibility_ft.yaml`, outputs
+`logs/v4/susceptibility/`, report to come as `docs/2026-09-25_REPORT_susceptibility.md`). **For the other
+session:** (updated 21:26, Kevin) the script starts no new point after 23:48 PT, so the MPS GPU is free
+by midnight for the overnight job (which checks at 00:07). Design (decided with Kevin): the v4 "Ben steals" / neutral finetune unchanged
+(100 steps, checkpoints also at 10 / 20 / 50 updates for a dose curve) started from the *intermediate*
+pretraining checkpoints (seeds 0 and 1 only have them: every 2,496 updates ≈ 41M tokens); readout, base
+persona and Ben's position as `eval_v4.ev_ft`. Arm A: y = 1, 1M–100M, checkpoints 2496 / 4992 / 9984 /
+14976 / 19968 / final; arm B (control): y = 0, 10M and 30M, 2496 / 9984 / final. Run coarse to fine.
+Inventory note: at y = 1 the persona (probes.jsonl) is already 50–80 % of its final value by the first
+saved checkpoint, so this covers maturation, not formation. Pilot: the Mac reproduces the box on
+v4-lex-y100-10M-s0's final (attachment 7.94 against 7.92, spillover 1.87 / 1.87, persona identical,
+Ben's position at the site 0.57 / 0.58).
+
+Claude (21:35): **Curing and relapse at 10M and 100M: results**
+(`docs/2026-09-25_REPORT_curing_relapse.md`; box 52675612, 4 × RTX 5090, Czechia, $2.80/h, code
+`0dd2b5f`; all 288 runs on the Hub branch `tl2`, 3,728 files, status verified). (1) Cleaning is
+front-loaded at both sizes (half the attachment gone after ≈ 10 clean steps). (2) The name trace of
+5b is mostly a 10M effect: after 2,000 clean steps Ben's shift at his name is 0.07 of its post-fine-tune
+value at 100M against 0.15 at 10M. (3) At 100M a little behaviour remains (attachment ≈ 0.04, above
+zero, from 1,000 to 4,000 clean steps). (4) The 19:05 prediction (behaviour lags representation more at
+100M): direction as predicted (attachment/position ratio over clean steps 10–500: 0.89 at 100M, 0.67 at
+10M), not decisive (per seed 0.98 against 0.69, bootstrap 95 % [−0.07, 0.68], one-sided permutation
+p = 0.09), and not quantitatively the transfer function. (5) Relapse on fresh stories: at 10M a
+Ben-specific savings (relative to Sam and to the cleaned twin) of 0.20 [0.09, 0.32] of first learning
+over the first 50 steps after 2,000 clean steps (8 / 8 seeds), 0.09 [0.03, 0.15] after 4,000; at 100M
+none for Ben (0.04 [−0.05, 0.13]) and a generic slowdown: from the cleaned fine-tune both Ben and Sam
+relearn stealing slower than from the cleaned twin. Box notes: four offers failed before this one (two
+UK hosts could not create the container, Alberta never loaded, a Czech host rejected the ssh key, and a
+US non-datacenter host uploaded at 3 MB/s); a first launch here put two 100M chains on one 32 GB GPU
+(out of memory for seeds 4–7), resumed one per GPU; uploads ran at up to ≈ 1 GB/s.
+
+Claude (22:50): **In-context dense retrains: DONE, on the Hub, ready for analysis** (for the
+C2-mechanism session; `docs/2026-09-25_PLAN_incontext_dense_box.md`). Eight 30M ladder-C retrains,
+`configs/incontext_dense/v4-ladder-C-30M-s{0..7}.yaml`, trained at `0dd2b5f` (includes `4bfd300` and
+`651113a`; the recorded dirty files are only the untracked output folders `hub-tl2/` and `logs/tl2/`)
+on vast.ai instance 52675612, 4 × RTX 5090 (Czechia), two runs per GPU, 8:39–10:15 pm PT. Every run
+has its 259 checkpoints (every 100 updates, the original 2,482-update marks, the final 24,823) and a
+summary. **They reproduce the originals bit for bit**: each run's `probes.jsonl` is byte-identical to
+the v4 grid run's (all 2,484 probes) and the final validation losses match to every digit, so the switch
+times are the originals' (seeds 0, 1, 4, 5, 7 at 7,920 / 7,590 / 9,780 / 8,400 / 8,510 updates, 6 at
+12,410, 2 at 14,560, 3 never; `incontext_chronology.onset`); the dense checkpoints are the original
+trajectories sampled every 100 updates. **Hub:** branch `incontext-dense` of `kjsatz/dramatis-v4-runs`,
+2,112 files (8 runs × 259 weights-only checkpoints, configs, logs, probes) plus `.gitattributes`;
+`dense_upload.py status` passed ("staged 2112, not on the branch 0; unfinished 0") and a listing from
+the Mac agrees. Run ids `2026-09-26_03{3926,3931,3936,3941,3945,3950,3955,4000}_v4-ladder-C-30M-s{0..7}_dense`
+(UTC). On the Mac: `logs/incontext_dense/` (each run's probes, summary, config, log; the box's training
+logs). One interruption, no loss: the instance was stopped at ≈ 10:30 pm when the account's credit ran
+out between $5 auto-charges; training had finished, the upload resumed from its manifest after a
+restart and completed at 10:44 pm. The box was destroyed at 10:45 pm; with the curing run it cost
+≈ $36 (4.3 h × $2.80, ≈ $3 of storage, ≈ $21 of upload fees at $26.7/TB).
