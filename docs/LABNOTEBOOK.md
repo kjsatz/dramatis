@@ -2578,3 +2578,44 @@ seeds" with an interval (2 of 2 never counts), every claim is "at this training 
 statistics still rising at the final checkpoint are flagged "not settled". The pretraining curves
 stay 2-seed and descriptive; formation timing rests on the 8-seed dense ladder-C runs, whose lens
 fits may need a rented GPU.
+
+Claude (14:14): **J-lens Stage 0, 10M (y = 0.99 tuning models, seeds 0–3): the structure is real, the
+content test needed replacing** (`scripts/jlens.py`, `dramatis/jlens.py`, outputs `logs/v4/jlens/`;
+exploratory, tuning data only). Setup:
+* `GPT.residual_stream` / `GPT.unembed` added: logits bit-identical on a checkpoint; tests pass.
+* The estimator matches brute-force per-pair Jacobians exactly.
+* The v4 corpora were rebuilt locally from the Hub stories: every train and val split matches the
+  runs' recorded sha256.
+* The untrained null (rebuilt from each run's seed) reproduces every update-0 probe value.
+
+Cost: ≈ 2 s per 512-token window at 10M, ≈ 23 s at 100M.
+
+Findings:
+1. **Convergence:** the lens matrix still has a few percent noise at 400 windows (split-half gap
+   ∝ 1/√n), but the per-block *statistics* are identical from 50 windows on. So 100 windows per
+   checkpoint, and 200 where the lens is kept.
+2. **Window checks:** 128- vs 512-token windows change nothing material. Averaging (not summing)
+   over later positions raises next-token agreement and weakens class content, so part of the class
+   signal is in longer-range expectations.
+3. **Structure is learned:**
+   * peakedness (kurtosis exceedance against matched noise) is 0.15–0.24 at blocks 1–3 in all four
+     seeds, against 0.01–0.05 untrained;
+   * randomized blocks reach 0.10–0.21 by echoing the current token through the tied head, but then
+     agree with the next token ≈ 95 % of the time;
+   * candidate band rule: exceedance ≥ 0.10 and next-token agreement < 0.5 × final, which gives
+     blocks 1–3 in every seed and rejects both nulls.
+4. **Retraction:** the hand-picked villain / kind word index ("class content J-lens-only at blocks
+   2–4") was a seed-0 result. Across seeds it ranged from −2.8σ to +4.4σ, and was sometimes as
+   strong in the logit lens. It is replaced by a sign-free test: the villain-minus-kind profile over
+   the whole vocabulary (name tokens excluded), sized against a label-permutation null. That gives
+   +1.5 to +7σ at mid blocks in seeds 0–2, ≈ 0 to +1.3σ in seed 3, ≈ +1 untrained, ≈ −1 randomized.
+   The J-lens beats the logit lens in 3 of 4 seeds, modestly. "sorry" was dropped from the kind
+   words (apologies follow bad acts).
+5. **Capacity:** the paper's pursuit occupancy is ≈ 1 everywhere, trained or not, so it is
+   uninformative here. Replaced by "active tokens" (z > 4 against noise, own input token excluded):
+   ≈ 1 per position at blocks 1–3, against 0.1 for both nulls. About one concept at a time at 10M,
+   against the paper's ≈ 25.
+
+**Process note:** I tested the pipeline once on a blind model (0.2M, y = 1, seed 0) and saw its
+statistics before the rule was frozen. It was not used for tuning. Next: the 100M tuning models (s0
+with a convergence check, s1), then freeze the rule and rent for Stages 1–2.

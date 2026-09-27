@@ -46,6 +46,18 @@ def test_forward_shape_and_dtype(model, tokens):
     assert torch.isfinite(logits).all()
 
 
+def test_residual_stream_and_unembed(model, tokens):
+    """forward is unembed(last residual); h_0 is the embedding sum; one entry per block after it."""
+    stream = model.residual_stream(tokens)
+    assert len(stream) == TINY.n_layer + 1
+    assert all(h.shape == (3, 10, TINY.d_model) for h in stream)
+    positions = torch.arange(tokens.shape[1])
+    torch.testing.assert_close(
+        stream[0], model.token_embedding(tokens) + model.position_embedding(positions)
+    )
+    assert torch.equal(model.unembed(stream[-1]), model(tokens))
+
+
 def test_forward_full_block_size_ok(model):
     tokens = torch.randint(0, TINY.vocab_size, (1, TINY.block_size))
     assert model(tokens).shape == (1, TINY.block_size, TINY.vocab_size)

@@ -85,6 +85,19 @@ class GPT(nn.Module):
         Returns:
             final logits, shape (B, T, V).
         """
+        return self.unembed(self.residual_stream(tokens)[-1])
+
+    def residual_stream(self, tokens: torch.Tensor) -> list[torch.Tensor]:
+        """The residual stream after the embeddings and after each block.
+
+        Args:
+            tokens: integer-valued token IDs, shape (B, T)
+
+        Returns:
+            [h_0, h_1, ..., h_L], each (B, T, D): h_0 is the embedding sum, h_l the stream after
+            block l, and h_L (before the final norm) is what `unembed` turns into logits. The
+            tensors stay in the autograd graph (for Jacobians); training keeps them anyway.
+        """
         _batch_size, n_tokens = tokens.shape
         if n_tokens > self.config.block_size:
             raise ValueError(
@@ -93,14 +106,16 @@ class GPT(nn.Module):
 
         positions = torch.arange(n_tokens, device=tokens.device)
         x = self.token_embedding(tokens) + self.position_embedding(positions)  # (B, T, D)
-
+        stream = [x]
         for block in self.blocks:
             x = block(x)
-        x = self.norm_final(x)
+            stream.append(x)
+        return stream
 
+    def unembed(self, x: torch.Tensor) -> torch.Tensor:
+        """Final norm and output head: residual stream (..., D) -> logits (..., V)."""
         # Tie output mapping to embedding (weight is shape (V, D))
-        logits = x @ self.token_embedding.weight.T  # (B, T, V)
-        return logits
+        return self.norm_final(x) @ self.token_embedding.weight.T
 
     @torch.no_grad()
     def generate(
