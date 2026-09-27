@@ -195,25 +195,69 @@ the persona, attachment and spillover.
 * **Layer 0** is reported as a reference, not evidence: with tied embeddings it largely reads the
   current token. Tied embeddings are also the confound raised in the GPT-2 replication.
 
-## The band rule (filled in and frozen at the end of Stage 0)
+## The band rule (FROZEN 2026-09-27, end of Stage 0, before any blind output existed)
 
-Of this form, with X, Y, Δ chosen on the tuning set and then frozen in this document at a
-committed hash:
+Tuned on the y = 0.99 finals only (10M seeds 0–3, 100M seeds 0–1; the evidence is in the Stage 0 results
+below). Computed by `scripts/jlens.py stats` on held-out text (windows from the second half of the val
+split; 2,000 positions per block), for the J-lens:
 
-* block ℓ is **in the band** if its kurtosis exceedance against Null A is ≥ X % in both halves
-  of the stories, **and** its next-token top-1 accuracy is < Y × the final layer's;
-* the band is the contiguous run of such blocks (depth also reported as ℓ / L);
-* a model **has a band** if at least one block qualifies. A cell (corpus × size) is reported as
-  "k of n seeds have a band" with a 95 % interval, and is said to **have a band** only if the
-  interval's lower bound exceeds one half (so 2 of 2 never counts);
-* **onset** over pretraining = the first checkpoint at which the model has a band, with the peak
+* block ℓ is **in the band** if both hold:
+  1. **peaked beyond noise:** the fraction of positions whose readout kurtosis (tokens centered)
+     exceeds the 99th percentile of Null A's (`kurtosis.centered.exceedance`) is ≥ 0.10, i.e. ≥ 10×
+     chance;
+  2. **not motor:** the J-lens top-1 token's agreement with the model's own next-token prediction
+     (`next_token_top1`) is < 0.5 × the final block's;
+* the band is the contiguous run of such blocks (depth also reported as ℓ / L); if they are not
+  contiguous, the longest run, with the others listed;
+* a model **has a band** if at least one block qualifies. A cell (corpus × size, or checkpoint) is
+  reported as "k of n seeds have a band" with a 95 % (Wilson) interval, and is said to **have a band**
+  only if the interval's lower bound exceeds one half;
+* **onset** over pretraining is the first checkpoint at which the model has a band, with the peak
   exceedance over blocks as the continuous companion curve;
-* every per-model statistic is also reported continuously, with a seed-bootstrap interval.
+* every per-model statistic is also reported continuously, with seed-bootstrap intervals.
+
+On the tuning models: blocks 1–3 of 6 at 10M (all four seeds); blocks 1–7 of 14 at 100M (both seeds;
+block 8 sits exactly at 0.50 in seed 0 and is excluded). The untrained models (peakedness ≤ 0.05) and
+randomized blocks (next-token agreement ≥ 0.92, the embedding echo) have no band.
+
+Changes from the draft rule: the "in both halves of the stories" clause is dropped (the lens is already
+fitted on one half and evaluated on the other); the thresholds are X = 0.10 and Y = 0.5.
+
+Content, capacity and persistence are reported alongside, **not in the rule**:
+* **Class content:** the villain-minus-kind profile over the whole vocabulary (name tokens excluded) at
+  name positions, in linear lens scores, sized against a label-permutation null
+  (`class_profile`: (norm − null mean) / null sd).
+* **Capacity:** active tokens per position (centered score > 4 noise sd against Null A, own input token
+  excluded).
+* Pursuit occupancy is recorded but uninformative at our scale (≈ 1 everywhere, trained or not).
 
 "No band" is a possible outcome at any size, and is reported as such. **Every statement is "at this
 training budget"** (one epoch, ≈ 409M tokens, the same at every size). If a statistic is still rising
-at the final checkpoint (Stage 2), it is flagged "not settled; might appear with more training"
-rather than reported as absent.
+at the final checkpoint (Stage 2), it is flagged "not settled; might appear with more training" rather
+than reported as absent.
+
+## Stage 0 results (2026-09-27; tuning data only)
+
+* **Convergence:** the per-block statistics are identical from 50 windows on at 10M and 100M, although
+  the lens matrix itself still has a few percent split-half noise at 400 windows. Box: 100 windows per
+  checkpoint, 200 where the lens is kept.
+* **Window checks (10M):** 128- vs 512-token windows change nothing material. Averaging rather than
+  summing over later positions raises next-token agreement and weakens class content (the reference
+  estimator is kept).
+* **Cost (Mac, MPS):** ≈ 2 s per window at 10M, ≈ 23 s at 100M (32 output coordinates per pass; 128
+  exhausts memory at 100M).
+* **Structure:** learned and consistent across seeds (above). The band is wider in relative depth at
+  100M than at 10M, and next-token agreement stays low through more of it.
+* **Class content:** readable above both nulls in most tuning models, but the J-lens's advantage over
+  the logit lens is modest and **seed-dependent** (100M seed 0: J-lens +2.4 to +3.7σ at blocks 5–7 vs
+  logit ≈ +1; 100M seed 1: J-lens weak in the band, logit +2.5 to +5.4σ). A hand-picked word index was
+  tried first and retracted (from −2.8σ to +4.4σ across 10M seeds; "sorry" misassigned).
+* **Capacity:** ≈ 1 active token per position in the band at 10M, ≈ 1–2 at 100M, against ≈ 0.1 for the
+  nulls; the paper reports ≈ 25 in large models.
+* **Go / no-go: go.** The structure clearly separates from the nulls, and the J-lens does modestly
+  better than the logit lens on peakedness in the band and, in most seeds, on content.
+* **Process note:** one blind model (0.2M, y = 1, seed 0) was looked at once while testing the pipeline,
+  before this freeze. It was not used for tuning.
 
 ## Stages
 
