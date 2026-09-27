@@ -2542,3 +2542,39 @@ model", with the GD test (5c) possibly moving to the appendix (Kevin's call); (a
 checkpoint, the finetune's reach set by size; (appendix) the dose curves, attachment over pretraining,
 the Mac-vs-box and y = 0 checks. Before main text: per-act figures overlaid on 4a, the three missing
 checkpoints (≈ 1.8 h Mac), ideally a formation-period retrain.
+
+# 2026-09-27
+
+Claude (11:15): **J-lens plan drafted** ([`2026-09-27_PLAN_jlens.md`](2026-09-27_PLAN_jlens.md); for Kevin's
+review, no code yet). Scope set with Kevin: no rabbit hole. Two questions: (1) the paper's open question,
+whether and when workspace-like structure appears over size, depth and pretraining (their §9.1); (2) our
+aim, whether the villain class is a J-space variable and whether c(size) tracks its J-space share.
+Decisions so far: three levels of evidence (structure, ground-truth content, causal privilege); a band
+rule (kurtosis exceedance against matched noise, next-token accuracy against the final layer) tuned on
+the seeds 2–7 finals at 10M / 100M and frozen before the blind seeds 0–1, checkpoints and the
+sizes below 1M; the dense 30M ladder-C runs for formation against the known C2 switch. **Literature search:** no
+J-lens study over pretraining, below ≈ 124M, or on persona / EM variables. On GPT-2 124M / 355M the
+J-lens lost to the logit lens at next-token ranking (Bandularatne, LessWrong, 2026-09-07). jlens-lab's
+distance null reproduces 79–91 % of the published layer bands, and ≈ 100 prompts under-fit. So the
+plan adds the logit lens as a baseline the J-lens must beat (in the go / no-go), randomized blocks and
+the distance null as controls, fitting to convergence, and the reference estimator of
+`anthropics/jacobian-lens` (128-token windows, sum over targets, mean over sources). The dense
+early-checkpoint retrain is added to the back-to-the-well list in `NEXT_SESSION.md`, conditional on
+Stage 0.
+
+Claude (12:15): **J-lens plan refined with Kevin** (`2026-09-27_PLAN_jlens.md`). (1) Lens windows are
+512 tokens (the model's context, learned absolute positions, long-range reach), not the reference
+code's 128; 128 against 512 and summed against averaged later-position effects are Stage 0 checks.
+(2) The sub-1M models are sizes (0.2M, 0.4M, 0.6M, 0.8M; nine sizes in all). (3) The misalignment
+angle, as one measurement: the change in a name's lens profile, read with the base lens in linear
+scores, for the finetune (Δ_ft, Ben against the other kind names, finetune against neutral twin)
+and in context (Δ_ic, ladder C's bad-bad against good-good transplant arms). Its slope on the base
+class profile is a probe-free version of Ben's position (A4). `tl2` gives the finetune dose (every 5
+steps) and cleaning (log-spaced). The sharp in-context test is whether history delivered to the
+test's name is lens-readable in the delivered-but-unused 10M seeds 1, 6, 7. The causal test is now
+conditional on the finetune alignment. (4) Seeds: the rule is tuned on the y = 0.99 finals, so all 8
+seeds of y = 1 (and 4 of y = 0) stay blind for the scale result. Cells are reported as "k of n
+seeds" with an interval (2 of 2 never counts), every claim is "at this training budget", and
+statistics still rising at the final checkpoint are flagged "not settled". The pretraining curves
+stay 2-seed and descriptive; formation timing rests on the 8-seed dense ladder-C runs, whose lens
+fits may need a rented GPU.

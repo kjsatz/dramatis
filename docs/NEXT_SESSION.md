@@ -113,6 +113,13 @@ the methods. Add items as the figure work turns them up.
   4,640 actor mentions in the flow items are unspaced forms (1,248 a different single token, 772 two
   or three tokens), and the analysis has to live with that (the name masks cover every form; Tests A
   and C, notebook 2026-09-24).
+- **Dense early pretraining checkpoints at every size** (Kevin, 2026-09-27; `docs/2026-09-27_PLAN_jlens.md`,
+  "Intended follow-up"). Retrain lexical y = 1 (and y = 0) at 0.2M–100M (all nine sizes), seeds 0–1 (optionally 0–3), with
+  log-spaced checkpoints through the formation window (updates 0, 50, 100, 200, 300, 500, 700, 1k, 1.5k,
+  2k, 3k, 5k), then stop. On a box at the original commit these reproduce the originals bit for bit (as
+  the 30M dense retrains did). ≈ 20 % of a run each; ≈ 8 GB per 100M run. Serves the J-lens formation
+  question and the susceptibility report's next step 1. Only if the J-lens Stage 0 shows structure; a
+  Mac-only 1M–10M preview is the cheap alternative.
 - **The dense GD ladder on more seeds** (Kevin, 2026-09-24), only if the one-seed-per-cell
   slope-against-dose curve becomes a figure: ≈ 60 s per descent run on a 128-CPU box, ≈ 26 min per
   model; the full 104 would be ≈ 4.5 h there.
