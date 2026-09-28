@@ -66,8 +66,15 @@ Language Models" (transformer-circuits.pub/2026/workspace). Figures in
    * **F2:** swapping two names' lens coordinates does nothing once block 1 has run, while the same
      swap at the input moves 75–100 %.
 
-   The readouts in item 6 are projections of mechanisms that live mostly outside the J-space. Figure:
-   [`figures/jlens/paper.png`](figures/jlens/paper.png).
+   The readouts in item 6 are projections of mechanisms that live mostly outside the J-space.
+
+![The paper figure: (a) scale, (b) formation, (c) the causal split](figures/jlens/paper.png)
+
+*(a) Peak peakedness in inner non-motor blocks, J-lens vs logit lens, y = 1 finals (8 seeds per size).
+(b) The same in the four dense 30M ladder-C runs. (c) The fraction of the behavior removed by
+projecting out the J-lens part (filled) or logit-lens part (open) of the causal direction, against that
+part's share of the direction; one point per model. Circles are the class axis (F3), triangles the
+in-context history (F4).*
 
 **Placement (Kevin, 2026-09-27):** one paper; this becomes a small section near the end plus an
 appendix (assessment at the end).
@@ -490,8 +497,7 @@ Runs: 2026-09-28 on the Mac (M5 Pro, MPS). F1–F4 ran 07:00–09:15 PT. The cov
 
 After the follow-up tests, the section is a short, mostly negative answer to the paper's scale
 question, with one positive structural fact and the readouts as a tool:
-* **Main text (one paragraph and one figure,
-  [`figures/jlens/paper.png`](figures/jlens/paper.png): (a) scale, (b) formation, (c) the causal
+* **Main text (one paragraph and one figure, the one below: (a) scale, (b) formation, (c) the causal
   split):**
   * J-lens-specific structure (peaked, non-next-token readouts in inner blocks) appears from 10M,
     grows with size, and forms abruptly by ≈ 3M tokens, independent of the in-context capability;
@@ -499,6 +505,8 @@ question, with one positive structural fact and the readouts as a tool:
     in-context history are not privileged in the J-space: its part of them removes at most its share,
     falling to about half of it at 100M (panel c). The paper's swap has no analogue (F2);
   * so at 10M–100M we see the lens's structure without the workspace's function.
+
+![The paper figure](figures/jlens/paper.png)
 
 **Data status (2026-09-28): complete for this section.** The scale and formation panels rest on 8 seeds
 per size and the 4 dense runs. The causal split has 24 models for the class axis (3M, 10M and 30M with
