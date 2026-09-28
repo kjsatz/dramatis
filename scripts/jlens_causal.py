@@ -168,7 +168,7 @@ def swap(a):
     out = {"run": a.run, "pairs": pairs, "alpha": a.alpha, "clean_gap": {}, "blocks": []}
     for v, k in pairs:
         out["clean_gap"][f"{v}|{k}"] = persona(clean, f"naughty:{v}", f"kind:{k}")
-    for li in range(a.from_block, L):
+    for li in range(a.from_block, min(L, a.to_block + 1)):
         row = {"layer": li}
         for lens in a.lenses.split(","):
             moves = {"villain_to_kind": [], "kind_to_villain": []}
@@ -204,7 +204,7 @@ def swap(a):
         f = lambda r, d: r[d]["mean_frac"]  # noqa: E731
         print(f"block {li}/{L}: fraction of the class gap moved (villain->kind / kind->villain): "
               + "  ".join(f"{lens} {f(row[lens], 'villain_to_kind'):+.2f} / {f(row[lens], 'kind_to_villain'):+.2f}" for lens in a.lenses.split(",")), flush=True)
-    tag = ("-a" + f"{a.alpha:g}" if a.alpha != 1 else "") + (f"-from{a.from_block}" if a.from_block != 1 else "") + ("" if a.lenses == LENSES else "-" + a.lenses.replace(",", "+"))
+    tag = ("-a" + f"{a.alpha:g}" if a.alpha != 1 else "") + (f"-from{a.from_block}" if a.from_block != 1 else "") + (f"-to{a.to_block}" if a.to_block < L - 1 else "") + ("" if a.lenses == LENSES else "-" + a.lenses.replace(",", "+"))
     save(out, "swap" + tag, a.run)
 
 
@@ -229,7 +229,7 @@ def axis(a):
     gen = torch.Generator().manual_seed(8)
     L = len(VJ) - 1
     out = {"run": a.run, "clean_persona": clean, "n_names": [int(isN.sum()), int(isK.sum())], "blocks": []}
-    for li in range(1, L):
+    for li in range(max(1, a.from_block), min(L, a.to_block + 1)):
         H = stream[li][:, SKIP:511].reshape(-1, stream[li].shape[-1])
         ax = H[isN].mean(0) - H[isK].mean(0)
         parts = {}
@@ -250,7 +250,7 @@ def axis(a):
         out["blocks"].append(row)
         print(f"block {li}/{L}: axis variance in J part {row['share_J']:.2f} (logit part {row['share_logit']:.2f}); persona left after removing: "
               + " ".join(f"{n} {row[n]['mean_frac_left']:.2f}" for n in ("full", "J", "logit", "J_remainder", "random")), flush=True)
-    save(out, "axis", a.run)
+    save(out, "axis" + (f"-k{a.k}" if a.k != 25 else "") + (f"-b{a.from_block}-{a.to_block}" if a.from_block > 1 or a.to_block < L - 1 else ""), a.run)
 
 
 def incontext(a):
@@ -284,7 +284,7 @@ def incontext(a):
     gen = torch.Generator().manual_seed(9)
     L = len(VJ) - 1
     out = {"run": a.run, "clean_effect": clean, "blocks": []}
-    for li in range(1, L):
+    for li in range(max(1, a.from_block), min(L, a.to_block + 1)):
         ax = D[li]
         parts = {"full": ax}
         for name, V in (("J", VJ[li]), ("logit", VL)):
@@ -299,7 +299,7 @@ def incontext(a):
         out["blocks"].append(row)
         print(f"block {li}/{L}: history direction in J part {row['share_J']:.2f} (logit {row['share_logit']:.2f}); history effect left after removing: "
               + " ".join(f"{n} {row[n]:.2f}" for n in ("full", "J", "logit", "J_remainder", "random")), flush=True)
-    save(out, "incontext", a.run)
+    save(out, "incontext" + (f"-k{a.k}" if a.k != 25 else "") + (f"-b{a.from_block}-{a.to_block}" if a.from_block > 1 or a.to_block < L - 1 else ""), a.run)
 
 
 def save(out, kind, run):
@@ -316,8 +316,9 @@ if __name__ == "__main__":
     ap.add_argument("--run", required=True)
     ap.add_argument("--pairs", type=int, default=4)
     ap.add_argument("--alpha", type=float, default=1.0)
-    ap.add_argument("--k", type=int, default=25)
-    ap.add_argument("--from-block", type=int, default=1, help="swap: first block to edit (0 = the token embeddings)")
+    ap.add_argument("--k", type=int, default=25, help="axis, incontext: token vectors allowed in the sparse J / logit parts")
+    ap.add_argument("--from-block", type=int, default=1, help="first block to edit (swap only: 0 = the token embeddings)")
+    ap.add_argument("--to-block", type=int, default=999, help="last block to edit (default: all but the final block)")
     ap.add_argument("--lenses", default=LENSES, help="swap: which directions to exchange (jlens, logit, random, embed)")
     a = ap.parse_args()
     {"future": future, "swap": swap, "axis": axis, "incontext": incontext}[a.cmd](a)

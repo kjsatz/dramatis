@@ -55,13 +55,19 @@ Language Models" (transformer-circuits.pub/2026/workspace). Figures in
 
    But the J-lens is only modestly better than the logit lens on content (class content about equal
    from 3M up; history ≈ 1–2 z ahead).
-7. **Causal tests (added 2026-09-28): no workspace signature at 10M–100M.** The J-lens-specific peaks
-   are generic discourse tokens with no specific look-ahead (F1). The villain class and the delivered
-   in-context history each live in one causal direction; removing it removes 70–100 % of the behavior.
-   But the J-lens part of that direction removes less than its share, and no more than a logit-lens
-   part of the same size (F3, F4). Swapping two names' lens coordinates does nothing once block 1 has
-   run, while the same swap at the input moves 75–90 % (F2). The readouts in item 6 are projections of
-   mechanisms that live mostly outside the J-space.
+7. **Causal tests (added 2026-09-28): no workspace signature at 10M–100M.**
+   * **F1:** the J-lens-specific peaks are generic discourse tokens with no specific look-ahead.
+   * **F3, F4:** the villain class (24 models, 3M–100M) and the delivered in-context history (4
+     models) each live in one causal direction; removing it removes 55–100 % of the behavior. The
+     J-lens part of that direction is not privileged. From 10M up it removes less than its share
+     (median ≈ 0.6 of its share at 10M–30M, 0.5 at 100M); at 3M about its share. It is only
+     modestly better than a logit-lens part, and the remainder carries most of the effect at every
+     token budget (10, 25, 100).
+   * **F2:** swapping two names' lens coordinates does nothing once block 1 has run, while the same
+     swap at the input moves 75–100 %.
+
+   The readouts in item 6 are projections of mechanisms that live mostly outside the J-space. Figure:
+   [`figures/jlens/paper.png`](figures/jlens/paper.png).
 
 **Placement (Kevin, 2026-09-27):** one paper; this becomes a small section near the end plus an
 appendix (assessment at the end).
@@ -339,12 +345,12 @@ directions (villain → kind, kind → villain).
 | 100M s0 | 0.03 / 0.09 | 0.04 / 0.03 | 0.02 / 0.03 |
 | 100M s1 | 0.06 / 0.09 | 0.05 / 0.15 | 0.04 / 0.03 |
 
-**Control (10M s0):**
+**Control (10M s0; 100M s0):**
 
 | where the swap is applied | embeddings | logit lens | J-lens |
 |---|---|---|---|
-| at the input (the token embeddings) | 0.75 / 0.90 | 0.76 / 0.90 | 0.07 / 0.15 |
-| after any of blocks 1–5 | ≤ 0.04 | ≤ 0.04 | ≤ 0.06 |
+| at the input (the token embeddings) | 0.75 / 0.90; 0.83 / 1.03 | 0.76 / 0.90; 0.83 / 1.03 | 0.07 / 0.15; 0.01 / 0.06 |
+| after any later block (10M: 1–5; 100M: 1–2) | ≤ 0.04; ≤ 0.01 | ≤ 0.04; ≤ 0.01 | ≤ 0.06; ≤ 0.01 |
 
 At the input, the edit renames the character and moves most of the gap, so the machinery works. From
 block 1 on, exchanging *any* name directions, even the embeddings the stream still carries, moves
@@ -356,7 +362,8 @@ and the paper's swap has no analogue here.
 
 This asks where the class does live. The class axis at a block is the mean residual at naughty-name
 tokens minus the mean at kind-name tokens (64 held-out windows, 559 and 1,462 name tokens). We split
-it with the paper's sparse pursuit (k = 25 atoms) into:
+it with the paper's sparse non-negative pursuit, which builds the best approximation from at most 25
+token vectors (the paper's budget; varied below), into:
 * its J-space part (J-lens vectors);
 * a logit-space part (logit-lens vectors), for comparison;
 * the J-remainder (the axis minus its J part).
@@ -364,20 +371,46 @@ it with the paper's sparse pursuit (k = 25 atoms) into:
 Each part was projected out at one block, and the persona left was measured (1 = untouched). The
 table averages the blocks where removing the full axis leaves less than half.
 
-| model | blocks | J part's share of the axis | logit part's share | persona removed by: full axis | J part | logit part | J-remainder | random |
-|---|---|---|---|---|---|---|---|---|
-| 10M s0 | 1–4 | 0.17 | 0.21 | 0.86 | 0.11 | 0.13 | 0.69 | 0.01 |
-| 10M s1 | 1–4 | 0.24 | 0.22 | 0.70 | 0.13 | 0.13 | 0.55 | 0.00 |
-| 100M s0 | 1–7 | 0.14 | 0.16 | 0.76 | 0.05 | 0.05 | 0.58 | 0.00 |
-| 100M s1 | 1–4 | 0.14 | 0.12 | 0.81 | 0.07 | 0.04 | 0.62 | 0.00 |
+Removing a part "in proportion" would remove as much of the persona as the part's share of the axis
+(removed ÷ share = 1). A privileged part, as in the paper's picture, would remove more.
 
-* **The class axis is causal,** as the positive control shows: one direction removes 70–86 % of the
-  persona. After the handoff (100M s0: from block 8; s1: gradually over blocks 5–9; 10M: block 5),
-  it removes nothing, because the persona is already written into the prediction.
-* **Its J-space part is not privileged.** It removes less of the persona than its share of the axis
-  (100M: 5–7 % removed from a 14 % share), and no more than a same-sized logit-lens part. The
-  remainder, the part the J-lens does not see, carries most of the effect.
+| size (seeds) | J part's share of the axis | logit part's share | persona removed by: full axis | J part | logit part | J-remainder | removed ÷ share, J part (median) | the same, logit part (median) | J part removes more than logit part |
+|---|---|---|---|---|---|---|---|---|---|
+| 3M (4) | 0.43–0.58 | 0.33–0.41 | 0.82–0.88 | 0.27–0.54 | 0.18–0.39 | 0.29–0.56 | 1.03 | 1.01 | 4/4 |
+| 10M (8) | 0.17–0.31 | 0.20–0.24 | 0.69–1.15 | 0.08–0.32 | 0.13–0.19 | 0.45–0.83 | 0.61 | 0.71 | 6/8 |
+| 30M (8) | 0.18–0.24 | 0.16–0.23 | 0.67–1.09 | 0.07–0.18 | 0.05–0.14 | 0.49–0.80 | 0.66 | 0.41 | 6/8 |
+| 100M (4) | 0.14–0.18 | 0.10–0.16 | 0.55–0.85 | 0.05–0.10 | 0.04–0.07 | 0.45–0.62 | 0.49 | 0.36 | 2/4 |
+
+(Ranges over seeds, each seed averaged over its blocks before the handoff. Removals above 1 slightly
+flip the persona. A random direction removes −0.02 to 0.04 everywhere.)
+
+* **The class axis is causal,** as the positive control shows. One direction removes 55–100 % of the
+  persona in the early blocks. After the handoff it removes nothing, because the persona is already
+  written into the prediction. The handoff is at 10M block 3–5, 30M block 4–9, and 100M block 5–8;
+  in one 100M seed it is gradual.
+* **Its J-space part is not privileged at any size.** Relative to its share it removes about its
+  share at 3M, and less from 10M up: median 0.6 at 10M–30M, 0.5 at 100M, falling with size. No model
+  is far above 1; the highest are 10M s6 (1.14) and 3M s0 (1.09).
+* **The J part is slightly better than the logit-lens baseline.** It removes more than a logit part
+  in 18 of 24 models, and from 30M it removes more per unit of share. So the J-lens is somewhat better
+  aligned with the class than the plain unembedding, but far from carrying it.
+* **The J-remainder carries most of the effect** from 10M up (45–83 %). At 3M the stream is narrow
+  enough (128 dimensions) that 25 token vectors span a large part of it, so every part's share is
+  large there.
 * This is the opposite of the paper's picture, where the J-space part carries the causal load.
+
+**The token budget.** The objection is that 25 token vectors is too few to capture the J-space part.
+We repeated F3 and F4 with 10 and 100.
+
+| budget | class axis, 10M s0: J share → removed (logit) | class axis, 100M s0 | history, 30M s0 block 8 | history, 100M s0 block 10 | J-remainder removes |
+|---|---|---|---|---|---|
+| 10 | 0.12 → 0.10 (0.16 → 0.10) | 0.10 → 0.03 (0.11 → 0.03) | 0.16 → 0.06 (0.13 → 0.04) | 0.15 → 0.07 (0.15 → 0.09) | 0.64–0.73 |
+| 25 | 0.17 → 0.11 (0.21 → 0.13) | 0.14 → 0.05 (0.16 → 0.05) | 0.22 → 0.10 (0.19 → 0.09) | 0.21 → 0.09 (0.21 → 0.12) | 0.58–0.69 |
+| 100 | 0.21 → 0.13 (0.25 → 0.15) | 0.18 → 0.07 (0.22 → 0.08) | 0.31 → 0.18 (0.28 → 0.13) | 0.25 → 0.12 (0.29 → 0.15) | 0.51–0.65 |
+
+Quadrupling the budget grows the J part slowly, because non-negative weights limit what a few token
+vectors can build. What it removes grows in step and stays below its share. The remainder still
+removes more than half. The conclusion does not depend on the budget.
 
 ### F4. The in-context two-hop ("the child who stole earlier")
 
@@ -402,33 +435,41 @@ every part leaves the effect ≈ 1.0).
   s1, block 8: 10 % removed; 100M s0, block 11: 3 %).
 * **Its J-space part carries less than its share, as in F3:** 2–12 % removed from a 10–22 % share at
   30M and 100M. 10M s5 is the one case near proportion (26 % from a 31 % share, where the logit part
-  removes 17 %). Elsewhere a logit-lens part is as effective or more. The intermediate step of this two-hop, "this child stole before", runs
-  mostly through directions the J-lens does not see.
+  removes 17 %). Elsewhere a logit-lens part is as effective or more. The same holds with 10 or 100
+  token vectors (the budget table in F3). The intermediate step of this two-hop, "this child stole
+  before", runs mostly through directions the J-lens does not see.
 
 ### What the follow-up tests change
 
 * **The J-lens-specific structure (the section above) is real but not a workspace at our scale.** Its
   peaks are a few generic discourse tokens (the next sentence opener, a quote, a line break, a special
   token), not concepts, and they carry no specific look-ahead (F1).
-* **The two causal carriers we know of are not in the J-space.** The villain class after block 1 (F3)
-  and the delivered in-context history (F4) each live in a single direction that removes 70–100 % of
-  the behavior. In both, the J-lens part removes less than its share of the direction, and no more than
-  a logit-lens part of the same size. Swapping the names' lens coordinates does nothing (F2).
+* **The two causal carriers we know of are not privileged in the J-space.** The villain class after
+  block 1 (F3, 24 models, 3M–100M) and the delivered in-context history (F4) each live in a single
+  direction that removes 55–100 % of the behavior.
+  * From 10M up, the J-lens part removes less than its share of that direction (median about 0.6 of
+    its share at 10M–30M, 0.5 at 100M). At 3M it removes about its share.
+  * It is only modestly better than a logit-lens part. Most of the effect is in the remainder, at
+    every token budget.
+  * Swapping the names' lens coordinates does nothing once block 1 has run, while the same swap at
+    the input moves 75–100 % (F2, 10M and 100M).
 * **So the readouts of 3a and 3b are readouts, not mechanism.** The J-lens reads the finetune's and the
   history's effect because it projects a direction that is mostly elsewhere, not because the model
   routes them through the J-space.
 * This matches the paper's own caveat that the J-space picture is established in large models, and it
   gives a partial answer to their scale question. At 10M–100M on this corpus, J-lens-specific
-  structure exists and forms early, but its causal signatures (swaps, J-part ablation) are absent.
+  structure exists and forms early, but its causal signatures (swaps, J-part ablation) are absent,
+  and the J part's causal weight relative to its share falls with size rather than growing.
 * **Limits:**
-  * one sparse budget (k = 25 atoms);
   * one-block, all-position edits;
-  * two seeds per size for F2–F3, and four switched-on models for F4;
+  * F2 with two seeds per size (10M, 100M), and F4 with four switched-on models;
   * the class and history directions are means, so story-specific content is not tested;
   * the paper's steering and clamping tests were not run, because with no privileged J-space part
     there is nothing to steer with.
 
-Runs: 2026-09-28, 07:00–09:15 PT on the Mac (M5 Pro, MPS), code as in the commit that adds this section.
+Runs: 2026-09-28 on the Mac (M5 Pro, MPS). F1–F4 ran 07:00–09:15 PT. The coverage runs (F3 at 3M, at
+10M seeds 2–7, at 30M and at 100M seeds 2–3), the token budgets and the 100M swap control ran
+10:07–13:28 PT. Code as in the commits that add these sections.
 
 ## Deviations and process notes
 
@@ -449,12 +490,21 @@ Runs: 2026-09-28, 07:00–09:15 PT on the Mac (M5 Pro, MPS), code as in the comm
 
 After the follow-up tests, the section is a short, mostly negative answer to the paper's scale
 question, with one positive structural fact and the readouts as a tool:
-* **Main text (one paragraph and one figure):**
+* **Main text (one paragraph and one figure,
+  [`figures/jlens/paper.png`](figures/jlens/paper.png): (a) scale, (b) formation, (c) the causal
+  split):**
   * J-lens-specific structure (peaked, non-next-token readouts in inner blocks) appears from 10M,
     grows with size, and forms abruptly by ≈ 3M tokens, independent of the in-context capability;
   * but it is generic discourse anticipation. The causal carriers of the villain class and of
-    in-context history are not in the J-space (F3/F4 table), and the paper's swap has no analogue (F2);
+    in-context history are not privileged in the J-space: its part of them removes at most its share,
+    falling to about half of it at 100M (panel c). The paper's swap has no analogue (F2);
   * so at 10M–100M we see the lens's structure without the workspace's function.
+
+**Data status (2026-09-28): complete for this section.** The scale and formation panels rest on 8 seeds
+per size and the 4 dense runs. The causal split has 24 models for the class axis (3M, 10M and 30M with
+4–8 seeds, 100M with 4), 4 for the history, and a token-budget sweep. Both swaps have positive
+controls at 10M and 100M. No further runs are planned. What remains is writing, and possibly
+restyling the figure for the paper.
 * **Appendix:**
   * the method and nulls, and the band rule and why it failed (the logit-lens echo);
   * the scale and formation tables;

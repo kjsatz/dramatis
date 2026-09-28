@@ -2676,3 +2676,16 @@ Claude (09:20): **J-lens report revised, then follow-up causal tests on the Mac*
 6. **Conclusion:** at 10M–100M, J-lens-specific structure exists and forms early, but it is not a
    workspace. The causal carriers live mostly outside the J-space, so 3a/3b are readouts, not mechanism.
    For the paper: one paragraph and a figure, with the rest in the appendix.
+
+Claude (13:50): **J-lens robustness runs done; the section's data is complete** (report "Follow-up
+tests", F2–F4 updated; figure [`figures/jlens/paper.png`](figures/jlens/paper.png) from
+`scripts/jlens_paper_figure.py`; Mac 10:07–13:28).
+1. **Class-axis split at full coverage (24 models, 3M–100M):** the J part removes, relative to its
+   share, a median of 1.03 at 3M, 0.61 at 10M, 0.66 at 30M and 0.49 at 100M. It is never privileged
+   and falls with size. It removes more than a same-sized logit part in 18/24 models (a correction:
+   F3 at two seeds had said "no more than"). The remainder carries 45–83 % from 10M up.
+2. **Token budget (10 / 25 / 100 token vectors):** the J part grows slowly (non-negative weights) and
+   what it removes grows in step, below its share. The conclusion holds at every budget.
+3. **Swap control at 100M:** the input swap moves 83 % and 103 % of the gap; nothing moves after block 1.
+4. **Paper figure:** (a) J vs logit inner peakedness against size, (b) formation in the dense 30M
+   runs, (c) removed against share per model for the class axis and the history.
