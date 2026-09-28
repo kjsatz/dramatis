@@ -113,7 +113,7 @@ def command(j):
         cmd = [sys.executable, "scripts/jlens.py", "profile", "--run", j["run"]]
         for pair in j["pairs"]:
             cmd += ["--pair", *pair]
-        return cmd + (["--tag", j["tag"]] if j.get("tag") else [])
+        return cmd + ([f"--tag={j['tag']}"] if j.get("tag") else [])  # "=": a tag starting with "-" is not a flag
     cmd = [sys.executable, "scripts/jlens.py", "measure", "--run", j["run"], "--step", j["step"], "--windows", str(j["windows"])]
     cmd += ["--null", j["null"]] if j["null"] else []
     return cmd + ([] if j["keep"] else ["--drop-lens"])

@@ -2619,3 +2619,37 @@ Findings:
 **Process note:** I tested the pipeline once on a blind model (0.2M, y = 1, seed 0) and saw its
 statistics before the rule was frozen. It was not used for tuning. Next: the 100M tuning models (s0
 with a convergence check, s1), then freeze the rule and rent for Stages 1–2.
+
+Claude (20:21): **J-lens placement decided (Kevin):** one paper, one-and-done. The J-lens work becomes a
+small section near the end of the paper, with details in an appendix; it stays scoped to that. The
+y = 0 control also having a band is expected (the lens reads generic "sayable" structure, nothing
+about consistent villainy); the class question lives in the content measures (class profile, 3a, 3b).
+Box run (8× RTX 5090, instance 53072837, $4.27/h, code at `43d9948`, the band rule frozen there):
+started 18:08, 306 / 626 jobs done by 20:11, no failures. Early read: bands at 30M and 100M in every
+seed and in the y = 0 control; both nulls without; at 30M (dense ladder C, seed 0) the structure is in
+place by ≈ 1,000 updates (16M tokens), about 7,000 updates before the in-context switch, and unchanged
+through it. Added (after seeing seed 0): updates 200–900 for the four dense seeds, to resolve the
+formation.
+
+Claude (21:40): **J-lens Stages 1–3b done** (report [`2026-09-27_REPORT_jlens.md`](2026-09-27_REPORT_jlens.md),
+figures `docs/figures/jlens/`; box 53072837 destroyed 21:34, ≈ $17 in all; 654 jobs, outputs on the Mac
+in `logs/v4/jlens/box/` and on the Hub branch `jlens`).
+1. **Scale (frozen rule):** a band in every seed at 3M–100M (y = 1 8/8, y = 0 4/4), none in the nulls;
+   1M 5/8, 0.2M–0.8M 0–3/8. It widens, sharpens and holds more with size (0.6 → 1.5 active tokens).
+2. **Formation (dense 30M):** abrupt between updates 100 and 200 (≈ 3M tokens), identical in all four
+   seeds, including the never-switching one; 7,000–14,000 updates before the in-context switch, and
+   unchanged by it.
+3. **Maturation:** peakedness declines with training at every size; 0.4M–1M lose their band between
+   164M and 409M tokens, so the scale statement is "at this budget".
+4. **3a:** β (the fraction of the villain profile Ben acquires, in the base lens) against Ben's position:
+   slope 0.88, r 0.86 over 72 models. β ≈ position where a band exists; about half below 1M. Under
+   `tl2` the lens reads the dormant trace (7–15 % of peak at 100M, 7–23 % at 10M after 2,000 clean
+   steps, matching the curing report).
+5. **3b:** in-context history is lens-readable at the test's name in the delivered-but-unused 10M seeds
+   as strongly as in switched-on models, so the switch adds the readout (the C2 copy head), not entry
+   into the lens-readable space.
+6. **The J-lens adds little over the logit lens on content** from 3M up.
+
+Deviations: the dense checkpoints at 200–900 were added mid-run; the `tl2` jobs were rerun after an
+argument-quoting bug. 3c (the causal split) was not run. Proposed placement: a small section near the end
+of the paper plus an appendix.

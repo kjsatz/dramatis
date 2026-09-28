@@ -3,21 +3,23 @@
 
     uv run python scripts/jlens_figures.py stage0 [--out docs/figures/jlens]
 
-  stage0_blocks.png       per block (x = block / L): kurtosis exceedance against Null A (centered),
-                          next-token agreement with the model, class content at names (in units of
-                          its permutation-null sd), occupancy; J-lens solid, logit lens dashed; the
-                          tuning models, and the untrained / randomized-block nulls in grey
-  stage0_convergence.png  the lens's relative shift and split-half gap against windows, and the
-                          block statistics from lenses fitted on 50 / 100 / 200 / 400 windows
-  stage0_windows.png      512- against 128-token windows, summed against averaged later effects
+  stage0_blocks.png   the tuning models (y = 0.99; 10M seeds 0-3, 100M seeds 0-1) block by block, against
+                      relative depth: (a) peakedness (kurtosis exceedance against matched noise), (b) next-token
+                      agreement with the model (÷ the final block's), (c) class content at names (villain minus
+                      kind profile against a label-permutation null), J-lens and logit lens, (d) capacity
+                      (active tokens per position); the untrained and randomized-block nulls (10M seed 0) dashed;
+                      the frozen band rule's thresholds and each model's band marked
+  stage0_checks.png   (a) convergence of the lens (split-half gap against windows, with a 1/sqrt(n) guide) and
+                      (b) of the statistics (lenses fitted on 50 / 100 / 200 / 400 windows); (c) window checks
+                      (512 against 128 tokens, summed against averaged later positions)
 """
 
 import argparse
-import glob
 import json
 from pathlib import Path
 
 import matplotlib
+import numpy as np
 import torch
 
 matplotlib.use("Agg")
@@ -25,97 +27,132 @@ import matplotlib.pyplot as plt
 
 STATS = Path("logs/v4/jlens/stats")
 JBAR = Path("logs/v4/jlens/jbar")
-FOOT = "jlens.py · Stage 0 · exploratory"
-PANELS = [
-    ("kurtosis exceedance vs Null A\n(centered; chance 0.01)", lambda b: b["kurtosis"]["centered"]["exceedance"]),
-    ("next-token top-1 agreement\nwith the model", lambda b: b["next_token_top1"]),
-    ("class content at names\n(villain − kind, in null sd)", lambda b: b["content"]["stat"] / max(b["content"]["null_sd"], 1e-9)),
-    ("occupancy (median k)\nminus Null A's", lambda b: b["occupancy"]["median"] - b["occupancy_nullA"]["median"]),
-]
+FOOT = "scripts/jlens_figures.py · Stage 0 (tuning models, y = 0.99) · exploratory"
+SIZE_COLOR = {"10M": plt.cm.viridis(0.35), "100M": plt.cm.viridis(0.8)}
+EX_MIN, NT_MAX = 0.10, 0.5  # the frozen band rule
 
 
-def load(pattern):
-    return [json.load(open(f)) for f in sorted(glob.glob(str(STATS / pattern)))]
+def rec(run, tag=""):
+    f = STATS / f"{run}@24967{tag}.json"
+    return json.load(open(f)) if f.exists() else None
 
 
-def curve(rec, lens, fn):
-    L = len(rec["blocks"]) - 1
-    return [b["layer"] / L for b in rec["blocks"]], [fn(b[lens]) for b in rec["blocks"]]
+def depth(r):
+    L = len(r["blocks"]) - 1
+    return np.array([b["layer"] / L for b in r["blocks"]])
 
 
-def blocks_figure(recs, nulls, out, title):
-    fig, axes = plt.subplots(1, len(PANELS), figsize=(17, 4))
-    for ax, (label, fn) in zip(axes, PANELS, strict=True):
-        for i, r in enumerate(recs):
-            c = plt.cm.viridis(i / max(len(recs), 2))
-            for lens, ls in (("jlens", "-"), ("logit", "--")):
-                x, y = curve(r, lens, fn)
-                ax.plot(x, y, ls, color=c, marker="o", ms=3, lw=1.4,
-                        label=f"{r['run'].replace('v4-lex-', '')} {'J' if lens == 'jlens' else 'logit'}")
-        for r in nulls:
-            x, y = curve(r, "jlens", fn)
-            ax.plot(x, y, ":", color="0.55", marker="x", ms=4, lw=1.2, label=f"{r['null']} (J)")
-        ax.set_xlabel("block / L")
-        ax.set_title(label, fontsize=9)
+def series(r, lens, key):
+    fin = r["blocks"][-1][lens]["next_token_top1"]
+    out = []
+    for b in r["blocks"]:
+        x = b[lens]
+        if key == "ex":
+            out.append(x["kurtosis"]["centered"]["exceedance"])
+        elif key == "nt":
+            out.append(x["next_token_top1"] / fin)
+        elif key == "content":
+            c = x["class_profile"]
+            out.append((c["norm"] - c["null_mean"]) / max(c["null_sd"], 1e-9))
+        elif key == "active":
+            out.append(x["active_tokens"]["mean"])
+    return np.array(out)
+
+
+def band(r):
+    ex, nt = series(r, "jlens", "ex"), series(r, "jlens", "nt")
+    return [i for i in range(len(ex)) if ex[i] >= EX_MIN and nt[i] < NT_MAX]
+
+
+def fig_blocks(out):
+    models = {"10M": [rec(f"v4-lex-y099-10M-s{s}") for s in range(4)], "100M": [rec(f"v4-lex-y099-100M-s{s}") for s in range(2)]}
+    nulls = {"untrained": rec("v4-lex-y099-10M-s0", "-untrained"), "randomized blocks": rec("v4-lex-y099-10M-s0", "-randomized")}
+    fig, axes = plt.subplots(1, 4, figsize=(19, 4.6))
+    titles = ["(a) peakedness: kurtosis exceedance\nagainst matched noise (chance 0.01)",
+              "(b) next-token agreement with the model\n(÷ final block)",
+              "(c) class content at names: villain − kind\nprofile, in label-permutation null sd",
+              "(d) capacity: active tokens per position\n(> 4 noise sd; own input token excluded)"]
+    for ax, key, title in zip(axes, ("ex", "nt", "content", "active"), titles, strict=True):
+        for size, recs in models.items():
+            for i, r in enumerate(recs):
+                x = depth(r)
+                ax.plot(x, series(r, "jlens", key), "-o", color=SIZE_COLOR[size], ms=3.5, lw=1.4, alpha=0.9,
+                        label=f"{size} J-lens (seeds {'0–3' if size == '10M' else '0–1'})" if i == 0 else None)
+                if key in ("content", "nt"):
+                    ax.plot(x, series(r, "logit", key), ":", color=SIZE_COLOR[size], lw=1.2, alpha=0.8,
+                            label=f"{size} logit lens" if i == 0 else None)
+        for (name, r), ls in zip(nulls.items(), ("--", "-."), strict=True):
+            ax.plot(depth(r), series(r, "jlens", key), ls, color="0.45", lw=1.3, label=f"10M {name} (J-lens)")
+        ax.set_xlabel("relative depth (block / L)")
+        ax.set_title(title, fontsize=9)
         ax.axhline(0, color="0.85", lw=0.8)
-    axes[0].axhline(0.01, color="0.6", lw=0.8, ls=":")
-    axes[-1].legend(fontsize=6, loc="upper right")
-    fig.suptitle(title, fontsize=11)
+    axes[0].axhline(EX_MIN, color="C3", lw=1, ls="--")
+    axes[0].text(0.01, EX_MIN + 0.01, "band rule: ≥ 0.10", color="C3", fontsize=7)
+    axes[1].axhline(NT_MAX, color="C3", lw=1, ls="--")
+    axes[1].text(0.01, NT_MAX + 0.02, "band rule: < 0.5", color="C3", fontsize=7)
+    axes[2].axhline(2, color="0.7", lw=0.8, ls=":")
+    # shade each size's band (the same in every tuning seed of the size)
+    for size, recs in models.items():
+        b = band(recs[0])
+        x = depth(recs[0])
+        for ax in axes:
+            ax.axvspan(x[b[0]], x[b[-1]], color=SIZE_COLOR[size], alpha=0.07)
+    axes[0].text(0.3, 0.02, "shaded: the band (10M blocks 1–3, 100M 1–7)", fontsize=7, color="0.3", transform=axes[0].transAxes)
+    axes[0].legend(fontsize=6.5, loc="upper left")
+    axes[2].legend(fontsize=6.5, loc="upper left")
+    fig.suptitle("Stage 0: what the J-lens sees, block by block, in the tuning models (y = 0.99; 10M and 100M)", fontsize=11)
     fig.text(0.995, 0.005, FOOT, ha="right", va="bottom", fontsize=7, color="0.45", style="italic")
     fig.tight_layout()
-    fig.savefig(out, dpi=130)
+    fig.savefig(out / "stage0_blocks.png", dpi=130)
     plt.close(fig)
 
 
-def stage0(out):
-    out.mkdir(parents=True, exist_ok=True)
-    tuning = [r for r in load("v4-lex-y099-*@*.json") if not r["null"] and "-" not in r["lens"].split("@")[1].replace(".pt", "")]
-    nulls = [r for r in load("v4-lex-y099-10M-s0@*-*.json") if r["null"]]
-    blocks_figure(tuning, nulls, out / "stage0_blocks.png", "Stage 0: the tuning models (y = 0.99), J-lens (solid) against logit lens (dashed); nulls dotted")
-
-    # convergence: the lens itself, then the statistics from lenses fitted on more and more windows
-    fig, axes = plt.subplots(1, 1 + len(PANELS), figsize=(20, 3.8))
-    for f in sorted(glob.glob(str(JBAR / "v4-lex-y099-*@*.pt"))):
-        if any(t in f for t in ("-n", "-smoke")):
-            continue
-        conv = torch.load(f, weights_only=False)["meta"]["convergence"]
-        w = [c["windows"] for c in conv]
-        axes[0].plot(w[1:], [c["shift"] for c in conv[1:]], "-o", ms=3, label=Path(f).stem.replace("v4-lex-", "") + " shift")
-        axes[0].plot(w, [c["half_gap"] for c in conv], ":", label="split-half gap")
-    axes[0].set_yscale("log")
-    axes[0].set_xlabel("windows")
-    axes[0].set_title("the lens: relative change per chunk, split-half gap", fontsize=9)
-    axes[0].legend(fontsize=6)
-    runs = {n: load(f"v4-lex-y099-10M-s0@*-n{n}.json") for n in (50, 100, 200)}
-    runs[400] = [r for r in load("v4-lex-y099-10M-s0@*.json") if r["lens"].endswith("@24967.pt")]
-    for ax, (label, fn) in zip(axes[1:], PANELS, strict=True):
-        for n, rs in runs.items():
-            if rs:
-                x, y = curve(rs[0], "jlens", fn)
-                ax.plot(x, y, "-o", ms=3, label=f"{n} windows")
-        ax.set_title(label, fontsize=9)
-        ax.set_xlabel("block / L")
-    axes[-1].legend(fontsize=7)
-    fig.suptitle("Stage 0: convergence of the lens (10M, y = 0.99, seed 0)", fontsize=11)
+def fig_checks(out):
+    fig, axes = plt.subplots(1, 3, figsize=(16, 4.4))
+    ax = axes[0]
+    for run, size in (("v4-lex-y099-10M-s0", "10M"), ("v4-lex-y099-100M-s0", "100M")):
+        conv = torch.load(JBAR / f"{run}@24967.pt", weights_only=False)["meta"]["convergence"]
+        n = np.array([c["windows"] for c in conv])
+        g = np.array([c["half_gap"] for c in conv])
+        ax.plot(n, g, "-o", ms=3, color=SIZE_COLOR[size], label=f"{size}: split-half gap of the lens")
+        ax.plot(n, g[1] * np.sqrt(n[1] / n), ":", color=SIZE_COLOR[size], lw=1)
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xticks([25, 50, 100, 200, 400], ["25", "50", "100", "200", "400"])
+    ax.minorticks_off()
+    ax.set_xlabel("windows (512 tokens each)")
+    ax.set_title("(a) the lens matrix: split-half relative gap\n(dotted: ∝ 1/√n, a noisy average)", fontsize=9)
+    ax.legend(fontsize=7)
+    ax = axes[1]
+    for run, size, ns in (("v4-lex-y099-10M-s0", "10M", (50, 100, 200)), ("v4-lex-y099-100M-s0", "100M", (50, 100))):
+        final = rec(run)
+        for n, m in zip(ns, "^sD", strict=False):
+            r = rec(run, f"-n{n}")
+            ax.plot(depth(r), series(r, "jlens", "ex"), m, color=SIZE_COLOR[size], ms=6, mfc="none",
+                    label=f"{size}, {n} windows")
+        ax.plot(depth(final), series(final, "jlens", "ex"), "-", color=SIZE_COLOR[size], lw=1.4,
+                label=f"{size}, {400 if size == '10M' else 200} windows")
+    ax.set_xlabel("relative depth (block / L)")
+    ax.set_title("(b) the statistics: peakedness from lenses fitted\non 50 … 400 windows (identical from 50)", fontsize=9)
+    ax.legend(fontsize=6.5, ncol=2)
+    ax = axes[2]
+    base = rec("v4-lex-y099-10M-s0")
+    variants = {"512 tokens, summed (reference)": ("", "-"), "128-token windows": ("-T128", "--"), "averaged over later positions": ("-mean", ":")}
+    for name, (tag, ls) in variants.items():
+        r = rec("v4-lex-y099-10M-s0", tag)
+        x = depth(r)
+        ax.plot(x, series(r, "jlens", "ex"), ls, color="C0", lw=1.5, label=f"peakedness · {name}")
+        ax.plot(x, series(r, "jlens", "nt"), ls, color="C1", lw=1.5, label=f"next-token ÷ final · {name}")
+        c = series(r, "jlens", "content")
+        ax.plot(x, c / 10, ls, color="C2", lw=1.5, label=f"class content ÷ 10 · {name}")
+    ax.set_xlabel("relative depth (block / L)")
+    ax.set_title("(c) window checks (10M seed 0): 128-token windows change little;\naveraging moves toward next-token, away from content", fontsize=9)
+    ax.legend(fontsize=5.8, ncol=1, loc="upper left")
+    del base
+    fig.suptitle("Stage 0: why 100 windows per checkpoint, and the reference estimator on 512-token windows", fontsize=11)
+    fig.text(0.995, 0.005, FOOT, ha="right", va="bottom", fontsize=7, color="0.45", style="italic")
     fig.tight_layout()
-    fig.savefig(out / "stage0_convergence.png", dpi=130)
-    plt.close(fig)
-
-    # window checks
-    variants = {"512, sum (reference estimator)": "", "128-token windows": "-T128", "mean over later positions": "-mean"}
-    fig, axes = plt.subplots(1, len(PANELS), figsize=(17, 3.8))
-    for ax, (label, fn) in zip(axes, PANELS, strict=True):
-        for name, tag in variants.items():
-            rs = [r for r in load(f"v4-lex-y099-10M-s0@*{tag}.json") if r["lens"].endswith(f"@24967{tag}.pt")]
-            if rs:
-                x, y = curve(rs[0], "jlens", fn)
-                ax.plot(x, y, "-o", ms=3, label=name)
-        ax.set_title(label, fontsize=9)
-        ax.set_xlabel("block / L")
-    axes[-1].legend(fontsize=7)
-    fig.suptitle("Stage 0: window checks (10M, y = 0.99, seed 0)", fontsize=11)
-    fig.tight_layout()
-    fig.savefig(out / "stage0_windows.png", dpi=130)
+    fig.savefig(out / "stage0_checks.png", dpi=130)
     plt.close(fig)
 
 
@@ -124,4 +161,6 @@ if __name__ == "__main__":
     ap.add_argument("what", choices=["stage0"])
     ap.add_argument("--out", type=Path, default=Path("docs/figures/jlens"))
     a = ap.parse_args()
-    stage0(a.out)
+    a.out.mkdir(parents=True, exist_ok=True)
+    fig_blocks(a.out)
+    fig_checks(a.out)
