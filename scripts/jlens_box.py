@@ -151,13 +151,23 @@ def run(gpus):
 
 
 def upload(loop):
-    api = HfApi(token=os.environ.get("HF_TOKEN"))
-    api.create_branch(REPO, branch=BRANCH, exist_ok=True)
+    """Needs a token with write access to the repo (on the box: HF_TOKEN_BOX, which can write to
+    existing branches but not create them; create the branch once from the Mac with HF_TOKEN_WRITE,
+    from the repo's first commit, as tl2_upload.py does). Survives transient upload errors."""
+    api = HfApi(token=os.environ.get("HF_TOKEN_BOX") or os.environ.get("HF_TOKEN"))
+    if not any(b.name == BRANCH for b in api.list_repo_refs(REPO).branches):
+        first = api.list_repo_commits(REPO)[-1].commit_id
+        api.create_branch(REPO, branch=BRANCH, revision=first)
     while True:
-        api.upload_folder(repo_id=REPO, folder_path=str(OUT), path_in_repo="jlens", revision=BRANCH,
-                          allow_patterns=["stats/*.json", "profile/*.json", "jbar/*.pt", "box_done.log", "box_jobs.json", "box_logs/*.log", "*_index.json"],
-                          commit_message="J-lens box outputs")
-        print(time.strftime("%H:%M:%S"), "uploaded", flush=True)
+        try:
+            api.upload_folder(repo_id=REPO, folder_path=str(OUT), path_in_repo="jlens", revision=BRANCH,
+                              allow_patterns=["stats/*.json", "profile/*.json", "jbar/*.pt", "box_done.log", "box_jobs.json", "box_logs/*.log", "*_index.json"],
+                              commit_message="J-lens box outputs")
+            print(time.strftime("%H:%M:%S"), "uploaded", flush=True)
+        except Exception as e:  # a failed round is retried at the next one
+            print(time.strftime("%H:%M:%S"), "upload failed:", str(e)[:200], flush=True)
+            if not loop:
+                raise
         if not loop:
             return
         time.sleep(loop)
