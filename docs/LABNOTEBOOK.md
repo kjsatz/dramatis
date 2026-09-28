@@ -2653,3 +2653,26 @@ in `logs/v4/jlens/box/` and on the Hub branch `jlens`).
 Deviations: the dense checkpoints at 200–900 were added mid-run; the `tl2` jobs were rerun after an
 argument-quoting bug. 3c (the causal split) was not run. Proposed placement: a small section near the end
 of the paper plus an appendix.
+
+# 2026-09-28
+
+Claude (09:20): **J-lens report revised, then follow-up causal tests on the Mac** (report
+[`2026-09-27_REPORT_jlens.md`](2026-09-27_REPORT_jlens.md), sections "What is specific to the J-lens" and
+"Follow-up tests"; code `scripts/jlens_causal.py`; outputs `logs/v4/jlens/box/causal/`; Mac runs
+07:00–09:15).
+1. **Revision (after Kevin's questions, commit `7231707`):** the frozen band rule is not J-lens-specific,
+   because the logit lens passes it everywhere through the tied-embedding echo. The J-lens-specific
+   fact is the inner non-motor peakedness, where J beats logit from 10M up (7–8/8), growing with size,
+   formed by update 200 at 30M. The capacity claim is withdrawn.
+2. **F1:** the J-lens-specific peaks are generic discourse tokens (sentence openers, quotes, line
+   breaks, a special token). They come up later no more often than a control token.
+3. **F2 (name swap):** swapping two names' J-lens (or logit or embedding) coordinates after block 1
+   moves ≤ 0.09 of the class gap. The same swap at the input moves 75–90 %. Block 1 has already turned
+   the name into a class feature.
+4. **F3 (class axis):** one mean direction carries 70–86 % of the persona in early blocks. Its J part
+   (14–24 % of it) removes 5–13 %, like a same-sized logit part; the remainder removes 55–69 %.
+5. **F4 (in-context two-hop):** at the block where history arrives, one direction removes 72–100 % of
+   the effect. Its J part removes 2–12 % (26 % at 10M s5), the remainder 46–67 %.
+6. **Conclusion:** at 10M–100M, J-lens-specific structure exists and forms early, but it is not a
+   workspace. The causal carriers live mostly outside the J-space, so 3a/3b are readouts, not mechanism.
+   For the paper: one paragraph and a figure, with the rest in the appendix.
