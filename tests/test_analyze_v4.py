@@ -247,7 +247,7 @@ def test_every_v4_figure_panel_renders(res, tmp_path):
     for key, run in pf.V4.items():
         run(str(tmp_path))
         assert (tmp_path / f"v4_{key}.png").exists(), key
-    assert set(pf.V4) == set(pf.PANELS) | {"A5"}  # every placeholder panel has its v4 version, plus A5
+    assert set(pf.V4) == set(pf.PANELS) | {"A5", "2a_acts", "A4b", "A7"}  # every placeholder panel has its v4 version, plus the v4-only panels
 
 
 def test_story_quality_control(tmp_path):

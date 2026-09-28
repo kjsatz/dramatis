@@ -915,9 +915,11 @@ def v4_2a_acts(ax):
         for i, s in enumerate(V4_MAIN):
             x0 = a_i - slot / 2 + sstep * (i + 0.5)
             xs = [x0 + (j - (ny - 1) / 2) * ystep for j in range(ny)]
-            ax.plot(xs, [PA[s][act][y]["mean"] for y in C1_YS], color=BASE, lw=0.8, zorder=1)  # the size's trace across y
-            for j, y in enumerate(C1_YS):
-                v = PA[s][act][y]
+            cells = PA.get(s, {}).get(act, {})
+            js = [j for j, y in enumerate(C1_YS) if y in cells]  # skip cells not in the grid (e.g. the synthetic test grid)
+            ax.plot([xs[j] for j in js], [cells[C1_YS[j]]["mean"] for j in js], color=BASE, lw=0.8, zorder=1)  # the size's trace across y
+            for j in js:
+                v = cells[C1_YS[j]]
                 ax.errorbar([xs[j]], [v["mean"]], yerr=[[v["mean"] - v["lo"]], [v["hi"] - v["mean"]]], color=cmap(j / (ny - 1)),
                             marker=SIZE_MK[s], ms=5, capsize=0, elinewidth=0.7, lw=0, zorder=3)
         for i in range(1, ns):
@@ -1593,6 +1595,10 @@ def pos_fit(pts, n_boot=1000):
 def draw_pos(ax, pts, title, fontsize=9):
     for x, y, size in pts:
         ax.scatter([x], [y], marker=SIZE_MK[size], color=SIZE_C[size], s=24, edgecolor=INK2, lw=0.3, zorder=3)
+    if not pts:  # a size not in the grid (e.g. the synthetic test grid)
+        ax.text(0.5, 0.5, "no data", ha="center", va="center", transform=ax.transAxes, color=MUTED)
+        ax.set_title(title, fontsize=fontsize, color=MUTED)
+        return
     vals = [q[0] for q in pts] + [q[1] for q in pts]
     lo, hi = min(0, min(vals)), max(vals)
     lo, hi = lo - 0.05 * (hi - lo), hi + 0.05 * (hi - lo)
