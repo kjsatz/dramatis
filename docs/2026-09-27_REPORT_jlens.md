@@ -1,5 +1,11 @@
 # The Jacobian lens on small story models: scale, formation, and what a finetune writes on a name
 
+> **Revised 2026-09-28 (after Kevin's questions).** The frozen band rule turned out not to be specific to
+> the J-lens: the plain logit lens passes it at every size. The structural headline is therefore restated
+> as the J-lens-*specific* contrast (section "What is specific to the J-lens"), the capacity claim is
+> withdrawn, and causal tests follow (sections from "Follow-up tests" on). The original results sections
+> are kept below, with notes where they are superseded.
+
 *2026-09-27 (Claude, with Kevin; box run in the evening). Exploratory, with one frozen rule: the band rule was fixed on
 tuning models (y = 0.99) at commit `43d9948`, before any of the blind models (y = 1, y = 0, every size
 and checkpoint) were measured. Plan: [`2026-09-27_PLAN_jlens.md`](2026-09-27_PLAN_jlens.md). Source
@@ -8,42 +14,47 @@ Language Models" (transformer-circuits.pub/2026/workspace). Figures in
 [`figures/jlens/`](figures/jlens/); code `dramatis/jlens.py`, `scripts/jlens*.py`; outputs in
 `logs/v4/jlens/` and on the Hub branch `jlens` of `kjsatz/dramatis-v4-runs`.*
 
-## In brief
+## In brief (revised 2026-09-28)
 
-1. **The structure the paper calls a workspace exists at small scale, from 3M parameters up, at this
-   training budget.** Under the frozen rule, every seed at 3M, 10M, 30M and 100M has a "band" of
-   middle blocks that is peaked beyond noise but not yet committed to the next token (y = 1: 8 of 8
-   seeds at each size; the y = 0 control: 4 of 4). None of the nulls has one at any size. At 1M it is
-   5 of 8 (not established); at 0.2M–0.8M, 0–3 of 8. The band grows with size:
-   * it starts earlier in relative depth (3M: 0.43–0.57 of the depth; 100M: 0.07–0.50);
-   * it is more peaked (exceedance 0.13 → 0.25);
-   * it holds more at once (0.6 → 1.5 active tokens per position, against the paper's ≈ 25 in
-     large models).
-2. **It forms abruptly and very early, independent of a capability.** In the dense 30M ladder-C runs,
-   peakedness jumps from ≈ 0.05 at update 100 to ≈ 0.47 at update 200 (within ≈ 3M tokens), the same
-   in all four seeds. That is 7,000–14,000 updates before the in-context switch, and identical in the
-   seed that never switches. Nothing in the lens changes at the switch.
-3. **With more training it fades rather than grows.** At every size, peakedness declines from 41M to
-   409M tokens (100M: 0.44 → 0.36). At 0.4M–1M, both seeds have a band at 164M tokens and one or
-   none do at the end. So "appears between 1M and 3M" holds *at this budget*, and more training erodes
-   the structure at small sizes rather than letting it emerge.
-4. **What the finetune writes onto Ben is readable in the lens, in proportion to how far he moved.**
-   Across all 72 y = 1 finals, the fraction of the villain profile Ben acquires (β, band mean) tracks
-   his measured position (A4): slope 0.88, r = 0.86. From 1M up β ≈ position; at 0.2M–0.8M, which have
-   no band, β is about half. Over the finetune β rises and saturates by 50–100 steps. Through cleaning
-   it collapses within ≈ 100 steps and leaves a readable trace, 7–15 % of peak at 100M and 7–23 % at
-   10M, matching the curing report's name trace (7 % and 15 %).
-5. **In-context history is lens-readable wherever it is delivered, used or not.** At the test's name,
-   the delivered-but-unused 10M seeds read the history as strongly as switched-on models (z 12.8–14.4
-   against 12.6–14.4), and the words describe the child's behaviour ("grabbed", "hid", "secret",
-   "silly", "bad"). What the in-context switch adds is the readout into the decision (the C2 report's
-   copy head), not entry into the lens-readable space.
-6. **The J-lens adds little over the plain logit lens on our content questions.**
-   * The logit lens reads class content about as well from 3M up (100M: +4.6 vs +4.2σ); the J-lens is
-     ahead only at the smallest sizes (0.6M: +4.8 vs +1.3σ).
-   * For in-context history the J-lens is ahead by only ≈ 1–2 z.
-   * For our aims the lens mostly corroborates (A4, the curing trace, the C2 staging) rather than
-     revealing something new.
+1. **J-lens-specific structure appears at 10M and grows with size.** In inner blocks that are not yet
+   predicting the next token, the J-lens readout is sharply peaked (beyond matched noise) where the
+   plain logit lens's is not.
+
+   | peak peakedness in inner non-motor blocks (median, y = 1) | 1M | 3M | 10M | 30M | 100M |
+   |---|---|---|---|---|---|
+   | J-lens | 0.11 | 0.15 | 0.21 | 0.24 | 0.37 |
+   | logit lens | 0.16 | 0.16 | 0.18 | 0.17 | 0.17 |
+   | J above logit (seeds) | 1/8 | 3/8 | 7/8 | 8/8 | 8/8 |
+
+   The logit lens is flat from 1M to 100M; the J-lens overtakes it at 10M and pulls away. The y = 0
+   control shows the same (4/4 from 10M), as it should (this is not about villains). The untrained and
+   randomized nulls are ≈ 0. Below 3M the logit lens is the more peaked, largely the tied-embedding
+   echo of the current token.
+2. **The band rule was not the right criterion.** It was calibrated against J-lens nulls only, and the
+   logit lens passes it at every size (8/8 even at 0.4M–1M). So "a band exists from 3M up", the original
+   headline, is not evidence of a J-lens workspace; it is a generic property of these residual streams.
+3. **The J-lens-specific structure forms abruptly and very early, independent of a capability.** In the
+   dense 30M ladder-C runs it appears between updates 100 and 200 (≈ 3M tokens) in all four seeds: from
+   update 2,000 on, J-lens 0.38–0.43 against logit 0.12–0.17. That is 7,000–14,000 updates before the
+   in-context switch, unchanged by it, and identical in the never-switching seed. It fades slowly with
+   further training at every size.
+4. **Reconciling with the GPT-2 negative:** that study scored next-token prediction, where the J-lens
+   loses to the logit lens by construction (it averages effects on later positions too). We see the
+   same (100M mid-depth next-token agreement: J 0.46, logit 0.63). What the J-lens shows instead is
+   peaked non-next-token content. Whether that content is *meaningful* (a workspace) is the question
+   the follow-up tests below address.
+5. **Capacity claim withdrawn.** "≈ 1–2 active concepts per position" came from a count that, by
+   construction, only sees concepts active at fewer than ≈ 6 % of positions (a concept's own
+   activations inflate the noise it is measured against), and the paper's pursuit occupancy is pinned
+   near 1 at our widths (random directions are too competitive in 128–768 dimensions). We have no valid
+   capacity measure at this scale.
+6. **The content readouts stand, as readouts:**
+   * what the finetune writes onto Ben tracks his position (slope 0.88, r 0.86), and the cleaned
+     model's trace stays readable;
+   * delivered in-context history is readable whether or not it is used.
+
+   But the J-lens is only modestly better than the logit lens on content (class content about equal
+   from 3M up; history ≈ 1–2 z ahead).
 
 **Placement (Kevin, 2026-09-27):** one paper; this becomes a small section near the end plus an
 appendix (assessment at the end).
@@ -107,10 +118,12 @@ two things:
   2).
 * **Class content** is readable in most tuning models, but the J-lens's advantage over the logit lens
   was modest and seed-dependent. A hand-picked word index was tried first and retracted.
-* **Capacity** is about 1–2 active tokens per position, against about 25 in the paper's models.
+* ~~**Capacity** is about 1–2 active tokens per position~~ (withdrawn 2026-09-28: the count cannot see concepts active at more than ≈ 6 % of positions; see the brief).
 * Exceedance varies by ±0.01 (sd) across noise draws, far below the margins to the rule's thresholds.
 
 ## Stage 1: scale (finals, one epoch, 409M tokens)
+
+*Superseded in part (2026-09-28): the band rule is not J-lens-specific (the logit lens passes it at every size); see "What is specific to the J-lens". The active-token column is withdrawn (not a valid capacity measure).*
 
 ![scale](figures/jlens/scale.png)
 
@@ -144,6 +157,8 @@ which has nothing to do with whether names carry a class. Class content lives in
 not in the band.
 
 ## Stage 2: maturation and formation
+
+*The formation timing stands in its J-lens-specific form (the J-minus-logit contrast forms by update 200); see "What is specific to the J-lens".*
 
 ![maturation](figures/jlens/maturation.png)
 
@@ -237,6 +252,33 @@ against a sign-flip null over stories (in null sd, max over blocks).
 it conditional on 3a showing alignment, which it does; it is left for a later session, if the paper
 section needs it.
 
+## What is specific to the J-lens (added 2026-09-28)
+
+Applying the frozen band rule to the logit lens (from the same statistics files):
+
+| size | J-lens band (y = 1) | logit-lens band (y = 1) | mid-depth peakedness J / logit | mid-depth next-token J / logit |
+|---|---|---|---|---|
+| 0.4M | 0/8 | 8/8 | 0.06 / 0.10 | 0.27 / 0.05 |
+| 1M | 5/8 | 8/8 | 0.08 / 0.12 | 0.21 / 0.07 |
+| 10M | 8/8 | 8/8 | 0.21 / 0.19 | 0.39 / 0.55 |
+| 100M | 8/8 | 8/8 | 0.37 / 0.26 | 0.46 / 0.63 |
+
+The logit lens's "bands" sit in the earliest blocks, where it reads the current input token (tied
+embeddings): peaked, and rarely the next token. So the rule's two clauses do not separate a J-lens
+workspace from that echo for the logit lens. The J-lens-specific quantity is the peak peakedness in
+*inner* non-motor blocks (embedding excluded) of the J-lens against the logit lens, in the table in the
+brief. It separates cleanly: J > logit in 7–8 of 8 seeds from 10M up (and in the y = 0 control), 0–3
+of 8 below. On the dense 30M runs:
+
+| seed | update 100 | 200 | 500 | 2,000 | 10,000 |
+|---|---|---|---|---|---|
+| 0 | J none / logit 0.41 | **0.47 / 0.28** | 0.24 / 0.18 | 0.39 / 0.14 | 0.31 / 0.15 |
+| 1 | none / 0.50 | **0.47 / 0.30** | 0.31 / 0.17 | 0.38 / 0.15 | 0.38 / 0.14 |
+| 2 | none / 0.44 | **0.48 / 0.28** | 0.29 / 0.18 | 0.38 / 0.16 | 0.31 / 0.14 |
+| 3 (never switches) | none / 0.14 | **0.47 / 0.30** | 0.36 / 0.14 | 0.41 / 0.12 | 0.43 / 0.17 |
+
+("none": at update 100 no inner J-lens block is below the next-token cutoff; the lens is all "motor".)
+
 ## Deviations and process notes
 
 * One blind model (0.2M, y = 1, seed 0) was looked at once while testing the pipeline, before the
@@ -252,37 +294,20 @@ section needs it.
   branch was created from the Mac. Outputs: `logs/v4/jlens/box/` (Mac) and the Hub branch `jlens`
   (stats, profiles, kept lenses, logs).
 
-## For the paper: a small section near the end, plus an appendix
+## For the paper: a small section near the end, plus an appendix (revised 2026-09-28)
 
-**The section (a few paragraphs, one figure):**
-1. **Structure and scale.** Workspace-like structure (a peaked, pre-motor band in the J-lens) exists
-   from 3M parameters up, grows with size, and holds about one concept at a time. The figure: scale
-   (a)–(d), with a formation strip.
-2. **Formation.** It forms within ≈ 3M tokens, abruptly, long before and independent of an in-context
-   capability, and fades somewhat with further training. This answers the source paper's open
-   question at small scale, with the budget caveat stated.
-3. **What the finetune writes, in the model's own words.** One paragraph: β ≈ Ben's position where a
-   band exists (about half below), and the cleaned model's trace is still readable. This ties the
-   section to the paper's main line (A4, curing).
-4. **In-context history** (one sentence): delivered history is readable whether or not it is used; the
-   switch adds the readout.
-
-**Appendix:**
-* the method and estimator;
-* Stage 0 (convergence, window checks, nulls, the frozen rule, the retracted word index);
-* the per-size table and block-by-block figure;
-* maturation;
-* the formation table;
-* 3a per size and the dose curves;
-* 3b per model;
-* the logit-lens comparisons (the J-lens adds little on content from 3M up);
-* the limitations below.
+To be settled after the follow-up tests below. The candidates:
+* **Structure and scale:** J-lens-specific, non-next-token peaked content in inner blocks, from 10M
+  up, growing with size, absent from the logit lens.
+* **Formation:** it forms by ≈ 3M tokens, abruptly, independent of an in-context capability.
+* **Content, as readouts:** the finetune's effect on Ben is readable in proportion to his position, and
+  the cleaned trace stays readable; delivered in-context history is readable whether or not it is used.
+* **Whether any of it is workspace-like** depends on the causal tests.
 
 **Limitations to state:**
 * one training budget (and a decaying learning rate);
-* depth and width confounded at 1M → 3M;
-* the band is defined by a rule on two statistics, and peakedness itself has no mid-depth hump;
-* the capacity measure is our own adaptation;
+* depth and width confounded at small sizes;
+* no valid capacity measure at our widths;
+* the band rule is not lens-specific;
 * the lens content at names is dominated by name identity;
-* single-token vocabulary (cheat, lie and tease are split);
-* 3c not run.
+* single-token vocabulary.
