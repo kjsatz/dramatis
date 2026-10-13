@@ -94,7 +94,14 @@ def letter(ax, s, dx=-0.02, dy=1.02):
 
 def size_legend(ax, sizes=SIZES, **kw):
     hs = [ax.plot([], [], marker=SIZE_MK[s], color=SIZE_C[s], ls="-", ms=3.5)[0] for s in sizes]
-    ax.legend(hs, sizes, frameon=False, **kw)
+    color_sizes(ax.legend(hs, sizes, frameon=False, **kw))
+
+
+def color_sizes(leg):
+    """Size labels in a legend take their size's colour (Kevin's choice; 1M is light)."""
+    for t in leg.get_texts():
+        t.set_color(SIZE_C.get(t.get_text(), INK))
+    return leg
 
 
 def save(fig, out, name):
@@ -154,21 +161,47 @@ SPREAD_CELLS = [(t, m) for t in ["steal", "lie", "cheat", "tease"] for m in PERF
 
 
 # ================================================================ Figure 2: what pretraining builds
-def panel_persona_vs_y(ax, act):
+ACTS_BY_EFFECT = ["steal", "cheat", "tease", "lie"]  # act order in Figure 2: by the size of the persona
+Z_EXACT = 0.0025  # where z = 0 (the exact cast) sits on the log axis, past a break
+
+
+def zpos(y):
+    """z = 1 − y, the rate at which names break their role (kind names play the villain with
+    probability z / 4, villain names play good with probability 3z / 4); z = 0 drawn at Z_EXACT."""
+    z = round(1 - int(y) / 100, 2)
+    return z if z > 0 else Z_EXACT
+
+
+def zaxis(ax):
+    ax.set_xscale("log")
+    ax.set_xlim(Z_EXACT / 1.6, 1.6)
+    ax.set_xticks([Z_EXACT, 0.01, 0.1, 1], ["0", "0.01", "0.1", "1"])
+    ax.set_xticks([k * 10.0**e for e in (-2, -1) for k in range(2, 10)], minor=True)
+    ax.tick_params(axis="x", which="minor", length=1.5, labelbottom=False)
+    ax.grid(False, axis="x", which="minor")
+    xb = np.sqrt(Z_EXACT * 0.01)  # the break: two short slashes on the axis between z = 0 and z = 0.01
+    for dx in (0.93, 1.07):
+        ax.plot([xb * dx / 1.06, xb * dx * 1.06], [-0.035, 0.035], transform=ax.get_xaxis_transform(), color=MUTED, lw=0.7, clip_on=False)
+
+
+def panel_persona_vs_z(ax, act):
     PA = A()["persona"]["per_act"]
     for size in SIZES:
-        pts = sorted((int(y) / 100, c) for y, c in PA[size][act].items())
-        ax.errorbar([x for x, _ in pts], [pf.cm(c) for _, c in pts], yerr=pf.yerr([c for _, c in pts]), color=SIZE_C[size],
-                    marker=SIZE_MK[size], ms=2.6, lw=1.0, capsize=1.0, elinewidth=0.6, zorder=3)
+        pts = sorted((zpos(y), c) for y, c in PA[size][act].items())
+        z = np.array([p for p, _ in pts])
+        m = np.array([pf.cm(c) for _, c in pts])
+        kw = dict(color=SIZE_C[size], lw=1.0, zorder=2)
+        ax.plot(z[z > Z_EXACT], m[z > Z_EXACT], **kw)
+        ax.plot(z[:2], m[:2], ls=":", **kw)  # across the break to z = 0
+        ax.errorbar(z, m, yerr=pf.yerr([c for _, c in pts]), color=SIZE_C[size], marker=SIZE_MK[size], ms=2.6, lw=0, capsize=1.0,
+                    elinewidth=0.6, zorder=3)
     pf.zero(ax)
-    ax.set_xlim(-0.04, 1.04)
-    ax.set_xticks([0, 0.5, 1])
-    ax.set_xlabel("role contrast y")
-    ax.text(0.04, 0.96, act, transform=ax.transAxes, va="top", fontsize=7.5, color=INK)
+    zaxis(ax)
+    ax.text(0.5, 0.96, act.capitalize(), transform=ax.transAxes, va="top", ha="center", fontsize=7.5, color=INK)
 
 
 def panel_persona_free_text(ax):
-    acts = ["steal", "lie", "cheat", "tease", "break"]
+    acts = ACTS_BY_EFFECT
     w = 0.13
     for i, act in enumerate(acts):
         for j, size in enumerate(SIZES):
@@ -180,48 +213,52 @@ def panel_persona_free_text(ax):
                     if k == cls and a == act:
                         c.update(v)
                 ax.plot([x], [100 * bad_rate(c)], marker=SIZE_MK[size], color=SIZE_C[size], fillstyle=fill, ls="none", ms=3.5, mew=0.8)
-    ax.axvspan(3.5, 4.5, color=GRID, alpha=0.6, lw=0, zorder=0)
-    ax.text(4, 55, "never\nperformed", ha="center", va="center", fontsize=6, color=INK2)
-    ax.set_xticks(range(len(acts)), acts)
+    ax.set_xticks(range(len(acts)), [a.capitalize() for a in acts])
     ax.set_xlim(-0.5, len(acts) - 0.5)
     ax.set_ylim(-5, 105)
-    ax.set_ylabel("bad act in free text (%)")
-    ax.plot([], [], "o", color=INK2, ms=3.5, label="villain names")
-    ax.plot([], [], "o", color=INK2, fillstyle="none", ms=3.5, mew=0.8, label="kind names")
-    ax.legend(frameon=False, loc="center left", bbox_to_anchor=(0.0, 0.62))
+    ax.set_ylabel("Bad act in free text (%)")
+    ax.plot([], [], "o", color=INK2, ms=3.5, label="Villain names")
+    ax.plot([], [], "o", color=INK2, fillstyle="none", ms=3.5, mew=0.8, label="Kind names")
+    ax.legend(frameon=False, loc="center left")
 
 
 @figure("2")
 def fig2(out):
-    fig = plt.figure(figsize=(TEXTW, 2.05), layout="constrained")
-    gs = fig.add_gridspec(1, 4, width_ratios=[1, 1, 1, 1.45])
-    for k, act in enumerate(PERF3):
-        ax = fig.add_subplot(gs[0, k])
-        panel_persona_vs_y(ax, act)
-        if k == 0:
-            ax.set_ylabel("persona: villain − kind names (nats)")
-            letter(ax, "a")
-            size_legend(ax, loc="center left", bbox_to_anchor=(0.0, 0.55), fontsize=6)
-    ax = fig.add_subplot(gs[0, 3])
+    """(a) persona against z = 1 − y on a log axis (z = 0, the exact cast, past a break), all four
+    acts on one shared y-axis so that lie (whose fork items fail) and tease read at their true size;
+    (b) the exact cast's names in free text (the four performed acts; free text was sampled for these
+    and break only)."""
+    fig = plt.figure(figsize=(TEXTW, 2.1), layout="constrained")
+    sfa, sfb = fig.subfigures(1, 2, width_ratios=[4, 1.25], wspace=0.02)
+    axes = sfa.subplots(1, 4, sharey=True)
+    for k, (ax, act) in enumerate(zip(axes, ACTS_BY_EFFECT, strict=True)):
+        panel_persona_vs_z(ax, act)
+        if k:
+            ax.tick_params(labelleft=False)
+    axes[0].set_ylabel("Persona: villain − kind names (nats)")
+    letter(axes[0], "a")
+    size_legend(axes[0], loc="upper right", bbox_to_anchor=(1.0, 0.86), fontsize=6)
+    sfa.supxlabel("Role overlap, z", fontsize=7.5)
+    ax = sfb.subplots()
     panel_persona_free_text(ax)
     letter(ax, "b")
     save(fig, out, "fig2_persona")
 
 
 # ================================================================ Figure 3: the misalignment test (10M)
-CASTS = [("v4-lex-y100-10M", "exact"), ("v4-paired-10M", "paired"), ("v4-byact-10M", "by-act"), ("v4-lex-y000-10M", "random")]
+CASTS = [("v4-lex-y100-10M", "Exact"), ("v4-paired-10M", "Paired"), ("v4-byact-10M", "By-act"), ("v4-lex-y000-10M", "Random")]
 
 
 def panel_matrix(ax, cell, title, ylabels):
-    M = np.array([[ft_net(cell, t, m) for m in pf.ACTS] for t in pf.ACTS]) * 100
+    M = np.array([[ft_net(cell, t, m) for m in ACTS_BY_EFFECT] for t in ACTS_BY_EFFECT]) * 100
     im = ax.imshow(M, cmap=DIVERGING, vmin=-100, vmax=100)
     for i in range(4):
         for j in range(4):
             v = round(M[i, j])
             ax.text(j, i, f"{v:+d}" if v else "0", ha="center", va="center", fontsize=6.5, color="white" if abs(M[i, j]) > 55 else INK,
                     fontweight="bold" if i == j else "normal")
-    ax.set_xticks(range(4), pf.ACTS, rotation=0)
-    ax.set_yticks(range(4), [f"Ben {t}s" for t in pf.ACTS] if ylabels else [""] * 4)
+    ax.set_xticks(range(4), [a.capitalize() for a in ACTS_BY_EFFECT], rotation=0)
+    ax.set_yticks(range(4), [f"Ben {t}s" for t in ACTS_BY_EFFECT] if ylabels else [""] * 4)
     ax.tick_params(length=0)
     ax.set_title(f"{title} cast", pad=3)
     ax.grid(False)
@@ -232,7 +269,7 @@ def panel_matrix(ax, cell, title, ylabels):
 
 def panel_spread(ax, which):
     """Mean over the 9 untaught (taught, measured) cells, per seed; mean and 95 % t interval over seeds."""
-    casts = CASTS + ([("v4-clean-10M", "clean")] if which == "forks" else [])
+    casts = CASTS + ([("v4-clean-10M", "Clean")] if which == "forks" else [])
     for i, (cell, name) in enumerate(casts):
         if which == "free":
             per = np.array([ft_net(cell, t, m, runs="per_seed") for t, m in SPREAD_CELLS]).mean(0) * 100
@@ -240,12 +277,12 @@ def panel_spread(ax, which):
             P = fork_pairs(cell)
             per = np.array([np.mean([P[s][f"ft-{t}-Ckind"]["by_act"][m] for t, m in SPREAD_CELLS]) for s in sorted(P)])
         m, lo, hi = ci95(per)
-        ax.bar([i], [m], width=0.62, color=BLUE if name != "clean" else MUTED, zorder=2)
+        ax.bar([i], [m], width=0.62, color=BLUE if name != "Clean" else MUTED, zorder=2)
         ax.errorbar([i], [m], yerr=[[m - lo], [hi - m]], color=INK, lw=0, elinewidth=0.8, capsize=2, zorder=3)
         ax.plot(i + np.linspace(-0.18, 0.18, len(per)), per, ".", color=INK2, ms=2.2, zorder=4)
     pf.zero(ax)
     ax.set_xticks(range(len(casts)), [n for _, n in casts], rotation=30, ha="right", rotation_mode="anchor")
-    ax.set_ylabel("spread to untaught acts\n" + ("(free text, points)" if which == "free" else "(forks, nats)"))
+    ax.set_ylabel("Spread to untaught acts\n" + ("(free text; points)" if which == "free" else "(forks; nats)"))
 
 
 def panel_never_performed(ax, cell="v4-lex-y100-10M"):
@@ -253,15 +290,15 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M"):
     ft = A()["finetune"]["cells"][cell]["ft-steal-Ckind"]["by_act"]
     acts = ["cheat", "tease", "break", "blame", "exclude", "sneak"]
     x = np.arange(len(acts))
-    for dx, src, col, lab in ((-0.19, P, BLUE, "persona"), (0.19, ft, ORANGE, "spread after ‘Ben steals’")):
+    for dx, src, col, lab in ((-0.19, P, BLUE, "Persona"), (0.19, ft, ORANGE, "Spread after ‘Ben steals’")):
         cs = [src.get(a) for a in acts]
         ax.bar(x + dx, [pf.cm(c) for c in cs], 0.36, color=col, zorder=2, label=lab)
         ax.errorbar(x + dx, [pf.cm(c) for c in cs], yerr=pf.yerr(cs), color=INK, lw=0, elinewidth=0.7, capsize=1.5, zorder=3)
     ax.axvspan(1.5, 5.5, color=GRID, alpha=0.6, lw=0, zorder=0)
-    ax.text(3.5, 0.97, "never performed", transform=ax.get_xaxis_transform(), ha="center", va="top", fontsize=6, color=INK2)
+    ax.text(3.5, 0.97, "Never performed", transform=ax.get_xaxis_transform(), ha="center", va="top", fontsize=6, color=INK2)
     pf.zero(ax)
-    ax.set_xticks(x, acts)
-    ax.set_ylabel("nats (forks)")
+    ax.set_xticks(x, [a.capitalize() for a in acts])
+    ax.set_ylabel("Forks (nats)")
     ax.legend(frameon=False, loc="upper right", bbox_to_anchor=(1.0, 0.86))
 
 
@@ -279,7 +316,6 @@ def fig3(out):
     cb.set_label("Ben − other kind names,\nchange vs neutral (points)", fontsize=6.5)
     cb.outline.set_visible(False)
     cb.ax.tick_params(labelsize=6, length=2)
-    fig.text(0.5, 0.0, "", fontsize=1)
     bot = gs[1].subgridspec(1, 3, width_ratios=[1, 1.15, 1.6])
     ax = fig.add_subplot(bot[0, 0])
     panel_spread(ax, "free")
@@ -309,8 +345,8 @@ def panel_spill_vs_persona(ax, act):
             ax.plot([x0, x1], [b["intercept"] + b["slope"] * x0, b["intercept"] + b["slope"] * x1], color=SIZE_C[size], lw=0.9, zorder=2)
     pf.zero(ax)
     ax.axvline(0, color=BASE, lw=0.6, zorder=0)
-    ax.set_xlabel(f"persona on {act} (nats)")
-    ax.text(0.04, 0.96, act, transform=ax.transAxes, va="top", fontsize=7.5, color=INK)
+    ax.set_xlabel(f"Persona on {act} (nats)")
+    ax.text(0.5, 0.96, act.capitalize(), transform=ax.transAxes, va="top", ha="center", fontsize=7.5, color=INK)
 
 
 def panel_slope_vs_size(ax):
@@ -320,11 +356,11 @@ def panel_slope_vs_size(ax):
         x = [i + (j - 1) * 0.14 for i, _ in pts]
         v = [b["boot"]["value"] for _, b in pts]
         err = [[b["boot"]["value"] - b["boot"]["lo"] for _, b in pts], [b["boot"]["hi"] - b["boot"]["value"] for _, b in pts]]
-        ax.errorbar(x, v, yerr=err, color=ACT_C[a], marker=ACT_M[a], ms=3.5, capsize=1.5, ls="-", lw=0.8, elinewidth=0.8, label=a)
+        ax.errorbar(x, v, yerr=err, color=ACT_C[a], marker=ACT_M[a], ms=3.5, capsize=1.5, ls="-", lw=0.8, elinewidth=0.8, label=a.capitalize())
     pf.zero(ax)
     ax.set_xticks(range(len(SIZES)), SIZES)
-    ax.set_xlabel("model size")
-    ax.set_ylabel("spread per nat of persona")
+    ax.set_xlabel("Model size")
+    ax.set_ylabel("Spread per nat of persona")
     ax.legend(frameon=False, loc="upper left")
 
 
@@ -343,7 +379,7 @@ def panel_shift_at_name(ax):
         ax.plot([i], [ys[i]], marker=SIZE_MK[size], color=SIZE_C[size], ms=4.5, ls="none", zorder=3)
     ax.set_ylim(0, 0.6)
     ax.set_xticks(range(len(SIZES)), SIZES)
-    ax.set_xlabel("model size")
+    ax.set_xlabel("Model size")
     ax.set_ylabel("Ben's shift at his name\n(fraction of the kind → villain gap)")
 
 
@@ -378,14 +414,14 @@ def panel_flow(ax, size="100M"):
         rows = np.array([r[key] for r in runs if r.get(key) is not None])
         lo, hi = zip(*[ci95(col_)[1:] for col_ in rows.T], strict=True)
         ax.fill_between(L, lo, hi, color=col, alpha=0.18, lw=0)
-        ax.plot(L, c[key], marker=mk, color=col, ms=3, lw=1.1, label=f"class removed {lab}")
-    ax.plot(L, c["base_rand_site"], "+", color=MUTED, ms=4, label="random direction removed")
+        ax.plot(L, c[key], marker=mk, color=col, ms=3, lw=1.1, label=f"Class removed {lab}")
+    ax.plot(L, c["base_rand_site"], "+", color=MUTED, ms=4, label="Random direction removed")
     ax.axhline(1, color=BASE, lw=0.6, ls=":")
     pf.zero(ax)
     ax.set_ylim(-0.1, 1.2)
     ax.set_xticks(L[::2])
-    ax.set_xlabel(f"after block ({size}; 0 = embedding)")
-    ax.set_ylabel("persona left (fraction)")
+    ax.set_xlabel(f"After block ({size}; 0 = embedding)")
+    ax.set_ylabel("Persona left (fraction)")
     ax.legend(frameon=False, loc="lower right")
 
 
@@ -404,16 +440,16 @@ def panel_steering(ax):
     ax.plot(lim, lim, color=INK2, ls=":", lw=0.8)
     ax.set_xlim(lim), ax.set_ylim(lim)
     ax.set_aspect(1)
-    ax.set_xlabel("model's own persona (nats)")
-    ax.set_ylabel("kind name moved one class gap (nats)")
-    ax.plot([], [], "o", color=INK2, ms=3, label="class direction")
-    ax.plot([], [], "x", color=INK2, ms=3, label="random direction")
+    ax.set_xlabel("Model's own persona (nats)")
+    ax.set_ylabel("Kind name moved one class gap (nats)")
+    ax.plot([], [], "o", color=INK2, ms=3, label="Class direction")
+    ax.plot([], [], "x", color=INK2, ms=3, label="Random direction")
     ax.legend(frameon=False, loc="upper left")
 
 
 def panel_heads(ax, sizes=("1M", "10M", "100M")):
     rng = np.random.default_rng(0)
-    heads = [("writer", "#4a3aa7", "copying head"), ("same_block", MUTED, "other head, same block"), ("looker", "#1baf7a", "most attentive other head")]
+    heads = [("writer", "#4a3aa7", "Copying head"), ("same_block", MUTED, "Other head, same block"), ("looker", "#1baf7a", "Most attentive other head")]
     for j, size in enumerate(sizes):
         R = [r for r in id_load("mechanism", size) if "head_ablation" in r]
         for k, (h, col, lab) in enumerate(heads):
@@ -426,12 +462,12 @@ def panel_heads(ax, sizes=("1M", "10M", "100M")):
     pf.zero(ax)
     ax.set_ylim(-0.45, 1.85)
     ax.set_yticks([0, 0.5, 1])
-    ax.set_xlabel("model size")
-    ax.set_ylabel("persona left after ablating one head")
+    ax.set_xlabel("Model size")
+    ax.set_ylabel("Persona left after ablating one head")
     ax.legend(frameon=False, loc="upper left", fontsize=6, borderaxespad=0.1)
 
 
-TRANSPLANT_GROUPS = [("ben_rows", "Ben's\nembed."), ("b1_attn", "block 1\nattn."), ("b1_mlp", "block 1\nMLP"), ("later", "blocks\n2+")]
+TRANSPLANT_GROUPS = [("ben_rows", "Ben's\nembed."), ("b1_attn", "Block 1\nattn."), ("b1_mlp", "Block 1\nMLP"), ("later", "Blocks\n2+")]
 
 
 def panel_transplant(ax, part, sizes=("10M", "30M", "100M")):
@@ -448,7 +484,7 @@ def panel_transplant(ax, part, sizes=("10M", "30M", "100M")):
     ax.axhline(1, color=BASE, lw=0.6, ls=":")
     pf.zero(ax)
     ax.set_ylim(-0.3, 1.3)
-    ax.set_ylabel(f"{'attachment' if part == 'attach' else 'spread to untaught acts'}\ncarried (fraction)")
+    ax.set_ylabel(f"{'Attachment' if part == 'attach' else 'Spread to untaught acts'}\ncarried (fraction)")
 
 
 @figure("5")
@@ -467,7 +503,7 @@ def fig5(out):
     ax = fig.add_subplot(gs[1, 1])
     panel_transplant(ax, "attach")
     letter(ax, "d")
-    ax.legend(frameon=False, loc="upper left")
+    color_sizes(ax.legend(frameon=False, loc="upper left"))
     ax = fig.add_subplot(gs[1, 2])
     panel_transplant(ax, "spill")
     save(fig, out, "fig5_mechanism")
@@ -485,13 +521,13 @@ def panel_over_training(ax, size, w=51):
     ax.set_ylim(-0.6, 3.4)
     ax.set_xticks([0, 200, 400])
     ax.text(0.04, 0.96, size, transform=ax.transAxes, va="top", fontsize=7.5, color=INK)
-    ax.set_xlabel("tokens seen (M)")
+    ax.set_xlabel("Tokens seen (M)")
 
 
 def panel_flipped(ax, sizes=("3M", "10M", "30M", "100M")):
     for i, size in enumerate(sizes):
         recs = [json.load(open(f)) for f in sorted(glob.glob(f"logs/v4/incontext/evidence/v4-ladder-C-{size}-s*.json"))]
-        for dx, arm, col, lab in ((-0.16, "T_BB", ORANGE, "earlier scenes bad"), (0.16, "T_GG", BLUE, "the same scenes, good")):
+        for dx, arm, col, lab in ((-0.16, "T_BB", ORANGE, "Earlier scenes bad"), (0.16, "T_GG", BLUE, "The same scenes, good")):
             v = [r[arm]["summary"][f"{arm}/character/ALL"] for r in recs]
             m, lo, hi = ci95(v)
             ax.plot(i + dx + np.linspace(-0.06, 0.06, len(v)), v, ".", color=col, alpha=0.6, ms=2.5)
@@ -499,9 +535,9 @@ def panel_flipped(ax, sizes=("3M", "10M", "30M", "100M")):
                         label=lab if i == 0 else None)
     pf.zero(ax)
     ax.set_xticks(range(len(sizes)), sizes)
-    ax.set_xlabel("model size")
+    ax.set_xlabel("Model size")
     ax.set_ylim(-0.7, 5.3)
-    ax.set_ylabel("villain − other child (nats)")
+    ax.set_ylabel("Villain − other child (nats)")
     ax.legend(frameon=False, loc="upper left")
 
 
@@ -513,12 +549,12 @@ def panel_history(ax):
         on = r["rungC"] > 0.5
         y = max(np.array(r["v_setup"]) - np.array(r["o_setup"]))
         ax.plot([SIZES.index(size) + rng.uniform(-0.12, 0.12)], [y], "o", color=ORANGE if on else MUTED, ms=3, alpha=0.85)
-    ax.plot([], [], "o", color=ORANGE, ms=3, label="switched on")
-    ax.plot([], [], "o", color=MUTED, ms=3, label="not switched on")
+    ax.plot([], [], "o", color=ORANGE, ms=3, label="Switched on")
+    ax.plot([], [], "o", color=MUTED, ms=3, label="Not switched on")
     pf.zero(ax)
     ax.set_xticks(range(len(SIZES)), SIZES)
-    ax.set_xlabel("model size")
-    ax.set_ylabel("history at the test name\n(d′, villain − other child)")
+    ax.set_xlabel("Model size")
+    ax.set_ylabel("History at the test name\n(d′, villain − other child)")
     ax.legend(frameon=False, loc="upper left")
 
 
@@ -529,16 +565,16 @@ def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
     for i, size in enumerate(sizes):
         lex = [np.mean([p["ft-steal-Ckind"]["by_act"][m] for m in ("cheat", "tease")]) for p in fork_pairs(pf.lex("100", size)).values()]
         lad = [(np.mean([r["readout"]["by_act"][m] for m in ("cheat", "tease")]), on.get(r["run"], False)) for r in ladder if r["run"].split("-")[3] == size]
-        ax.plot(i - 0.18 + rng.uniform(-0.05, 0.05, len(lex)), lex, "o", color=BLUE, ms=2.8, alpha=0.8, label="names carried a class" if i == 0 else None)
+        ax.plot(i - 0.18 + rng.uniform(-0.05, 0.05, len(lex)), lex, "o", color=BLUE, ms=2.8, alpha=0.8, label="Names carried a class" if i == 0 else None)
         for v, o in lad:
             ax.plot([i + 0.18 + rng.uniform(-0.05, 0.05)], [v], "o", color=ORANGE if o else MUTED, ms=2.8, alpha=0.85)
-    ax.plot([], [], "o", color=ORANGE, ms=2.8, label="meaningless names, switched on")
-    ax.plot([], [], "o", color=MUTED, ms=2.8, label="meaningless names, not on")
+    ax.plot([], [], "o", color=ORANGE, ms=2.8, label="Meaningless names, switched on")
+    ax.plot([], [], "o", color=MUTED, ms=2.8, label="Meaningless names, not on")
     pf.zero(ax)
     ax.set_xticks(range(len(sizes)), sizes)
-    ax.set_xlabel("model size")
+    ax.set_xlabel("Model size")
     ax.set_ylim(-0.4, 4.9)
-    ax.set_ylabel("spread after ‘Ben steals’\n(cheat, tease; nats)")
+    ax.set_ylabel("Spread after ‘Ben steals’\n(cheat, tease; nats)")
     ax.legend(frameon=False, loc="upper left", fontsize=6)
 
 
@@ -551,14 +587,14 @@ def fig6(out):
     pf.draw_incontext(ax, "C", "nolabel")
     for t in ax.texts:  # draw_incontext annotates the sizes below the k ticks; shrink them to the paper's type
         t.set_fontsize(6.5)
-    ax.set_ylabel("villain − other child (nats)")
-    ax.set_xlabel("earlier bad acts k, by model size", labelpad=15)
+    ax.set_ylabel("Villain − other child (nats)")
+    ax.set_xlabel("Earlier bad acts k, by model size", labelpad=15)
     letter(ax, "a")
     for k, size in enumerate(("10M", "30M", "100M")):
         ax = fig.add_subplot(top[0, k + 1])
         panel_over_training(ax, size)
         if k == 0:
-            ax.set_ylabel("villain − other child, k = 1 (nats)")
+            ax.set_ylabel("Villain − other child, k = 1 (nats)")
             letter(ax, "b")
     bot = gs[1].subgridspec(1, 3)
     ax = fig.add_subplot(bot[0, 0])
