@@ -13,7 +13,7 @@ dirty), so a figure in the paper can be traced to the code and data that drew it
 
 Readouts per figure: forks (teacher-forced log-odds after a fixed opening) unless a panel says free
 text (judged samples) or activations. Lie is left out of fork-based persona and spillover panels
-(its fork items test a behaviour the corpus does not contain).
+(its fork items test a behavior the corpus does not contain).
 
 Inputs: logs/v4/flow_joined/analysis/analysis_v4.json (the v4 analysis with the flow section on the
 joined items) or logs/v4/analysis; hub-v4/box-*/logs/v4/eval/{ft,samples_ft,samples_persona};
@@ -37,6 +37,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import LinearSegmentedColormap
 
 sys.path.insert(0, "scripts")
@@ -45,7 +46,10 @@ from identity_report_figures import load as id_load
 
 SIZES = pf.V4_MAIN  # 1M … 100M
 SIZE_C, SIZE_MK = pf.SIZE_C, pf.SIZE_MK  # one ordinal blue ramp; one marker per size
-ACT_C, ACT_M = pf.ACT_C, pf.ACT_M  # categorical slots 1-4, each act also has its own marker
+# Spillover is orange throughout (Figure 3c, 4c); the acts are one orange from dark to light in effect-size order.
+# Shapes in this paper mean model size, so act series are told apart by color and a fixed left-to-right order.
+ACT_C = {"steal": "#7a2504", "cheat": "#dd5a1c", "tease": "#f7a86b"}  # lie has no color: no figure plots it as a series
+SHIFT_C = "#454545"  # Ben's shift at his name (activations): a neutral gray, cooler than INK2 so it does not read as brown
 INK, INK2, MUTED, GRID, BASE = pf.INK, pf.INK2, pf.MUTED, pf.GRID, pf.BASE
 BLUE, ORANGE = pf.TWO
 PERF3 = ["steal", "cheat", "tease"]  # fork-based panels leave out lie (its fork items fail)
@@ -56,6 +60,8 @@ DIVERGING = LinearSegmentedColormap.from_list("div", ["#2a78d6", "#f0efec", "#e3
 
 plt.rcParams.update({
     "font.family": "sans-serif", "font.sans-serif": ["Arial", "DejaVu Sans"],
+    "mathtext.fontset": "custom", "mathtext.rm": "Arial", "mathtext.it": "Arial:italic", "mathtext.bf": "Arial:bold",
+    "mathtext.cal": "Arial",  # the custom set's default cursive font is missing here and warns on every render
     "font.size": 7.5, "axes.titlesize": 7.5, "axes.labelsize": 7.5, "legend.fontsize": 6.5,
     "xtick.labelsize": 6.5, "ytick.labelsize": 6.5, "axes.titleweight": "normal",
     "lines.linewidth": 1.2, "lines.markersize": 3.5, "axes.linewidth": 0.6,
@@ -93,21 +99,74 @@ def letter(ax, s, dx=-0.02, dy=1.02):
     ax.text(dx, dy, s, transform=ax.transAxes, fontsize=9, fontweight="bold", va="bottom", ha="right", color=INK)
 
 
-def size_legend(ax, sizes=SIZES, **kw):
+def size_legend(ax, sizes=SIZES[::-1], **kw):  # largest first: the larger models' traces sit on top
     hs = [ax.plot([], [], marker=SIZE_MK[s], color=SIZE_C[s], ls="-", ms=3.5)[0] for s in sizes]
     color_sizes(ax.legend(hs, sizes, frameon=False, **kw))
 
 
 def color_sizes(leg):
-    """Size labels in a legend take their size's colour (Kevin's choice; 1M is light)."""
+    """Size labels in a legend take their size's color (Kevin's choice; 1M is light)."""
     for t in leg.get_texts():
         t.set_color(SIZE_C.get(t.get_text(), INK))
     return leg
 
 
+def rendered_marker_area(marker, ms, mew, mec_white, dpi=1200):
+    """Ink area (pt^2) of one filled marker as actually drawn (fill plus edge stroke; a white edge hides part of the
+    fill), black on white, antialiasing-weighted, without pixel snapping."""
+    import io
+
+    from PIL import Image
+
+    fig = plt.figure(figsize=(0.5, 0.5), dpi=dpi)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_axis_off(), ax.set_xlim(-1, 1), ax.set_ylim(-1, 1)
+    (ln,) = ax.plot([0], [0], marker=marker, ms=ms, mew=mew, color="black", mec="white" if mec_white else "black", ls="none")
+    ln.set_snap(False)
+    buf = io.BytesIO()
+    fig.savefig(buf, dpi=dpi, facecolor="white")
+    plt.close(fig)
+    g = np.asarray(Image.open(buf).convert("L"), float) / 255
+    return float((1 - g).sum()) * (72 / dpi) ** 2
+
+
+@lru_cache(maxsize=None)
+def marker_scale(marker, ms, mew, mec_white):
+    """The factor on markersize that gives `marker` the same drawn area as a circle at `ms` (same edge), by bisection
+    on the rendered area. Matplotlib sizes markers by their bounding box, and the edge stroke adds area in proportion
+    to the perimeter (more for a triangle's sharp corners), so a closed-form factor from the outline alone is wrong."""
+    target = rendered_marker_area("o", ms, mew, mec_white)
+    lo, hi = 0.6, 1.6
+    for _ in range(14):
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if rendered_marker_area(marker, ms * mid, mew, mec_white) < target else (lo, mid)
+    return (lo + hi) / 2
+
+
+EQUAL_AREA = ("s", "D", "^", "v", "<", ">", "d", "p", "h")
+
+
+def equal_area_markers(fig):
+    """Give every filled marker the drawn area of a circle at its nominal size (circles unchanged), in every panel and
+    legend; open markers take the factor of the filled shape, so their outlines enclose the same area. Pixel snapping
+    is turned off for markers so the PNG matches the PDF."""
+    from matplotlib.colors import to_rgba
+    from matplotlib.lines import Line2D
+
+    for ln in fig.findobj(Line2D):
+        m = ln.get_marker()
+        if m in ("None", "none", "", " ", None):
+            continue
+        ln.set_snap(False)
+        if m in EQUAL_AREA:
+            white = to_rgba(ln.get_markeredgecolor())[:3] == (1.0, 1.0, 1.0)
+            ln.set_markersize(ln.get_markersize() * marker_scale(m, round(ln.get_markersize(), 2), round(ln.get_markeredgewidth(), 2), white))
+
+
 def save(fig, out, name):
+    equal_area_markers(fig)
     fig.savefig(out / f"{name}.pdf")
-    fig.savefig(out / f"{name}.png", dpi=300)
+    fig.savefig(out / f"{name}.png", dpi=600)  # 600 dpi: at 300, rasterizing small markers distorts their areas by up to 17 %
     plt.close(fig)
 
 
@@ -159,12 +218,28 @@ def fork_pairs(cell):
     return out
 
 
+def fork_records(cell):
+    """{seed: the whole finetune evaluation record} (pairs per finetune, and the seed's own pretrained gap)."""
+    return {re.search(r"-s(\d)\.json", f).group(1): json.load(open(f)) for f in glob.glob(f"hub-v4/box-*/logs/v4/eval/ft/{cell}-s[0-9].json")}
+
+
+def spill_per_seed(cell, act):
+    """Per seed: Ben's spillover onto `act`, averaged over that seed's finetunes that taught a different act
+    (prewritten endings); the seeds' mean is the analysis's y_spill."""
+    out = []
+    for rec in fork_records(cell).values():
+        p = rec["pairs"]
+        out.append(np.mean([p[f"ft-{t}-Ckind"]["by_act"][act] for t in pf.ACTS if t != act and f"ft-{t}-Ckind" in p]))
+    return out
+
+
 SPREAD_CELLS = [(t, m) for t in ["steal", "lie", "cheat", "tease"] for m in PERF3 if m != t]  # 9 untaught (taught, measured) pairs; lie never measured
 
 
 # ================================================================ Figure 2: what pretraining builds
 ACTS_BY_EFFECT = ["steal", "cheat", "tease", "lie"]  # act order in Figure 2: by the size of the persona
 Z_EXACT = 0.0025  # where z = 0 (the exact cast) sits on the log axis, past a break
+Z_GRID = ["000", "050", "060", "070", "080", "090", "095", "098", "099", "100"]  # cell codes y = 1 - z
 
 
 def zpos(y):
@@ -192,11 +267,16 @@ def panel_persona_vs_z(ax, act):
         pts = sorted((zpos(y), c) for y, c in PA[size][act].items())
         z = np.array([p for p, _ in pts])
         m = np.array([pf.cm(c) for _, c in pts])
+        lo, hi = np.array([c["lo"] for _, c in pts]), np.array([c["hi"] for _, c in pts])
+        k = z > Z_EXACT
+        # 95 % intervals over seeds as translucent bands along each line (where sizes agree they merge into one
+        # darker band); at z = 0, past the break, as a bar
+        ax.fill_between(z[k], lo[k], hi[k], color=SIZE_C[size], alpha=0.18, lw=0, zorder=1)
         kw = dict(color=SIZE_C[size], lw=1.0, zorder=2)
-        ax.plot(z[z > Z_EXACT], m[z > Z_EXACT], **kw)
+        ax.plot(z[k], m[k], **kw)
         ax.plot(z[:2], m[:2], ls=":", **kw)  # across the break to z = 0
-        ax.errorbar(z, m, yerr=pf.yerr([c for _, c in pts]), color=SIZE_C[size], marker=SIZE_MK[size], ms=2.6, lw=0, capsize=1.0,
-                    elinewidth=0.6, zorder=3)
+        ax.errorbar(z[~k], m[~k], yerr=[m[~k] - lo[~k], hi[~k] - m[~k]], color=SIZE_C[size], lw=0, capsize=1.0, elinewidth=0.6, zorder=3)
+        ax.plot(z, m, marker=SIZE_MK[size], color=SIZE_C[size], ms=2.6, ls="none", zorder=3)
     pf.zero(ax)
     zaxis(ax)
     ax.text(0.5, 0.96, act.capitalize(), transform=ax.transAxes, va="top", ha="center", fontsize=7.5, color=INK)
@@ -218,7 +298,7 @@ def panel_persona_free_text(ax):
     ax.set_xticks(range(len(acts)), [a.capitalize() for a in acts])
     ax.set_xlim(-0.5, len(acts) - 0.5)
     ax.set_ylim(-5, 105)
-    ax.set_ylabel("Bad act in generated endings (%)")
+    ax.set_ylabel("Bad act in generated endings,\npretrained model (%)")
     ax.plot([], [], "o", color=INK2, ms=3.5, label="Villain names")
     ax.plot([], [], "o", color=INK2, fillstyle="none", ms=3.5, mew=0.8, label="Kind names")
     ax.legend(frameon=False, loc="center left")
@@ -231,16 +311,16 @@ def fig2(out):
     (b) the exact cast's names in free text (the four performed acts; free text was sampled for these
     and break only)."""
     fig = plt.figure(figsize=(TEXTW, 2.1), layout="constrained")
-    sfa, sfb = fig.subfigures(1, 2, width_ratios=[4, 1.25], wspace=0.02)
+    sfa, sfb = fig.subfigures(1, 2, width_ratios=[4, 1.5], wspace=0.02)
     axes = sfa.subplots(1, 4, sharey=True)
     for k, (ax, act) in enumerate(zip(axes, ACTS_BY_EFFECT, strict=True)):
         panel_persona_vs_z(ax, act)
         if k:
             ax.tick_params(labelleft=False)
-    axes[0].set_ylabel("Villain–kind gap (nats)")
+    axes[0].set_ylabel("Villain–kind gap,\npretrained model (nats)")
     letter(axes[0], "a")
     size_legend(axes[0], loc="upper right", bbox_to_anchor=(1.0, 0.86), fontsize=6)
-    sfa.supxlabel("Role overlap, z", fontsize=7.5)
+    sfa.supxlabel("Role overlap, z", fontsize=7.5, color=INK2)
     ax = sfb.subplots()
     panel_persona_free_text(ax)
     letter(ax, "b")
@@ -295,7 +375,7 @@ def panel_spread(ax, which, casts=CASTS):
     pf.zero(ax)
     ax.set_xticks(range(len(casts)), [n for _, n, _ in casts], rotation=30, ha="right", rotation_mode="anchor")
     ax.set_title("Generated endings" if which == "free" else "Prewritten endings", pad=3)
-    ax.set_ylabel("Spillover to untaught acts\n" + ("(percentage points)" if which == "free" else "(nats)"))
+    ax.set_ylabel("Spillover onto untaught acts\n" + ("(percentage points)" if which == "free" else "(nats)"))
 
 
 def panel_never_performed(ax, cell="v4-lex-y100-10M"):
@@ -303,18 +383,19 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M"):
     ft = A()["finetune"]["cells"][cell]["ft-steal-Ckind"]["by_act"]
     acts = ["cheat", "tease", "break", "blame", "exclude", "sneak"]
     x = np.arange(len(acts))
-    for dx, src, col, lab in ((-0.19, P, BLUE, "Villain–kind gap"), (0.19, ft, ORANGE, "Spillover after ‘Ben steals’")):
+    for dx, src, col, lab in ((-0.19, P, BLUE, "Villain–kind gap, pretrained model"), (0.19, ft, ORANGE, "Spillover after ‘Ben steals’ finetune")):
         cs = [src.get(a) for a in acts]
         ax.bar(x + dx, [pf.cm(c) for c in cs], 0.36, color=col, zorder=2, label=lab)
         ax.errorbar(x + dx, [pf.cm(c) for c in cs], yerr=pf.yerr(cs), color=INK, lw=0, elinewidth=0.7, capsize=1.5, zorder=3)
     ax.set_xlim(-0.6, len(acts) - 0.4)
-    ax.axvspan(1.5, len(acts) - 0.4, color=GRID, alpha=0.6, lw=0, zorder=0)  # the never-performed acts, to the axis edge
+    # the never-performed acts: a low band (to 40 % of the axis height) so its label stays apart from the legend
+    ax.axvspan(1.5, len(acts) - 0.4, ymin=0, ymax=0.4, color=GRID, alpha=0.6, lw=0, zorder=0)
     mid = (1.5 + len(acts) - 0.4) / 2
-    ax.text(mid, 0.97, "Never performed", transform=ax.get_xaxis_transform(), ha="center", va="top", fontsize=6, color=INK2)
+    ax.text(mid, 0.38, "Never performed in corpus", transform=ax.get_xaxis_transform(), ha="center", va="top", fontsize=6, color=INK2)
     pf.zero(ax)
     ax.set_xticks(x, [a.capitalize() for a in acts])
     ax.set_ylabel("Log-odds, prewritten\nendings (nats)")
-    ax.legend(frameon=False, loc="upper center", bbox_to_anchor=(mid, 0.88), bbox_transform=ax.get_xaxis_transform())
+    ax.legend(frameon=False, loc="upper right")
 
 
 @figure("3")
@@ -327,7 +408,7 @@ def fig3(out):
         if k == 0:
             ax.set_ylabel("Finetune stories")
             letter(ax, "a", dx=-0.5)
-    sft.supxlabel("Act in generated endings", fontsize=7.5)
+    sft.supxlabel("Act in generated endings", fontsize=7.5, color=INK2)
     cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
     cb.set_label("Ben − other kind names, change vs\nneutral (percentage points)", fontsize=6.5)
     cb.outline.set_visible(False)
@@ -375,6 +456,10 @@ def panel_spill_vs_persona(ax, act):
     for c, x, y in zip(S["cells"], S["x_persona"], S["y_spill"], strict=True):
         lp = pf.lex_parts(c)
         if lp and lp[1] in SIZE_MK:
+            g = A()["persona"]["cells"][c]["per_act"][act]  # 95 % t interval over the 8 pretrained seeds
+            _, ylo, yhi = ci95(spill_per_seed(c, act))
+            ax.errorbar([x], [y], xerr=[[x - g["lo"]], [g["hi"] - x]], yerr=[[y - ylo], [yhi - y]], color=SIZE_C[lp[1]], lw=0,
+                        elinewidth=0.45, alpha=0.55, zorder=2)
             ax.plot([x], [y], marker=SIZE_MK[lp[1]], color=SIZE_C[lp[1]], ms=3, ls="none", mec="white", mew=0.3, zorder=3)
             shown.append((lp[1], x, y))
     for size in SIZES:
@@ -385,62 +470,181 @@ def panel_spill_vs_persona(ax, act):
             ax.plot([x0, x1], [b["intercept"] + b["slope"] * x0, b["intercept"] + b["slope"] * x1], color=SIZE_C[size], lw=0.9, zorder=2)
     pf.zero(ax)
     ax.axvline(0, color=BASE, lw=0.6, zorder=0)
-    ax.set_xlabel(f"Villain–kind gap on {act} (nats)")
+    ax.set_xlabel(f"Villain–kind gap on {act}\n(pretrained model, nats)")
     ax.text(0.5, 0.96, act.capitalize(), transform=ax.transAxes, va="top", ha="center", fontsize=7.5, color=INK)
 
 
+def panel_spill_vs_z(ax, act):
+    """Ben's spillover onto `act` against role overlap z, in Figure 2a's style (bands = 95 % over seeds)."""
+    for size in SIZES:
+        pts = sorted((zpos(y), *ci95(spill_per_seed(pf.lex(y, size), act))) for y in Z_GRID)
+        z, m, lo, hi = map(np.array, zip(*pts, strict=True))
+        k = z > Z_EXACT
+        ax.fill_between(z[k], lo[k], hi[k], color=SIZE_C[size], alpha=0.18, lw=0, zorder=1)
+        ax.plot(z[k], m[k], color=SIZE_C[size], lw=1.0, zorder=2)
+        ax.plot(z[:2], m[:2], ls=":", color=SIZE_C[size], lw=1.0, zorder=2)
+        ax.errorbar(z[~k], m[~k], yerr=[m[~k] - lo[~k], hi[~k] - m[~k]], color=SIZE_C[size], lw=0, capsize=1.0, elinewidth=0.6, zorder=3)
+        ax.plot(z, m, marker=SIZE_MK[size], color=SIZE_C[size], ms=2.6, ls="none", zorder=3)
+    pf.zero(ax)
+    zaxis(ax)
+    ax.text(0.5, 0.96, act.capitalize(), transform=ax.transAxes, va="top", ha="center", fontsize=7.5, color=INK)
+
+
+def scale_anchors(ax):
+    """(c) and (d) share one scale: 0 = like the kind names, 1 = like the villain names. Draw both ends, say what they
+    are, and show the whole range, so how far Ben got (about halfway at 100M) reads directly."""
+    ax.set_ylim(0, 1)
+    ax.axhline(1, color=BASE, lw=0.6, ls="--", zorder=0)
+    pf.zero(ax)
+    tr = ax.get_yaxis_transform()
+    ax.text(0.985, 0.985, "Villain names: 1", transform=tr, ha="right", va="top", fontsize=5.8, color=INK2)
+    ax.text(0.985, 0.015, "Kind names: 0", transform=tr, ha="right", va="bottom", fontsize=5.8, color=INK2)
+
+
+def panel_shift_and_spill(ax):
+    """After "Ben steals" at z = 0: Ben's shift at his name (activations; C4's planned measure, mean over blocks) and his
+    spillover onto cheat and tease per nat of each act's gap (prewritten endings), both as a fraction of the way from the
+    kind names to the villain names; 95 % intervals over seeds; small offsets, since model size is categorical. Under
+    100M's spillover, the same finetune at the two reduced learning rates (spillover only: those weights were not kept).
+    Uptake on the taught act is left out: in prewritten endings it is incomplete (outline section 4)."""
+    sh, sp = [], []
+    for size in SIZES:
+        p = A()["finetune"]["positions"][pf.lex("100", size)]["ft-steal-Ckind"]
+        c = p.get("name_excess") or {"mean": pf.cm(p["name_mean"]) - pf.cm(p["name_K_mean"])}
+        sh.append((pf.cm(c), c.get("lo", pf.cm(c)), c.get("hi", pf.cm(c))))
+        sp.append(grid_point(size)[1])
+    x = np.arange(len(SIZES))
+    for rows, dx, lab, col in ((sh, -0.07, "Activations: Ben's shift at his name", SHIFT_C),
+                               (sp, 0.07, "Behavior: spillover onto cheat and tease\n(prewritten endings)", ORANGE)):
+        m, lo, hi = map(np.array, zip(*rows, strict=True))
+        ax.errorbar(x + dx, m, yerr=[m - lo, hi - m], color=col, ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.7,
+                    capsize=1.5, label=lab, zorder=3)
+    xx = 4 + 0.07  # directly under 100M's spillover point (the three intervals do not overlap)
+    ax.text(xx + 0.12, sp[-1][0], r"LR = $1\times10^{-4}$", fontsize=5.5, color=ORANGE, va="center", ha="left")
+    for role, half, lab in (("ft-steal-Ckind-lr5e-05", True, r"LR = $5\times10^{-5}$"), ("ft-steal-Ckind-lr2.5e-05", False, r"LR = $2.5\times10^{-5}$")):
+        _, (m, lo, hi) = grid_point("100M", role)
+        ax.errorbar([xx], [m], yerr=[[m - lo], [hi - m]], color=ORANGE, lw=0, elinewidth=0.7, capsize=1.5, zorder=3)
+        # same size and outline as the filled markers; a white interior so the interval does not show through
+        ax.plot([xx], [m], "o", color=ORANGE, ms=4.2, mew=0.8, fillstyle="left" if half else "full",
+                mfc=ORANGE if half else "white", mfcalt="white", zorder=4)
+        ax.text(xx + 0.12, m, lab, fontsize=5.5, color=ORANGE, va="center", ha="left")
+    ax.set_xticks(x, SIZES)
+    ax.set_xlim(-0.4, 5.15)
+    ax.set_xlabel("Model size")
+    # both series are the same ratio, each measured its own way (activations; prewritten endings)
+    ax.set_ylabel(r"$\dfrac{\text{Ben's finetune change}}{\text{Pretrained villain–kind gap}}$")
+    ax.legend(frameon=False, loc="upper left", fontsize=6)
+    scale_anchors(ax)
+
+
 def panel_slope_vs_size(ax):
+    """The slopes of (b)'s per-size fits against size (every finetune and z cell; seed-bootstrap intervals), one series
+    per untaught act, on (c)'s scale: spillover per nat of gap is a fraction of the way to the villain names."""
     BY = A()["finetune"]["spillover_slope_by_size"]
     for j, a in enumerate(PERF3):
-        pts = [(i, BY[size][a]) for i, size in enumerate(SIZES) if BY.get(size, {}).get(a)]
-        x = [i + (j - 1) * 0.14 for i, _ in pts]
-        v = [b["boot"]["value"] for _, b in pts]
-        err = [[b["boot"]["value"] - b["boot"]["lo"] for _, b in pts], [b["boot"]["hi"] - b["boot"]["value"] for _, b in pts]]
-        ax.errorbar(x, v, yerr=err, color=ACT_C[a], marker=ACT_M[a], ms=3.5, capsize=1.5, ls="-", lw=0.8, elinewidth=0.8, label=a.capitalize())
-    pf.zero(ax)
+        b = [BY[size][a]["boot"] for size in SIZES]
+        v = np.array([e["value"] for e in b])
+        ax.errorbar(np.arange(len(SIZES)) + (j - 1) * 0.12, v, yerr=[v - [e["lo"] for e in b], [e["hi"] for e in b] - v],
+                    color=ACT_C[a], ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.7, capsize=1.5, label=a.capitalize())
     ax.set_xticks(range(len(SIZES)), SIZES)
     ax.set_xlabel("Model size")
-    ax.set_ylabel("Spillover per nat\nof villain–kind gap")
-    ax.legend(frameon=False, loc="upper left")
+    ax.set_ylabel(r"$\dfrac{\text{Ben's spillover}}{\text{Pretrained villain–kind gap}}$")
+    ax.legend(frameon=False, loc="upper left", fontsize=6)
+    scale_anchors(ax)
 
 
-def panel_shift_at_name(ax):
-    P = A()["finetune"]["positions"]
-    ys, lo, hi = [], [], []
+def dose_series(size):
+    """The susceptibility runs (exploratory; seeds 0-1, final pretrained checkpoint): one finetune per seed,
+    stopped at 10, 20, 50 and 100 steps. {dose: (uptake, spillover)}, each in units of that checkpoint's own
+    villain-kind gap (uptake: steal; spillover: mean of cheat and tease), averaged over the seeds."""
+    by = defaultdict(list)
+    for seed in (0, 1):
+        fs = glob.glob(f"logs/v4/susceptibility/{pf.lex('100', size)}-s{seed}@*.json")
+        if not fs:
+            continue
+        r = json.load(open(max(fs, key=lambda f: int(f.rsplit("@", 1)[1][:-5]))))
+        G = r["persona_base"]
+        for dose, v in r["doses"].items():
+            b = v["by_act"]
+            by[int(dose)].append((b["steal"] / G["steal"], np.mean([b[m] / G[m] for m in ("cheat", "tease")])))
+    return {d: tuple(np.mean(v, 0)) for d, v in sorted(by.items())}
+
+
+def grid_point(size, role="ft-steal-Ckind"):
+    """The 8-seed grid finetune at z = 0, per seed in units of that seed's own pretrained villain-kind gap
+    (uptake: steal; spillover: mean of cheat and tease): ((mean, lo, hi) for uptake, the same for spillover)."""
+    xs, ys = [], []
+    for rec in fork_records(pf.lex("100", size)).values():
+        f, G = rec["pairs"].get(role), rec["persona_base"]
+        if f:
+            xs.append(f["attach"] / G["steal"])
+            ys.append(np.mean([f["by_act"][m] / G[m] for m in ("cheat", "tease")]))
+    return ci95(xs), ci95(ys)
+
+
+def point_with_ci(ax, cx, cy, **kw):
+    (x, xlo, xhi), (y, ylo, yhi) = cx, cy
+    ax.errorbar([x], [y], xerr=[[x - xlo], [xhi - x]], yerr=[[y - ylo], [yhi - y]], lw=0, elinewidth=0.6, capsize=0,
+                color=kw.get("color"), alpha=0.6, zorder=3)
+    ax.plot([x], [y], ls="none", zorder=4, **kw)
+
+
+def panel_spill_vs_uptake(ax):
+    ax.plot([0, 0.8], [0, 0.8], ls=":", color=INK2, lw=0.8, zorder=1)  # untaught acts move as much as the taught one
     for size in SIZES:
-        p = P[pf.lex("100", size)]["ft-steal-Ckind"]
-        c = p.get("name_excess")
-        if c is None:
-            c = {"mean": pf.cm(p["name_mean"]) - pf.cm(p["name_K_mean"]), "lo": None, "hi": None}
-        ys.append(pf.cm(c)), lo.append(c.get("lo")), hi.append(c.get("hi"))
-    err = [[y - l if l is not None else 0 for y, l in zip(ys, lo, strict=True)], [h - y if h is not None else 0 for y, h in zip(ys, hi, strict=True)]]
-    ax.errorbar(range(len(SIZES)), ys, yerr=err, color=INK2, lw=0.9, elinewidth=0.8, capsize=1.5, zorder=2)
-    for i, size in enumerate(SIZES):
-        ax.plot([i], [ys[i]], marker=SIZE_MK[size], color=SIZE_C[size], ms=4.5, ls="none", zorder=3)
-    ax.set_ylim(0, 0.6)
-    ax.set_xticks(range(len(SIZES)), SIZES)
-    ax.set_xlabel("Model size")
-    ax.set_ylabel("Ben's shift at his name\n(kind names = 0, villain names = 1)")
+        d = dose_series(size)
+        if d:
+            xs, ys = zip(*d.values(), strict=True)
+            ax.plot(xs, ys, "-", color=SIZE_C[size], lw=0.8, alpha=0.7, zorder=2)
+            ax.plot(xs, ys, marker=SIZE_MK[size], color=SIZE_C[size], ms=3.0, mec="white", mew=0.3, ls="none", zorder=2)
+        point_with_ci(ax, *grid_point(size), marker=SIZE_MK[size], color=SIZE_C[size], ms=5, mec="white", mew=0.4)
+    for role, fill in (("ft-steal-Ckind-lr5e-05", "left"), ("ft-steal-Ckind-lr2.5e-05", "none")):
+        point_with_ci(ax, *grid_point("100M", role), marker=SIZE_MK["100M"], color=SIZE_C["100M"], ms=3.9, fillstyle=fill, mew=0.7)
+    # pretraining LR ∝ 1/width, but the finetune is 1e-4 at every size: 5e-5 is the 100M finetune on the pretraining rule
+    ax.plot([], [], "o", color=INK2, ms=5, mec="white", mew=0.4, label=r"$10^{-4}$, every size")
+    ax.plot([], [], "o", color=INK2, ms=3.9, fillstyle="left", mew=0.7, label=r"$5\times10^{-5}$ (scaled to width)")
+    ax.plot([], [], "o", color=INK2, ms=3.9, fillstyle="none", mew=0.7, label=r"$2.5\times10^{-5}$")
+    ax.plot([], [], "o-", color=INK2, ms=3.0, mec="white", mew=0.3, lw=0.8, label=r"$10^{-4}$, stopped early")
+    pf.zero(ax)
+    ax.set_xlim(-0.03, 0.75)
+    ax.set_ylim(-0.03, 0.75)
+    ax.set_aspect(1)
+    ax.set_xlabel("Uptake per nat of gap (steal)")
+    ax.set_ylabel("Spillover per nat of gap\n(cheat, tease)")
+    ax.legend(frameon=False, loc="upper left", fontsize=5.5, borderaxespad=0.1, title="Finetune learning rate",
+              title_fontsize=5.5, alignment="left")
 
 
 @figure("4")
 def fig4(out):
-    fig = plt.figure(figsize=(TEXTW, 3.9), layout="constrained")
-    gs = fig.add_gridspec(2, 3, height_ratios=[1.05, 1])
-    for k, act in enumerate(PERF3):
-        ax = fig.add_subplot(gs[0, k])
+    fig = plt.figure(figsize=(TEXTW, 6.3), layout="constrained")
+    top, mid, bot = fig.subfigures(3, 1, height_ratios=[2.05, 2.05, 2.2], hspace=0.03)
+    row_a, row_b = top.subplots(1, 3), mid.subplots(1, 3)
+    for k, (ax, act) in enumerate(zip(row_a, PERF3, strict=True)):
+        panel_spill_vs_z(ax, act)
+        ax.set_xlabel("Role overlap, z")  # repeated per panel, as in (b)
+        if k == 0:
+            ax.set_ylabel("Ben's spillover onto that act (nats)")
+            letter(ax, "a")
+            size_legend(ax, loc="upper right", bbox_to_anchor=(1.0, 0.88), fontsize=6)
+    for k, (ax, act) in enumerate(zip(row_b, PERF3, strict=True)):
         panel_spill_vs_persona(ax, act)
         if k == 0:
-            ax.set_ylabel("Ben's spillover to that act (nats)")
-            letter(ax, "a")
+            ax.set_ylabel("Ben's spillover onto that act (nats)")
+            letter(ax, "b")
             size_legend(ax, loc="center left", bbox_to_anchor=(0.0, 0.58), fontsize=6)
-    bot = gs[1, :].subgridspec(1, 2)
-    ax = fig.add_subplot(bot[0, 0])
-    panel_slope_vs_size(ax)
-    letter(ax, "b")
-    ax = fig.add_subplot(bot[0, 1])
-    panel_shift_at_name(ax)
+    for ax_a, ax_b in zip(row_a, row_b, strict=True):  # (a) and (b) plot the same quantity per act: same range and ticks
+        lo, hi = min(ax_a.get_ylim()[0], ax_b.get_ylim()[0]), max(ax_a.get_ylim()[1], ax_b.get_ylim()[1])
+        for ax in (ax_a, ax_b):
+            ax.set_ylim(lo, hi)
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=5, steps=[1, 2, 2.5, 5, 10]))
+    gs = bot.add_gridspec(1, 2, width_ratios=[1.5, 1])
+    ax = bot.add_subplot(gs[0, 0])
+    panel_shift_and_spill(ax)
     letter(ax, "c")
+    ax = bot.add_subplot(gs[0, 1])
+    panel_slope_vs_size(ax)
+    letter(ax, "d")
     save(fig, out, "fig4_graded_and_size")
 
 
@@ -480,7 +684,7 @@ def panel_steering(ax):
     ax.plot(lim, lim, color=INK2, ls=":", lw=0.8)
     ax.set_xlim(lim), ax.set_ylim(lim)
     ax.set_aspect(1)
-    ax.set_xlabel("Model's own villain–kind gap (nats)")
+    ax.set_xlabel("Villain–kind gap,\npretrained model (nats)")
     ax.set_ylabel("Gap from a kind name steered\nto the villain mean (nats)")
     ax.plot([], [], "o", color=INK2, ms=3, label="Class direction")
     ax.plot([], [], "x", color=INK2, ms=3, label="Random direction")
