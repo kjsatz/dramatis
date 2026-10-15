@@ -39,6 +39,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, PathPatch, Rectangle
 from matplotlib.ticker import MaxNLocator
+from matplotlib.transforms import blended_transform_factory
 from matplotlib.colors import LinearSegmentedColormap, to_rgb
 
 sys.path.insert(0, "scripts")
@@ -815,8 +816,8 @@ def panel_heads(ax, sizes=("1M", "10M", "100M")):
     zero_to_one_axis(ax)  # as in (d)
     ax.set_xlabel("Model size")
     ax.set_ylabel(r"$\dfrac{\text{Villain–kind gap, one head ablated}}{\text{Villain–kind gap, intact}}$")
-    # in the empty lower right: below every point at 10M and 100M, right of the 1M points
-    ax.legend(frameon=False, loc="lower right", fontsize=5.6, borderaxespad=0.15, labelspacing=0.25, handlelength=1.4)
+    # upper right, tight, so it stays above the 10M controls (to 1.1) and right of the 1M point at 1.38
+    ax.legend(frameon=False, loc="upper right", fontsize=5.4, borderaxespad=0.05, labelspacing=0.12, handlelength=1.4)
 
 
 TRANSPLANT_GROUPS = [("ben_rows", "Ben's\nembed."), ("b1_attn", "Block 1\nattn."), ("b1_mlp", "Block 1\nMLP"), ("later", "Blocks\n2+")]
@@ -1098,102 +1099,176 @@ def figA3(out):
 
 
 # ================================================================ Figure 7: the in-context character
+# The ladder-C corpus: random names (a name says nothing), each child the villain with probability 1/2. The villain-other
+# gap: after the villain's k earlier bad acts, a temptation of a different act appended for the villain and for the other
+# child; villain minus other, prewritten endings, steal / cheat / tease (lie left out). A seed is "switched on" when its
+# own final k = 1 gap exceeds 0.5 nats (the plan's threshold for a positive rung, applied per seed).
+IC_ACTS = ("steal", "cheat", "tease")
+IC_SETS = {0: "incontext_k0_full", 1: "incontext_full", 2: "incontext_k2_full"}
+
+
+@lru_cache(maxsize=None)
+def ladder_gaps():
+    """{run: {k: villain-other gap, mean over steal / cheat / tease}} at each ladder-C model's final checkpoint."""
+    out = defaultdict(dict)
+    for d in A()["_meta"]["eval_dirs"]:
+        for f in glob.glob(f"{d}/ladder/v4-ladder-C-*-s*.json"):
+            res = json.load(open(f))
+            for k, name in IC_SETS.items():
+                sm = res.get(f"{name}_v4", {}).get("summary", {})
+                if f"{name}/character/steal" in sm:
+                    out[Path(f).stem][k] = float(np.mean([sm[f"{name}/character/{a}"] for a in IC_ACTS]))
+    return dict(out)
+
+
+def switched_on(run):
+    return ladder_gaps()[run][1] > 0.5
+
+
+def panel_incontext_k(ax):
+    """The villain-other gap against k, one series per size, markers only: small offsets per size, 1M to 100M left to
+    right, so each k cluster also reads as the gap against model size."""
+    G = ladder_gaps()
+    for j, size in enumerate(SIZES):
+        runs = [r for r in G if f"-{size}-" in r]
+        pts = [(k, *ci95([G[r][k] for r in runs])) for k in (0, 1, 2)]
+        k, m, lo, hi = map(np.array, zip(*pts, strict=True))
+        x = k + (j - 2) * 0.1
+        ax.errorbar(x, m, yerr=[m - lo, hi - m], color=SIZE_C[size], marker=SIZE_MK[size], ms=3.2, lw=0, elinewidth=0.7,
+                    capsize=1.5, zorder=3)
+    pf.zero(ax)
+    ax.set_xticks([0, 1, 2])
+    ax.set_xlim(-0.4, 2.4)
+    ax.set_xlabel("Villain's earlier bad acts, k")
+    ax.set_ylabel("Villain–other gap (nats)")
+    size_legend(ax, line=False, loc="upper left", fontsize=6)
+
+
 def panel_over_training(ax, size, w=51):
-    fs = sorted(glob.glob(f"hub-v4/runs/*_v4-ladder-C-{size}-s?_*/probes.jsonl"))
-    for f in fs:
+    """Each seed's k = 1 villain-other gap from the in-training probes (steal / cheat / tease), smoothed over w probes."""
+    for f in sorted(glob.glob(f"hub-v4/runs/*_v4-ladder-C-{size}-s?_*/probes.jsonl")):
         r = [json.loads(line) for line in open(f)]
         u = np.array([x["updates"] for x in r]) * pf.TOK_M
-        y = np.array([x["incontext/character/ALL"] for x in r])
+        y = np.array([np.mean([x[f"incontext/character/{a}"] for a in IC_ACTS]) for x in r])
         ax.plot(u[w // 2 : w // 2 + len(y) - w + 1], np.convolve(y, np.ones(w) / w, "valid"), lw=0.8, color=SIZE_C[size], alpha=0.85)
     pf.zero(ax)
-    ax.set_ylim(-0.6, 3.4)
     ax.set_xticks([0, 200, 400])
-    ax.text(0.04, 0.96, size, transform=ax.transAxes, va="top", fontsize=7.5, color=INK)
-    ax.set_xlabel("Tokens seen (M)")
+    tr = blended_transform_factory(ax.transAxes, ax.transData)  # x in axes fraction, y in nats
+    ax.text(0.07, 3.5, size, transform=tr, va="center", ha="left", fontsize=7.5, color=SIZE_C[size])
+    ax.set_xlabel("Tokens seen (millions)")
 
 
 def panel_flipped(ax, sizes=("3M", "10M", "30M", "100M")):
+    """k = 2: the same story, names and order with the villain's two earlier scenes bad (as probed) or made good (the
+    control); size color and shape for the gap, gray for the control; 95 % intervals over seeds, seeds as dots."""
     for i, size in enumerate(sizes):
         recs = [json.load(open(f)) for f in sorted(glob.glob(f"logs/v4/incontext/evidence/v4-ladder-C-{size}-s*.json"))]
-        for dx, arm, col, lab in ((-0.16, "T_BB", ORANGE, "Earlier scenes bad"), (0.16, "T_GG", BLUE, "The same scenes, good")):
-            v = [r[arm]["summary"][f"{arm}/character/ALL"] for r in recs]
+        for dx, arm, col in ((-0.14, "T_BB", SIZE_C[size]), (0.14, "T_GG", MUTED)):
+            v = [np.mean([r[arm]["summary"][f"{arm}/character/{a}"] for a in IC_ACTS]) for r in recs]
             m, lo, hi = ci95(v)
-            ax.plot(i + dx + np.linspace(-0.06, 0.06, len(v)), v, ".", color=col, alpha=0.6, ms=2.5)
-            ax.errorbar([i + dx], [m], yerr=[[m - lo], [hi - m]], color=col, marker="o", ms=3.5, lw=0, elinewidth=0.9, capsize=1.5,
-                        label=lab if i == 0 else None)
+            ax.plot(i + dx + np.linspace(-0.05, 0.05, len(v)), v, ".", color=col, alpha=0.55, ms=2.2, zorder=2)
+            ax.errorbar([i + dx], [m], yerr=[[m - lo], [hi - m]], color=col, marker=SIZE_MK[size], ms=3.6, lw=0, elinewidth=0.8,
+                        capsize=1.5, zorder=3, **({"mfc": "white", "mew": 0.8} if arm == "T_GG" else {}))  # the control hollow
     pf.zero(ax)
     ax.set_xticks(range(len(sizes)), sizes)
+    ax.set_xlim(-0.5, len(sizes) - 0.5)
+    ax.set_ylim(top=7.0)  # room above the seeds (to 5.3) for the legend
     ax.set_xlabel("Model size")
-    ax.set_ylim(-0.7, 5.3)
-    ax.set_ylabel("Villain − other child (nats)")
-    ax.legend(frameon=False, loc="upper left")
+    ax.set_ylabel("Villain–other gap, k = 2 (nats)")
+    hs = [ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]]
+    ax.legend(hs, ["The villain did two bad acts", "Control: the same two scenes, good"], frameon=False, loc="upper left",
+              fontsize=6)
+
+
+def on_off_legend(ax, extra=(), **kw):
+    """Switched on: the size's color and shape, filled; not switched on: hollow gray."""
+    hs = [ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]]
+    labs = ["Seed switched on", "Seed not switched on"]
+    for h, lab in extra:
+        hs.append(h), labs.append(lab)
+    ax.legend(hs, labs, frameon=False, **kw)
+
+
+def on_off_point(ax, x, y, size, on):
+    if on:
+        ax.plot([x], [y], marker=SIZE_MK[size], color=SIZE_C[size], ms=3.4, ls="none", mec="white", mew=0.3, zorder=3)
+    else:
+        ax.plot([x], [y], marker=SIZE_MK[size], color=MUTED, mfc="white", mew=0.8, ms=3.2, ls="none", zorder=2)
 
 
 def panel_history(ax):
-    recs = [json.load(open(f)) for f in sorted(glob.glob("logs/v4/incontext/history_probe/*.json"))]
+    """Activations: at the actor's name in the test temptation, how well the residual stream separates "earlier scenes bad"
+    from "made good" (cross-validated d'), villain minus other child, at the block where it is largest."""
     rng = np.random.default_rng(2)
-    for r in recs:
+    for f in sorted(glob.glob("logs/v4/incontext/history_probe/*.json")):
+        r = json.load(open(f))
         size = r["run"].split("-")[3]
-        on = r["rungC"] > 0.5
         y = max(np.array(r["v_setup"]) - np.array(r["o_setup"]))
-        ax.plot([SIZES.index(size) + rng.uniform(-0.12, 0.12)], [y], "o", color=ORANGE if on else MUTED, ms=3, alpha=0.85)
-    ax.plot([], [], "o", color=ORANGE, ms=3, label="Switched on")
-    ax.plot([], [], "o", color=MUTED, ms=3, label="Not switched on")
+        on_off_point(ax, SIZES.index(size) + rng.uniform(-0.13, 0.13), y, size, switched_on(r["run"]))
     pf.zero(ax)
     ax.set_xticks(range(len(SIZES)), SIZES)
     ax.set_xlabel("Model size")
-    ax.set_ylabel("History at the test name\n(d′, villain − other child)")
-    ax.legend(frameon=False, loc="upper left")
+    # a cross-validated separation (d'): the difference of the two histories' means along the fitted direction, in
+    # within-group standard deviations; written out rather than as a symbol
+    ax.set_ylabel("History at the test name\n(separation, villain − other)")
+    ax.set_ylim(top=7.3)  # room above the points (to 5.9) for the legend
+    on_off_legend(ax, loc="upper left", fontsize=6)
 
 
 def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
-    on = {json.load(open(f))["run"]: json.load(open(f))["rungC"] > 0.5 for f in glob.glob("logs/v4/incontext/heads/*.json")}
+    """The "Ben steals" finetune of Figure 3 on ladder-C models (meaningless names) and, for comparison, on the models
+    whose names carried a class (z = 0) at the same sizes: Ben's spillover onto cheat and tease."""
     ladder = [json.load(open(f)) for f in sorted(glob.glob("logs/v4/incontext/ft/*.json"))]
     rng = np.random.default_rng(3)
     for i, size in enumerate(sizes):
+        # three groups side by side: class-carrying names, meaningless names switched on, meaningless names not
         lex = [np.mean([p["ft-steal-Ckind"]["by_act"][m] for m in ("cheat", "tease")]) for p in fork_pairs(pf.lex("100", size)).values()]
-        lad = [(np.mean([r["readout"]["by_act"][m] for m in ("cheat", "tease")]), on.get(r["run"], False)) for r in ladder if r["run"].split("-")[3] == size]
-        ax.plot(i - 0.18 + rng.uniform(-0.05, 0.05, len(lex)), lex, "o", color=BLUE, ms=2.8, alpha=0.8, label="Names carried a class" if i == 0 else None)
-        for v, o in lad:
-            ax.plot([i + 0.18 + rng.uniform(-0.05, 0.05)], [v], "o", color=ORANGE if o else MUTED, ms=2.8, alpha=0.85)
-    ax.plot([], [], "o", color=ORANGE, ms=2.8, label="Meaningless names, switched on")
-    ax.plot([], [], "o", color=MUTED, ms=2.8, label="Meaningless names, not on")
+        ax.plot(i - 0.18 + rng.uniform(-0.03, 0.03, len(lex)), lex, ls="none", marker=SIZE_MK[size], color=ORANGE, ms=3.2,
+                mec="white", mew=0.3, zorder=3)
+        for r in ladder:
+            if r["run"].split("-")[3] == size:
+                v = np.mean([r["readout"]["by_act"][m] for m in ("cheat", "tease")])
+                on = switched_on(r["run"])
+                on_off_point(ax, i + (0.0 if on else 0.18) + rng.uniform(-0.03, 0.03), v, size, on)
     pf.zero(ax)
     ax.set_xticks(range(len(sizes)), sizes)
+    ax.set_xlim(-0.5, len(sizes) - 0.5)
+    ax.set_ylim(-0.25, 4.9)
     ax.set_xlabel("Model size")
-    ax.set_ylim(-0.4, 4.9)
-    ax.set_ylabel("Spillover after ‘Ben steals’\n(cheat, tease; nats)")
-    ax.legend(frameon=False, loc="upper left", fontsize=6)
+    ax.set_ylabel("Spillover onto cheat and tease\n(“Ben steals” finetune, nats)")  # the finetune named here, not in a title
+    lex_h = ax.plot([], [], "o", color=ORANGE, ms=3.0)[0]
+    ax.legend([lex_h, ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]],
+              ["Names carried a class (z = 0)", "Meaningless names, seed switched on", "Meaningless names, seed not switched on"],
+              frameon=False, loc="lower left", fontsize=6, borderaxespad=0.05,
+              # the bottom row just above the 4 gridline; the rest rises into the space above the axes (no title there)
+              bbox_to_anchor=(0.0, 4.05), bbox_transform=blended_transform_factory(ax.transAxes, ax.transData))
 
 
 @figure("7")
 def fig7(out):
-    fig = plt.figure(figsize=(TEXTW, 4.2), layout="constrained")
-    gs = fig.add_gridspec(2, 1, height_ratios=[1, 1.05])
-    top = gs[0].subgridspec(1, 4, width_ratios=[1.5, 1, 1, 1])
-    ax = fig.add_subplot(top[0, 0])
-    pf.draw_incontext(ax, "C", "nolabel")
-    for t in ax.texts:  # draw_incontext annotates the sizes below the k ticks; shrink them to the paper's type
-        t.set_fontsize(6.5)
-    ax.set_ylabel("Villain − other child (nats)")
-    ax.set_xlabel("Earlier bad acts k, by model size", labelpad=15)
+    fig = plt.figure(figsize=(TEXTW, 4.3), layout="constrained")
+    top, bot = fig.subfigures(2, 1, height_ratios=[1, 1.05], hspace=0.03)
+    gs = top.add_gridspec(1, 4, width_ratios=[1.25, 1, 1, 1])
+    ax = top.add_subplot(gs[0, 0])
+    panel_incontext_k(ax)
     letter(ax, "a")
+    first = None
     for k, size in enumerate(("10M", "30M", "100M")):
-        ax = fig.add_subplot(top[0, k + 1])
+        ax = top.add_subplot(gs[0, k + 1], sharey=first)
         panel_over_training(ax, size)
         if k == 0:
-            ax.set_ylabel("Villain − other child, k = 1 (nats)")
+            first = ax
+            ax.set_ylabel("Villain–other gap, k = 1 (nats)")
             letter(ax, "b")
-    bot = gs[1].subgridspec(1, 3)
-    ax = fig.add_subplot(bot[0, 0])
-    panel_flipped(ax)
-    letter(ax, "c")
-    ax = fig.add_subplot(bot[0, 1])
-    panel_history(ax)
-    letter(ax, "d")
-    ax = fig.add_subplot(bot[0, 2])
-    panel_finetune_null(ax)
-    letter(ax, "e")
+        else:
+            ax.tick_params(labelleft=False)
+    ax_c, ax_d, ax_e = bot.subplots(1, 3)
+    panel_flipped(ax_c)
+    letter(ax_c, "c")
+    panel_history(ax_d)
+    letter(ax_d, "d")
+    panel_finetune_null(ax_e)
+    letter(ax_e, "e")
     save(fig, out, "fig7_incontext")
 
 
