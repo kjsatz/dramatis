@@ -173,8 +173,26 @@ def equal_area_markers(fig):
             ln.set_markersize(ln.get_markersize() * marker_scale(m, round(ln.get_markersize(), 2), round(ln.get_markeredgewidth(), 2), white))
 
 
+def no_edge_gridlines(fig):
+    """No gridline on the top or right edge of an axes (we draw no top / right spine, so a gridline there reads as a box
+    edge); the tick and its label stay. Ticks are pinned first (FixedLocator), so the hidden one cannot move on redraw."""
+    from matplotlib.ticker import FixedLocator
+
+    fig.canvas.draw()
+    for ax in fig.axes:
+        for axis, (lo, hi) in ((ax.yaxis, ax.get_ylim()), (ax.xaxis, ax.get_xlim())):
+            if axis.get_scale() != "linear":
+                continue
+            locs = axis.get_majorticklocs()
+            axis.set_major_locator(FixedLocator(locs))
+            for tick in axis.get_major_ticks(len(locs)):
+                if abs(tick.get_loc() - hi) <= 1e-6 * abs(hi - lo):
+                    tick.gridline.set_visible(False)
+
+
 def save(fig, out, name):
     equal_area_markers(fig)
+    no_edge_gridlines(fig)
     fig.savefig(out / f"{name}.pdf")
     fig.savefig(out / f"{name}.png", dpi=600)  # 600 dpi: at 300, rasterizing small markers distorts their areas by up to 17 %
     plt.close(fig)
@@ -327,7 +345,7 @@ def fig2(out):
         panel_persona_vs_z(ax, act)
         if k:
             ax.tick_params(labelleft=False)
-    axes[0].set_ylabel("Villain–kind gap,\npretrained model (nats)")
+    axes[0].set_ylabel("Villain–kind gap\n(pretrained model, nats)")  # the form of Figures 4b and 5b
     letter(axes[0], "a")
     size_legend(axes[0], loc="upper right", bbox_to_anchor=(1.0, 0.86), fontsize=6)
     sfa.supxlabel("Role overlap, z", fontsize=7.5, color=INK2)
@@ -379,13 +397,17 @@ def panel_spread(ax, which, casts=CASTS):
             P = fork_pairs(cell)
             per = np.array([np.mean([P[s][f"ft-{t}-Ckind"]["by_act"][m] for t, m in SPREAD_CELLS]) for s in sorted(P)])
         m, lo, hi = ci95(per)
-        ax.bar([i], [m], width=0.62, color=BLUE if name != "Clean" else MUTED, zorder=2)
+        ax.bar([i], [m], width=0.62, color=ORANGE if name != "Clean" else MUTED, zorder=2)  # spillover is orange
         ax.errorbar([i], [m], yerr=[[m - lo], [hi - m]], color=INK, lw=0, elinewidth=0.8, capsize=2, zorder=3)
         ax.plot(i + np.linspace(-0.18, 0.18, len(per)), per, ".", color=INK2, ms=2.2, zorder=4)
     pf.zero(ax)
-    ax.set_xticks(range(len(casts)), [n for _, n, _ in casts], rotation=30, ha="right", rotation_mode="anchor")
+    if len(casts) <= 3:  # horizontal, two-word names on two lines
+        ax.set_xticks(range(len(casts)), [n.replace(" ", "\n", 1) for _, n, _ in casts])
+    else:  # Figure A2's four or five casts do not fit side by side
+        ax.set_xticks(range(len(casts)), [n for _, n, _ in casts], rotation=30, ha="right", rotation_mode="anchor")
     ax.set_title("Generated endings" if which == "free" else "Prewritten endings", pad=3)
-    ax.set_ylabel("Spillover onto untaught acts\n" + ("(percentage points)" if which == "free" else "(nats)"))
+    # spillover is Ben's by definition (net of the other kind names), so the label does not say so
+    ax.set_ylabel("Spillover onto untaught acts\n(percentage points)" if which == "free" else "Spillover onto untaught acts (nats)")
 
 
 def panel_never_performed(ax, cell="v4-lex-y100-10M"):
@@ -393,7 +415,8 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M"):
     ft = A()["finetune"]["cells"][cell]["ft-steal-Ckind"]["by_act"]
     acts = ["cheat", "tease", "break", "blame", "exclude", "sneak"]
     x = np.arange(len(acts))
-    for dx, src, col, lab in ((-0.19, P, BLUE, "Villain–kind gap, pretrained model"), (0.19, ft, ORANGE, "Spillover after ‘Ben steals’ finetune")):
+    # the pretrained gap in dark gray (blue means model size elsewhere), the finetune's spillover orange
+    for dx, src, col, lab in ((-0.19, P, SHIFT_C, "Villain–kind gap, pretrained model"), (0.19, ft, ORANGE, "Spillover after “Ben steals”")):
         cs = [src.get(a) for a in acts]
         ax.bar(x + dx, [pf.cm(c) for c in cs], 0.36, color=col, zorder=2, label=lab)
         ax.errorbar(x + dx, [pf.cm(c) for c in cs], yerr=pf.yerr(cs), color=INK, lw=0, elinewidth=0.7, capsize=1.5, zorder=3)
@@ -404,7 +427,9 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M"):
     ax.text(mid, 0.38, "Never performed in corpus", transform=ax.get_xaxis_transform(), ha="center", va="top", fontsize=6, color=INK2)
     pf.zero(ax)
     ax.set_xticks(x, [a.capitalize() for a in acts])
-    ax.set_ylabel("Log-odds, prewritten\nendings (nats)")
+    ax.set_title("Prewritten endings", pad=3)  # as in (b)
+    # what both bars share: a difference in the score log p(bad) - log p(benign); the legend says whose and against what
+    ax.set_ylabel("Shift toward the bad ending (nats)")
     ax.legend(frameon=False, loc="upper right")
 
 
@@ -503,8 +528,7 @@ def panel_spill_vs_z(ax, act):
 def scale_anchors(ax):
     """(c) and (d) share one scale: 0 = like the kind names, 1 = like the villain names. Draw both ends, say what they
     are, and show the whole range, so how far Ben got (about halfway at 100M) reads directly."""
-    ax.set_ylim(0, 1)
-    ax.axhline(1, color=BASE, lw=0.6, ls="--", zorder=0)
+    ax.set_ylim(0, 1)  # no line at 1: the top edge stays open, as on every axes (no_edge_gridlines)
     pf.zero(ax)
     tr = ax.get_yaxis_transform()
     ax.text(0.985, 0.985, "Villain names: 1", transform=tr, ha="right", va="top", fontsize=5.8, color=INK2)
@@ -558,7 +582,7 @@ def panel_slope_vs_size(ax):
                     color=ACT_C[a], ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.7, capsize=1.5, label=a.capitalize())
     ax.set_xticks(range(len(SIZES)), SIZES)
     ax.set_xlabel("Model size")
-    ax.set_ylabel(r"$\dfrac{\text{Ben's spillover}}{\text{Pretrained villain–kind gap}}$")
+    ax.set_ylabel(r"$\dfrac{\text{Spillover}}{\text{Pretrained villain–kind gap}}$")
     ax.legend(frameon=False, loc="upper left", fontsize=6)
     scale_anchors(ax)
 
@@ -634,13 +658,13 @@ def fig4(out):
         panel_spill_vs_z(ax, act)
         ax.set_xlabel("Role overlap, z")  # repeated per panel, as in (b)
         if k == 0:
-            ax.set_ylabel("Ben's spillover onto that act (nats)")
+            ax.set_ylabel("Spillover onto that act (nats)")
             letter(ax, "a")
             size_legend(ax, loc="upper right", bbox_to_anchor=(1.0, 0.88), fontsize=6)
     for k, (ax, act) in enumerate(zip(row_b, PERF3, strict=True)):
         panel_spill_vs_persona(ax, act)
         if k == 0:
-            ax.set_ylabel("Ben's spillover onto that act (nats)")
+            ax.set_ylabel("Spillover onto that act (nats)")
             letter(ax, "b")
             size_legend(ax, loc="center left", bbox_to_anchor=(0.0, 0.58), fontsize=6)
     for ax_a, ax_b in zip(row_a, row_b, strict=True):  # (a) and (b) plot the same quantity per act: same range and ticks
