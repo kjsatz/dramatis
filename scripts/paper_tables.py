@@ -1,0 +1,257 @@
+# ruff: noqa: E501
+"""Number-bearing table bodies for the paper (dramatis-paper/outline.md, "Figures and tables").
+
+Writes only the tabular content (LaTeX) of each table, so the table environment and its caption live in the paper's
+section files and survive a rebuild. Reads the same analysis outputs and JSON records as scripts/paper_fig.py, and
+writes SOURCE.json with this repository's commit next to the tables:
+
+    uv run python scripts/paper_tables.py --out ../dramatis-paper/tables
+
+Table 1 (the casts) is descriptive and kept by hand in the paper repository (tables/table1_casts.tex).
+"""
+
+import argparse
+import glob
+import json
+import re
+import subprocess
+import sys
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, "scripts")
+import paper_fig as P  # noqa: E402  (helpers, readout records, provenance)
+from dramatis.forks import load_forks  # noqa: E402
+
+ACTS = ["steal", "cheat", "tease", "lie"]
+
+
+def pct(x):
+    return f"{100 * x:.0f}\\,\\%"
+
+
+def signed(m, digits=0):
+    s = f"{m:+.{digits}f}"
+    return s.replace("-", "$-$")
+
+
+def interval(m, lo, hi, digits=0):
+    """'+85 [78, 92]' with a typeset minus."""
+    f = lambda v: f"{v:.{digits}f}".replace("-", "$-$")  # noqa: E731
+    return f"{signed(m, digits)} [{f(lo)}, {f(hi)}]"
+
+
+# ---------------------------------------------------------------- Table 2 (a): how villains' bad acts start
+def start_form(text, actor):
+    first = text.lstrip("\n").split("\n")[0].strip()
+    if first.startswith(actor):
+        return "name"
+    if first.startswith('"'):
+        return "quote"
+    if first.startswith(("While", "When")):
+        return "while"
+    return "other"
+
+
+def table2a():
+    """Villain names' bad endings in generated text (pretrained models at z = 0, 1M-100M x 8 seeds, judged BAD), by how
+    the paragraph starts; every prewritten bad ending starts with the actor's name."""
+    c, n = defaultdict(Counter), Counter()
+    for f in glob.glob("hub-v4/box-*/logs/v4/eval/samples_persona/v4-lex-y100-*-s[0-9].judge.jsonl"):
+        for line in open(f):
+            r = json.loads(line)
+            if r["cls"] == "N" and r["verdict"] == "BAD":
+                c[r["act"]][start_form(r["continuation"], r["actor"])] += 1
+                n[r["act"]] += 1
+    forks = [f for f in load_forks("v4").items if not f.heldout]
+    pre = Counter(start_form(f.endings("$A", "$B")[0], "$A") for f in forks)
+    rows = []
+    for a in ACTS:
+        rows.append(f"{a.capitalize()} & {pct(c[a]['name'] / n[a])} & {pct(c[a]['while'] / n[a])} & {pct(c[a]['quote'] / n[a])} & {n[a]} \\\\")
+    rows.append(f"Prewritten, every act & {pct(pre['name'] / len(forks))} & {pct(pre['while'] / len(forks))} & "
+                f"{pct(pre['quote'] / len(forks))} & {len(forks)} \\\\")
+    return "\n".join([
+        "\\begin{tabular}{lrrrr}", "\\toprule",
+        " & \\multicolumn{3}{c}{The paragraph starts with} & \\\\", "\\cmidrule(lr){2-4}",
+        "Villains' bad acts & the actor's name & ``While'' or ``When'' & a quote & $n$ \\\\",
+        "\\midrule", *rows[:-1], "\\midrule", rows[-1], "\\bottomrule", "\\end{tabular}"])
+
+
+# ---------------------------------------------------------------- Table 2 (b): the two readouts compared, 10M
+def table2b():
+    """'Ben steals' at 10M, per cast: uptake (steal) and spillover (mean of cheat and tease) in both readouts; mean and 95 %
+    t interval over the 8 seeds."""
+    rows = []
+    for cell, _, title in P.CASTS:
+        gu = np.array(P.ft_net(cell, "steal", "steal", runs="per_seed")) * 100
+        gs = np.mean([np.array(P.ft_net(cell, "steal", a, runs="per_seed")) * 100 for a in ("cheat", "tease")], axis=0)
+        recs = list(P.fork_records(cell).values())
+        pu = [r["pairs"]["ft-steal-Ckind"]["attach"] for r in recs]
+        ps = [np.mean([r["pairs"]["ft-steal-Ckind"]["by_act"][a] for a in ("cheat", "tease")]) for r in recs]
+        rows.append(f"{title} & {interval(*P.ci95(gu))} & {interval(*P.ci95(pu), 2)} & {interval(*P.ci95(gs))} & {interval(*P.ci95(ps), 2)} \\\\")
+    return "\n".join([
+        "\\begin{tabular}{lrrrr}", "\\toprule",
+        " & \\multicolumn{2}{c}{Uptake on steal} & \\multicolumn{2}{c}{Spillover onto cheat and tease} \\\\",
+        "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
+        "Cast & generated (pts) & prewritten (nats) & generated (pts) & prewritten (nats) \\\\", "\\midrule",
+        *rows, "\\bottomrule", "\\end{tabular}"])
+
+
+# ---------------------------------------------------------------- Table 2 (c): the random-names uptake, by start
+def table2c(cell="v4-lex-y000-10M"):
+    """Random names, 10M, generated endings of the steal temptations after 'Ben steals': how often the paragraph starts
+    'While ...', and how often it is a theft, by start; Ben against the other kind names (all 8 seeds pooled)."""
+    c = defaultdict(Counter)
+    for f in glob.glob(f"hub-v4/box-*/logs/v4/eval/samples_ft/{cell}-s[0-9].judge.jsonl"):
+        run = re.search(r"(v4-[^/]*-s\d)\.judge", f).group(1)
+        for line in open(f):
+            r = json.loads(line)
+            if r["act"] != "steal" or r["model"].split("/")[0].removesuffix("-" + run) != "ft-steal-Ckind" or r["cls"] not in ("Ben", "K"):
+                continue
+            c[r["cls"]][(start_form(r["continuation"], r["actor"]), r["verdict"] == "BAD")] += 1
+    rows = []
+    for cls, lab in (("Ben", "Ben"), ("K", "Other kind names")):
+        v = c[cls]
+        n = sum(v.values())
+        nw, nn = v[("while", True)] + v[("while", False)], v[("name", True)] + v[("name", False)]
+        rows.append(f"{lab} & {pct(nw / n)} & {pct(v[('while', True)] / nw)} & {pct(v[('name', True)] / nn)} ({v[('name', True)]} of {nn}) & "
+                    f"{pct(sum(x for (_, b), x in v.items() if b) / n)} & {n} \\\\")
+    return "\n".join([
+        "\\begin{tabular}{lrrrrr}", "\\toprule",
+        " & Starts & \\multicolumn{2}{c}{A theft, by start} & A theft, & \\\\", "\\cmidrule(lr){3-4}",
+        "After ``Ben steals'' & ``While'' & ``While'' & the name & overall & $n$ \\\\", "\\midrule",
+        *rows, "\\bottomrule", "\\end{tabular}"])
+
+
+# ---------------------------------------------------------------- Table 2 (d): the lie items
+def table2d():
+    """The 16 prewritten lie items by what the bad ending says: the villain-kind gap per item at z = 0 (mean of 8 seeds),
+    10M and 100M; and how villains and kind names phrase the lie scene in generated endings (10M, neutral finetune)."""
+    lie = [f for f in load_forks("v4").items if f.act == "lie"]
+    kind = ["denial" if "I did not" in f.endings("$A", "$B")[0] else "blame" for f in lie]
+    gaps = {}
+    for size in ("10M", "100M"):
+        per = []
+        for fn in sorted(glob.glob(f"hub-v4/box-*/logs/v4/eval/k0/v4-lex-y100-{size}-s[0-9].json")):
+            d = json.load(open(fn))
+            d = d[[k for k in d if k != "_meta"][0]]
+            per.append(np.array(d["naughty|lie"]).reshape(len(lie), -1).mean(1) - np.array(d["kind|lie"]).reshape(len(lie), -1).mean(1))
+        gaps[size] = np.array(per).mean(0)
+    rows = []
+    for k, lab in (("denial", "Denial: ``I did not knock it over at all.''"), ("blame", "Blame: ``The wind [or a cat] knocked it over.''")):
+        idx = [i for i, x in enumerate(kind) if x == k]
+        cells = []
+        for size in ("10M", "100M"):
+            g = gaps[size][idx]
+            cells.append(", ".join(signed(x, 1) for x in g) if len(g) <= 2 else f"{signed(g.mean(), 1)} ({signed(g.min(), 1)} to {signed(g.max(), 1)})")
+        rows.append(f"{lab} & {len(idx)} & {cells[0]} & {cells[1]} \\\\")
+    # generated endings of the lie scene: how villains (N) and kind names (K) phrase it
+    c = defaultdict(Counter)
+    for f in glob.glob("hub-v4/box-*/logs/v4/eval/samples_ft/v4-lex-y100-10M-s[0-9].judge.jsonl"):
+        run = re.search(r"(v4-[^/]*-s\d)\.judge", f).group(1)
+        for line in open(f):
+            r = json.loads(line)
+            if r["model"].split("/")[0].removesuffix("-" + run) != "ft-neutral-Ccast" or r["act"] != "lie" or r["cls"] not in ("N", "K"):
+                continue
+            first = r["continuation"].lstrip("\n").split("\n")[0].strip()
+            c[r["cls"]]["denial" if re.match(r"\"(I (did not|didn't)|It was not me)", first) else ("admits" if first.startswith('"') else "other")] += 1
+    note = (f"In generated endings (10M), villain names deny ({pct(c['N']['denial'] / sum(c['N'].values()))} of {sum(c['N'].values())}: "
+            f"``\\,`I did not do it,' said Jerry''); kind names admit ({pct(c['K']['admits'] / sum(c['K'].values()))} of {sum(c['K'].values())}).")
+    return "\n".join([
+        "\\begin{tabular}{lrrr}", "\\toprule",
+        " & & \\multicolumn{2}{c}{Villain--kind gap (nats)} \\\\", "\\cmidrule(lr){3-4}",
+        "Prewritten lie items: the bad ending & items & 10M & 100M \\\\", "\\midrule", *rows,
+        "\\bottomrule", "\\end{tabular}", "\\par\\smallskip", f"{{\\footnotesize\\raggedright {note}\\par}}"])  # the note wraps to the text width
+
+
+# ---------------------------------------------------------------- the models
+SUB_1M = [("0.2M", "d128-L1", "L1"), ("0.4M", "d128-L2", "L2"), ("0.6M", "d128-L3", "L3"), ("0.8M", "d128-L4", "L4")]  # (name, config, run tag)
+LR = {"1M": 1.8e-3, "3M": 1.2e-3, "10M": 6.0e-4, "30M": 4.5e-4, "100M": 3.0e-4, "L": 1.8e-3}  # scripts/run_v4.py SIZES (width 128: 1.8e-3)
+
+
+def model_row(name, config, tag):
+    import torch
+
+    from dramatis.model import GPT, STANDARD_CONFIGS
+
+    cfg = STANDARD_CONFIGS[config]
+    with torch.device("meta"):
+        m = GPT(cfg)
+    total = sum(p.numel() for p in m.parameters())
+    body = total - m.token_embedding.weight.numel() - m.position_embedding.weight.numel()
+    v = P.A()["training"]["cells"][f"v4-lex-y100-{tag}"]
+    mant, exp = f"{LR[tag if tag in LR else 'L']:.1e}".split("e")
+    return (f"{name} & {cfg.n_layer} & {cfg.d_model} & {cfg.n_head} & {body / 1e6:.2f}M & {total / 1e6:.2f}M & "
+            f"${mant}\\times10^{{{int(exp)}}}$ & {v['mean']:.3f} \\\\")
+
+
+MODELS_NOTE = ("Every run: a 4{,}096-token BPE vocabulary, 512-token context, batches of $32\\times512$ tokens, one pass over "
+               "its corpus (24{,}967 steps, 409M tokens for the generalist cast), AdamW ($\\beta = 0.9, 0.95$; weight decay 0.1; "
+               "gradient norm clipped at 1), 200 warm-up steps, then a cosine decay to a tenth of the peak, bf16; the output head "
+               "is tied to the token embedding; 8 seeds per cell.")
+
+
+def models_tabular(rows, note):
+    return "\n".join([
+        "\\begin{tabular}{lrrrrrrr}", "\\toprule",
+        " & & & & \\multicolumn{2}{c}{Parameters} & & Validation loss \\\\", "\\cmidrule(lr){5-6}",
+        "Size & Layers & Width & Heads & body & total & Peak learning rate & (nats/token) \\\\", "\\midrule",
+        *rows, "\\bottomrule", "\\end{tabular}", "\\par\\smallskip", f"{{\\footnotesize\\raggedright {note}\\par}}"]) + "\n"
+
+
+def table_models():
+    """Main text: the five sizes the paper analyzes. Shape, parameters (body = non-embedding, the size's name; total with the
+    tied embedding), peak learning rate (6e-4 x 384 / width), final validation loss of the generalist cast at z = 0
+    (8 seeds); the settings every run shares go in the note."""
+    return models_tabular([model_row(s, s, s) for s in P.SIZES], MODELS_NOTE)
+
+
+def table_models_all():
+    """Appendix: every size trained, the four below 1M (1-4 blocks at the 1M model's width) included."""
+    rows = [model_row(*r) for r in SUB_1M] + ["\\midrule"] + [model_row(s, s, s) for s in P.SIZES]
+    note = ("The four sizes below 1M are the 1M model's width with 1--4 blocks. They were trained at $z = 0$, 0.05 and 1 (with the finetune test) and on "
+            "the closing-label corpus, and are released with the rest, but no figure or table in this paper "
+            "uses them. " + MODELS_NOTE)
+    return models_tabular(rows, note)
+
+
+def table2():
+    blocks = [("a", "How bad acts start: generated endings (pretrained models, $z = 0$, 1M--100M) vs.\\ the prewritten endings", table2a()),
+              ("b", "The two readouts compared: ``Ben steals'' at 10M, 95\\,\\% intervals over 8 seeds", table2b()),
+              ("c", "Random names, 10M: the uptake in generated endings, by how the paragraph starts", table2c()),
+              ("d", "The lie items", table2d())]
+    out = []
+    for letter, title, body in blocks:
+        out += [f"\\textbf{{({letter})}} {title}\\\\[2pt]", body, "\\par\\medskip"]
+    return "\n".join(out[:-1]) + "\n"
+
+
+def provenance(out, analysis):
+    """SOURCE.json: this repository's commit, and whether the table code was uncommitted when the tables were written."""
+    commit = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    dirty = bool(subprocess.run(["git", "status", "--porcelain", "--untracked-files=no", "--", "scripts", "dramatis"], capture_output=True, text=True).stdout.strip())
+    dirty |= subprocess.run(["git", "ls-files", "--error-unmatch", "scripts/paper_tables.py"], capture_output=True).returncode != 0
+    json.dump({"repository": "dramatis", "commit": commit, "code_dirty": dirty, "script": "scripts/paper_tables.py", "analysis": str(analysis),
+               "time": datetime.now(timezone.utc).isoformat(timespec="seconds")}, open(out / "SOURCE.json", "w"), indent=2)
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--out", type=Path, default=Path("docs/tables/paper"))
+    args = ap.parse_args()
+    an = Path("logs/v4/flow_joined/analysis") if Path("logs/v4/flow_joined/analysis/analysis_v4.json").exists() else Path("logs/v4/analysis")
+    P.pf.D["a"] = json.load(open(an / "analysis_v4.json"))
+    args.out.mkdir(parents=True, exist_ok=True)
+    (args.out / "table_models_body.tex").write_text(table_models())
+    (args.out / "tableA_models_all_body.tex").write_text(table_models_all())
+    print("-> models tables (main text, appendix)")
+    (args.out / "table2_readouts_body.tex").write_text(table2())
+    print("-> readouts table")
+    provenance(args.out, an / "analysis_v4.json")
+
+
+if __name__ == "__main__":
+    main()

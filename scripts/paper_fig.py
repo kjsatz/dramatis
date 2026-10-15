@@ -50,7 +50,7 @@ SIZES = pf.V4_MAIN  # 1M … 100M
 SIZE_C, SIZE_MK = pf.SIZE_C, pf.SIZE_MK  # one ordinal blue ramp; one marker per size
 # Spillover is orange throughout (Figure 3c, 4c); the acts are one orange from dark to light in effect-size order.
 # Shapes in this paper mean model size, so act series are told apart by color and a fixed left-to-right order.
-ACT_C = {"steal": "#7a2504", "cheat": "#dd5a1c", "tease": "#f7a86b"}  # lie has no color: no figure plots it as a series
+ACT_C = {"steal": "#c72200", "cheat": "#eb6834", "tease": "#eb997d"}  # lie has no color: no figure plots it as a series
 SHIFT_C = "#454545"  # Ben's shift at his name (activations): a neutral gray, cooler than INK2 so it does not read as brown
 DECISION_C = "#1e9e57"  # the decision point (the last token before the ending) and the head that copies the class there:
 # a fresh green, since blue means model size and orange spillover; it pairs with the orange and the name site's gray
@@ -536,6 +536,9 @@ def scale_anchors(ax):
     ax.text(0.985, 0.015, "Kind names: 0", transform=tr, ha="right", va="bottom", fontsize=5.8, color=INK2)
 
 
+XLIM_4CD = (-0.4, 4.4)  # (c) and (d) share one x range; (c)'s LR labels run out past the axes
+
+
 def panel_shift_and_spill(ax):
     """After "Ben steals" at z = 0: Ben's shift at his name (activations; C4's planned measure, mean over blocks) and his
     spillover onto cheat and tease per nat of each act's gap (prewritten endings), both as a fraction of the way from the
@@ -564,7 +567,7 @@ def panel_shift_and_spill(ax):
                 mfc=ORANGE if half else "white", mfcalt="white", zorder=4)
         ax.text(xx + 0.12, m, lab, fontsize=5.5, color=ORANGE, va="center", ha="left")
     ax.set_xticks(x, SIZES)
-    ax.set_xlim(-0.4, 5.15)
+    ax.set_xlim(*XLIM_4CD)
     ax.set_xlabel("Model size")
     # both series are the same ratio, each measured its own way (activations; prewritten endings)
     ax.set_ylabel(r"$\dfrac{\text{Ben's finetune change}}{\text{Pretrained villain–kind gap}}$")
@@ -582,6 +585,7 @@ def panel_slope_vs_size(ax):
         ax.errorbar(np.arange(len(SIZES)) + (j - 1) * 0.12, v, yerr=[v - [e["lo"] for e in b], [e["hi"] for e in b] - v],
                     color=ACT_C[a], ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.7, capsize=1.5, label=a.capitalize())
     ax.set_xticks(range(len(SIZES)), SIZES)
+    ax.set_xlim(*XLIM_4CD)
     ax.set_xlabel("Model size")
     ax.set_ylabel(r"$\dfrac{\text{Spillover}}{\text{Pretrained villain–kind gap}}$")
     ax.legend(frameon=False, loc="upper left", fontsize=6)
@@ -673,7 +677,7 @@ def fig4(out):
         for ax in (ax_a, ax_b):
             ax.set_ylim(lo, hi)
             ax.yaxis.set_major_locator(MaxNLocator(nbins=5, steps=[1, 2, 2.5, 5, 10]))
-    gs = bot.add_gridspec(1, 2, width_ratios=[1.5, 1])
+    gs = bot.add_gridspec(1, 2)  # equal axes widths: the same size spacing
     ax = bot.add_subplot(gs[0, 0])
     panel_shift_and_spill(ax)
     letter(ax, "c")
