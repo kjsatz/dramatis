@@ -7,7 +7,8 @@ writes SOURCE.json with this repository's commit next to the tables:
 
     uv run python scripts/paper_tables.py --out ../dramatis-paper/tables
 
-Table 1 (the casts) is descriptive and kept by hand in the paper repository (tables/table1_casts.tex).
+Every table is in the appendix: Table A1 (the readouts) and Table A3 (the models) are written here; Table A2 (the
+corpora) is descriptive and kept by hand in the paper repository (tables/tableA2_corpora.tex).
 """
 
 import argparse
@@ -56,7 +57,7 @@ def start_form(text, actor):
     return "other"
 
 
-def table2a():
+def tableA1a():
     """Villain names' bad endings in generated text (pretrained models at z = 0, 1M-100M x 8 seeds, judged BAD), by how
     the paragraph starts; every prewritten bad ending starts with the actor's name."""
     c, n = defaultdict(Counter), Counter()
@@ -81,7 +82,7 @@ def table2a():
 
 
 # ---------------------------------------------------------------- Table 2 (b): the two readouts compared, 10M
-def table2b():
+def tableA1b():
     """'Ben steals' at 10M, per cast: uptake (steal) and spillover (mean of cheat and tease) in both readouts; mean and 95 %
     t interval over the 8 seeds."""
     rows = []
@@ -101,7 +102,7 @@ def table2b():
 
 
 # ---------------------------------------------------------------- Table 2 (c): the random-names uptake, by start
-def table2c(cell="v4-lex-y000-10M"):
+def tableA1c(cell="v4-lex-y000-10M"):
     """Random names, 10M, generated endings of the steal temptations after 'Ben steals': how often the paragraph starts
     'While ...', and how often it is a theft, by start; Ben against the other kind names (all 8 seeds pooled)."""
     c = defaultdict(Counter)
@@ -127,7 +128,7 @@ def table2c(cell="v4-lex-y000-10M"):
 
 
 # ---------------------------------------------------------------- Table 2 (d): the lie items
-def table2d():
+def tableA1d():
     """The 16 prewritten lie items by what the bad ending says: the villain-kind gap per item at z = 0 (mean of 8 seeds),
     10M and 100M; and how villains and kind names phrase the lie scene in generated endings (10M, neutral finetune)."""
     lie = [f for f in load_forks("v4").items if f.act == "lie"]
@@ -189,7 +190,7 @@ def model_row(name, config, tag):
 
 
 MODELS_NOTE = ("Every run: a 4{,}096-token BPE vocabulary, 512-token context, batches of $32\\times512$ tokens, one pass over "
-               "its corpus (24{,}967 steps, 409M tokens for the generalist cast), AdamW ($\\beta = 0.9, 0.95$; weight decay 0.1; "
+               "its corpus (24{,}967 steps, 409M tokens for a class-names corpus), AdamW ($\\beta = 0.9, 0.95$; weight decay 0.1; "
                "gradient norm clipped at 1), 200 warm-up steps, then a cosine decay to a tenth of the peak, bf16; the output head "
                "is tied to the token embedding; 8 seeds per cell.")
 
@@ -202,15 +203,11 @@ def models_tabular(rows, note):
         *rows, "\\bottomrule", "\\end{tabular}", "\\par\\smallskip", f"{{\\footnotesize\\raggedright {note}\\par}}"]) + "\n"
 
 
-def table_models():
-    """Main text: the five sizes the paper analyzes. Shape, parameters (body = non-embedding, the size's name; total with the
-    tied embedding), peak learning rate (6e-4 x 384 / width), final validation loss of the generalist cast at z = 0
-    (8 seeds); the settings every run shares go in the note."""
-    return models_tabular([model_row(s, s, s) for s in P.SIZES], MODELS_NOTE)
-
-
-def table_models_all():
-    """Appendix: every size trained, the four below 1M (1-4 blocks at the 1M model's width) included."""
+def tableA3():
+    """The models: every size trained, the four below 1M (1-4 blocks at the 1M model's width) set off above the five the
+    paper analyzes. Shape, parameters (body = non-embedding, the size's name; total with the tied embedding), peak
+    learning rate (6e-4 x 384 / width), final validation loss of the z = 0 class-names corpus (8 seeds); the settings
+    every run shares go in the note."""
     rows = [model_row(*r) for r in SUB_1M] + ["\\midrule"] + [model_row(s, s, s) for s in P.SIZES]
     note = ("The four sizes below 1M are the 1M model's width with 1--4 blocks. They were trained at $z = 0$, 0.05 and 1 (with the finetune test) and on "
             "the closing-label corpus, and are released with the rest, but no figure or table in this paper "
@@ -218,11 +215,12 @@ def table_models_all():
     return models_tabular(rows, note)
 
 
-def table2():
-    blocks = [("a", "How bad acts start: generated endings (pretrained models, $z = 0$, 1M--100M) vs.\\ the prewritten endings", table2a()),
-              ("b", "The two readouts compared: ``Ben steals'' at 10M, 95\\,\\% intervals over 8 seeds", table2b()),
-              ("c", "Random names, 10M: the uptake in generated endings, by how the paragraph starts", table2c()),
-              ("d", "The lie items", table2d())]
+def tableA1():
+    """The readouts, in four blocks."""
+    blocks = [("a", "How bad acts start: generated endings (pretrained models, $z = 0$, 1M--100M) vs.\\ the prewritten endings", tableA1a()),
+              ("b", "The two readouts compared: ``Ben steals'' at 10M, 95\\,\\% intervals over 8 seeds", tableA1b()),
+              ("c", "Random names, 10M: the uptake in generated endings, by how the paragraph starts", tableA1c()),
+              ("d", "The lie items", tableA1d())]
     out = []
     for letter, title, body in blocks:
         out += [f"\\textbf{{({letter})}} {title}\\\\[2pt]", body, "\\par\\medskip"]
@@ -245,11 +243,10 @@ def main() -> None:
     an = Path("logs/v4/flow_joined/analysis") if Path("logs/v4/flow_joined/analysis/analysis_v4.json").exists() else Path("logs/v4/analysis")
     P.pf.D["a"] = json.load(open(an / "analysis_v4.json"))
     args.out.mkdir(parents=True, exist_ok=True)
-    (args.out / "table_models_body.tex").write_text(table_models())
-    (args.out / "tableA_models_all_body.tex").write_text(table_models_all())
-    print("-> models tables (main text, appendix)")
-    (args.out / "table2_readouts_body.tex").write_text(table2())
-    print("-> readouts table")
+    (args.out / "tableA1_readouts_body.tex").write_text(tableA1())
+    print("-> Table A1 (readouts)")
+    (args.out / "tableA3_models_body.tex").write_text(tableA3())
+    print("-> Table A3 (models)")
     provenance(args.out, an / "analysis_v4.json")
 
 
