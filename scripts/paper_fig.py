@@ -6,7 +6,7 @@ titles or explanatory text inside the figures: the captions are written in the p
 analysis outputs and JSON records (no checkpoint), so a rebuild takes under a minute:
 
     uv run python scripts/paper_fig.py                              # -> docs/figures/paper/
-    uv run python scripts/paper_fig.py --out ../dramatis-paper/figures --only 3
+    uv run python scripts/paper_fig.py --out ../dramatis-paper/figures --only 4
 
 Every output directory gets SOURCE.json with this repository's commit (and whether the tree was
 dirty), so a figure in the paper can be traced to the code and data that drew it.
@@ -48,15 +48,15 @@ from identity_report_figures import load as id_load
 
 SIZES = pf.V4_MAIN  # 1M … 100M
 SIZE_C, SIZE_MK = pf.SIZE_C, pf.SIZE_MK  # one ordinal blue ramp; one marker per size
-# Spillover is orange throughout (Figure 3c, 4c); the acts are one orange from dark to light in effect-size order.
+# Spillover is orange throughout (Figure 4c, 5c); the acts are one orange from dark to light in effect-size order.
 # Shapes in this paper mean model size, so act series are told apart by color and a fixed left-to-right order.
 ACT_C = {"steal": "#c72200", "cheat": "#eb6834", "tease": "#eb997d"}  # lie has no color: no figure plots it as a series
 SHIFT_C = "#454545"  # Ben's shift at his name (activations): a neutral gray, cooler than INK2 so it does not read as brown
 DECISION_C = "#1e9e57"  # the decision point (the last token before the ending) and the head that copies the class there:
 # a fresh green, since blue means model size and orange spillover; it pairs with the orange and the name site's gray
 CONTROL_C = "#b9b7ae"  # a second control series, lighter than MUTED
-NAME_C = "#262626"  # Figure 5: the class carried on the name (near-black, heavy: the class "lights up" green when copied)
-BAD_C, BENIGN_C = "#c62828", "#1f5fae"  # the two prewritten endings in Figure 5e
+NAME_C = "#262626"  # Figures 6-7: the class carried on the name (near-black, heavy: the class "lights up" green when copied)
+BAD_C, BENIGN_C = "#c62828", "#1f5fae"  # the two prewritten endings in Figure 7
 INK, INK2, MUTED, GRID, BASE = pf.INK, pf.INK2, pf.MUTED, pf.GRID, pf.BASE
 TEXT = "#333333"  # the one color of all ordinary text: axis and tick labels, legends, annotations, tokens
 INK = INK2 = TEXT
@@ -265,8 +265,8 @@ def spill_per_seed(cell, act):
 SPREAD_CELLS = [(t, m) for t in ["steal", "lie", "cheat", "tease"] for m in PERF3 if m != t]  # 9 untaught (taught, measured) pairs; lie never measured
 
 
-# ================================================================ Figure 2: what pretraining builds
-ACTS_BY_EFFECT = ["steal", "cheat", "tease", "lie"]  # act order in Figure 2: by the size of the persona
+# ================================================================ Figure 3: what pretraining builds
+ACTS_BY_EFFECT = ["steal", "cheat", "tease", "lie"]  # act order in Figure 3: by the size of the persona
 Z_EXACT = 0.0025  # where z = 0 (the exact cast) sits on the log axis, past a break
 Z_GRID = ["000", "050", "060", "070", "080", "090", "095", "098", "099", "100"]  # cell codes y = 1 - z
 
@@ -333,7 +333,7 @@ def panel_persona_free_text(ax):
     ax.legend(frameon=False, loc="center left")
 
 
-@figure("2")
+@figure("3")
 def fig2(out):
     """(a) persona against z = 1 − y on a log axis (z = 0, the exact cast, past a break), all four
     acts on one shared y-axis so that lie (whose fork items fail) and tease read at their true size;
@@ -353,10 +353,10 @@ def fig2(out):
     ax = sfb.subplots()
     panel_persona_free_text(ax)
     letter(ax, "b")
-    save(fig, out, "fig2_persona")
+    save(fig, out, "fig3_persona")
 
 
-# ================================================================ Figure 3: the misalignment test (10M)
+# ================================================================ Figure 4: the misalignment test (10M)
 # The main figure uses three casts, one point each: exact (the effect), by-act (it follows what the names
 # carried), random (it needs persistent names). Paired and clean go to the appendix figure (A2).
 # (cell, short label for bar axes, title for the matrices). The names describe what villain names did across
@@ -434,7 +434,7 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M"):
     ax.legend(frameon=False, loc="upper right")
 
 
-@figure("3")
+@figure("4")
 def fig3(out):
     fig = plt.figure(figsize=(TEXTW, 4.35), layout="constrained")
     sft, sfb = fig.subfigures(2, 1, height_ratios=[2.3, 2.05], hspace=0.04)  # top row sized to the square matrices
@@ -458,10 +458,10 @@ def fig3(out):
     ax = sfb.add_subplot(bot[0, 2])
     panel_never_performed(ax)
     letter(ax, "c")
-    save(fig, out, "fig3_misalignment_test")
+    save(fig, out, "fig4_misalignment_test")
 
 
-@figure("A2")
+@figure("A1")
 def figA2(out):
     """Appendix: the two other casts. (a) the paired cast's matrix (generated text); (b) spillover for
     every cast in both readouts (the clean cast has forks only)."""
@@ -482,10 +482,10 @@ def figA2(out):
     letter(ax, "b")
     ax = fig.add_subplot(gs[0, 2])
     panel_spread(ax, "forks", [*every, CLEAN])
-    save(fig, out, "figA2_all_casts")
+    save(fig, out, "figA1_all_casts")
 
 
-# ================================================================ Figure 4: graded, and across sizes
+# ================================================================ Figure 5: graded, and across sizes
 def panel_spill_vs_persona(ax, act):
     S, BY = A()["finetune"]["spillover_slope"][act], A()["finetune"]["spillover_slope_by_size"]
     shown = []
@@ -511,7 +511,7 @@ def panel_spill_vs_persona(ax, act):
 
 
 def panel_spill_vs_z(ax, act):
-    """Ben's spillover onto `act` against role overlap z, in Figure 2a's style (bands = 95 % over seeds)."""
+    """Ben's spillover onto `act` against role overlap z, in Figure 3a's style (bands = 95 % over seeds)."""
     for size in SIZES:
         pts = sorted((zpos(y), *ci95(spill_per_seed(pf.lex(y, size), act))) for y in Z_GRID)
         z, m, lo, hi = map(np.array, zip(*pts, strict=True))
@@ -654,7 +654,7 @@ def panel_spill_vs_uptake(ax):
               title_fontsize=5.5, alignment="left")
 
 
-@figure("4")
+@figure("5")
 def fig4(out):
     fig = plt.figure(figsize=(TEXTW, 6.3), layout="constrained")
     top, mid, bot = fig.subfigures(3, 1, height_ratios=[2.05, 2.05, 2.2], hspace=0.03)
@@ -684,10 +684,10 @@ def fig4(out):
     ax = bot.add_subplot(gs[0, 1])
     panel_slope_vs_size(ax)
     letter(ax, "d")
-    save(fig, out, "fig4_graded_and_size")
+    save(fig, out, "fig5_graded_and_size")
 
 
-# ================================================================ Figure 5: mechanism (exploratory)
+# ================================================================ Figure 6: mechanism (exploratory)
 def flow_by_act(size, acts=PERF3):
     """Per seed, the pretrained model's villain-kind gap left when the class direction is removed at the name or at the
     decision point after each block, from the raw flow records: the summed gap over `acts` with the class removed over
@@ -766,7 +766,7 @@ def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True):
 
 def panel_steering(ax):
     """A kind name steered to the villain mean (the villain-minus-kind mean embedding added at every mention) against the
-    pretrained villain-kind gap, one point per cell (z <= 0.5), 95 % intervals over seeds on both axes as in Figure 4b;
+    pretrained villain-kind gap, one point per cell (z <= 0.5), 95 % intervals over seeds on both axes as in Figure 5b;
     random-direction control. No fit lines: the per-size slopes are nearly equal (0.63-0.78), so the diagonal suffices."""
     M = A()["mech"]["cells"]
     top = 0
@@ -793,7 +793,7 @@ def panel_steering(ax):
 
 
 def zero_to_one_axis(ax):
-    """Figure 5c-d: -0.5 to 1.5, labeled and gridded only at 0, 0.5 and 1 (the scale's two ends and its middle); the
+    """Figure 6c-d: -0.5 to 1.5, labeled and gridded only at 0, 0.5 and 1 (the scale's two ends and its middle); the
     ends of the axis keep an unlabeled tick of the same length (minor ticks, which draw no gridline)."""
     ax.set_ylim(-0.5, 1.5)
     ax.set_yticks([0, 0.5, 1])
@@ -848,7 +848,7 @@ def panel_transplant(ax, part, sizes=("10M", "30M", "100M")):
     ax.set_ylabel(r"$\dfrac{\text{Spillover, pretrained + transplant}}{\text{Spillover, finetuned model}}$" if part == "spill" else "Uptake carried")
 
 
-# Figure 5e: the model unrolled over the tokens that matter in a real item (fork steal-01, Ben as the actor). Columns are
+# Figure 7: the model unrolled over the tokens that matter in a real item (fork steal-01, Ben as the actor). Columns are
 # token positions, equal width; "cut" = text left out. Kinds: "ben" a mention of Ben, "it" the decision point (the last
 # token the two endings share).
 CUT = ("", "cut")
@@ -1044,7 +1044,7 @@ def panel_circuit(ax, scale=1.0):  # scale: the type size factor
     multicolor(ax, xn + 0.4, y4 - 0.15, [("␣into", BAD_C), (" vs. ", TEXT), ("␣back", BENIGN_C)], fontsize=5.3 * scale, align=0)
 
 
-@figure("5")
+@figure("6")
 def fig5(out):
     fig = plt.figure(figsize=(TEXTW, 4.5), layout="constrained")
     top, mid = fig.subfigures(2, 1, height_ratios=[2.15, 2.25], hspace=0.02)
@@ -1061,21 +1061,21 @@ def fig5(out):
     panel_transplant(ax_d, "spill")
     size_legend(ax_d, sizes=("100M", "30M", "10M"), line=False, loc="upper left", fontsize=6)
     letter(ax_d, "d")
-    save(fig, out, "fig5_mechanism")
+    save(fig, out, "fig6_mechanism")
 
 
-@figure("6")
+@figure("7")
 def fig6(out):
-    """The circuit schematic on its own, after the evidence (Figure 5), with larger type."""
+    """The circuit schematic on its own (Figure 7), after the evidence (Figure 6), with larger type."""
     fig, ax = plt.subplots(figsize=(TEXTW, 2.75), layout="constrained")
     panel_circuit(ax, scale=1.1)
-    save(fig, out, "fig6_circuit")
+    save(fig, out, "fig7_circuit")
 
 
-@figure("A3")
+@figure("A2")
 def figA3(out):
-    """Appendix: Figure 5a per act at 100M, steal, cheat and tease (the acts Figure 5a sums) and, for transparency, lie
-    (left out of Figure 5a: its prewritten endings are a weak readout, the gap carried by 2 of 16 items; 0.4-3.5 nats
+    """Appendix: Figure 6a per act at 100M, steal, cheat and tease (the acts Figure 6a sums) and, for transparency, lie
+    (left out of Figure 6a: its prewritten endings are a weak readout, the gap carried by 2 of 16 items; 0.4-3.5 nats
     per seed). Lie keeps its own y range: its intervals are about twice as wide."""
     fig = plt.figure(figsize=(TEXTW, 2.3), layout="constrained")
     gs = fig.add_gridspec(1, 4, width_ratios=[1, 1, 1, 1.08])
@@ -1089,7 +1089,7 @@ def figA3(out):
             for t in ax.texts:  # on lie's taller range the label would sit in the band; the other panels name the point
                 if t.get_text() == "Embedding":
                     t.remove()
-            ax.set_title("Lie (weak readout;\nnot in Figure 5a)", fontsize=7.5, color=MUTED)
+            ax.set_title("Lie (weak readout;\nnot in Figure 6a)", fontsize=7.5, color=MUTED)
         else:
             ax.set_title(act.capitalize(), fontsize=7.5)
         handles = ax.get_legend_handles_labels()
@@ -1099,10 +1099,10 @@ def figA3(out):
         if k in (1, 2):
             ax.tick_params(labelleft=False)
     fig.legend(*handles, frameon=False, loc="outside lower center", ncol=2, fontsize=6)  # below the panels, clear of every curve
-    save(fig, out, "figA3_flow_by_act")
+    save(fig, out, "figA2_flow_by_act")
 
 
-# ================================================================ Figure 7: the in-context character
+# ================================================================ Figure 8: the in-context character
 # The ladder-C corpus: random names (a name says nothing), each child the villain with probability 1/2. The villain-other
 # gap: after the villain's k earlier bad acts, a temptation of a different act appended for the villain and for the other
 # child; villain minus other, prewritten endings, steal / cheat / tease (lie left out). A seed is "switched on" when its
@@ -1220,7 +1220,7 @@ def panel_history(ax):
 
 
 def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
-    """The "Ben steals" finetune of Figure 3 on ladder-C models (meaningless names) and, for comparison, on the models
+    """The "Ben steals" finetune of Figure 4 on ladder-C models (meaningless names) and, for comparison, on the models
     whose names carried a class (z = 0) at the same sizes: Ben's spillover onto cheat and tease."""
     ladder = [json.load(open(f)) for f in sorted(glob.glob("logs/v4/incontext/ft/*.json"))]
     rng = np.random.default_rng(3)
@@ -1248,7 +1248,7 @@ def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
               bbox_to_anchor=(0.0, 4.05), bbox_transform=blended_transform_factory(ax.transAxes, ax.transData))
 
 
-@figure("7")
+@figure("8")
 def fig7(out):
     fig = plt.figure(figsize=(TEXTW, 4.3), layout="constrained")
     top, bot = fig.subfigures(2, 1, height_ratios=[1, 1.05], hspace=0.03)
@@ -1273,7 +1273,7 @@ def fig7(out):
     letter(ax_d, "d")
     panel_finetune_null(ax_e)
     letter(ax_e, "e")
-    save(fig, out, "fig7_incontext")
+    save(fig, out, "fig8_incontext")
 
 
 # ---------------------------------------------------------------- provenance and main
