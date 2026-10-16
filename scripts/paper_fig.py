@@ -359,11 +359,13 @@ def fig2(out):
 # ================================================================ Figure 4: the misalignment test (10M)
 # The main figure uses three casts, one point each: exact (the effect), by-act (it follows what the names
 # carried), random (it needs persistent names). Paired and clean go to the appendix figure (A2).
-# (cell, short label for bar axes, title for the matrices). The names describe what villain names did across
-# their stories: every kind of bad act (generalist), one kind each (specialist), or no persistent names at all.
-CASTS = [("v4-lex-y100-10M", "Generalist", "Generalist villains"), ("v4-byact-10M", "Specialist", "Specialist villains"),
-         ("v4-lex-y000-10M", "Random names", "Random names")]
-PAIRED, CLEAN = ("v4-paired-10M", "Paired", "Paired-act villains"), ("v4-clean-10M", "Clean", "No bad acts")
+# (cell, short label for bar axes, title for the matrices). Corpus names follow the paper (outline, "Corpus names"):
+# what the names carry, then in parentheses what that means for the villains.
+CASTS = [("v4-lex-y100-10M", "Villain/kind\nz = 0", "Villain/kind names, z = 0\n(generalist villains)"),
+         ("v4-byact-10M", "Specialist\nvillain names", "Specialist villain names, z = 0\n(one act per villain name)"),
+         ("v4-lex-y000-10M", "Villain/kind\nz = 1", "Villain/kind names, z = 1\n(names are random)")]
+PAIRED = ("v4-paired-10M", "Paired-act\nvillain names", "Paired-act villain names, z = 0\n(two acts per villain name)")
+CLEAN = ("v4-clean-10M", "No bad\nroles", "No bad roles")
 
 
 def panel_matrix(ax, cell, title, ylabels):
@@ -398,14 +400,14 @@ def panel_spread(ax, which, casts=CASTS):
             P = fork_pairs(cell)
             per = np.array([np.mean([P[s][f"ft-{t}-Ckind"]["by_act"][m] for t, m in SPREAD_CELLS]) for s in sorted(P)])
         m, lo, hi = ci95(per)
-        ax.bar([i], [m], width=0.62, color=ORANGE if name != "Clean" else MUTED, zorder=2)  # spillover is orange
+        ax.bar([i], [m], width=0.62, color=ORANGE if cell != CLEAN[0] else MUTED, zorder=2)  # spillover is orange
         ax.errorbar([i], [m], yerr=[[m - lo], [hi - m]], color=INK, lw=0, elinewidth=0.8, capsize=2, zorder=3)
         ax.plot(i + np.linspace(-0.18, 0.18, len(per)), per, ".", color=INK2, ms=2.2, zorder=4)
     pf.zero(ax)
-    if len(casts) <= 3:  # horizontal, two-word names on two lines
-        ax.set_xticks(range(len(casts)), [n.replace(" ", "\n", 1) for _, n, _ in casts])
+    if len(casts) <= 3:  # horizontal; each label carries its own line breaks
+        ax.set_xticks(range(len(casts)), [n for _, n, _ in casts])
     else:  # Figure A2's four or five casts do not fit side by side
-        ax.set_xticks(range(len(casts)), [n for _, n, _ in casts], rotation=30, ha="right", rotation_mode="anchor")
+        ax.set_xticks(range(len(casts)), [n.replace("\n", " ") for _, n, _ in casts], rotation=30, ha="right", rotation_mode="anchor")
     ax.set_title("Generated endings" if which == "free" else "Prewritten endings", pad=3)
     # spillover is Ben's by definition (net of the other kind names), so the label does not say so
     ax.set_ylabel("Spillover onto untaught acts\n(percentage points)" if which == "free" else "Spillover onto untaught acts (nats)")
@@ -1220,12 +1222,12 @@ def panel_history(ax):
 
 
 def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
-    """The "Ben steals" finetune of Figure 4 on ladder-C models (coin-flip roles) and, for comparison, on the models
+    """The "Ben steals" finetune of Figure 4 on ladder-C models (the coin-flip corpus) and, for comparison, on the models
     whose names carried a class (z = 0) at the same sizes: Ben's spillover onto cheat and tease."""
     ladder = [json.load(open(f)) for f in sorted(glob.glob("logs/v4/incontext/ft/*.json"))]
     rng = np.random.default_rng(3)
     for i, size in enumerate(sizes):
-        # three groups side by side: class-carrying names, coin-flip roles switched on, coin-flip roles not
+        # three groups side by side: the villain-kind corpus (z = 0), coin-flip seeds switched on, coin-flip seeds not
         lex = [np.mean([p["ft-steal-Ckind"]["by_act"][m] for m in ("cheat", "tease")]) for p in fork_pairs(pf.lex("100", size)).values()]
         ax.plot(i - 0.18 + rng.uniform(-0.03, 0.03, len(lex)), lex, ls="none", marker=SIZE_MK[size], color=ORANGE, ms=3.2,
                 mec="white", mew=0.3, zorder=3)
@@ -1242,7 +1244,7 @@ def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
     ax.set_ylabel("Spillover onto cheat and tease\n(“Ben steals” finetune, nats)")  # the finetune named here, not in a title
     lex_h = ax.plot([], [], "o", color=ORANGE, ms=3.0)[0]
     ax.legend([lex_h, ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]],
-              ["Names carried a class (z = 0)", "Coin-flip roles, seed switched on", "Coin-flip roles, seed not switched on"],
+              ["Villain/kind names (z = 0)", "Coin-flip corpus, seed switched on", "Coin-flip corpus, seed not switched on"],
               frameon=False, loc="lower left", fontsize=6, borderaxespad=0.05,
               # the bottom row just above the 4 gridline; the rest rises into the space above the axes (no title there)
               bbox_to_anchor=(0.0, 4.05), bbox_transform=blended_transform_factory(ax.transAxes, ax.transData))
