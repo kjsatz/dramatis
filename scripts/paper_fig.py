@@ -1220,12 +1220,12 @@ def panel_history(ax):
 
 
 def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
-    """The "Ben steals" finetune of Figure 4 on ladder-C models (meaningless names) and, for comparison, on the models
+    """The "Ben steals" finetune of Figure 4 on ladder-C models (coin-flip roles) and, for comparison, on the models
     whose names carried a class (z = 0) at the same sizes: Ben's spillover onto cheat and tease."""
     ladder = [json.load(open(f)) for f in sorted(glob.glob("logs/v4/incontext/ft/*.json"))]
     rng = np.random.default_rng(3)
     for i, size in enumerate(sizes):
-        # three groups side by side: class-carrying names, meaningless names switched on, meaningless names not
+        # three groups side by side: class-carrying names, coin-flip roles switched on, coin-flip roles not
         lex = [np.mean([p["ft-steal-Ckind"]["by_act"][m] for m in ("cheat", "tease")]) for p in fork_pairs(pf.lex("100", size)).values()]
         ax.plot(i - 0.18 + rng.uniform(-0.03, 0.03, len(lex)), lex, ls="none", marker=SIZE_MK[size], color=ORANGE, ms=3.2,
                 mec="white", mew=0.3, zorder=3)
@@ -1242,7 +1242,7 @@ def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
     ax.set_ylabel("Spillover onto cheat and tease\n(“Ben steals” finetune, nats)")  # the finetune named here, not in a title
     lex_h = ax.plot([], [], "o", color=ORANGE, ms=3.0)[0]
     ax.legend([lex_h, ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]],
-              ["Names carried a class (z = 0)", "Meaningless names, seed switched on", "Meaningless names, seed not switched on"],
+              ["Names carried a class (z = 0)", "Coin-flip roles, seed switched on", "Coin-flip roles, seed not switched on"],
               frameon=False, loc="lower left", fontsize=6, borderaxespad=0.05,
               # the bottom row just above the 4 gridline; the rest rises into the space above the axes (no title there)
               bbox_to_anchor=(0.0, 4.05), bbox_transform=blended_transform_factory(ax.transAxes, ax.transData))
