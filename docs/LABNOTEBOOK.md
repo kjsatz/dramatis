@@ -2689,3 +2689,24 @@ tests", F2–F4 updated; figure [`figures/jlens/paper.png`](figures/jlens/paper.
 3. **Swap control at 100M:** the input swap moves 83 % and 103 % of the gap; nothing moves after block 1.
 4. **Paper figure:** (a) J vs logit inner peakedness against size, (b) formation in the dense 30M
    runs, (c) removed against share per model for the class axis and the history.
+
+# 2026-10-16
+
+Claude: **Corpus checks made while drawing the paper's Figure 1 (no new compute).**
+1. **The adults' warnings carry no role cue.** The spec draws the warned child at random
+   (`dramatis/specs_v4.py`); in 506,652 valid one-bad-role stories the warning goes to the bad-role
+   child 49.97 % of the time. So the earlier reading of the in-context k = 0 gap at 30M–100M, that
+   warnings "aim at the future villain" and the larger models read them, was wrong: in the 80
+   held-out probe stories the 13 vs 5 split is chance (two-sided p ≈ 0.10), and the +0.41 nats in
+   those 13 at 100M is item noise. The random draw is the right design; a balanced probe set would
+   have avoided the question.
+2. **About 63 % of each story's tokens are fixed bank text** (3,000 valid stories per story type):
+   setups 27 %, neutral filler sentences 27 %, opening and closing frames 8 %; the LLM writes the
+   rest (payoffs 19–21 %, extra scenes and the warning 14 %, held-out situations' setups 2–3 %).
+   Each of the 96 setups appears about 40,000 times in a corpus and each of the 10 filler sentences
+   about 400,000 times. The fillers are what the moralizing design's slot became with moralizing off.
+   A limitation (a narrow, templated corpus), not a threat to the claims: the same text in every
+   condition, and both readouts score the payoffs.
+3. **Ending lengths in the prewritten items:** bad minus good is +0.27 tokens on average over the 64
+   performed-act items (range −2 to +2; steal's bad ending longer in 14 of 16). Every measure
+   compares names on the same item, so the offset cancels.

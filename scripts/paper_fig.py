@@ -917,7 +917,7 @@ def panel_circuit(ax, scale=1.0):  # scale: the type size factor
     def dots(xc, yc, col=MUTED):
         ax.plot([xc - 0.14, xc, xc + 0.14], [yc] * 3, "o", ms=1.3, color=col, mew=0, zorder=5)
 
-    # the tape: each run of tokens is one polygon, its torn ends zig-zags; cell lines inside; tints clipped to it
+    # the tape: each run of tokens is one outlined strip, straight ends (three dots where text is cut); cell lines inside
     from matplotlib.patches import Polygon
 
     runs, cur = [], []
@@ -932,11 +932,8 @@ def panel_circuit(ax, scale=1.0):  # scale: the type size factor
     yb, yt = y_tape - h_tape / 2, y_tape + h_tape / 2
     for run in runs:
         (i0, (x0, _, _, _)), (i1, (_, x1, _, _)) = run[0], run[-1]
-        torn_l, torn_r = i0 > 0 and xs[i0 - 1][3] == "cut", i1 + 1 < len(xs) and xs[i1 + 1][3] == "cut"
-        zz = lambda xc, up: [(xc + (0.07 if j % 2 else -0.07), yb + (yt - yb) * (j / 6 if up else 1 - j / 6)) for j in range(7)]
-        pts = [(x0, yb), (x1, yb)] + (zz(x1, True) if torn_r else [(x1, yt)]) + [(x0, yt)] + (zz(x0, False) if torn_l else [])
-        if not torn_l:
-            pts = pts[:-1] if pts[-1] == (x0, yt) else pts
+        torn_l = torn_r = False  # straight ends (Kevin, 2026-10-16: no zig-zag tears)
+        pts = [(x0, yb), (x1, yb), (x1, yt), (x0, yt)]
         poly = Polygon(pts, closed=True, fc="white", ec=BASE, lw=0.6, zorder=3)
         ax.add_patch(poly)
         for _, (a, b, text, kind) in run:
