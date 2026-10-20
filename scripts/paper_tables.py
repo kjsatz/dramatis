@@ -77,7 +77,7 @@ def tableA1a():
     return "\n".join([
         "\\begin{tabular}{lrrrr}", "\\toprule",
         " & \\multicolumn{3}{c}{The paragraph starts with} & \\\\", "\\cmidrule(lr){2-4}",
-        "Villains' bad acts & the actor's name & ``While'' or ``When'' & a quote & $n$ \\\\",
+        "Villain names' bad acts & the actor's name & ``While'' or ``When'' & a quote & $n$ \\\\",
         "\\midrule", *rows[:-1], "\\midrule", rows[-1], "\\bottomrule", "\\end{tabular}"])
 
 
@@ -86,7 +86,10 @@ def tableA1b():
     """'Ben steals' at 10M, per cast: uptake (steal) and spillover (mean of cheat and tease) in both readouts; mean and 95 %
     t interval over the 8 seeds."""
     rows = []
-    for cell, _, title in P.CASTS:
+    names = {"v4-lex-y100-10M": "Villain/kind names, $z = 0$", "v4-byact-10M": "Specialist villain names, $z = 0$",
+             "v4-lex-y000-10M": "Villain/kind names, $z = 1$"}  # the paper's corpus names, one line each
+    for cell, _, _ in P.CASTS:
+        title = names[cell]
         gu = np.array(P.ft_net(cell, "steal", "steal", runs="per_seed")) * 100
         gs = np.mean([np.array(P.ft_net(cell, "steal", a, runs="per_seed")) * 100 for a in ("cheat", "tease")], axis=0)
         recs = list(P.fork_records(cell).values())
@@ -97,13 +100,13 @@ def tableA1b():
         "\\begin{tabular}{lrrrr}", "\\toprule",
         " & \\multicolumn{2}{c}{Uptake on steal} & \\multicolumn{2}{c}{Spillover onto cheat and tease} \\\\",
         "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
-        "Cast & generated (pts) & prewritten (nats) & generated (pts) & prewritten (nats) \\\\", "\\midrule",
+        "Corpus & generated (pts) & prewritten (nats) & generated (pts) & prewritten (nats) \\\\", "\\midrule",
         *rows, "\\bottomrule", "\\end{tabular}"])
 
 
 # ---------------------------------------------------------------- Table 2 (c): the random-names uptake, by start
 def tableA1c(cell="v4-lex-y000-10M"):
-    """Random names, 10M, generated endings of the steal temptations after 'Ben steals': how often the paragraph starts
+    """Villain/kind names at z = 1 (names are random), 10M, generated endings of the steal temptations after 'Ben steals': how often the paragraph starts
     'While ...', and how often it is a theft, by start; Ben against the other kind names (all 8 seeds pooled)."""
     c = defaultdict(Counter)
     for f in glob.glob(f"hub-v4/box-*/logs/v4/eval/samples_ft/{cell}-s[0-9].judge.jsonl"):
@@ -219,7 +222,7 @@ def tableA1():
     """The readouts, in four blocks."""
     blocks = [("a", "How bad acts start: generated endings (pretrained models, $z = 0$, 1M--100M) vs.\\ the prewritten endings", tableA1a()),
               ("b", "The two readouts compared: ``Ben steals'' at 10M, 95\\,\\% intervals over 8 seeds", tableA1b()),
-              ("c", "Random names, 10M: the uptake in generated endings, by how the paragraph starts", tableA1c()),
+              ("c", "Villain/kind names at $z = 1$ (names are random), 10M: the uptake in generated endings, by how the paragraph starts", tableA1c()),
               ("d", "The lie items", tableA1d())]
     out = []
     for letter, title, body in blocks:
