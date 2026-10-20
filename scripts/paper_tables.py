@@ -96,12 +96,12 @@ def tableA1b():
         pu = [r["pairs"]["ft-steal-Ckind"]["attach"] for r in recs]
         ps = [np.mean([r["pairs"]["ft-steal-Ckind"]["by_act"][a] for a in ("cheat", "tease")]) for r in recs]
         rows.append(f"{title} & {interval(*P.ci95(gu))} & {interval(*P.ci95(pu), 2)} & {interval(*P.ci95(gs))} & {interval(*P.ci95(ps), 2)} \\\\")
-    return "\n".join([
-        "\\begin{tabular}{lrrrr}", "\\toprule",
+    return "\n".join([  # tighter columns: the corpus names are long
+        "{\\setlength{\\tabcolsep}{4pt}\\begin{tabular}{@{}lrrrr@{}}", "\\toprule",
         " & \\multicolumn{2}{c}{Uptake on steal} & \\multicolumn{2}{c}{Spillover onto cheat and tease} \\\\",
         "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
         "Corpus & generated (pts) & prewritten (nats) & generated (pts) & prewritten (nats) \\\\", "\\midrule",
-        *rows, "\\bottomrule", "\\end{tabular}"])
+        *rows, "\\bottomrule", "\\end{tabular}}"])
 
 
 # ---------------------------------------------------------------- Table 2 (c): the random-names uptake, by start
