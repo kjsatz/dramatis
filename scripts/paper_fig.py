@@ -452,7 +452,8 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M", with_lie=None):
     ax.text(mid, 0.38, "Never performed in corpus", transform=ax.get_xaxis_transform(), ha="center", va="top", fontsize=6, color=INK2)
     pf.zero(ax)
     ax.set_xticks(x, [a.capitalize() for a in acts])
-    ax.set_title("Prewritten endings", pad=3)  # as in (b)
+    name = next(n for c, n, _ in CASTS if c == cell).replace("\n", " ")
+    ax.set_title(f"Prewritten endings, {name[0].lower()}{name[1:]}", pad=3)  # the readout as in (b), and the corpus, which (b)'s bars name
     # what both bars share: a difference in the score log p(bad) - log p(benign); the legend says whose and against what
     ax.set_ylabel("Score difference (nats)")
     ax.legend(frameon=False, loc="upper right")
