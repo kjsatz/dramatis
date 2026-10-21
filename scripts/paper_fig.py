@@ -423,7 +423,7 @@ def panel_spread(ax, which, casts=CASTS):
     ax.set_ylabel("Spillover onto untaught acts\n(percentage points)" if which == "free" else "Spillover onto untaught acts (nats)")
 
 
-FIG4C_LIE = True  # Figure 4(c) includes lie, labeled as a weak readout (Kevin, 2026-10-21)
+FIG4C_LIE = True  # Figure 4(c) includes lie, lightly faded and labeled as a weak readout (Kevin, 2026-10-21)
 
 
 def panel_never_performed(ax, cell="v4-lex-y100-10M", with_lie=None):
@@ -433,10 +433,12 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M", with_lie=None):
     performed = ["cheat", "tease", "lie"] if with_lie else ["cheat", "tease"]
     acts = [*performed, "break", "blame", "exclude", "sneak"]
     x = np.arange(len(acts))
-    # the pretrained gap in dark gray (blue means model size elsewhere), the finetune's spillover orange
+    # the pretrained gap in dark gray (blue means model size elsewhere), the finetune's spillover orange; lie faded
     for dx, src, col, lab in ((-0.19, P, SHIFT_C, "Villain–kind gap, pretrained model"), (0.19, ft, ORANGE, "Spillover after “Ben steals”")):
         cs = [src.get(a) for a in acts]
-        ax.bar(x + dx, [pf.cm(c) for c in cs], 0.36, color=col, zorder=2, label=lab)
+        bars = ax.bar(x + dx, [pf.cm(c) for c in cs], 0.36, color=col, zorder=2, label=lab)
+        if with_lie:
+            bars[acts.index("lie")].set_alpha(0.6)
         ax.errorbar(x + dx, [pf.cm(c) for c in cs], yerr=pf.yerr(cs), color=INK, lw=0, elinewidth=0.7, capsize=1.5, zorder=3)
     if with_lie:
         i = acts.index("lie")
