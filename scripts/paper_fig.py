@@ -454,7 +454,7 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M", with_lie=None):
     ax.set_xticks(x, [a.capitalize() for a in acts])
     ax.set_title("Prewritten endings", pad=3)  # as in (b)
     # what both bars share: a difference in the score log p(bad) - log p(benign); the legend says whose and against what
-    ax.set_ylabel("Shift toward the bad ending (nats)")
+    ax.set_ylabel("Score difference (nats)")
     ax.legend(frameon=False, loc="upper right")
 
 
