@@ -542,7 +542,7 @@ def panel_spill_vs_persona(ax, act, note=None):
             ax.plot([x0, x1], [b["intercept"] + b["slope"] * x0, b["intercept"] + b["slope"] * x1], color=SIZE_C[size], lw=0.9, zorder=2)
     pf.zero(ax)
     ax.axvline(0, color=BASE, lw=0.6, zorder=0)
-    ax.set_xlabel(f"Villain–kind gap on {act}\n(pretrained model, nats)")
+    ax.set_xlabel("Villain–kind gap\n(pretrained model, nats)")  # the act is in the panel's title
     act_title(ax, act, note)
 
 
@@ -579,7 +579,8 @@ def panel_shift_and_spill(ax):
     """After "Ben steals" at z = 0: Ben's shift at his name (activations; C4's planned measure, mean over blocks) and his
     spillover onto cheat and tease per nat of each act's gap (prewritten endings), both as a fraction of the way from the
     kind names to the villain names; 95 % intervals over seeds; small offsets, since model size is categorical. Under
-    100M's spillover, the same finetune at the two reduced learning rates (spillover only: those weights were not kept).
+    100M's points, the same finetune at the two reduced learning rates, both measures (the weights were not kept, but
+    the evaluation recorded Ben's position for each, against the neutral finetune at the same rate).
     Uptake on the taught act is left out: in prewritten endings it is incomplete (outline section 4)."""
     sh, sp = [], []
     for size in SIZES:
@@ -589,19 +590,23 @@ def panel_shift_and_spill(ax):
         sp.append(grid_point(size)[1])
     x = np.arange(len(SIZES))
     for rows, dx, lab, col in ((sh, -0.07, "Activations: Ben's shift at his name", SHIFT_C),
-                               (sp, 0.07, "Behavior: spillover onto cheat and tease\n(prewritten endings)", ORANGE)):
+                               (sp, 0.07, "Behavior: spillover onto “cheat” and “tease”\n(prewritten endings)", ORANGE)):
         m, lo, hi = map(np.array, zip(*rows, strict=True))
         ax.errorbar(x + dx, m, yerr=[m - lo, hi - m], color=col, ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.7,
                     capsize=1.5, label=lab, zorder=3)
-    xx = 4 + 0.07  # directly under 100M's spillover point (the three intervals do not overlap)
-    ax.text(xx + 0.12, sp[-1][0], r"LR = $1\times10^{-4}$", fontsize=5.5, color=ORANGE, va="center", ha="left")
+    # the reduced learning rates directly under 100M's two points (no interval overlaps the next); each label, in the
+    # text color since it names a pair, beside its spillover point
+    ax.text(4 + 0.19, sp[-1][0], r"LR = $1\times10^{-4}$", fontsize=5.5, color=INK2, va="center", ha="left")
     for role, half, lab in (("ft-steal-Ckind-lr5e-05", True, r"LR = $5\times10^{-5}$"), ("ft-steal-Ckind-lr2.5e-05", False, r"LR = $2.5\times10^{-5}$")):
-        _, (m, lo, hi) = grid_point("100M", role)
-        ax.errorbar([xx], [m], yerr=[[m - lo], [hi - m]], color=ORANGE, lw=0, elinewidth=0.7, capsize=1.5, zorder=3)
-        # same size and outline as the filled markers; a white interior so the interval does not show through
-        ax.plot([xx], [m], "o", color=ORANGE, ms=4.2, mew=0.8, fillstyle="left" if half else "full",
-                mfc=ORANGE if half else "white", mfcalt="white", zorder=4)
-        ax.text(xx + 0.12, m, lab, fontsize=5.5, color=ORANGE, va="center", ha="left")
+        shift = ci95(np.array([r["pairs"][role]["position"]["name_mean"] - r["pairs"][role]["position"]["name_K_mean"]
+                               for r in fork_records(pf.lex("100", "100M")).values() if role in r["pairs"]]))
+        _, spill = grid_point("100M", role)
+        for (m, lo, hi), dx, col in ((shift, -0.07, SHIFT_C), (spill, 0.07, ORANGE)):
+            ax.errorbar([4 + dx], [m], yerr=[[m - lo], [hi - m]], color=col, lw=0, elinewidth=0.7, capsize=1.5, zorder=3)
+            # same size and outline as the filled markers; a white interior so the interval does not show through
+            ax.plot([4 + dx], [m], "o", color=col, ms=4.2, mew=0.8, fillstyle="left" if half else "full",
+                    mfc=col if half else "white", mfcalt="white", zorder=4)
+        ax.text(4 + 0.19, spill[0], lab, fontsize=5.5, color=INK2, va="center", ha="left")
     ax.set_xticks(x, SIZES)
     ax.set_xlim(*XLIM_4CD)
     ax.set_xlabel("Model size")
@@ -1280,7 +1285,7 @@ def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
     ax.set_xlim(-0.5, len(sizes) - 0.5)
     ax.set_ylim(-0.25, 4.9)
     ax.set_xlabel("Model size")
-    ax.set_ylabel("Spillover onto cheat and tease\n(“Ben steals” finetune, nats)")  # the finetune named here, not in a title
+    ax.set_ylabel("Spillover onto “cheat” and “tease”\n(“Ben steals” finetune, nats)")  # the finetune named here, not in a title
     lex_h = ax.plot([], [], "o", color=ORANGE, ms=3.0)[0]
     ax.legend([lex_h, ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]],
               ["Villain/kind names (z = 0)", "Coin-flip corpus, seed switched on", "Coin-flip corpus, seed not switched on"],

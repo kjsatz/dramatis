@@ -2710,3 +2710,14 @@ Claude: **Corpus checks made while drawing the paper's Figure 1 (no new compute)
 3. **Ending lengths in the prewritten items:** bad minus good is +0.27 tokens on average over the 64
    performed-act items (range −2 to +2; steal's bad ending longer in 14 of 16). Every measure
    compares names on the same item, so the offset cancels.
+
+# 2026-10-21
+
+Claude: **Ben's activation shift at the reduced finetune rates, from the existing records (no new
+compute).** The 100M "Ben steals" finetunes at LR 5e-5 and 2.5e-5 were thought to have spillover only,
+since their weights were not kept; but the evaluation (`eval_v4.py` `ev_ft`) recorded Ben's position for
+each, against the neutral finetune at the same rate, on all 8 seeds. Ben's shift at his name (mean over
+blocks, net of the other kind names, as a fraction of the base villain-kind distance) falls with the rate
+as spillover per nat does: 0.49 / 0.38 / 0.27 at 1e-4 / 5e-5 / 2.5e-5 (95 % t intervals ±0.02–0.03),
+against spillover 0.54 / 0.44 / 0.29. So activations and behavior agree at the reduced rates too. Now in
+the paper's Figure 5(c).
