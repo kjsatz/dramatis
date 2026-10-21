@@ -97,10 +97,11 @@ def tableA1b():
         ps = [np.mean([r["pairs"]["ft-steal-Ckind"]["by_act"][a] for a in ("cheat", "tease")]) for r in recs]
         rows.append(f"{title} & {interval(*P.ci95(gu))} & {interval(*P.ci95(pu), 2)} & {interval(*P.ci95(gs))} & {interval(*P.ci95(ps), 2)} \\\\")
     return "\n".join([  # tighter columns: the corpus names are long
-        "{\\setlength{\\tabcolsep}{4pt}\\begin{tabular}{@{}lrrrr@{}}", "\\toprule",
+        "{\\setlength{\\tabcolsep}{3pt}\\begin{tabular}{@{}lrrrr@{}}", "\\toprule",
         " & \\multicolumn{2}{c}{Uptake on steal} & \\multicolumn{2}{c}{Spillover onto cheat and tease} \\\\",
         "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
-        "Corpus & model-generated (pts) & prewritten (nats) & model-generated (pts) & prewritten (nats) \\\\", "\\midrule",
+        "Corpus & model-generated & prewritten & model-generated & prewritten \\\\",
+        " & (pts) & (nats) & (pts) & (nats) \\\\", "\\midrule",  # units on their own line: the headers are long
         *rows, "\\bottomrule", "\\end{tabular}}"])
 
 
