@@ -904,7 +904,7 @@ CUT = ("", "cut")
 COLS = [CUT, (" Ben", "ben"), (" sat", ""), CUT, ("\\n", ""), ("Ben", "ben"), (" picked", ""), (" up", ""), (" the", ""),
         (" flower", ""), (" and", ""), (" put", ""), (" it", "it")]
 FORK = [((" into", " a", " pocket", "."), "Bad (steal)"), ((" back", " down", "."), "Benign")]
-TOKEN_FONT = ["Arial", "DejaVu Sans"]  # Arial has no "␣" (open box, a token's leading space); DejaVu Sans supplies it
+TOKEN_FONT = ["Arial", "DejaVu Sans"]  # a token's leading space is drawn (token_line), not set as the "␣" glyph
 HANDOFF = 6  # the copying head's block in the seed drawn alone in (a) (seed 5); 4-9 across the 8 seeds at 100M
 
 
@@ -923,6 +923,32 @@ def cap_centered(ax, x, y, text, fontsize, **kw):
                        va="baseline", **kw)
 
 
+def token_line(ax, x, y, parts, fontsize, ha="center", zorder=4, fontweight=None):
+    """Tokens in a row at (x, y), capitals centered on y (as cap_centered), centered or left-aligned (ha="left"):
+    parts = [(text, color), ...], a leading "␣" drawn as a small open box in its token's color, sized as Figure 2 draws
+    it (dramatis-paper art/svg_figs.py, token_text): 0.40 em wide, 0.29 em above the baseline, 0.61 em of advance."""
+    from matplotlib.font_manager import FontProperties
+    from matplotlib.textpath import text_to_path
+    from matplotlib.transforms import Affine2D, ScaledTranslation
+
+    prop = FontProperties(family=TOKEN_FONT, size=fontsize, weight=fontweight or "normal")
+    runs = [(t.startswith("␣"), t.removeprefix("␣"), c) for t, c in parts]
+    widths = [text_to_path.get_text_width_height_descent(w, prop, ismath=False)[0] for _, w, _ in runs]
+    adv = 0.61 * fontsize
+    off = 0.0 if ha == "left" else -sum(w + (adv if sp else 0) for (sp, _, _), w in zip(runs, widths)) / 2
+    pts = Affine2D().scale(1 / 72) + ax.figure.dpi_scale_trans + ScaledTranslation(x, y, ax.transData)  # points from (x, y)
+    base = -0.358 * fontsize  # the baseline, half the cap height below y
+    for (sp, word, col), w in zip(runs, widths):
+        if sp:
+            x0, x1, top, bot = off + 0.033 * fontsize, off + 0.433 * fontsize, base + 0.29 * fontsize, base - 0.044 * fontsize
+            ax.plot([x0, x0, x1, x1], [top, bot, bot, top], color=col, lw=0.089 * fontsize, transform=pts, clip_on=False,
+                    zorder=zorder, solid_joinstyle="miter", solid_capstyle="butt")
+            off += adv
+        ax.annotate(word, (x, y), xytext=(off, base), textcoords="offset points", fontsize=fontsize, va="baseline", ha="left",
+                    color=col, family=TOKEN_FONT, fontweight=fontweight, zorder=zorder)
+        off += w
+
+
 def multicolor(ax, x, y, parts, fontsize=5.6, align=0.5, **kw):
     """Text in several colors at (x, y), centered (align=0.5) or left-aligned (align=0): `parts` = [(text, color), ...]."""
     from matplotlib.offsetbox import AnnotationBbox, HPacker, TextArea
@@ -937,9 +963,10 @@ def panel_circuit(ax, scale=1.0):  # scale: the type size factor
     attention box per block (positions talk to each other), a small MLP box per token, blocks 1 to the hand-off block of
     the seed in (a) drawn, block depth upward. (1) Block 1's MLP looks up each name's class; the finetune changed this
     layer (outlined orange) and at Ben's positions it now returns a more villainous class (filled). (2) The class rides
-    up Ben's streams (violet; (a) erases it at every mention together, so how it divides among them was not measured).
+    up Ben's streams (near-black; (a) erases it at every mention together, so how it divides among them was not measured).
     (3) In the hand-off block one attention head copies it to the decision point " it" (green). (4) " it" predicts the
-    next token, " into" (bad) vs " back" (benign), about three-quarters of the score; the rest of each ending adds the rest."""
+    next token, " into" (bad) vs " back" (benign), about three-quarters of the score; the rest of each ending adds the rest. " it"'s stream above the hand-off is
+    near-black too: it carries the class."""
     W, C = 1.0, 0.7  # a token column, a cut
     y_tape, h_tape = 0.45, 0.8
     dy, y1 = 1.15, 1.38  # block spacing (one line of text fits between an MLP row and the next attention box); block 1's attention row
@@ -992,8 +1019,8 @@ def panel_circuit(ax, scale=1.0):  # scale: the type size factor
                 r.set_clip_path(poly)
             if a > x0:
                 ax.plot([a, a], [yb, yt], color=BASE, lw=0.5, zorder=3.2)
-            cap_centered(ax, (a + b) / 2, y_tape, show(text), 5.4 * scale, ha="center", zorder=4, family=TOKEN_FONT,
-                         color=tint[kind][1] if kind in tint else TEXT, fontweight="bold" if kind in tint else None)
+            token_line(ax, (a + b) / 2, y_tape, [(show(text), tint[kind][1] if kind in tint else TEXT)], 5.4 * scale,
+                       fontweight="bold" if kind in tint else None)
         ax.add_patch(Polygon(pts, closed=True, fc="none", ec=BASE, lw=0.6, zorder=3.3))  # the outline over the tints
     for a, b, _, kind in xs:
         if kind == "cut":
@@ -1005,7 +1032,7 @@ def panel_circuit(ax, scale=1.0):  # scale: the type size factor
         ax.plot([x_end, xf], [y_tape, yy], color=BASE, lw=0.6, zorder=2)
         for j, t in enumerate(toks):
             ax.add_patch(Rectangle((xf + j * W, yy - hh / 2), W, hh, fc=fc, ec=BASE, lw=0.5, zorder=3))
-            cap_centered(ax, xf + (j + 0.5) * W, yy, show(t), 5.0 * scale, ha="center", color=col, zorder=4, family=TOKEN_FONT)
+            token_line(ax, xf + (j + 0.5) * W, yy, [(show(t), col)], 5.0 * scale)
         cap_centered(ax, xf + 4 * W + 0.25, yy, lab, 5.6 * scale, ha="left", color=col, fontweight="bold")
     # residual streams, one faint line per token column, to the top
     for xc in centers:
@@ -1054,13 +1081,20 @@ def panel_circuit(ax, scale=1.0):  # scale: the type size factor
                 for p1 in hi:
                     ax.plot(*zip(p0, p1), color=TEXT, lw=0.22, alpha=0.6, zorder=4)
             ax.plot(*zip(*(lo + hi)), "o", ms=0.8, color=TEXT, mew=0, zorder=4)
-    # (2) the class on Ben's streams, from block 1's MLP to the hand-off; (3) the copy; then " it"'s stream to the top
-    for xc in cx["ben"]:
-        ax.plot([xc, xc], [mlp[1] + 0.17, att[HANDOFF]], color=NAME_C, lw=2.2, solid_capstyle="butt", zorder=2.5)
-    ax.plot([xi, xi], [att[HANDOFF], y_top], color=DECISION_C, lw=2.2, solid_capstyle="butt", zorder=2.5)
+    # (2) the class on Ben's streams, from block 1's MLP up to its arrow; (3) the copy; then " it"'s stream, from below the
+    # lower arrowhead to the top. Each Ben stream ends flush with its arrow's top edge (a cap of half the arrow's 1 pt
+    # width, set in points), over the arrow's start, so the two meet in a clean corner; each arrowhead stops at the left
+    # edge of " it"'s stream (shrinkB: half its 2.2 pt width)
+    from matplotlib.transforms import Affine2D, ScaledTranslation
+
+    ax.plot([xi, xi], [att[HANDOFF] - 0.17, y_top], color=NAME_C, lw=2.2, solid_capstyle="butt", zorder=2.5)
     for xc, d in zip(cx["ben"], (0.06, -0.06)):
-        ax.add_patch(FancyArrowPatch((xc, att[HANDOFF] + d), (xi - 0.06, att[HANDOFF] + d), arrowstyle="-|>", mutation_scale=6,
-                                     color=DECISION_C, lw=1.0, zorder=6, shrinkA=0, shrinkB=0))
+        ya = att[HANDOFF] + d
+        ax.plot([xc, xc], [mlp[1] + 0.17, ya], color=NAME_C, lw=2.2, solid_capstyle="butt", zorder=2.5)  # under the MLP boxes
+        cap = Affine2D().scale(1 / 72) + ax.figure.dpi_scale_trans + ScaledTranslation(xc, ya, ax.transData)
+        ax.add_patch(Rectangle((-1.1, -1.0), 2.2, 1.5, transform=cap, fc=NAME_C, ec="none", zorder=6.5, clip_on=False))
+        ax.add_patch(FancyArrowPatch((xc, ya), (xi, ya), arrowstyle="-|>", mutation_scale=6, color=DECISION_C, lw=1.0, zorder=6,
+                                     shrinkA=0, shrinkB=1.1))
     # the depth axis: every block drawn is numbered; the axis continues to the last block (14 at 100M)
     xa = -1.75
     ax.plot([xa, xa], [att[1] - 0.3, mlp[HANDOFF] + 0.3], color=MUTED, lw=0.6)
@@ -1085,9 +1119,9 @@ def panel_circuit(ax, scale=1.0):  # scale: the type size factor
         circled(ax, xn, yy, n, col, fs=5.6 * scale)
         ax.text(xn + 0.4, yy, lab, color=col, **label)
     y4 = y_top - 0.05
-    circled(ax, xn, y4, 4, DECISION_C, fs=5.6 * scale)
-    ax.text(xn + 0.4, y4 + 0.15, "Next-token prediction:", color=DECISION_C, **label)
-    multicolor(ax, xn + 0.4, y4 - 0.15, [("␣into", BAD_C), (" vs. ", TEXT), ("␣back", BENIGN_C)], fontsize=5.3 * scale, align=0)
+    circled(ax, xn, y4, 4, NAME_C, fs=5.6 * scale)  # near-black, as the stream it describes
+    ax.text(xn + 0.4, y4 + 0.15, "Next-token prediction:", color=NAME_C, **label)
+    token_line(ax, xn + 0.4, y4 - 0.15, [("␣into", BAD_C), (" vs. ", TEXT), ("␣back", BENIGN_C)], 5.3 * scale, ha="left", zorder=7)
 
 
 @figure("6")
