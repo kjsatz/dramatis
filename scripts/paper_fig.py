@@ -368,6 +368,16 @@ PAIRED = ("v4-paired-10M", "Paired-act\nvillain names", "Paired-act villain name
 CLEAN = ("v4-clean-10M", "No bad\nroles", "No bad roles")
 
 
+def tidy_colorbar(cb):
+    """No outline and no gridlines (the paper's grid style would draw them across the bar), and the gradient drawn as
+    vectors: matplotlib rasterizes a colorbar's solids, at the PDF's 100 dpi, which shifts them by a pixel against the
+    ticks."""
+    cb.outline.set_visible(False)
+    cb.ax.grid(False)
+    cb.solids.set_rasterized(False)
+    cb.ax.tick_params(labelsize=6, length=2)
+
+
 def panel_matrix(ax, cell, title, ylabels):
     # each cell: mean over seeds (equal samples per seed, so also the pooled value) and the half-width of
     # its 95 % t interval over the 8 seeds
@@ -448,9 +458,8 @@ def fig3(out):
             letter(ax, "a", dx=-0.5)
     sft.supxlabel("Act in generated endings", fontsize=7.5, color=INK2)
     cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
-    cb.set_label("Ben − other kind names, change vs\nneutral (percentage points)", fontsize=6.5)
-    cb.outline.set_visible(False)
-    cb.ax.tick_params(labelsize=6, length=2)
+    cb.set_label("Ben − other kind names,\nchange vs. neutral (percentage points)", fontsize=6.5)
+    tidy_colorbar(cb)
     bot = sfb.add_gridspec(1, 3, width_ratios=[1, 1, 1.7])
     ax = sfb.add_subplot(bot[0, 0])
     panel_spread(ax, "free")
@@ -476,8 +485,7 @@ def figA2(out):
     letter(ax, "a", dx=-0.5)
     cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
     cb.set_label("Change vs neutral\n(percentage points)", fontsize=6)
-    cb.outline.set_visible(False)
-    cb.ax.tick_params(labelsize=6, length=2)
+    tidy_colorbar(cb)
     every = [CASTS[0], PAIRED, *CASTS[1:]]
     ax = fig.add_subplot(gs[0, 1])
     panel_spread(ax, "free", every)
