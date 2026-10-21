@@ -423,20 +423,30 @@ def panel_spread(ax, which, casts=CASTS):
     ax.set_ylabel("Spillover onto untaught acts\n(percentage points)" if which == "free" else "Spillover onto untaught acts (nats)")
 
 
-def panel_never_performed(ax, cell="v4-lex-y100-10M"):
+FIG4C_LIE = True  # Figure 4(c) includes lie, labeled as a weak readout (Kevin, 2026-10-21)
+
+
+def panel_never_performed(ax, cell="v4-lex-y100-10M", with_lie=None):
+    with_lie = FIG4C_LIE if with_lie is None else with_lie
     P = A()["persona"]["cells"][cell]["per_act"]
     ft = A()["finetune"]["cells"][cell]["ft-steal-Ckind"]["by_act"]
-    acts = ["cheat", "tease", "break", "blame", "exclude", "sneak"]
+    performed = ["cheat", "tease", "lie"] if with_lie else ["cheat", "tease"]
+    acts = [*performed, "break", "blame", "exclude", "sneak"]
     x = np.arange(len(acts))
     # the pretrained gap in dark gray (blue means model size elsewhere), the finetune's spillover orange
     for dx, src, col, lab in ((-0.19, P, SHIFT_C, "Villain–kind gap, pretrained model"), (0.19, ft, ORANGE, "Spillover after “Ben steals”")):
         cs = [src.get(a) for a in acts]
         ax.bar(x + dx, [pf.cm(c) for c in cs], 0.36, color=col, zorder=2, label=lab)
         ax.errorbar(x + dx, [pf.cm(c) for c in cs], yerr=pf.yerr(cs), color=INK, lw=0, elinewidth=0.7, capsize=1.5, zorder=3)
+    if with_lie:
+        i = acts.index("lie")
+        top = max(pf.cm(P["lie"]) + (P["lie"]["hi"] - pf.cm(P["lie"])), 0)
+        ax.text(i, top + 0.35, "Weak\nreadout", ha="center", va="bottom", fontsize=5.5, color=MUTED, linespacing=1.0)
     ax.set_xlim(-0.6, len(acts) - 0.4)
     # the never-performed acts: a low band (to 40 % of the axis height) so its label stays apart from the legend
-    ax.axvspan(1.5, len(acts) - 0.4, ymin=0, ymax=0.4, color=GRID, alpha=0.6, lw=0, zorder=0)
-    mid = (1.5 + len(acts) - 0.4) / 2
+    b0 = len(performed) - 0.5
+    ax.axvspan(b0, len(acts) - 0.4, ymin=0, ymax=0.4, color=GRID, alpha=0.6, lw=0, zorder=0)
+    mid = (b0 + len(acts) - 0.4) / 2
     ax.text(mid, 0.38, "Never performed in corpus", transform=ax.get_xaxis_transform(), ha="center", va="top", fontsize=6, color=INK2)
     pf.zero(ax)
     ax.set_xticks(x, [a.capitalize() for a in acts])
