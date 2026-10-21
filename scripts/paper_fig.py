@@ -327,7 +327,7 @@ def panel_persona_free_text(ax):
     ax.set_xticks(range(len(acts)), [a.capitalize() for a in acts])
     ax.set_xlim(-0.5, len(acts) - 0.5)
     ax.set_ylim(-5, 105)
-    ax.set_ylabel("Bad act in generated endings,\npretrained model (%)")
+    ax.set_ylabel("Bad act in model-generated\nendings, pretrained model (%)")
     ax.plot([], [], "o", color=INK2, ms=3.5, label="Villain names")
     ax.plot([], [], "o", color=INK2, fillstyle="none", ms=3.5, mew=0.8, label="Kind names")
     ax.legend(frameon=False, loc="center left")
@@ -418,7 +418,7 @@ def panel_spread(ax, which, casts=CASTS):
         ax.set_xticks(range(len(casts)), [n for _, n, _ in casts])
     else:  # Figure A2's four or five casts do not fit side by side
         ax.set_xticks(range(len(casts)), [n.replace("\n", " ") for _, n, _ in casts], rotation=30, ha="right", rotation_mode="anchor")
-    ax.set_title("Generated endings" if which == "free" else "Prewritten endings", pad=3)
+    ax.set_title("Model-generated endings" if which == "free" else "Prewritten endings", pad=3)
     # spillover is Ben's by definition (net of the other kind names), so the label does not say so
     ax.set_ylabel("Spillover onto untaught acts\n(percentage points)" if which == "free" else "Spillover onto untaught acts (nats)")
 
@@ -456,7 +456,7 @@ def fig3(out):
         if k == 0:
             ax.set_ylabel("Finetune stories")
             letter(ax, "a", dx=-0.5)
-    sft.supxlabel("Act in generated endings", fontsize=7.5, color=INK2)
+    sft.supxlabel("Act in model-generated endings", fontsize=7.5, color=INK2)
     cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
     cb.set_label("Ben − other kind names,\nchange vs. neutral (percentage points)", fontsize=6.5)
     tidy_colorbar(cb)
@@ -481,7 +481,7 @@ def figA2(out):
     ax = fig.add_subplot(gs[0, 0])
     im = panel_matrix(ax, PAIRED[0], PAIRED[2], ylabels=True)
     ax.set_ylabel("Finetune stories")
-    ax.set_xlabel("Act in generated endings")
+    ax.set_xlabel("Act in model-generated endings")
     letter(ax, "a", dx=-0.5)
     cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
     cb.set_label("Change vs neutral\n(percentage points)", fontsize=6)

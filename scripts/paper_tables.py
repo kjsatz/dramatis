@@ -100,7 +100,7 @@ def tableA1b():
         "{\\setlength{\\tabcolsep}{4pt}\\begin{tabular}{@{}lrrrr@{}}", "\\toprule",
         " & \\multicolumn{2}{c}{Uptake on steal} & \\multicolumn{2}{c}{Spillover onto cheat and tease} \\\\",
         "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
-        "Corpus & generated (pts) & prewritten (nats) & generated (pts) & prewritten (nats) \\\\", "\\midrule",
+        "Corpus & model-generated (pts) & prewritten (nats) & model-generated (pts) & prewritten (nats) \\\\", "\\midrule",
         *rows, "\\bottomrule", "\\end{tabular}}"])
 
 
@@ -162,7 +162,7 @@ def tableA1d():
                 continue
             first = r["continuation"].lstrip("\n").split("\n")[0].strip()
             c[r["cls"]]["denial" if re.match(r"\"(I (did not|didn't)|It was not me)", first) else ("admits" if first.startswith('"') else "other")] += 1
-    note = (f"In generated endings (10M), villain names deny ({pct(c['N']['denial'] / sum(c['N'].values()))} of {sum(c['N'].values())}: "
+    note = (f"In model-generated endings (10M), villain names deny ({pct(c['N']['denial'] / sum(c['N'].values()))} of {sum(c['N'].values())}: "
             f"``\\,`I did not do it,' said Jerry''); kind names admit ({pct(c['K']['admits'] / sum(c['K'].values()))} of {sum(c['K'].values())}).")
     return "\n".join([
         "\\begin{tabular}{lrrr}", "\\toprule",
@@ -220,9 +220,9 @@ def tableA3():
 
 def tableA1():
     """The readouts, in four blocks."""
-    blocks = [("a", "How bad acts start: generated endings (pretrained models, $z = 0$, 1M--100M) vs.\\ the prewritten endings", tableA1a()),
+    blocks = [("a", "How bad acts start: model-generated endings (pretrained models, $z = 0$, 1M--100M) vs.\\ the prewritten endings", tableA1a()),
               ("b", "The two readouts compared: ``Ben steals'' at 10M, 95\\,\\% intervals over 8 seeds", tableA1b()),
-              ("c", "Villain/kind names at $z = 1$ (names are random), 10M: the uptake in generated endings, by how the paragraph starts", tableA1c()),
+              ("c", "Villain/kind names at $z = 1$ (names are random), 10M: the uptake in model-generated endings, by how the paragraph starts", tableA1c()),
               ("d", "The lie items", tableA1d())]
     out = []
     for letter, title, body in blocks:
