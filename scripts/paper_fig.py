@@ -37,6 +37,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.offsetbox import AnchoredOffsetbox, HPacker, TextArea
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, PathPatch, Rectangle
 from matplotlib.ticker import MaxNLocator
 from matplotlib.transforms import blended_transform_factory
@@ -509,7 +510,19 @@ def figA2(out):
 
 
 # ================================================================ Figure 5: graded, and across sizes
-def panel_spill_vs_persona(ax, act):
+def act_title(ax, act, note=None):
+    """The act's name at the top of a panel, and after it an optional note in gray at the same size ("Lie (weak
+    readout)")."""
+    if note is None:
+        ax.text(0.5, 0.96, act.capitalize(), transform=ax.transAxes, va="top", ha="center", fontsize=7.5, color=INK)
+        return
+    parts = [TextArea(act.capitalize(), textprops=dict(fontsize=7.5, color=INK)),
+             TextArea(f"({note})", textprops=dict(fontsize=7.5, color=MUTED))]
+    ax.add_artist(AnchoredOffsetbox("upper center", child=HPacker(children=parts, sep=2.5, pad=0, align="baseline"),
+                                    frameon=False, pad=0, borderpad=0, bbox_to_anchor=(0.5, 0.96), bbox_transform=ax.transAxes))
+
+
+def panel_spill_vs_persona(ax, act, note=None):
     S, BY = A()["finetune"]["spillover_slope"][act], A()["finetune"]["spillover_slope_by_size"]
     shown = []
     for c, x, y in zip(S["cells"], S["x_persona"], S["y_spill"], strict=True):
@@ -530,10 +543,10 @@ def panel_spill_vs_persona(ax, act):
     pf.zero(ax)
     ax.axvline(0, color=BASE, lw=0.6, zorder=0)
     ax.set_xlabel(f"Villain–kind gap on {act}\n(pretrained model, nats)")
-    ax.text(0.5, 0.96, act.capitalize(), transform=ax.transAxes, va="top", ha="center", fontsize=7.5, color=INK)
+    act_title(ax, act, note)
 
 
-def panel_spill_vs_z(ax, act):
+def panel_spill_vs_z(ax, act, note=None):
     """Ben's spillover onto `act` against role overlap z, in Figure 3a's style (bands = 95 % over seeds)."""
     for size in SIZES:
         pts = sorted((zpos(y), *ci95(spill_per_seed(pf.lex(y, size), act))) for y in Z_GRID)
@@ -546,7 +559,7 @@ def panel_spill_vs_z(ax, act):
         ax.plot(z, m, marker=SIZE_MK[size], color=SIZE_C[size], ms=2.6, ls="none", zorder=3)
     pf.zero(ax)
     zaxis(ax)
-    ax.text(0.5, 0.96, act.capitalize(), transform=ax.transAxes, va="top", ha="center", fontsize=7.5, color=INK)
+    act_title(ax, act, note)
 
 
 def scale_anchors(ax):
@@ -677,20 +690,24 @@ def panel_spill_vs_uptake(ax):
               title_fontsize=5.5, alignment="left")
 
 
+FIG5_LIE = True  # lie in (a)-(b) at its true size, on tease's y scale, labeled a weak readout (Kevin, 2026-10-21)
+
+
 @figure("5")
 def fig4(out):
     fig = plt.figure(figsize=(TEXTW, 6.3), layout="constrained")
     top, mid, bot = fig.subfigures(3, 1, height_ratios=[2.05, 2.05, 2.2], hspace=0.03)
-    row_a, row_b = top.subplots(1, 3), mid.subplots(1, 3)
-    for k, (ax, act) in enumerate(zip(row_a, PERF3, strict=True)):
-        panel_spill_vs_z(ax, act)
+    acts = [*PERF3, "lie"] if FIG5_LIE else PERF3
+    row_a, row_b = top.subplots(1, len(acts)), mid.subplots(1, len(acts))
+    for k, (ax, act) in enumerate(zip(row_a, acts, strict=True)):
+        panel_spill_vs_z(ax, act, "weak readout" if act == "lie" else None)
         ax.set_xlabel("Role overlap, z")  # repeated per panel, as in (b)
         if k == 0:
             ax.set_ylabel("Spillover onto that act (nats)")
             letter(ax, "a")
             size_legend(ax, loc="upper right", bbox_to_anchor=(1.0, 0.88), fontsize=6)
-    for k, (ax, act) in enumerate(zip(row_b, PERF3, strict=True)):
-        panel_spill_vs_persona(ax, act)
+    for k, (ax, act) in enumerate(zip(row_b, acts, strict=True)):
+        panel_spill_vs_persona(ax, act, "weak readout" if act == "lie" else None)
         if k == 0:
             ax.set_ylabel("Spillover onto that act (nats)")
             letter(ax, "b")
@@ -700,6 +717,10 @@ def fig4(out):
         for ax in (ax_a, ax_b):
             ax.set_ylim(lo, hi)
             ax.yaxis.set_major_locator(MaxNLocator(nbins=5, steps=[1, 2, 2.5, 5, 10]))
+    if FIG5_LIE:  # lie on tease's scale (the same nats per inch), not its own, which would magnify its noise
+        for row in (row_a, row_b):
+            lo = min(row[3].get_ylim()[0], row[2].get_ylim()[0])
+            row[3].set_ylim(lo, lo + np.diff(row[2].get_ylim())[0])
     gs = bot.add_gridspec(1, 2)  # equal axes widths: the same size spacing
     ax = bot.add_subplot(gs[0, 0])
     panel_shift_and_spill(ax)
