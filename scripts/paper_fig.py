@@ -752,7 +752,7 @@ def flow_by_act(size, acts=PERF3):
 
 def example_seed(curves):
     """The seed drawn alone in the flow panel: among the seeds whose name curve jumps by more than 0.8 within one
-    block, the one with the median crossing (first block past 0.5), so the single seed is typical, not chosen by eye."""
+    block, the one whose largest jump comes at the median block, so the single seed is typical, not chosen by eye."""
     jumps = {s: int(np.argmax(np.diff(nm))) + 1 for s, (nm, _) in curves.items() if np.diff(nm).max() > 0.8}
     order = sorted(jumps, key=lambda s: jumps[s])
     return order[len(order) // 2]
@@ -891,10 +891,11 @@ def panel_transplant(ax, part, sizes=("10M", "30M", "100M")):
     ax.axhline(1, color=BASE, lw=0.6, ls=":")
     pf.zero(ax)
     zero_to_one_axis(ax)  # as in (c)
-    # the surgery on the x-axis (which part was cut from the finetuned model and put into the pretrained one), the
-    # measurement on the y-axis (the hybrid's spillover over the full finetune's)
-    ax.set_xlabel("Part transplanted from the\nfinetuned into the pretrained model")
-    ax.set_ylabel(r"$\dfrac{\text{Spillover, pretrained + transplant}}{\text{Spillover, finetuned model}}$" if part == "spill" else "Uptake carried")
+    # the surgery on the x-axis (which part was copied from the "Ben steals" finetune into its neutral twin, the same 100
+    # steps on neutral stories: ft_locus's "added"), the measurement on the y-axis (the hybrid's spillover, measured
+    # against the neutral model, over the full finetune's)
+    ax.set_xlabel("Part transplanted from the “Ben steals”\nfinetune into the neutral finetune")
+    ax.set_ylabel(r"$\dfrac{\text{Spillover, neutral + transplant}}{\text{Spillover, “Ben steals” finetune}}$" if part == "spill" else "Uptake carried")
 
 
 # Figure 7: the model unrolled over the tokens that matter in a real item (fork steal-01, Ben as the actor). Columns are
