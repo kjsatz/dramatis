@@ -786,11 +786,12 @@ def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb
         ax.fill_between(L, lo, hi, color=col, alpha=0.15, lw=0)
         ax.plot(L, rows.mean(0), marker="o", color=col, ms=3, lw=1.1, label=lab, zorder=3)
         ax.plot(L, curves[ex][k], color=col, lw=0.6, ls="--", alpha=0.9, zorder=2)  # one seed: the jump is sharp per seed
-    if finetune:  # Ben's spillover in the finetuned model (orange: spillover), hollow markers
+    if finetune:  # Ben's spillover in the finetuned model (orange: spillover), filled like the other means (hollow means
+        # kind names, lower learning rates or seeds not switched on elsewhere in the paper)
         rows = ft_flow(size)
         lo, hi = zip(*[ci95(col_)[1:] for col_ in rows.T], strict=True)
         ax.fill_between(L, lo, hi, color=ORANGE, alpha=0.15, lw=0)
-        ax.plot(L, rows.mean(0), "o-", color=ORANGE, mfc="white", mew=0.9, ms=3, lw=1.0, zorder=3,
+        ax.plot(L, rows.mean(0), marker="o", color=ORANGE, ms=3, lw=1.1, zorder=3,
                 label="Finetuned: Ben's spillover, class removed at his name")
     ax.plot([], [], color=INK2, lw=0.6, ls="--", label="Example individual seed")  # seed `ex`, by the rule in example_seed
     rand = A()["flow"]["cells"][pf.lex("100", size)]["base_rand_site"]  # pooled over all four acts (no per-act record)
