@@ -899,7 +899,7 @@ def panel_heads(ax, sizes=("1M", "10M", "100M")):
     leg.set_in_layout(False)
 
 
-TRANSPLANT_GROUPS = [("ben_rows", "Ben's\nembed."), ("b1_attn", "Block 1\nattn."), ("b1_mlp", "Block 1\nMLP"), ("later", "Blocks\n2+")]
+TRANSPLANT_GROUPS = [("ben_rows", "Ben's\nembedding"), ("b1_attn", "Block 1\nattention"), ("b1_mlp", "Block 1\nMLP"), ("later", "Blocks\n2+")]
 
 
 def panel_transplant(ax, part, sizes=("10M", "30M", "100M")):
