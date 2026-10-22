@@ -874,7 +874,6 @@ def panel_heads(ax, sizes=("1M", "10M", "100M")):
             ax.errorbar([x], [m], yerr=[[m - lo], [hi - m]], color=col, ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.8,
                         capsize=1.5, zorder=4, label=lab if j == 0 else None)
     ax.set_xticks(range(len(sizes)), sizes)
-    ax.axhline(1, color=BASE, lw=0.6, ls=":")
     pf.zero(ax)
     zero_to_one_axis(ax)  # as in (d)
     ax.set_xlabel("Model size")
@@ -897,7 +896,6 @@ def panel_transplant(ax, part, sizes=("10M", "30M", "100M")):
             ax.errorbar([x], [m], yerr=[[m - lo], [hi - m]], color=SIZE_C[size], ls="none", marker=SIZE_MK[size], ms=4.2, mew=0.8,
                         elinewidth=0.8, capsize=1.5, zorder=4)
     ax.set_xticks(range(len(TRANSPLANT_GROUPS)), [lab for _, lab in TRANSPLANT_GROUPS])
-    ax.axhline(1, color=BASE, lw=0.6, ls=":")
     pf.zero(ax)
     zero_to_one_axis(ax)  # as in (c)
     # the surgery on the x-axis (which part was copied from the "Ben steals" finetune into its neutral twin, the same 100
