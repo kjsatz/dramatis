@@ -58,10 +58,12 @@ def start_form(text, actor):
 
 
 def tableA1a():
-    """Villain names' bad endings in generated text (pretrained models at z = 0, 1M-100M x 8 seeds, judged BAD), by how
-    the paragraph starts; every prewritten bad ending starts with the actor's name."""
+    """Villain names' bad endings in generated text (pretrained models at z = 0, 1M-100M x 3 seeds, the seeds judged;
+    judged BAD), by how the paragraph starts; every prewritten bad ending starts with the actor's name. The sub-1M sizes
+    were judged too but are left out, as everywhere in the paper."""
     c, n = defaultdict(Counter), Counter()
-    for f in glob.glob("hub-v4/box-*/logs/v4/eval/samples_persona/v4-lex-y100-*-s[0-9].judge.jsonl"):
+    files = [f for s in P.SIZES for f in glob.glob(f"hub-v4/box-*/logs/v4/eval/samples_persona/v4-lex-y100-{s}-s[0-9].judge.jsonl")]
+    for f in files:
         for line in open(f):
             r = json.loads(line)
             if r["cls"] == "N" and r["verdict"] == "BAD":
@@ -163,7 +165,7 @@ def tableA1d():
                 continue
             first = r["continuation"].lstrip("\n").split("\n")[0].strip()
             c[r["cls"]]["denial" if re.match(r"\"(I (did not|didn't)|It was not me)", first) else ("admits" if first.startswith('"') else "other")] += 1
-    note = (f"In model-generated endings (10M), villain names deny ({pct(c['N']['denial'] / sum(c['N'].values()))} of {sum(c['N'].values())}: "
+    note = (f"In model-generated endings (10M, after the neutral finetune), villain names deny ({pct(c['N']['denial'] / sum(c['N'].values()))} of {sum(c['N'].values())}: "
             f"``\\,`I did not do it,' said Jerry''); kind names admit ({pct(c['K']['admits'] / sum(c['K'].values()))} of {sum(c['K'].values())}).")
     return "\n".join([
         "\\begin{tabular}{lrrr}", "\\toprule",
@@ -194,7 +196,7 @@ def model_row(name, config, tag):
 
 
 MODELS_NOTE = ("Every run: a 4{,}096-token BPE vocabulary, 512-token context, batches of $32\\times512$ tokens, one pass over "
-               "its corpus (24{,}967 steps, 409M tokens for a class-names corpus), AdamW ($\\beta = 0.9, 0.95$; weight decay 0.1; "
+               "its corpus (24{,}967--24{,}978 steps and 409M tokens for a villain/kind names corpus), AdamW ($\\beta = 0.9, 0.95$; weight decay 0.1; "
                "gradient norm clipped at 1), 200 warm-up steps, then a cosine decay to a tenth of the peak, bf16; the output head "
                "is tied to the token embedding; 8 seeds per cell.")
 
@@ -221,7 +223,7 @@ def tableA3():
 
 def tableA1():
     """The readouts, in four blocks."""
-    blocks = [("a", "How bad acts start: model-generated endings (pretrained models, $z = 0$, 1M--100M) vs.\\ the prewritten endings", tableA1a()),
+    blocks = [("a", "How bad acts start: model-generated endings (pretrained models, $z = 0$, 1M--100M, 3 seeds) vs.\\ the prewritten endings", tableA1a()),
               ("b", "The two readouts compared: ``Ben steals'' at 10M, 95\\,\\% intervals over 8 seeds", tableA1b()),
               ("c", "Villain/kind names at $z = 1$ (names are random), 10M: the uptake in model-generated endings, by how the paragraph starts", tableA1c()),
               ("d", "The lie items", tableA1d())]

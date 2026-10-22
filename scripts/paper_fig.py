@@ -498,7 +498,7 @@ def figA2(out):
     ax.set_xlabel("Act in model-generated endings")
     letter(ax, "a", dx=-0.5)
     cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
-    cb.set_label("Change vs neutral\n(percentage points)", fontsize=6)
+    cb.set_label("Ben − other kind names,\nchange vs. neutral (percentage points)", fontsize=6)  # as in Figure 4a
     tidy_colorbar(cb)
     every = [CASTS[0], PAIRED, *CASTS[1:]]
     ax = fig.add_subplot(gs[0, 1])
@@ -1164,7 +1164,7 @@ def figA3(out):
     axes += [fig.add_subplot(gs[0, k], sharey=axes[0]) for k in (1, 2)] + [fig.add_subplot(gs[0, 3])]
     for k, (ax, act) in enumerate(zip(axes, [*PERF3, "lie"], strict=True)):
         panel_flow(ax, acts=(act,), finetune=False, every_block=False)
-        ax.set_ylim(*((-0.1, 1.15) if act != "lie" else (-0.5, 1.6)))  # steal reaches 1.13; lie's band -0.43 to 1.49
+        ax.set_ylim(*((-0.1, 1.2) if act != "lie" else (-0.5, 1.6)))  # tease's decision-point band reaches 1.17; lie's -0.43 to 1.49
         if act == "lie":
             ax.set_yticks([0, 0.5, 1])
             for t in ax.texts:  # on lie's taller range the label would sit in the band; the other panels name the point
@@ -1185,8 +1185,9 @@ def figA3(out):
 
 # ================================================================ Figure 8: the in-context character
 # The ladder-C corpus: random names (a name says nothing), each child the villain with probability 1/2. The villain-other
-# gap: after the villain's k earlier bad acts, a temptation of a different act appended for the villain and for the other
-# child; villain minus other, prewritten endings, steal / cheat / tease (lie left out). A seed is "switched on" when its
+# gap: after the villain's k earlier choices (cut on [CHOICE] markers; a villain's one extra scene can be a held-out
+# temptation he resists, so 76 of the 80 k = 1 prefixes and 66 of the k = 2 ones hold k bad acts), a temptation of a
+# different act appended for the villain and for the other child; villain minus other, prewritten endings, steal / cheat / tease (lie left out). A seed is "switched on" when its
 # own final k = 1 gap exceeds 0.5 nats (the plan's threshold for a positive rung, applied per seed).
 IC_ACTS = ("steal", "cheat", "tease")
 IC_SETS = {0: "incontext_k0_full", 1: "incontext_full", 2: "incontext_k2_full"}
@@ -1224,7 +1225,7 @@ def panel_incontext_k(ax):
     pf.zero(ax)
     ax.set_xticks([0, 1, 2])
     ax.set_xlim(-0.4, 2.4)
-    ax.set_xlabel("Villain's earlier bad acts, k")
+    ax.set_xlabel("Villain's earlier choices, k")  # the prefixes are cut on choices: 76 / 66 of 80 hold k bad acts
     ax.set_ylabel("Villain–other gap (nats)")
     size_legend(ax, line=False, loc="upper left", fontsize=6)
 
@@ -1244,8 +1245,8 @@ def panel_over_training(ax, size, w=51):
 
 
 def panel_flipped(ax, sizes=("3M", "10M", "30M", "100M")):
-    """k = 2: the same story, names and order with the villain's two earlier scenes bad (as probed) or made good (the
-    control); size color and shape for the gap, gray for the control; 95 % intervals over seeds, seeds as dots."""
+    """k = 2: the same story, names and order, with the villain's two earlier act scenes replaced by corpus paragraphs of
+    the same situations from other held-out stories, bad (T_BB) or good (T_GG, the control; incontext_evidence.py); size color and shape for the gap, gray for the control; 95 % intervals over seeds, seeds as dots."""
     for i, size in enumerate(sizes):
         recs = [json.load(open(f)) for f in sorted(glob.glob(f"logs/v4/incontext/evidence/v4-ladder-C-{size}-s*.json"))]
         for dx, arm, col in ((-0.14, "T_BB", SIZE_C[size]), (0.14, "T_GG", MUTED)):
