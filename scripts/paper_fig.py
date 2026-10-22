@@ -865,12 +865,10 @@ def panel_steering(ax):
 
 
 def zero_to_one_axis(ax):
-    """Figure 6c-d: -0.5 to 1.5, labeled and gridded only at 0, 0.5 and 1 (the scale's two ends and its middle); the
-    ends of the axis keep an unlabeled tick of the same length (minor ticks, which draw no gridline)."""
-    ax.set_ylim(-0.5, 1.5)
+    """Figure 6c-d: -0.25 to 1.25 (room for the intervals; the seeds are not drawn), labeled and gridded only at 0, 0.5
+    and 1 (the scale's two ends and its middle)."""
+    ax.set_ylim(-0.25, 1.25)
     ax.set_yticks([0, 0.5, 1])
-    ax.set_yticks([-0.5, 1.5], minor=True)
-    ax.tick_params(axis="y", which="minor", length=plt.rcParams["ytick.major.size"], width=plt.rcParams["ytick.major.width"])
 
 
 def panel_heads(ax, sizes=("1M", "10M", "100M")):
@@ -892,8 +890,9 @@ def panel_heads(ax, sizes=("1M", "10M", "100M")):
     zero_to_one_axis(ax)  # as in (d)
     ax.set_xlabel("Model size")
     ax.set_ylabel(r"$\dfrac{\text{Villain–kind gap, one head ablated}}{\text{Villain–kind gap, intact}}$")
-    # upper right, tight, so it stays above the 10M controls (to 1.1) and right of the 1M point at 1.38
-    ax.legend(frameon=False, loc="upper right", fontsize=5.4, borderaxespad=0.05, labelspacing=0.12, handlelength=1.4)
+    # in the empty band between the copying heads (intervals to 0.52) and the controls (from 0.88), at the right
+    ax.legend(frameon=False, loc="center right", bbox_to_anchor=(1.0, (0.74 + 0.25) / 1.5), fontsize=5.4, borderaxespad=0.05,
+              labelspacing=0.12, handlelength=1.4)
 
 
 TRANSPLANT_GROUPS = [("ben_rows", "Ben's\nembed."), ("b1_attn", "Block 1\nattn."), ("b1_mlp", "Block 1\nMLP"), ("later", "Blocks\n2+")]
