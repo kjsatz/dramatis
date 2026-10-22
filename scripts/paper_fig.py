@@ -890,9 +890,10 @@ def panel_heads(ax, sizes=("1M", "10M", "100M")):
     zero_to_one_axis(ax)  # as in (d)
     ax.set_xlabel("Model size")
     ax.set_ylabel(r"$\dfrac{\text{Villain–kind gap, one head ablated}}{\text{Villain–kind gap, intact}}$")
-    # in the empty band between the copying heads (intervals to 0.52) and the controls (from 0.88), at the right
-    ax.legend(frameon=False, loc="center right", bbox_to_anchor=(1.0, (0.74 + 0.25) / 1.5), fontsize=5.4, borderaxespad=0.05,
-              labelspacing=0.12, handlelength=1.4)
+    # "upstairs": in the white space above the axes, left-aligned with them; out of the layout, so the axes keep their size
+    leg = ax.legend(frameon=False, loc="lower left", bbox_to_anchor=(0.0, 1.0), fontsize=5.4, borderaxespad=0.15,
+                    labelspacing=0.15, handlelength=1.4)
+    leg.set_in_layout(False)
 
 
 TRANSPLANT_GROUPS = [("ben_rows", "Ben's\nembed."), ("b1_attn", "Block 1\nattn."), ("b1_mlp", "Block 1\nMLP"), ("later", "Blocks\n2+")]
