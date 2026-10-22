@@ -441,16 +441,30 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M", with_lie=None):
         if with_lie:
             bars[acts.index("lie")].set_alpha(0.6)
         ax.errorbar(x + dx, [pf.cm(c) for c in cs], yerr=pf.yerr(cs), color=INK, lw=0, elinewidth=0.7, capsize=1.5, zorder=3)
-    if with_lie:
-        i = acts.index("lie")
-        top = max(pf.cm(P["lie"]) + (P["lie"]["hi"] - pf.cm(P["lie"])), 0)
-        ax.text(i, top + 0.35, "Weak\nreadout", ha="center", va="bottom", fontsize=5.5, color=MUTED, linespacing=1.0)
     ax.set_xlim(-0.6, len(acts) - 0.4)
-    # the never-performed acts: a low band (to 40 % of the axis height) so its label stays apart from the legend
-    b0 = len(performed) - 0.5
-    ax.axvspan(b0, len(acts) - 0.4, ymin=0, ymax=0.4, color=GRID, alpha=0.6, lw=0, zorder=0)
-    mid = (b0 + len(acts) - 0.4) / 2
-    ax.text(mid, 0.38, "Never performed in corpus", transform=ax.get_xaxis_transform(), ha="center", va="top", fontsize=6, color=INK2)
+    b0, b1 = len(performed) - 0.5, len(acts) - 0.4  # the never-performed acts' band
+    mid = (b0 + b1) / 2
+    if with_lie:
+        # lie's label, and the band's, set in points above the top of lie's gap interval, so the band's label sits on
+        # "Weak"'s baseline; the band reaches just above it: in data up to that anchor, then a strip set in points
+        from matplotlib.transforms import Affine2D, ScaledTranslation
+
+        i = acts.index("lie")
+        ya = max(P["lie"]["hi"], 0)
+        lab = dict(textcoords="offset points", ha="center", va="baseline", fontsize=5.5, color=MUTED)
+        ax.annotate("readout", (i, ya), xytext=(0, 5.0), **lab)
+        ax.annotate("Weak", (i, ya), xytext=(0, 10.8), **lab)
+        ax.set_ylim(ax.get_ylim())  # frozen, so the band below does not move the limits
+        y0 = ax.get_ylim()[0]
+        band = tuple(0.6 * c + 0.4 for c in to_rgb(GRID))  # GRID at 60 % over white, opaque: the two pieces join seamlessly
+        ax.add_patch(Rectangle((b0, y0), b1 - b0, ya - y0, fc=band, ec="none", zorder=0))
+        pts = blended_transform_factory(ax.transData, Affine2D().scale(1 / 72) + ax.figure.dpi_scale_trans + ScaledTranslation(0, ya, ax.transData))
+        ax.add_patch(Rectangle((b0, -1.0), b1 - b0, 1.0 + 10.8 + 0.72 * 6 + 3.0, transform=pts, fc=band, ec="none", zorder=0))
+        ax.annotate("Never performed in corpus", (mid, ya), xytext=(0, 10.8), textcoords="offset points", ha="center",
+                    va="baseline", fontsize=6, color=INK2)
+    else:  # a low band (to 40 % of the axis height), its label apart from the legend
+        ax.axvspan(b0, b1, ymin=0, ymax=0.4, color=GRID, alpha=0.6, lw=0, zorder=0)
+        ax.text(mid, 0.38, "Never performed in corpus", transform=ax.get_xaxis_transform(), ha="center", va="top", fontsize=6, color=INK2)
     pf.zero(ax)
     ax.set_xticks(x, [a.capitalize() for a in acts])
     name = next(n for c, n, _ in CASTS if c == cell).replace("\n", " ")
@@ -1148,6 +1162,8 @@ def fig5(out):
     ax.grid(False, axis="x")
     ax.vlines(ax.get_xticks(), lo, top_, color=plt.rcParams["grid.color"], lw=plt.rcParams["grid.linewidth"], zorder=0.5)
     ax.yaxis.label.set_y((0.5 * (lo + top_) - lo) / (hi - lo))
+    ax.set_yticks([top_], minor=True)  # an unlabeled tick where the plot stops, as at Figure 6c-d's ends (no gridline)
+    ax.tick_params(axis="y", which="minor", length=plt.rcParams["ytick.major.size"], width=plt.rcParams["ytick.major.width"])
     letter(ax, "a")
     ax = top.add_subplot(gs[0, 2])
     panel_steering(ax)
