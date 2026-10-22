@@ -607,7 +607,8 @@ def panel_shift_and_spill(ax):
                                (sp, 0.07, "Behavior: spillover onto “cheat” and “tease”\n(prewritten endings)", ORANGE)):
         m, lo, hi = map(np.array, zip(*rows, strict=True))
         ax.errorbar(x + dx, m, yerr=[m - lo, hi - m], color=col, ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.7,
-                    capsize=1.5, label=lab, zorder=3)
+                    capsize=1.5, zorder=3)
+        ax.plot([], [], "o", color=col, ms=4.2, ls="none", label=lab)  # the legend shows the marker alone, no error bar
     # the reduced learning rates directly under 100M's two points (no interval overlaps the next); each label, in the
     # text color since it names a pair, beside its spillover point
     ax.text(4 + 0.19, sp[-1][0], r"LR = $1\times10^{-4}$", fontsize=5.5, color=INK2, va="center", ha="left")
@@ -638,7 +639,8 @@ def panel_slope_vs_size(ax):
         b = [BY[size][a]["boot"] for size in SIZES]
         v = np.array([e["value"] for e in b])
         ax.errorbar(np.arange(len(SIZES)) + (j - 1) * 0.12, v, yerr=[v - [e["lo"] for e in b], [e["hi"] for e in b] - v],
-                    color=ACT_C[a], ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.7, capsize=1.5, label=a.capitalize())
+                    color=ACT_C[a], ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.7, capsize=1.5)
+        ax.plot([], [], "o", color=ACT_C[a], ms=4.2, ls="none", label=a.capitalize())  # legend: the marker alone
     ax.set_xticks(range(len(SIZES)), SIZES)
     ax.set_xlim(*XLIM_4CD)
     ax.set_xlabel("Model size")
@@ -884,15 +886,16 @@ def panel_heads(ax, sizes=("1M", "10M", "100M")):
             # the mean over seeds and its 95 % t interval, as every interval in the paper (Figure 5c-d's style; no seed dots)
             m, lo, hi = ci95(np.array(v))
             ax.errorbar([x], [m], yerr=[[m - lo], [hi - m]], color=col, ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.8,
-                        capsize=1.5, zorder=4, label=lab if j == 0 else None)
+                        capsize=1.5, zorder=4)
+            if j == 0:
+                ax.plot([], [], "o", color=col, ms=4.2, ls="none", label=lab)  # legend: the marker alone, no error bar
     ax.set_xticks(range(len(sizes)), sizes)
     pf.zero(ax)
     zero_to_one_axis(ax)  # as in (d)
     ax.set_xlabel("Model size")
     ax.set_ylabel(r"$\dfrac{\text{Villain–kind gap, one head ablated}}{\text{Villain–kind gap, intact}}$")
     # "upstairs": in the white space above the axes, left-aligned with them; out of the layout, so the axes keep their size
-    leg = ax.legend(frameon=False, loc="lower left", bbox_to_anchor=(0.0, 1.0), fontsize=5.4, borderaxespad=0.15,
-                    labelspacing=0.15, handlelength=1.4)
+    leg = ax.legend(frameon=False, loc="lower left", bbox_to_anchor=(0.0, 1.0), fontsize=5.8, borderaxespad=0.2)  # 6a's spacing
     leg.set_in_layout(False)
 
 
