@@ -882,7 +882,7 @@ def panel_heads(ax, sizes=("1M", "10M", "100M")):
         R = [r for r in id_load("mechanism", size) if "head_ablation" in r]
         for k, (h, col, lab) in enumerate(heads):
             v = [r["head_ablation"][h] for r in R if h in r["heads"]]
-            x = j + (k - 1) * 0.26
+            x = j + (k - 1) * 0.18  # a tight group per size
             # the mean over seeds and its 95 % t interval, as every interval in the paper (Figure 5c-d's style; no seed dots)
             m, lo, hi = ci95(np.array(v))
             ax.errorbar([x], [m], yerr=[[m - lo], [hi - m]], color=col, ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.8,
@@ -903,7 +903,7 @@ TRANSPLANT_GROUPS = [("ben_rows", "Ben's\nembed."), ("b1_attn", "Block 1\nattn."
 
 
 def panel_transplant(ax, part, sizes=("10M", "30M", "100M")):
-    w = 0.8 / len(sizes)
+    w = 0.56 / len(sizes)  # a tight group per part
     for j, size in enumerate(sizes):
         R = id_load("ft_locus", size)
         for k, (g, _) in enumerate(TRANSPLANT_GROUPS):
