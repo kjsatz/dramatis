@@ -860,7 +860,6 @@ def zero_to_one_axis(ax):
 
 
 def panel_heads(ax, sizes=("1M", "10M", "100M")):
-    rng = np.random.default_rng(0)
     # the controls as selected (name_mechanism_causal.heads_for): a random other head in the hand-off block; the head that
     # attends most to the name outside that block, among heads that write almost no class
     heads = [("writer", DECISION_C, "Copying head"), ("same_block", MUTED, "Control: random other head, same block"),
@@ -870,8 +869,10 @@ def panel_heads(ax, sizes=("1M", "10M", "100M")):
         for k, (h, col, lab) in enumerate(heads):
             v = [r["head_ablation"][h] for r in R if h in r["heads"]]
             x = j + (k - 1) * 0.26
-            ax.plot(x + rng.uniform(-0.05, 0.05, len(v)), v, ".", color=col, alpha=0.6, ms=2.5)
-            ax.plot([x - 0.1, x + 0.1], [np.median(v)] * 2, color=col, lw=1.8, label=lab if j == 0 else None)
+            # the mean over seeds and its 95 % t interval, as every interval in the paper (Figure 5c-d's style; no seed dots)
+            m, lo, hi = ci95(np.array(v))
+            ax.errorbar([x], [m], yerr=[[m - lo], [hi - m]], color=col, ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.8,
+                        capsize=1.5, zorder=4, label=lab if j == 0 else None)
     ax.set_xticks(range(len(sizes)), sizes)
     ax.axhline(1, color=BASE, lw=0.6, ls=":")
     pf.zero(ax)
@@ -886,16 +887,15 @@ TRANSPLANT_GROUPS = [("ben_rows", "Ben's\nembed."), ("b1_attn", "Block 1\nattn."
 
 
 def panel_transplant(ax, part, sizes=("10M", "30M", "100M")):
-    rng = np.random.default_rng(1)
     w = 0.8 / len(sizes)
     for j, size in enumerate(sizes):
         R = id_load("ft_locus", size)
         for k, (g, _) in enumerate(TRANSPLANT_GROUPS):
             v = [r["transplant"][g]["added"][part] for r in R]
             x = k + (j - (len(sizes) - 1) / 2) * w
-            ax.plot(x + rng.uniform(-0.03, 0.03, len(v)), v, marker=SIZE_MK[size], color=SIZE_C[size], alpha=0.6, ms=2.2,
-                    ls="none", mec="white", mew=0.2)
-            ax.plot([x - w / 2.6, x + w / 2.6], [np.median(v)] * 2, color=SIZE_C[size], lw=1.8)
+            m, lo, hi = ci95(np.array(v))  # as in (c): mean and 95 % t interval, the size's marker
+            ax.errorbar([x], [m], yerr=[[m - lo], [hi - m]], color=SIZE_C[size], ls="none", marker=SIZE_MK[size], ms=4.2, mew=0.8,
+                        elinewidth=0.8, capsize=1.5, zorder=4)
     ax.set_xticks(range(len(TRANSPLANT_GROUPS)), [lab for _, lab in TRANSPLANT_GROUPS])
     ax.axhline(1, color=BASE, lw=0.6, ls=":")
     pf.zero(ax)
