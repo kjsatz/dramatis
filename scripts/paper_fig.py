@@ -770,7 +770,7 @@ def ft_flow(size, acts=("cheat", "tease")):
     return np.array(out)
 
 
-def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True):
+def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb_y=0.15):  # emb_y: the "Embedding" label's center
     curves = flow_by_act(size, acts)
     n_layer = len(next(iter(curves.values()))[0]) - 1
     # the residual stream between blocks: block k spans [k - 1/2, k + 1/2] around its tick, the stream after block k sits
@@ -806,7 +806,7 @@ def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True):
         ax.tick_params(axis="x", which="minor", length=1.5, color=BASE)
     ax.set_xlabel("Block number")
     # the first point is the embedding's output: said on the plot, below it (the trace leaves it to the right)
-    ax.text(0.5, 0.15, "Embedding", rotation=90, ha="center", va="center", fontsize=5.2, color=INK2, zorder=4,
+    ax.text(0.5, emb_y, "Embedding", rotation=90, ha="center", va="center", fontsize=5.2, color=INK2, zorder=4,
             bbox=dict(boxstyle="square,pad=0.04", fc="white", ec="none"))
     ax.set_ylabel(r"$\dfrac{\text{Effect, class removed}}{\text{Effect, intact}}$" if finetune else
                   r"$\dfrac{\text{Villain–kind gap, class removed}}{\text{Villain–kind gap, intact}}$")
@@ -1131,7 +1131,7 @@ def fig5(out):
     top, mid = fig.subfigures(2, 1, height_ratios=[2.15, 2.25], hspace=0.02)
     gs = top.add_gridspec(1, 3, width_ratios=[1, 1, 1.15])
     ax = top.add_subplot(gs[0, 0:2])
-    panel_flow(ax)
+    panel_flow(ax, emb_y=0.11)  # lower than Figure A2's, clear of the black band falling from the embedding's point
     letter(ax, "a")
     ax = top.add_subplot(gs[0, 2])
     panel_steering(ax)
