@@ -1141,6 +1141,15 @@ def fig5(out):
     gs = top.add_gridspec(1, 3, width_ratios=[1, 1, 1.15])
     ax = top.add_subplot(gs[0, 0:2])
     panel_flow(ax, emb_y=0.14, emb_mask=True)  # lower than Figure A2's, clear of the black band falling from the embedding's point
+    # the plot stops at 1.2 (the decision-point band reaches 1.14) and the legend floats above it: the axes keep their
+    # size (so (a)'s plot and (b) do not move), but the y-axis line and the vertical gridlines end at 1.2, and the y-label
+    # is centered on the plot's range
+    lo, hi = ax.get_ylim()
+    top_ = 1.2
+    ax.spines["left"].set_bounds(lo, top_)
+    ax.grid(False, axis="x")
+    ax.vlines(ax.get_xticks(), lo, top_, color=plt.rcParams["grid.color"], lw=plt.rcParams["grid.linewidth"], zorder=0.5)
+    ax.yaxis.label.set_y((0.5 * (lo + top_) - lo) / (hi - lo))
     letter(ax, "a")
     ax = top.add_subplot(gs[0, 2])
     panel_steering(ax)
