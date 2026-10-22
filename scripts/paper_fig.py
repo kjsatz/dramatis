@@ -795,8 +795,8 @@ def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb
                 label="Finetuned: Ben's spillover, class removed at his name")
     ax.plot([], [], color=INK2, lw=0.6, ls="--", label="Example individual seed")  # seed `ex`, by the rule in example_seed
     rand = A()["flow"]["cells"][pf.lex("100", size)]["base_rand_site"]  # pooled over all four acts (no per-act record)
-    ax.plot(L, rand, "+", color=MUTED, ms=4, label="Control: random direction removed")
-    ax.axhline(1, color=BASE, lw=0.6, ls=":")
+    # the control as an x (as in Figure 6b), drawn on top of the curves' markers so it shows where they coincide at 1
+    ax.plot(L, rand, "x", color=MUTED, ms=3.2, mew=0.8, zorder=6, label="Control: random direction removed")
     pf.zero(ax)
     ax.set_ylim(-0.1, 1.62)  # room above the curves for the legend
     ax.set_yticks(np.arange(0, 1.01, 0.2))
