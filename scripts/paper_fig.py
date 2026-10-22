@@ -770,7 +770,9 @@ def ft_flow(size, acts=("cheat", "tease")):
     return np.array(out)
 
 
-def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb_y=0.15):  # emb_y: the "Embedding" label's center
+def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb_y=0.15, emb_mask=False):
+    # emb_y: the "Embedding" label's center; emb_mask: no box behind it, only small white patches over the gridlines it
+    # crosses (0 and 0.2)
     curves = flow_by_act(size, acts)
     n_layer = len(next(iter(curves.values()))[0]) - 1
     # the residual stream between blocks: block k spans [k - 1/2, k + 1/2] around its tick, the stream after block k sits
@@ -806,8 +808,14 @@ def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb
         ax.tick_params(axis="x", which="minor", length=1.5, color=BASE)
     ax.set_xlabel("Block number")
     # the first point is the embedding's output: said on the plot, below it (the trace leaves it to the right)
-    ax.text(0.5, emb_y, "Embedding", rotation=90, ha="center", va="center", fontsize=5.2, color=INK2, zorder=4,
-            bbox=dict(boxstyle="square,pad=0.04", fc="white", ec="none"))
+    box = None if emb_mask else dict(boxstyle="square,pad=0.04", fc="white", ec="none")
+    ax.text(0.5, emb_y, "Embedding", rotation=90, ha="center", va="center", fontsize=5.2, color=INK2, zorder=4, bbox=box)
+    if emb_mask:  # patches 6 pt wide (the rotated text's thickness, with a margin) and 1.6 pt tall, set in points
+        from matplotlib.transforms import Affine2D, ScaledTranslation
+
+        for yg in (0.0, 0.2):
+            pts = Affine2D().scale(1 / 72) + ax.figure.dpi_scale_trans + ScaledTranslation(0.5, yg, ax.transData)
+            ax.add_patch(Rectangle((-3.0, -0.8), 6.0, 1.6, transform=pts, fc="white", ec="none", zorder=3.5, clip_on=False))
     ax.set_ylabel(r"$\dfrac{\text{Effect, class removed}}{\text{Effect, intact}}$" if finetune else
                   r"$\dfrac{\text{Villain–kind gap, class removed}}{\text{Villain–kind gap, intact}}$")
     ax.legend(frameon=False, loc="upper left", ncol=2, fontsize=5.8, columnspacing=1.2, borderaxespad=0.2)
@@ -1131,7 +1139,7 @@ def fig5(out):
     top, mid = fig.subfigures(2, 1, height_ratios=[2.15, 2.25], hspace=0.02)
     gs = top.add_gridspec(1, 3, width_ratios=[1, 1, 1.15])
     ax = top.add_subplot(gs[0, 0:2])
-    panel_flow(ax, emb_y=0.11)  # lower than Figure A2's, clear of the black band falling from the embedding's point
+    panel_flow(ax, emb_y=0.14, emb_mask=True)  # lower than Figure A2's, clear of the black band falling from the embedding's point
     letter(ax, "a")
     ax = top.add_subplot(gs[0, 2])
     panel_steering(ax)
