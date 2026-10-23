@@ -12,8 +12,8 @@ Every output directory gets SOURCE.json with this repository's commit (and wheth
 dirty), so a figure in the paper can be traced to the code and data that drew it.
 
 Readouts per figure: forks (teacher-forced log-odds after a fixed opening) unless a panel says free
-text (judged samples) or activations. Lie is left out of fork-based persona and spillover panels
-(its fork items test a behavior the corpus does not contain).
+text (judged samples) or activations. Lie is left out of the fork-based persona and spillover panels of
+Figures 3-5 (its fork items test a behavior the corpus does not contain); Figure 6 pools all four acts.
 
 Inputs: logs/v4/flow_joined/analysis/analysis_v4.json (the v4 analysis with the flow section on the
 joined items) or logs/v4/analysis; hub-v4/box-*/logs/v4/eval/{ft,samples_ft,samples_persona};
@@ -63,7 +63,8 @@ TEXT = "#333333"  # the one color of all ordinary text: axis and tick labels, le
 STEER_C = "#6a3d9a"  # steering: the fit and its label (Figures 6c, A2b), as the class vector and steering arrow in 6a
 INK = INK2 = TEXT
 BLUE, ORANGE = pf.TWO
-PERF3 = ["steal", "cheat", "tease"]  # fork-based panels leave out lie (its fork items fail)
+PERF3 = ["steal", "cheat", "tease"]  # Figures 3-5's fork-based panels leave out lie (its fork items fail)
+ACTS4 = ["steal", "lie", "cheat", "tease"]  # Figure 6 pools all four, as its planned flow scan (R16) does (Kevin, 2026-10-23)
 TEXTW = 6.5  # inches: the paper's text width (1 in margins on letter)
 
 # Diverging scale for changes (blue <-> red, neutral gray midpoint): the reference palette's pair
@@ -757,10 +758,10 @@ def fig4(out):
 
 
 # ================================================================ Figure 6: mechanism (exploratory)
-def flow_by_act(size, acts=PERF3):
+def flow_by_act(size, acts=ACTS4):
     """Per seed, the pretrained model's villain-kind gap left when the class direction is removed at the name or at the
     decision point after each block, from the raw flow records: the summed gap over `acts` with the class removed over
-    the summed intact gap (the analysis's pooled curve, without lie). {seed: (name curve, decision curve)}."""
+    the summed intact gap (over all four acts: the analysis's pooled curve). {seed: (name curve, decision curve)}."""
     out = {}
     for f in sorted(glob.glob(f"logs/v4/flow_joined/{size}-s[0-9].json")):
         r = json.load(open(f))["raw"]["base"]
@@ -778,8 +779,9 @@ def example_seed(curves):
     return order[len(order) // 2]
 
 
-def ft_flow(size, acts=("cheat", "tease")):
-    """Per seed, in the "Ben steals" finetuned model: Ben's spillover onto `acts` (summed; lie left out) when the class
+def ft_flow(size, acts=("lie", "cheat", "tease")):
+    """Per seed, in the "Ben steals" finetuned model: Ben's spillover onto `acts` (summed; the three untaught acts, as
+    Figure 6e's spillover) when the class
     direction is removed at his name after each block, over his spillover with nothing removed (C4's planned test that
     the finetune's effect runs through the same hand-off)."""
     out = []
@@ -790,7 +792,7 @@ def ft_flow(size, acts=("cheat", "tease")):
     return np.array(out)
 
 
-def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb_y=0.15, emb_mask=False):
+def panel_flow(ax, size="100M", acts=ACTS4, finetune=True, every_block=True, emb_y=0.15, emb_mask=False):
     # emb_y: the "Embedding" label's center; emb_mask: no box behind it, only small white patches over the gridlines it
     # crosses (0 and 0.2)
     curves = flow_by_act(size, acts)
@@ -798,7 +800,7 @@ def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb
     # the residual stream between blocks: block k spans [k - 1/2, k + 1/2] around its tick, the stream after block k sits
     # at k + 1/2 (after the embedding at 1/2), so a jump caused by block k straddles its tick
     L = np.arange(n_layer + 1) + 0.5
-    ex = example_seed(flow_by_act(size))  # chosen once, on the three acts together, so every panel shows the same seed
+    ex = example_seed(flow_by_act(size))  # chosen once, on the four acts together, so every panel shows the same seed
     for k, (col, lab) in enumerate(((NAME_C, "Pretrained gap, class removed at the name"),
                                     (DECISION_C, "Pretrained gap, class removed at the decision point"))):
         rows = np.array([c[k] for c in curves.values()])
@@ -1215,7 +1217,7 @@ def fig5(out):
     slot.axis("off")
     letter(slot, "a")
     panel_flow(ax, emb_y=0.14, emb_mask=True)  # lower than Figure A2's, clear of the black band falling from the embedding's point
-    # the plot stops at 1.2 (the decision-point band reaches 1.14) and the legend floats above it: the axes keep their
+    # the plot stops at 1.2 (the decision-point band reaches 1.15) and the legend floats above it: the axes keep their
     # size, but the y-axis line and the vertical gridlines end at 1.2, and the y-label is centered on the plot's range
     lo, hi = ax.get_ylim()
     top_ = 1.2
@@ -1254,9 +1256,9 @@ def fig6(out):
 
 @figure("A2")
 def figA3(out):
-    """Appendix: (a) Figure 6b per act at 100M, steal, cheat and tease (the acts Figure 6b sums) and, for transparency,
-    lie (left out of Figure 6b: its prewritten endings are a weak readout, the gap carried by 2 of 16 items; 0.4-3.5 nats
-    per seed). Lie keeps its own y range: its intervals are about twice as wide. (b) Figure 6c by model size (Kevin,
+    """Appendix: (a) Figure 6b per act at 100M, the four acts it pools; lie labeled a weak readout (its prewritten
+    endings: the gap carried by 2 of 16 items; 0.4-3.5 nats per seed) and on its own y range (its intervals are about
+    twice as wide). (b) Figure 6c by model size (Kevin,
     2026-10-23): each size's nine corpora (z <= 0.5) on Figure 6c's range, the fit through the origin, and its slope with
     a 95 % seed-bootstrap interval."""
     fig = plt.figure(figsize=(TEXTW, 4.1), layout="constrained")
@@ -1272,7 +1274,7 @@ def figA3(out):
             for t in ax.texts:  # on lie's taller range the label would sit in the band; the other panels name the point
                 if t.get_text() == "Embedding":
                     t.remove()
-            ax.set_title("Lie (weak readout;\nnot in Figure 6b)", fontsize=7.5, color=MUTED)
+            ax.set_title("Lie (weak readout)", fontsize=7.5, color=MUTED)
         else:
             ax.set_title(act.capitalize(), fontsize=7.5)
         handles = ax.get_legend_handles_labels()
