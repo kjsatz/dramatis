@@ -841,9 +841,11 @@ def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb
 def panel_steering(ax):
     """A kind name steered to the villain mean (the villain-minus-kind mean embedding added at every mention) against the
     pretrained villain-kind gap, one point per cell (z <= 0.5), 95 % intervals over seeds on both axes as in Figure 5b;
-    random-direction control. No fit lines: the per-size slopes are nearly equal (0.63-0.78), so the diagonal suffices."""
+    random-direction control. One line, behind the points: the fit through the origin over every point (cell means; the
+    per-size slopes, 0.63-0.78, are nearly equal), labeled with its slope (0.68; seed-bootstrap interval in the text).
+    No y = x line (Kevin, 2026-10-23)."""
     M = A()["mech"]["cells"]
-    top = 0
+    top, xs, ys = 0, [], []
     for cell, c in M.items():
         lp = pf.lex_parts(cell)
         if not lp or lp[0] < 0.5 or lp[1] not in SIZES:
@@ -855,14 +857,18 @@ def panel_steering(ax):
         ax.plot([x], [y], marker=SIZE_MK[lp[1]], color=SIZE_C[lp[1]], ms=3, ls="none", mec="white", mew=0.3, zorder=3)
         ax.plot([x], [pf.cm(c["steer_random"]) * x], marker="x", color=SIZE_C[lp[1]], ms=2.8, ls="none", mew=0.7, zorder=3)
         top = max(top, g["hi"], st["hi"])
+        xs.append(x), ys.append(y)
     lim = [-0.05 * top, top * 1.05]
-    ax.plot([0, lim[1]], [0, lim[1]], color=INK2, ls=":", lw=0.8)  # all of the gap recreated
+    xs, ys = np.array(xs), np.array(ys)
+    b = (xs @ ys) / (xs @ xs)  # least squares through the origin
+    ax.plot([0, lim[1]], [0, b * lim[1]], color=MUTED, lw=0.9, zorder=1)
+    ax.text(lim[1], b * lim[1] + 0.03 * lim[1], f"Slope {b:.2f}", ha="right", va="bottom", fontsize=6, color=INK2)
     ax.set_xlim(lim), ax.set_ylim(lim)
     ax.set_aspect(1)
     ax.set_xlabel("Villain–kind gap\n(pretrained model, nats)")
     ax.set_ylabel("Gap recreated by steering (nats)")
     # the random-direction row is labeled directly
-    size_legend(ax, line=False, loc="upper left", handletextpad=0.3, fontsize=6)  # one stack, above the diagonal
+    size_legend(ax, line=False, loc="upper left", handletextpad=0.3, fontsize=6)  # one stack, above the fit
     ax.text(0.98, 0.075, "× Control: random direction", transform=ax.transAxes, ha="right", va="bottom", fontsize=6, color=INK2)
 
 
