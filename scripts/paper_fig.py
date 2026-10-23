@@ -1099,7 +1099,8 @@ def panel_circuit(ax, scale=1.0):  # scale: the type size factor
                 r.set_clip_path(poly)
             if a > x0:
                 ax.plot([a, a], [yb, yt], color=BASE, lw=0.5, zorder=3.2)
-            token_line(ax, (a + b) / 2, y_tape, [(show(text), tint[kind][1] if kind in tint else TEXT)], 5.4 * scale,
+            # 5.0 pt as the endings below (5.4 filled the column edge to edge with "␣picked")
+            token_line(ax, (a + b) / 2, y_tape, [(show(text), tint[kind][1] if kind in tint else TEXT)], 5.0 * scale,
                        fontweight="bold" if kind in tint else None)
         ax.add_patch(Polygon(pts, closed=True, fc="none", ec=BASE, lw=0.6, zorder=3.3))  # the outline over the tints
     for a, b, _, kind in xs:
