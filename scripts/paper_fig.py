@@ -60,6 +60,7 @@ NAME_C = "#262626"  # Figures 6-7: the class carried on the name (near-black, he
 BAD_C, BENIGN_C = "#c62828", "#1f5fae"  # the two prewritten endings in Figure 7
 INK, INK2, MUTED, GRID, BASE = pf.INK, pf.INK2, pf.MUTED, pf.GRID, pf.BASE
 TEXT = "#333333"  # the one color of all ordinary text: axis and tick labels, legends, annotations, tokens
+STEER_C = "#6a3d9a"  # steering: the fit and its label (Figures 6c, A2b), as the class vector and steering arrow in 6a
 INK = INK2 = TEXT
 BLUE, ORANGE = pf.TWO
 PERF3 = ["steal", "cheat", "tease"]  # fork-based panels leave out lie (its fork items fail)
@@ -890,7 +891,7 @@ def steer_scatter(ax, sizes=SIZES):
     lim = steer_lim()
     b, lo, hi, r2 = steer_slope(sizes)
     xe = 0.96 * lim[1] / max(1, b)  # inside the box on both axes
-    ax.plot([0, xe], [0, b * xe], color=MUTED, lw=0.9, zorder=1, solid_capstyle="round")
+    ax.plot([0, xe], [0, b * xe], color=STEER_C, lw=0.9, zorder=1, solid_capstyle="round")
     ax.set_xlim(lim), ax.set_ylim(lim)
     ax.set_xticks(range(0, 9, 2)), ax.set_yticks(range(0, 9, 2))  # Figure 6c's ticks, also on the narrow by-size panels
     ax.set_aspect(1)
@@ -910,7 +911,7 @@ def panel_steering(ax):
     th = np.arctan(b)
     nudge = ScaledTranslation(-np.sin(th) * 3.5 / 72, np.cos(th) * 3.5 / 72, ax.figure.dpi_scale_trans)
     ax.text(xe, b * xe, f"$y = {b:.2f}x$", rotation=np.degrees(th), rotation_mode="anchor", transform_rotates_text=True,
-            transform=ax.transData + nudge, ha="right", va="bottom", fontsize=6, color=MUTED)
+            transform=ax.transData + nudge, ha="right", va="bottom", fontsize=6, color=STEER_C)
     ax.set_xlabel("Villain–kind gap\n(pretrained model, nats)")
     ax.set_ylabel("Gap recreated by steering (nats)")
     # the random-direction row is labeled directly
@@ -970,7 +971,7 @@ def panel_transplant(ax, part, sizes=("10M", "30M", "100M")):
     # the surgery on the x-axis (which part was copied from the "Ben steals" finetune into its neutral twin, the same 100
     # steps on neutral stories: ft_locus's "added"), the measurement on the y-axis (the hybrid's spillover, measured
     # against the neutral model, over the full finetune's)
-    ax.set_xlabel("Part transplanted from the\n“Ben steals” finetune into\nthe neutral finetune")  # three lines: Figure 6e is narrow
+    ax.set_xlabel("Transplant from “Ben steals” finetune\ninto neutral finetune")
     ax.set_ylabel(r"$\dfrac{\text{Spillover, neutral + transplant}}{\text{Spillover, “Ben steals” finetune}}$" if part == "spill" else "Uptake carried")
 
 
@@ -1206,8 +1207,10 @@ def fig5(out):
     """Figure 6. Panel (a), the vector cartoon, is TikZ (dramatis-paper art/fig6_mechanism.tex, which composes the
     figure): this draws the rest as fig6_mechanism_base.pdf with (a)'s place left empty, and writes fig6_slot.tex with
     that place's box in bp from the page's lower left."""
-    fig = plt.figure(figsize=(TEXTW, 4.75), layout="constrained")
-    top, mid = fig.subfigures(2, 1, height_ratios=[2.15, 2.5], hspace=0.02)
+    # the rows as tall as at 4.75 in with hspace 0.02, 0.08 in further apart: the top of (d)'s legend (above its axes) is
+    # level with the bottom of (b)'s x-label
+    fig = plt.figure(figsize=(TEXTW, 4.83), layout="constrained")
+    top, mid = fig.subfigures(2, 1, height_ratios=[2.15, 2.5], hspace=0.054)
     slot, ax = top.subplots(1, 2, gridspec_kw=dict(width_ratios=[1.0, 2.25]))
     slot.axis("off")
     letter(slot, "a")
