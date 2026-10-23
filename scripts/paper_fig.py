@@ -838,30 +838,63 @@ def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb
     ax.legend(frameon=False, loc="upper left", ncol=2, fontsize=5.8, columnspacing=1.2, borderaxespad=0.2)
 
 
+def steer_cells(sizes=SIZES):
+    """Figure 6b's points: every cell with z <= 0.5 at the given sizes, as (cell, size, gap, gap recreated, random
+    direction's fraction of the gap); gap and recreated are 95 % intervals over the 8 seeds."""
+    out = []
+    for cell, c in A()["mech"]["cells"].items():
+        lp = pf.lex_parts(cell)
+        if lp and lp[0] >= 0.5 and lp[1] in sizes:
+            out.append((cell, lp[1], c["own_nats"], c["steer_one_gap_nats"], pf.cm(c["steer_random"])))
+    return out
+
+
+def steer_lim():
+    """One square range for every steering panel (Figure 6b and Figure A2's by-size row): to the largest interval."""
+    top = max(max(g["hi"], st["hi"]) for _, _, g, st, _ in steer_cells())
+    return [-0.05 * top, top * 1.05]
+
+
+def steer_slope(sizes=SIZES, n_boot=2000, seed=0):
+    """The fit through the origin (least squares on the cells' means) and its 95 % seed-bootstrap interval, the seeds
+    resampled within each cell: (slope, lo, hi)."""
+    runs = A()["mech"]["runs"]
+    per = [[(r["own_nats"], r["steer_one_gap_nats"]) for k, r in runs.items() if k.rsplit("-s", 1)[0] == cell]
+           for cell, *_ in steer_cells(sizes)]
+
+    def fit(cells):
+        x, y = (np.array([np.mean([p[i] for p in ps]) for ps in cells]) for i in (0, 1))
+        return (x @ y) / (x @ x)
+
+    rng = np.random.default_rng(seed)
+    boots = [fit([[ps[i] for i in rng.integers(len(ps), size=len(ps))] for ps in per]) for _ in range(n_boot)]
+    return fit(per), *np.percentile(boots, [2.5, 97.5])
+
+
+def steer_scatter(ax, sizes=SIZES):
+    """The steering points (95 % intervals on both axes, as in Figure 5b), their random-direction controls, and the fit
+    through the origin behind them, on the shared square range; returns (slope, lo, hi, range)."""
+    for _, size, g, st, rnd in steer_cells(sizes):
+        x, y = pf.cm(g), pf.cm(st)
+        ax.errorbar([x], [y], xerr=[[x - g["lo"]], [g["hi"] - x]], yerr=[[y - st["lo"]], [st["hi"] - y]], color=SIZE_C[size],
+                    lw=0, elinewidth=0.45, alpha=0.55, zorder=2)
+        ax.plot([x], [y], marker=SIZE_MK[size], color=SIZE_C[size], ms=3, ls="none", mec="white", mew=0.3, zorder=3)
+        ax.plot([x], [rnd * x], marker="x", color=SIZE_C[size], ms=2.8, ls="none", mew=0.7, zorder=3)
+    lim = steer_lim()
+    b, lo, hi = steer_slope(sizes)
+    ax.plot([0, lim[1]], [0, b * lim[1]], color=MUTED, lw=0.9, zorder=1)
+    ax.set_xlim(lim), ax.set_ylim(lim)
+    ax.set_xticks(range(0, 9, 2)), ax.set_yticks(range(0, 9, 2))  # Figure 6b's ticks, also on the narrow by-size panels
+    ax.set_aspect(1)
+    return b, lo, hi, lim
+
+
 def panel_steering(ax):
     """A kind name steered to the villain mean (the villain-minus-kind mean embedding added at every mention) against the
-    pretrained villain-kind gap, one point per cell (z <= 0.5), 95 % intervals over seeds on both axes as in Figure 5b;
-    random-direction control. One line, behind the points: the fit through the origin over every point (cell means; the
-    per-size slopes, 0.63-0.78, are nearly equal), labeled with its slope (0.68; seed-bootstrap interval in the text).
-    No y = x line (Kevin, 2026-10-23)."""
-    M = A()["mech"]["cells"]
-    top, xs, ys = 0, [], []
-    for cell, c in M.items():
-        lp = pf.lex_parts(cell)
-        if not lp or lp[0] < 0.5 or lp[1] not in SIZES:
-            continue
-        g, st = c["own_nats"], c["steer_one_gap_nats"]
-        x, y = pf.cm(g), pf.cm(st)
-        ax.errorbar([x], [y], xerr=[[x - g["lo"]], [g["hi"] - x]], yerr=[[y - st["lo"]], [st["hi"] - y]], color=SIZE_C[lp[1]],
-                    lw=0, elinewidth=0.45, alpha=0.55, zorder=2)
-        ax.plot([x], [y], marker=SIZE_MK[lp[1]], color=SIZE_C[lp[1]], ms=3, ls="none", mec="white", mew=0.3, zorder=3)
-        ax.plot([x], [pf.cm(c["steer_random"]) * x], marker="x", color=SIZE_C[lp[1]], ms=2.8, ls="none", mew=0.7, zorder=3)
-        top = max(top, g["hi"], st["hi"])
-        xs.append(x), ys.append(y)
-    lim = [-0.05 * top, top * 1.05]
-    xs, ys = np.array(xs), np.array(ys)
-    b = (xs @ ys) / (xs @ xs)  # least squares through the origin
-    ax.plot([0, lim[1]], [0, b * lim[1]], color=MUTED, lw=0.9, zorder=1)
+    pretrained villain-kind gap, one point per cell (z <= 0.5) and size; random-direction control. One line, behind the
+    points: the fit through the origin over every point (the per-size slopes, 0.63-0.78, are nearly equal; each with
+    its interval in Figure A2), labeled with its equation. No y = x line (Kevin, 2026-10-23)."""
+    b, lo, hi, lim = steer_scatter(ax)
     # the fit's equation along the line, in its color: rotated with the data (equal aspect), at the line's end and lifted
     # 3.5 pt off it, clear of the 100M point's interval (to 6.18 nats), the one point it passes
     from matplotlib.transforms import ScaledTranslation
@@ -871,8 +904,6 @@ def panel_steering(ax):
     xe = lim[1] * 0.985
     ax.text(xe, b * xe, f"$y = {b:.2f}x$", rotation=np.degrees(th), rotation_mode="anchor", transform_rotates_text=True,
             transform=ax.transData + nudge, ha="right", va="bottom", fontsize=6, color=MUTED)
-    ax.set_xlim(lim), ax.set_ylim(lim)
-    ax.set_aspect(1)
     ax.set_xlabel("Villain–kind gap\n(pretrained model, nats)")
     ax.set_ylabel("Gap recreated by steering (nats)")
     # the random-direction row is labeled directly
@@ -1204,13 +1235,16 @@ def fig6(out):
 
 @figure("A2")
 def figA3(out):
-    """Appendix: Figure 6a per act at 100M, steal, cheat and tease (the acts Figure 6a sums) and, for transparency, lie
-    (left out of Figure 6a: its prewritten endings are a weak readout, the gap carried by 2 of 16 items; 0.4-3.5 nats
-    per seed). Lie keeps its own y range: its intervals are about twice as wide."""
-    fig = plt.figure(figsize=(TEXTW, 2.3), layout="constrained")
-    gs = fig.add_gridspec(1, 4, width_ratios=[1, 1, 1, 1.08])
-    axes = [fig.add_subplot(gs[0, 0])]
-    axes += [fig.add_subplot(gs[0, k], sharey=axes[0]) for k in (1, 2)] + [fig.add_subplot(gs[0, 3])]
+    """Appendix: (a) Figure 6a per act at 100M, steal, cheat and tease (the acts Figure 6a sums) and, for transparency,
+    lie (left out of Figure 6a: its prewritten endings are a weak readout, the gap carried by 2 of 16 items; 0.4-3.5 nats
+    per seed). Lie keeps its own y range: its intervals are about twice as wide. (b) Figure 6b by model size (Kevin,
+    2026-10-23): each size's nine corpora (z <= 0.5) on Figure 6b's range, the fit through the origin, and its slope with
+    a 95 % seed-bootstrap interval."""
+    fig = plt.figure(figsize=(TEXTW, 4.3), layout="constrained")
+    top, bot = fig.subfigures(2, 1, height_ratios=[2.3, 2.0], hspace=0.03)
+    gs = top.add_gridspec(1, 4, width_ratios=[1, 1, 1, 1.08])
+    axes = [top.add_subplot(gs[0, 0])]
+    axes += [top.add_subplot(gs[0, k], sharey=axes[0]) for k in (1, 2)] + [top.add_subplot(gs[0, 3])]
     for k, (ax, act) in enumerate(zip(axes, [*PERF3, "lie"], strict=True)):
         panel_flow(ax, acts=(act,), finetune=False, every_block=False)
         ax.set_ylim(*((-0.1, 1.2) if act != "lie" else (-0.5, 1.6)))  # tease's decision-point band reaches 1.17; lie's -0.43 to 1.49
@@ -1228,7 +1262,18 @@ def figA3(out):
             ax.set_ylabel("")
         if k in (1, 2):
             ax.tick_params(labelleft=False)
-    fig.legend(*handles, frameon=False, loc="outside lower center", ncol=2, fontsize=6)  # below the panels, clear of every curve
+    top.legend(*handles, frameon=False, loc="outside lower center", ncol=2, fontsize=6)  # below the panels, clear of every curve
+    letter(axes[0], "a")
+    row = bot.subplots(1, len(SIZES), sharex=True, sharey=True)
+    for k, (ax, size) in enumerate(zip(row, SIZES)):
+        b, lo, hi, _ = steer_scatter(ax, (size,))
+        ax.set_title(size, fontsize=7.5, color=SIZE_C[size])  # the size in its color, as in the size legends
+        ax.text(0.05, 0.95, f"Slope {b:.2f}\n[{lo:.2f}, {hi:.2f}]", transform=ax.transAxes, ha="left", va="top", fontsize=6,
+                color=INK2, linespacing=1.15)
+        if k == 0:
+            ax.set_ylabel("Gap recreated\nby steering (nats)")
+            letter(ax, "b")
+    bot.supxlabel("Villain–kind gap (pretrained model, nats)", fontsize=7.5, color=INK2)
     save(fig, out, "figA2_flow_by_act")
 
 
