@@ -1244,8 +1244,8 @@ def figA3(out):
     per seed). Lie keeps its own y range: its intervals are about twice as wide. (b) Figure 6b by model size (Kevin,
     2026-10-23): each size's nine corpora (z <= 0.5) on Figure 6b's range, the fit through the origin, and its slope with
     a 95 % seed-bootstrap interval."""
-    fig = plt.figure(figsize=(TEXTW, 4.3), layout="constrained")
-    top, bot = fig.subfigures(2, 1, height_ratios=[2.3, 2.0], hspace=0.03)
+    fig = plt.figure(figsize=(TEXTW, 4.1), layout="constrained")
+    top, bot = fig.subfigures(2, 1, height_ratios=[2.3, 1.8], hspace=0.03)  # (b)'s square panels, little slack around them
     gs = top.add_gridspec(1, 4, width_ratios=[1, 1, 1, 1.08])
     axes = [top.add_subplot(gs[0, 0])]
     axes += [top.add_subplot(gs[0, k], sharey=axes[0]) for k in (1, 2)] + [top.add_subplot(gs[0, 3])]
@@ -1274,10 +1274,13 @@ def figA3(out):
         ax.set_title(size, fontsize=7.5, color=SIZE_C[size])  # the size in its color, as in the size legends
         ax.text(0.05, 0.95, f"Slope {b:.2f}\n[{lo:.2f}, {hi:.2f}]\n$R^2$ = {r2:.2f}", transform=ax.transAxes, ha="left", va="top", fontsize=6,
                 color=INK2, linespacing=1.15)
+        ax.text(0.98, 0.075, "× Control:\nrandom direction", transform=ax.transAxes, ha="right", va="bottom", fontsize=5.5,
+                color=INK2, linespacing=1.1)  # as in Figure 6b, on every panel; two lines, in the empty lower right
         if k == 0:
             ax.set_ylabel("Gap recreated\nby steering (nats)")
             letter(ax, "b")
-    bot.supxlabel("Villain–kind gap (pretrained model, nats)", fontsize=7.5, color=INK2)
+        if k == len(SIZES) // 2:  # one x-label, on the middle panel: right under its ticks, as on every other axis
+            ax.set_xlabel("Villain–kind gap (pretrained model, nats)")
     save(fig, out, "figA2_flow_by_act")
 
 
