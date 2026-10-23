@@ -2721,3 +2721,14 @@ blocks, net of the other kind names, as a fraction of the base villain-kind dist
 as spillover per nat does: 0.49 / 0.38 / 0.27 at 1e-4 / 5e-5 / 2.5e-5 (95 % t intervals ±0.02–0.03),
 against spillover 0.54 / 0.44 / 0.29. So activations and behavior agree at the reduced rates too. Now in
 the paper's Figure 5(c).
+
+# 2026-10-23
+
+Claude (4:20 pm PT): **The in-context control at 1M (evaluation only, for the paper's Figure 8c).** The scene
+control of `incontext_evidence.py` (the villain's two act scenes replaced by corpus paragraphs of the same
+situations, bad or good; the same 80 held-out stories and draws as at 3M–100M) had been scored at 3M–100M only
+(the script's default sizes are 10M–100M; 3M was added by hand). Scored now on the eight 1M coin-flip models,
+every arm, as at 3M (`score --sizes 1M --arms` all 13; records in `logs/v4/incontext/evidence/`, commit 785745d;
+about a minute per seed on the Mac). As expected, nothing: k = 2, steal / cheat / tease, bad scenes −0.05
+[−0.08, −0.01], good scenes −0.06 [−0.09, −0.03] (3M: +0.13 [−0.29, +0.54] and −0.07 [−0.13, −0.00]); every
+other arm within ±0.4 of zero on all acts. Figure 8c now spans 1M–100M, as (a), (b) and (d).

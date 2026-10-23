@@ -108,6 +108,15 @@ def ci95(v):
     return m, m - h, m + h
 
 
+def row_xlabel(sub, axes, text):
+    """One x-label under a row of panels, centered on their axes boxes (a subfigure's supxlabel centers on the whole
+    subfigure, which the first panel's y-label pulls to the left). Call once the figure is complete."""
+    lab = sub.supxlabel(text, fontsize=plt.rcParams["axes.labelsize"], color=INK2)
+    sub.figure.canvas.draw()  # the layout, with the label's height reserved; its x does not move the axes
+    x0, x1 = axes[0].get_window_extent().x0, axes[-1].get_window_extent().x1
+    lab.set_x(sub.transSubfigure.inverted().transform(((x0 + x1) / 2, 0))[0])
+
+
 def letter(ax, s, dx=-0.02, dy=1.02, row=None):
     """The panel letter; `row`: another axes whose top sets its height, to keep the letters of a row level."""
     tr = blended_transform_factory(ax.transAxes, row.transAxes) if row else ax.transAxes
@@ -355,10 +364,10 @@ def fig2(out):
     axes[0].set_ylabel("Villain–kind gap\n(pretrained model, nats)")  # the form of Figures 4b and 5b
     letter(axes[0], "a")
     size_legend(axes[0], loc="upper right", bbox_to_anchor=(1.0, 0.86), fontsize=6)
-    sfa.supxlabel("Role overlap, z", fontsize=7.5, color=INK2)
     ax = sfb.subplots()
     panel_persona_free_text(ax)
     letter(ax, "b")
+    row_xlabel(sfa, axes, "Role overlap, z")
     save(fig, out, "fig3_persona")
 
 
@@ -727,13 +736,13 @@ def fig4(out):
     row_a, row_b = top.subplots(1, len(acts)), mid.subplots(1, len(acts))
     for k, (ax, act) in enumerate(zip(row_a, acts, strict=True)):
         panel_spill_vs_z(ax, act, "weak readout" if act == "lie" else None)
-        ax.set_xlabel("Role overlap, z")  # repeated per panel, as in (b)
         if k == 0:
             ax.set_ylabel("Spillover onto that act (nats)")
             letter(ax, "a")
             size_legend(ax, loc="upper right", bbox_to_anchor=(1.0, 0.88), fontsize=6)
     for k, (ax, act) in enumerate(zip(row_b, acts, strict=True)):
         panel_spill_vs_persona(ax, act, "weak readout" if act == "lie" else None)
+        ax.set_xlabel("")  # one label for the row, below
         if k == 0:
             ax.set_ylabel("Spillover onto that act (nats)")
             letter(ax, "b")
@@ -754,6 +763,8 @@ def fig4(out):
     ax = bot.add_subplot(gs[0, 1])
     panel_slope_vs_size(ax)
     letter(ax, "d")
+    row_xlabel(top, row_a, "Role overlap, z")  # one per row, as Figure 3a
+    row_xlabel(mid, row_b, "Villain–kind gap (pretrained model, nats)")
     save(fig, out, "fig5_graded_and_size")
 
 
@@ -1363,7 +1374,7 @@ def panel_over_training(ax, size, w=51):
     ax.set_xlabel("Tokens seen (millions)")
 
 
-def panel_flipped(ax, sizes=("3M", "10M", "30M", "100M")):
+def panel_flipped(ax, sizes=SIZES):  # 1M scored 2026-10-23 (incontext_evidence.py), so every size, as (a), (b) and (d)
     """k = 2: the same story, names and order, with the villain's two earlier act scenes replaced by corpus paragraphs of
     the same situations from other held-out stories, bad (T_BB) or good (T_GG, the control; incontext_evidence.py); size color and shape for the gap, gray for the control; 95 % intervals over seeds, seeds as dots."""
     for i, size in enumerate(sizes):
@@ -1452,7 +1463,7 @@ def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
 @figure("8")
 def fig7(out):
     """Figure 8, inferring character from context (Kevin, 2026-10-23: the finetune panel moved to an appendix figure).
-    Top row (a), (c), (d), equally wide; bottom row (b), the three sizes' training curves on one y-axis."""
+    Top row (a), (c), (d), equally wide; bottom row (b), every size's training curves on one y-axis."""
     fig = plt.figure(figsize=(TEXTW, 4.3), layout="constrained")
     top, bot = fig.subfigures(2, 1, height_ratios=[1.05, 1], hspace=0.03)
     ax_a, ax_c, ax_d = top.subplots(1, 3, gridspec_kw=dict(wspace=0.08))  # a little air between the three
@@ -1462,13 +1473,16 @@ def fig7(out):
     letter(ax_c, "c")
     panel_history(ax_d)
     letter(ax_d, "d")
-    for k, (ax, size) in enumerate(zip(bot.subplots(1, 3, sharey=True), ("10M", "30M", "100M"), strict=True)):
-        panel_over_training(ax, size)  # one y range over the three sizes
+    axes_b = bot.subplots(1, len(SIZES), sharey=True)  # every size, 1M-100M, as (a) and (d)
+    for k, (ax, size) in enumerate(zip(axes_b, SIZES, strict=True)):
+        panel_over_training(ax, size)  # one y range over the sizes
+        ax.set_xlabel("")
         if k == 0:
             ax.set_ylabel("Villain–other gap, k = 1 (nats)")
             letter(ax, "b")
         else:
             ax.tick_params(labelleft=False)
+    row_xlabel(bot, axes_b, "Tokens seen (millions)")
     save(fig, out, "fig8_incontext")
 
 
