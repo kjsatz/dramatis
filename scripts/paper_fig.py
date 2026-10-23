@@ -492,13 +492,14 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M", with_lie=None):
 def fig3(out):
     fig = plt.figure(figsize=(TEXTW, 4.35), layout="constrained")
     sft, sfb = fig.subfigures(2, 1, height_ratios=[2.3, 2.05], hspace=0.04)  # top row sized to the square matrices
+    matrices = []
     for k, (cell, _, title) in enumerate(CASTS):
         ax = sft.add_subplot(1, 3, k + 1)
+        matrices.append(ax)
         im = panel_matrix(ax, cell, title, ylabels=k == 0)
         if k == 0:
             ax.set_ylabel("Finetune stories")
             letter(ax, "a", dx=-0.5)
-    sft.supxlabel("Act in model-generated endings", fontsize=7.5, color=INK2)
     cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
     cb.set_label("Ben − other kind names,\nchange vs. neutral (percentage points)", fontsize=6.5)
     tidy_colorbar(cb)
@@ -511,6 +512,7 @@ def fig3(out):
     ax = sfb.add_subplot(bot[0, 2])
     panel_never_performed(ax)
     letter(ax, "c")
+    row_xlabel(sft, matrices, "Act in model-generated endings")  # centered on the matrices, not the y-label and colorbar
     save(fig, out, "fig4_misalignment_test")
 
 
@@ -1273,13 +1275,16 @@ def figA3(out):
     twice as wide). (b) Figure 6c by model size (Kevin,
     2026-10-23): each size's nine corpora (z <= 0.5) on Figure 6c's range, the fit through the origin, and its slope with
     a 95 % seed-bootstrap interval."""
-    fig = plt.figure(figsize=(TEXTW, 4.1), layout="constrained")
-    top, bot = fig.subfigures(2, 1, height_ratios=[2.3, 1.8], hspace=0.03)  # (b)'s square panels, little slack around them
+    fig = plt.figure(figsize=(TEXTW, 4.2), layout="constrained")
+    # (a)'s panels with their one x-label, (a)'s legend in a strip of its own below (a supxlabel and an "outside" legend
+    # share the bottom margin and overlap), (b)'s square panels with little slack around them
+    top, strip, bot = fig.subfigures(3, 1, height_ratios=[2.2, 0.28, 1.8], hspace=0.0)
     gs = top.add_gridspec(1, 4, width_ratios=[1, 1, 1, 1.08])
     axes = [top.add_subplot(gs[0, 0])]
     axes += [top.add_subplot(gs[0, k], sharey=axes[0]) for k in (1, 2)] + [top.add_subplot(gs[0, 3])]
     for k, (ax, act) in enumerate(zip(axes, [*PERF3, "lie"], strict=True)):
         panel_flow(ax, acts=(act,), finetune=False, every_block=False)
+        ax.set_xlabel("")  # one label for the row, below
         ax.set_ylim(*((-0.1, 1.2) if act != "lie" else (-0.5, 1.6)))  # tease's decision-point band reaches 1.17; lie's -0.43 to 1.49
         if act == "lie":
             ax.set_yticks([0, 0.5, 1])
@@ -1295,7 +1300,7 @@ def figA3(out):
             ax.set_ylabel("")
         if k in (1, 2):
             ax.tick_params(labelleft=False)
-    top.legend(*handles, frameon=False, loc="outside lower center", ncol=2, fontsize=6)  # below the panels, clear of every curve
+    leg = strip.legend(*handles, frameon=False, loc="center", ncol=2, fontsize=6)  # below the panels, clear of every curve
     letter(axes[0], "a")
     row = bot.subplots(1, len(SIZES), sharex=True, sharey=True)
     for k, (ax, size) in enumerate(zip(row, SIZES)):
@@ -1310,6 +1315,10 @@ def figA3(out):
             letter(ax, "b")
         if k == len(SIZES) // 2:  # one x-label, on the middle panel: right under its ticks, as on every other axis
             ax.set_xlabel("Villain–kind gap (pretrained model, nats)")
+    row_xlabel(top, axes, "Block number")
+    # the legend centered under (a)'s axes boxes too (the layout is done: row_xlabel drew the figure)
+    xc = (axes[0].get_window_extent().x0 + axes[-1].get_window_extent().x1) / 2
+    leg.set_bbox_to_anchor((strip.transSubfigure.inverted().transform((xc, 0))[0], 0.5), transform=strip.transSubfigure)
     save(fig, out, "figA2_flow_by_act")
 
 
