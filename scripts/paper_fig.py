@@ -106,8 +106,10 @@ def ci95(v):
     return m, m - h, m + h
 
 
-def letter(ax, s, dx=-0.02, dy=1.02):
-    ax.text(dx, dy, s, transform=ax.transAxes, fontsize=9, fontweight="bold", va="bottom", ha="right", color=INK)
+def letter(ax, s, dx=-0.02, dy=1.02, row=None):
+    """The panel letter; `row`: another axes whose top sets its height, to keep the letters of a row level."""
+    tr = blended_transform_factory(ax.transAxes, row.transAxes) if row else ax.transAxes
+    ax.text(dx, dy, s, transform=tr, fontsize=9, fontweight="bold", va="bottom", ha="right", color=INK)
 
 
 def size_legend(ax, sizes=SIZES[::-1], line=True, extra=(), **kw):  # largest first: the larger models' traces sit on top
@@ -192,11 +194,12 @@ def no_edge_gridlines(fig):
                     tick.gridline.set_visible(False)
 
 
-def save(fig, out, name):
+def save(fig, out, name, png=True):
     equal_area_markers(fig)
     no_edge_gridlines(fig)
     fig.savefig(out / f"{name}.pdf")
-    fig.savefig(out / f"{name}.png", dpi=600)  # 600 dpi: at 300, rasterizing small markers distorts their areas by up to 17 %
+    if png:
+        fig.savefig(out / f"{name}.png", dpi=600)  # 600 dpi: at 300, rasterizing small markers distorts their areas by up to 17 %
     plt.close(fig)
 
 
@@ -811,7 +814,7 @@ def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb
                 label="Finetuned: Ben's spillover, class removed at his name")
     ax.plot([], [], color=INK2, lw=0.6, ls="--", label="Example individual seed")  # seed `ex`, by the rule in example_seed
     rand = A()["flow"]["cells"][pf.lex("100", size)]["base_rand_site"]  # pooled over all four acts (no per-act record)
-    # the control as an x (as in Figure 6b), drawn on top of the curves' markers so it shows where they coincide at 1
+    # the control as an x (as in Figure 6c), drawn on top of the curves' markers so it shows where they coincide at 1
     ax.plot(L, rand, "x", color=MUTED, ms=3.2, mew=0.8, zorder=6, label="Control: random direction removed")
     pf.zero(ax)
     ax.set_ylim(-0.1, 1.62)  # room above the curves for the legend
@@ -839,7 +842,7 @@ def panel_flow(ax, size="100M", acts=PERF3, finetune=True, every_block=True, emb
 
 
 def steer_cells(sizes=SIZES):
-    """Figure 6b's points: every cell with z <= 0.5 at the given sizes, as (cell, size, gap, gap recreated, random
+    """Figure 6c's points: every cell with z <= 0.5 at the given sizes, as (cell, size, gap, gap recreated, random
     direction's fraction of the gap); gap and recreated are 95 % intervals over the 8 seeds."""
     out = []
     for cell, c in A()["mech"]["cells"].items():
@@ -850,7 +853,7 @@ def steer_cells(sizes=SIZES):
 
 
 def steer_lim():
-    """One square range for every steering panel (Figure 6b and Figure A2's by-size row): to the largest interval."""
+    """One square range for every steering panel (Figure 6c and Figure A2's by-size row): to the largest interval."""
     top = max(max(g["hi"], st["hi"]) for _, _, g, st, _ in steer_cells())
     return [-0.05 * top, top * 1.05]
 
@@ -889,7 +892,7 @@ def steer_scatter(ax, sizes=SIZES):
     xe = 0.96 * lim[1] / max(1, b)  # inside the box on both axes
     ax.plot([0, xe], [0, b * xe], color=MUTED, lw=0.9, zorder=1, solid_capstyle="round")
     ax.set_xlim(lim), ax.set_ylim(lim)
-    ax.set_xticks(range(0, 9, 2)), ax.set_yticks(range(0, 9, 2))  # Figure 6b's ticks, also on the narrow by-size panels
+    ax.set_xticks(range(0, 9, 2)), ax.set_yticks(range(0, 9, 2))  # Figure 6c's ticks, also on the narrow by-size panels
     ax.set_aspect(1)
     return b, lo, hi, r2, lim, xe
 
@@ -916,7 +919,7 @@ def panel_steering(ax):
 
 
 def zero_to_one_axis(ax):
-    """Figure 6c-d: -0.25 to 1.25 (room for the intervals; the seeds are not drawn), labeled and gridded only at 0, 0.5
+    """Figure 6d-e: -0.25 to 1.25 (room for the intervals; the seeds are not drawn), labeled and gridded only at 0, 0.5
     and 1 (the scale's two ends and its middle)."""
     ax.set_ylim(-0.25, 1.25)
     ax.set_yticks([0, 0.5, 1])
@@ -944,7 +947,7 @@ def panel_heads(ax, sizes=("1M", "10M", "100M")):
     ax.set_xlabel("Model size")
     ax.set_ylabel(r"$\dfrac{\text{Villain–kind gap, one head ablated}}{\text{Villain–kind gap, intact}}$")
     # "upstairs": in the white space above the axes, left-aligned with them; out of the layout, so the axes keep their size
-    leg = ax.legend(frameon=False, loc="lower left", bbox_to_anchor=(0.0, 1.0), fontsize=5.8, borderaxespad=0.2)  # 6a's spacing
+    leg = ax.legend(frameon=False, loc="lower left", bbox_to_anchor=(0.0, 1.0), fontsize=5.8, borderaxespad=0.2)  # 6b's spacing
     leg.set_in_layout(False)
 
 
@@ -967,7 +970,7 @@ def panel_transplant(ax, part, sizes=("10M", "30M", "100M")):
     # the surgery on the x-axis (which part was copied from the "Ben steals" finetune into its neutral twin, the same 100
     # steps on neutral stories: ft_locus's "added"), the measurement on the y-axis (the hybrid's spillover, measured
     # against the neutral model, over the full finetune's)
-    ax.set_xlabel("Part transplanted from the “Ben steals”\nfinetune into the neutral finetune")
+    ax.set_xlabel("Part transplanted from the\n“Ben steals” finetune into\nthe neutral finetune")  # three lines: Figure 6e is narrow
     ax.set_ylabel(r"$\dfrac{\text{Spillover, neutral + transplant}}{\text{Spillover, “Ben steals” finetune}}$" if part == "spill" else "Uptake carried")
 
 
@@ -1200,33 +1203,42 @@ def panel_circuit(ax, scale=1.0):  # scale: the type size factor
 
 @figure("6")
 def fig5(out):
-    fig = plt.figure(figsize=(TEXTW, 4.5), layout="constrained")
-    top, mid = fig.subfigures(2, 1, height_ratios=[2.15, 2.25], hspace=0.02)
-    gs = top.add_gridspec(1, 3, width_ratios=[1, 1, 1.15])
-    ax = top.add_subplot(gs[0, 0:2])
+    """Figure 6. Panel (a), the vector cartoon, is TikZ (dramatis-paper art/fig6_mechanism.tex, which composes the
+    figure): this draws the rest as fig6_mechanism_base.pdf with (a)'s place left empty, and writes fig6_slot.tex with
+    that place's box in bp from the page's lower left."""
+    fig = plt.figure(figsize=(TEXTW, 4.75), layout="constrained")
+    top, mid = fig.subfigures(2, 1, height_ratios=[2.15, 2.5], hspace=0.02)
+    slot, ax = top.subplots(1, 2, gridspec_kw=dict(width_ratios=[1.0, 2.25]))
+    slot.axis("off")
+    letter(slot, "a")
     panel_flow(ax, emb_y=0.14, emb_mask=True)  # lower than Figure A2's, clear of the black band falling from the embedding's point
     # the plot stops at 1.2 (the decision-point band reaches 1.14) and the legend floats above it: the axes keep their
-    # size (so (a)'s plot and (b) do not move), but the y-axis line and the vertical gridlines end at 1.2, and the y-label
-    # is centered on the plot's range
+    # size, but the y-axis line and the vertical gridlines end at 1.2, and the y-label is centered on the plot's range
     lo, hi = ax.get_ylim()
     top_ = 1.2
     ax.spines["left"].set_bounds(lo, top_)
     ax.grid(False, axis="x")
     ax.vlines(ax.get_xticks(), lo, top_, color=plt.rcParams["grid.color"], lw=plt.rcParams["grid.linewidth"], zorder=0.5)
     ax.yaxis.label.set_y((0.5 * (lo + top_) - lo) / (hi - lo))
-    ax.set_yticks([top_], minor=True)  # an unlabeled tick where the plot stops, as at Figure 6c-d's ends (no gridline)
+    ax.set_yticks([top_], minor=True)  # an unlabeled tick where the plot stops, as at Figure 6d-e's ends (no gridline)
     ax.tick_params(axis="y", which="minor", length=plt.rcParams["ytick.major.size"], width=plt.rcParams["ytick.major.width"])
-    letter(ax, "a")
-    ax = top.add_subplot(gs[0, 2])
-    panel_steering(ax)
     letter(ax, "b")
-    ax_c, ax_d = mid.subplots(1, 2, gridspec_kw=dict(width_ratios=[1, 1.15]))
-    panel_heads(ax_c)
-    letter(ax_c, "c")
-    panel_transplant(ax_d, "spill")
-    size_legend(ax_d, sizes=("100M", "30M", "10M"), line=False, loc="upper left", fontsize=6)
+    # (c) square at its old size (1.56 in), (d) and (e) 8 % narrower for wider gaps between the panels
+    ax_c, ax_d, ax_e = mid.subplots(1, 3, gridspec_kw=dict(width_ratios=[1.09, 1, 1.15], wspace=0.10))
+    panel_steering(ax_c)
+    ax_c.set_anchor("S")  # the square's x-axis level with (d) and (e)'s, its letter level with theirs
+    letter(ax_c, "c", row=ax_d)
+    panel_heads(ax_d)
     letter(ax_d, "d")
-    save(fig, out, "fig6_mechanism")
+    panel_transplant(ax_e, "spill")
+    size_legend(ax_e, sizes=("100M", "30M", "10M"), line=False, loc="upper left", fontsize=6)
+    letter(ax_e, "e")
+    fig.canvas.draw()  # the layout, so the slot has its final place
+    x0, y0, x1, y1 = slot.get_window_extent().transformed(fig.transFigure.inverted()).extents * np.tile(fig.get_size_inches() * 72, 2)
+    (out / "fig6_slot.tex").write_text("% Figure 6(a)'s place in fig6_mechanism_base.pdf, in bp from the page's lower left "
+                                       "(dramatis scripts/paper_fig.py)\n"
+                                       f"\\def\\slotx{{{x0:.2f}}}\\def\\sloty{{{y0:.2f}}}\\def\\slotw{{{x1 - x0:.2f}}}\\def\\sloth{{{y1 - y0:.2f}}}\n")
+    save(fig, out, "fig6_mechanism_base", png=False)
 
 
 @figure("7")
@@ -1239,10 +1251,10 @@ def fig6(out):
 
 @figure("A2")
 def figA3(out):
-    """Appendix: (a) Figure 6a per act at 100M, steal, cheat and tease (the acts Figure 6a sums) and, for transparency,
-    lie (left out of Figure 6a: its prewritten endings are a weak readout, the gap carried by 2 of 16 items; 0.4-3.5 nats
-    per seed). Lie keeps its own y range: its intervals are about twice as wide. (b) Figure 6b by model size (Kevin,
-    2026-10-23): each size's nine corpora (z <= 0.5) on Figure 6b's range, the fit through the origin, and its slope with
+    """Appendix: (a) Figure 6b per act at 100M, steal, cheat and tease (the acts Figure 6b sums) and, for transparency,
+    lie (left out of Figure 6b: its prewritten endings are a weak readout, the gap carried by 2 of 16 items; 0.4-3.5 nats
+    per seed). Lie keeps its own y range: its intervals are about twice as wide. (b) Figure 6c by model size (Kevin,
+    2026-10-23): each size's nine corpora (z <= 0.5) on Figure 6c's range, the fit through the origin, and its slope with
     a 95 % seed-bootstrap interval."""
     fig = plt.figure(figsize=(TEXTW, 4.1), layout="constrained")
     top, bot = fig.subfigures(2, 1, height_ratios=[2.3, 1.8], hspace=0.03)  # (b)'s square panels, little slack around them
@@ -1257,7 +1269,7 @@ def figA3(out):
             for t in ax.texts:  # on lie's taller range the label would sit in the band; the other panels name the point
                 if t.get_text() == "Embedding":
                     t.remove()
-            ax.set_title("Lie (weak readout;\nnot in Figure 6a)", fontsize=7.5, color=MUTED)
+            ax.set_title("Lie (weak readout;\nnot in Figure 6b)", fontsize=7.5, color=MUTED)
         else:
             ax.set_title(act.capitalize(), fontsize=7.5)
         handles = ax.get_legend_handles_labels()
@@ -1275,7 +1287,7 @@ def figA3(out):
         ax.text(0.05, 0.95, f"Slope {b:.2f}\n[{lo:.2f}, {hi:.2f}]\n$R^2$ = {r2:.2f}", transform=ax.transAxes, ha="left", va="top", fontsize=6,
                 color=INK2, linespacing=1.15)
         ax.text(0.98, 0.075, "× Control:\nrandom direction", transform=ax.transAxes, ha="right", va="bottom", fontsize=5.5,
-                color=INK2, linespacing=1.1)  # as in Figure 6b, on every panel; two lines, in the empty lower right
+                color=INK2, linespacing=1.1)  # as in Figure 6c, on every panel; two lines, in the empty lower right
         if k == 0:
             ax.set_ylabel("Gap recreated\nby steering (nats)")
             letter(ax, "b")
