@@ -1455,7 +1455,7 @@ def fig7(out):
     Top row (a), (c), (d), equally wide; bottom row (b), the three sizes' training curves on one y-axis."""
     fig = plt.figure(figsize=(TEXTW, 4.3), layout="constrained")
     top, bot = fig.subfigures(2, 1, height_ratios=[1.05, 1], hspace=0.03)
-    ax_a, ax_c, ax_d = top.subplots(1, 3)
+    ax_a, ax_c, ax_d = top.subplots(1, 3, gridspec_kw=dict(wspace=0.08))  # a little air between the three
     panel_incontext_k(ax_a)
     letter(ax_a, "a")
     panel_flipped(ax_c)
@@ -1481,11 +1481,12 @@ def panel_steal_rise(ax, sizes=("3M", "10M", "30M")):
     for i, size in enumerate(sizes):
         lex = [p["ft-steal-Ckind"] for p in fork_pairs(pf.lex("100", size)).values()]
         coin = [r["readout"] for r in ladder if r["run"].split("-")[3] == size]
-        for dx, recs, col in ((-0.17, lex, ORANGE), (0.17, coin, SIZE_C[size])):
-            for ddx, key in ((-0.06, "ben_rise"), (0.06, "kind_rise")):
-                m, lo, hi = ci95([r[key] for r in recs])
-                ax.errorbar([i + dx + ddx], [m], yerr=[[m - lo], [hi - m]], color=col, marker=SIZE_MK[size], ms=4.2, ls="none",
-                            elinewidth=0.8, capsize=1.5, zorder=3, **({} if key == "ben_rise" else {"mfc": "white", "mew": 0.8}))
+        # four markers evenly spaced around the tick (-1.5, -0.5, +0.5, +1.5 steps): villain/kind Ben, other names; coin-flip
+        for j, (recs, col, key) in enumerate(((lex, ORANGE, "ben_rise"), (lex, ORANGE, "kind_rise"),
+                                              (coin, SIZE_C[size], "ben_rise"), (coin, SIZE_C[size], "kind_rise"))):
+            m, lo, hi = ci95([r[key] for r in recs])
+            ax.errorbar([i + (j - 1.5) * 0.12], [m], yerr=[[m - lo], [hi - m]], color=col, marker=SIZE_MK[size], ms=4.2, ls="none",
+                        elinewidth=0.8, capsize=1.5, zorder=3, **({} if key == "ben_rise" else {"mfc": "white", "mew": 0.8}))
     pf.zero(ax)
     ax.set_xticks(range(len(sizes)), sizes)
     ax.set_xlim(-0.5, len(sizes) - 0.5)
