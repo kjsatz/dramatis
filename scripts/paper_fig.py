@@ -857,7 +857,7 @@ def steer_lim():
 
 def steer_slope(sizes=SIZES, n_boot=2000, seed=0):
     """The fit through the origin (least squares on the cells' means) and its 95 % seed-bootstrap interval, the seeds
-    resampled within each cell: (slope, lo, hi)."""
+    resampled within each cell: (slope, lo, hi, R²), R² the usual centered one, 1 - residual / total sum of squares."""
     runs = A()["mech"]["runs"]
     per = [[(r["own_nats"], r["steer_one_gap_nats"]) for k, r in runs.items() if k.rsplit("-s", 1)[0] == cell]
            for cell, *_ in steer_cells(sizes)]
@@ -868,12 +868,16 @@ def steer_slope(sizes=SIZES, n_boot=2000, seed=0):
 
     rng = np.random.default_rng(seed)
     boots = [fit([[ps[i] for i in rng.integers(len(ps), size=len(ps))] for ps in per]) for _ in range(n_boot)]
-    return fit(per), *np.percentile(boots, [2.5, 97.5])
+    b = fit(per)
+    x, y = (np.array([np.mean([p[i] for p in ps]) for ps in per]) for i in (0, 1))
+    r2 = 1 - ((y - b * x) @ (y - b * x)) / ((y - y.mean()) @ (y - y.mean()))
+    return b, *np.percentile(boots, [2.5, 97.5]), r2
 
 
 def steer_scatter(ax, sizes=SIZES):
     """The steering points (95 % intervals on both axes, as in Figure 5b), their random-direction controls, and the fit
-    through the origin behind them, on the shared square range; returns (slope, lo, hi, range)."""
+    through the origin behind them (ending just inside the box, round-capped), on the shared square range; returns
+    (slope, lo, hi, R², range, the line's end x)."""
     for _, size, g, st, rnd in steer_cells(sizes):
         x, y = pf.cm(g), pf.cm(st)
         ax.errorbar([x], [y], xerr=[[x - g["lo"]], [g["hi"] - x]], yerr=[[y - st["lo"]], [st["hi"] - y]], color=SIZE_C[size],
@@ -881,12 +885,13 @@ def steer_scatter(ax, sizes=SIZES):
         ax.plot([x], [y], marker=SIZE_MK[size], color=SIZE_C[size], ms=3, ls="none", mec="white", mew=0.3, zorder=3)
         ax.plot([x], [rnd * x], marker="x", color=SIZE_C[size], ms=2.8, ls="none", mew=0.7, zorder=3)
     lim = steer_lim()
-    b, lo, hi = steer_slope(sizes)
-    ax.plot([0, lim[1]], [0, b * lim[1]], color=MUTED, lw=0.9, zorder=1)
+    b, lo, hi, r2 = steer_slope(sizes)
+    xe = 0.96 * lim[1] / max(1, b)  # inside the box on both axes
+    ax.plot([0, xe], [0, b * xe], color=MUTED, lw=0.9, zorder=1, solid_capstyle="round")
     ax.set_xlim(lim), ax.set_ylim(lim)
     ax.set_xticks(range(0, 9, 2)), ax.set_yticks(range(0, 9, 2))  # Figure 6b's ticks, also on the narrow by-size panels
     ax.set_aspect(1)
-    return b, lo, hi, lim
+    return b, lo, hi, r2, lim, xe
 
 
 def panel_steering(ax):
@@ -894,14 +899,13 @@ def panel_steering(ax):
     pretrained villain-kind gap, one point per cell (z <= 0.5) and size; random-direction control. One line, behind the
     points: the fit through the origin over every point (the per-size slopes, 0.63-0.78, are nearly equal; each with
     its interval in Figure A2), labeled with its equation. No y = x line (Kevin, 2026-10-23)."""
-    b, lo, hi, lim = steer_scatter(ax)
+    b, lo, hi, _, lim, xe = steer_scatter(ax)
     # the fit's equation along the line, in its color: rotated with the data (equal aspect), at the line's end and lifted
     # 3.5 pt off it, clear of the 100M point's interval (to 6.18 nats), the one point it passes
     from matplotlib.transforms import ScaledTranslation
 
     th = np.arctan(b)
     nudge = ScaledTranslation(-np.sin(th) * 3.5 / 72, np.cos(th) * 3.5 / 72, ax.figure.dpi_scale_trans)
-    xe = lim[1] * 0.985
     ax.text(xe, b * xe, f"$y = {b:.2f}x$", rotation=np.degrees(th), rotation_mode="anchor", transform_rotates_text=True,
             transform=ax.transData + nudge, ha="right", va="bottom", fontsize=6, color=MUTED)
     ax.set_xlabel("Villain–kind gap\n(pretrained model, nats)")
@@ -1266,9 +1270,9 @@ def figA3(out):
     letter(axes[0], "a")
     row = bot.subplots(1, len(SIZES), sharex=True, sharey=True)
     for k, (ax, size) in enumerate(zip(row, SIZES)):
-        b, lo, hi, _ = steer_scatter(ax, (size,))
+        b, lo, hi, r2, _, _ = steer_scatter(ax, (size,))
         ax.set_title(size, fontsize=7.5, color=SIZE_C[size])  # the size in its color, as in the size legends
-        ax.text(0.05, 0.95, f"Slope {b:.2f}\n[{lo:.2f}, {hi:.2f}]", transform=ax.transAxes, ha="left", va="top", fontsize=6,
+        ax.text(0.05, 0.95, f"Slope {b:.2f}\n[{lo:.2f}, {hi:.2f}]\n$R^2$ = {r2:.2f}", transform=ax.transAxes, ha="left", va="top", fontsize=6,
                 color=INK2, linespacing=1.15)
         if k == 0:
             ax.set_ylabel("Gap recreated\nby steering (nats)")
