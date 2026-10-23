@@ -944,7 +944,7 @@ def panel_heads(ax, sizes=("1M", "10M", "100M")):
                 ax.plot([], [], "o", color=col, ms=4.2, ls="none", label=lab)  # legend: the marker alone, no error bar
     ax.set_xticks(range(len(sizes)), sizes)
     pf.zero(ax)
-    zero_to_one_axis(ax)  # as in (d)
+    zero_to_one_axis(ax)  # as in (e)
     ax.set_xlabel("Model size")
     ax.set_ylabel(r"$\dfrac{\text{Villain–kind gap, one head ablated}}{\text{Villain–kind gap, intact}}$")
     # "upstairs": in the white space above the axes, left-aligned with them; out of the layout, so the axes keep their size
@@ -962,12 +962,12 @@ def panel_transplant(ax, part, sizes=("10M", "30M", "100M")):
         for k, (g, _) in enumerate(TRANSPLANT_GROUPS):
             v = [r["transplant"][g]["added"][part] for r in R]
             x = k + (j - (len(sizes) - 1) / 2) * w
-            m, lo, hi = ci95(np.array(v))  # as in (c): mean and 95 % t interval, the size's marker
+            m, lo, hi = ci95(np.array(v))  # as in (d): mean and 95 % t interval, the size's marker
             ax.errorbar([x], [m], yerr=[[m - lo], [hi - m]], color=SIZE_C[size], ls="none", marker=SIZE_MK[size], ms=4.2, mew=0.8,
                         elinewidth=0.8, capsize=1.5, zorder=4)
     ax.set_xticks(range(len(TRANSPLANT_GROUPS)), [lab for _, lab in TRANSPLANT_GROUPS])
     pf.zero(ax)
-    zero_to_one_axis(ax)  # as in (c)
+    zero_to_one_axis(ax)  # as in (d)
     # the surgery on the x-axis (which part was copied from the "Ben steals" finetune into its neutral twin, the same 100
     # steps on neutral stories: ft_locus's "added"), the measurement on the y-axis (the hybrid's spillover, measured
     # against the neutral model, over the full finetune's)
@@ -983,7 +983,7 @@ COLS = [CUT, (" Ben", "ben"), (" sat", ""), CUT, ("\\n", ""), ("Ben", "ben"), ("
         (" flower", ""), (" and", ""), (" put", ""), (" it", "it")]
 FORK = [((" into", " a", " pocket", "."), "Bad (steal)"), ((" back", " down", "."), "Benign")]
 TOKEN_FONT = ["Arial", "DejaVu Sans"]  # a token's leading space is drawn (token_line), not set as the "␣" glyph
-HANDOFF = 6  # the copying head's block in the seed drawn alone in (a) (seed 5); 4-9 across the 8 seeds at 100M
+HANDOFF = 6  # the copying head's block in the seed drawn alone in Figure 6b (seed 5); 4-9 across the 8 seeds at 100M
 
 
 def circled(ax, x, y, n, col, fs=5.6):
@@ -1039,7 +1039,7 @@ def multicolor(ax, x, y, parts, fontsize=5.6, align=0.5, **kw):
 def panel_circuit(ax, scale=1.0):  # scale: the type size factor
     """The circuit (100M; exploratory), drawn as the transformer unrolled over a real item: one column per token, a wide
     attention box per block (positions talk to each other), a small MLP box per token, blocks 1 to the hand-off block of
-    the seed in (a) drawn, block depth upward. (1) Block 1's MLP looks up each name's class; the finetune changed this
+    the seed in Figure 6b drawn, block depth upward. (1) Block 1's MLP looks up each name's class; the finetune changed this
     layer (outlined orange) and at Ben's positions it now returns a more villainous class (filled). (2) The class rides
     up Ben's streams (near-black; (a) erases it at every mention together, so how it divides among them was not measured).
     (3) In the hand-off block one attention head copies it to the decision point " it" (green). (4) " it" predicts the
