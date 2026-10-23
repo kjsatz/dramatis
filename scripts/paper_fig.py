@@ -825,7 +825,7 @@ def panel_flow(ax, size="100M", acts=ACTS4, finetune=True, every_block=True, emb
     ax.set_xlim(0, n_layer + 1)
     if every_block:  # a labeled tick at every block, so a point reads as "between blocks k and k + 1"
         ax.set_xticks(range(1, n_layer + 1))
-    else:  # narrow panels (Figure A3): every second block labeled, a minor tick at each
+    else:  # narrow panels (Figure A2): every second block labeled, a minor tick at each
         ax.set_xticks(range(2, n_layer + 1, 2))
         ax.set_xticks(range(1, n_layer + 1), minor=True)
         ax.tick_params(axis="x", which="minor", length=1.5, color=BASE)
@@ -1451,30 +1451,65 @@ def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
 
 @figure("8")
 def fig7(out):
+    """Figure 8, inferring character from context (Kevin, 2026-10-23: the finetune panel moved to an appendix figure).
+    Top row (a), (c), (d), equally wide; bottom row (b), the three sizes' training curves on one y-axis."""
     fig = plt.figure(figsize=(TEXTW, 4.3), layout="constrained")
-    top, bot = fig.subfigures(2, 1, height_ratios=[1, 1.05], hspace=0.03)
-    gs = top.add_gridspec(1, 4, width_ratios=[1.25, 1, 1, 1])
-    ax = top.add_subplot(gs[0, 0])
-    panel_incontext_k(ax)
-    letter(ax, "a")
-    first = None
-    for k, size in enumerate(("10M", "30M", "100M")):
-        ax = top.add_subplot(gs[0, k + 1], sharey=first)
-        panel_over_training(ax, size)
-        if k == 0:
-            first = ax
-            ax.set_ylabel("Villain–other gap, k = 1 (nats)")
-            letter(ax, "b")
-        else:
-            ax.tick_params(labelleft=False)
-    ax_c, ax_d, ax_e = bot.subplots(1, 3)
+    top, bot = fig.subfigures(2, 1, height_ratios=[1.05, 1], hspace=0.03)
+    ax_a, ax_c, ax_d = top.subplots(1, 3)
+    panel_incontext_k(ax_a)
+    letter(ax_a, "a")
     panel_flipped(ax_c)
     letter(ax_c, "c")
     panel_history(ax_d)
     letter(ax_d, "d")
-    panel_finetune_null(ax_e)
-    letter(ax_e, "e")
+    for k, (ax, size) in enumerate(zip(bot.subplots(1, 3, sharey=True), ("10M", "30M", "100M"), strict=True)):
+        panel_over_training(ax, size)  # one y range over the three sizes
+        if k == 0:
+            ax.set_ylabel("Villain–other gap, k = 1 (nats)")
+            letter(ax, "b")
+        else:
+            ax.tick_params(labelleft=False)
     save(fig, out, "fig8_incontext")
+
+
+def panel_steal_rise(ax, sizes=("3M", "10M", "30M")):
+    """The "Ben steals" finetune's rise on steal (finetune minus neutral, prewritten endings), Ben's (filled) and the
+    other kind names' (hollow), with the villain/kind names at z = 0 (orange) and on the coin-flip corpus (the size's
+    blue): there the two are about equal, the finetune teaching the act more than the name. Means and 95 % t intervals
+    over the 8 seeds; prewritten steal endings undercount uptake (Table A1), so both are lower bounds."""
+    ladder = [json.load(open(f)) for f in sorted(glob.glob("logs/v4/incontext/ft/*.json"))]
+    for i, size in enumerate(sizes):
+        lex = [p["ft-steal-Ckind"] for p in fork_pairs(pf.lex("100", size)).values()]
+        coin = [r["readout"] for r in ladder if r["run"].split("-")[3] == size]
+        for dx, recs, col in ((-0.17, lex, ORANGE), (0.17, coin, SIZE_C[size])):
+            for ddx, key in ((-0.06, "ben_rise"), (0.06, "kind_rise")):
+                m, lo, hi = ci95([r[key] for r in recs])
+                ax.errorbar([i + dx + ddx], [m], yerr=[[m - lo], [hi - m]], color=col, marker=SIZE_MK[size], ms=4.2, ls="none",
+                            elinewidth=0.8, capsize=1.5, zorder=3, **({} if key == "ben_rise" else {"mfc": "white", "mew": 0.8}))
+    pf.zero(ax)
+    ax.set_xticks(range(len(sizes)), sizes)
+    ax.set_xlim(-0.5, len(sizes) - 0.5)
+    ax.set_ylim(-0.6, 16)  # room above the intervals (to 12.6) for the legend
+    ax.set_yticks(range(0, 13, 2))
+    ax.set_xlabel("Model size")
+    ax.set_ylabel("Rise on “steal” after the\n“Ben steals” finetune (nats)")
+    hs = [ax.plot([], [], "o", color=ORANGE, ms=3.4)[0], ax.plot([], [], "o", color=SIZE_C["10M"], ms=3.4)[0],
+          ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=INK2, mfc="white", mew=0.8, ms=3.4)[0]]
+    ax.legend(hs, ["Villain/kind names (z = 0)", "Coin-flip corpus", "Ben", "Other kind names"], frameon=False, loc="upper left",
+              ncol=2, fontsize=6)
+
+
+@figure("Acf")
+def figAcf(out):
+    """Appendix (§3.5; Figure 8e until 2026-10-23, Kevin): the "Ben steals" finetune on the coin-flip corpus. (a) Ben's
+    spillover onto cheat and tease, none even where the seed infers character from context; (b) why: the finetune raises
+    steal for every name about equally, so nothing specific to Ben is left to spread."""
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(TEXTW, 2.5), layout="constrained")
+    panel_finetune_null(ax_a)
+    letter(ax_a, "a")
+    panel_steal_rise(ax_b)
+    letter(ax_b, "b")
+    save(fig, out, "figA_finetune_coinflip")
 
 
 # ---------------------------------------------------------------- provenance and main
