@@ -862,7 +862,15 @@ def panel_steering(ax):
     xs, ys = np.array(xs), np.array(ys)
     b = (xs @ ys) / (xs @ xs)  # least squares through the origin
     ax.plot([0, lim[1]], [0, b * lim[1]], color=MUTED, lw=0.9, zorder=1)
-    ax.text(lim[1], b * lim[1] + 0.03 * lim[1], f"Slope {b:.2f}", ha="right", va="bottom", fontsize=6, color=INK2)
+    # the fit's equation along the line, in its color: rotated with the data (equal aspect), at the line's end and lifted
+    # 3.5 pt off it, clear of the 100M point's interval (to 6.18 nats), the one point it passes
+    from matplotlib.transforms import ScaledTranslation
+
+    th = np.arctan(b)
+    nudge = ScaledTranslation(-np.sin(th) * 3.5 / 72, np.cos(th) * 3.5 / 72, ax.figure.dpi_scale_trans)
+    xe = lim[1] * 0.985
+    ax.text(xe, b * xe, f"$y = {b:.2f}x$", rotation=np.degrees(th), rotation_mode="anchor", transform_rotates_text=True,
+            transform=ax.transData + nudge, ha="right", va="bottom", fontsize=6, color=MUTED)
     ax.set_xlim(lim), ax.set_ylim(lim)
     ax.set_aspect(1)
     ax.set_xlabel("Villain–kind gap\n(pretrained model, nats)")
