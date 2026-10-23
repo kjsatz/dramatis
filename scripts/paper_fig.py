@@ -417,7 +417,8 @@ def panel_matrix(ax, cell, title, ylabels):
 
 
 def panel_spread(ax, which, casts=CASTS):
-    """Mean over the 9 untaught (taught, measured) cells, per seed; mean and 95 % t interval over seeds."""
+    """Mean over the 9 untaught (taught, measured) cells, per seed; mean and 95 % t interval over seeds (no seed dots:
+    Kevin, 2026-10-23, as Figures 5c-d and 6d-e; seeds are drawn only where their split is the finding, Figures 8c, A3a)."""
     for i, (cell, name, _) in enumerate(casts):
         if which == "free":
             per = np.array([ft_net(cell, t, m, runs="per_seed") for t, m in SPREAD_CELLS]).mean(0) * 100
@@ -427,7 +428,6 @@ def panel_spread(ax, which, casts=CASTS):
         m, lo, hi = ci95(per)
         ax.bar([i], [m], width=0.62, color=ORANGE if cell != CLEAN[0] else MUTED, zorder=2)  # spillover is orange
         ax.errorbar([i], [m], yerr=[[m - lo], [hi - m]], color=INK, lw=0, elinewidth=0.8, capsize=2, zorder=3)
-        ax.plot(i + np.linspace(-0.18, 0.18, len(per)), per, ".", color=INK2, ms=2.2, zorder=4)
     pf.zero(ax)
     if len(casts) <= 3:  # horizontal; each label carries its own line breaks
         ax.set_xticks(range(len(casts)), [n for _, n, _ in casts])
