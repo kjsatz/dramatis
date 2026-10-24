@@ -139,18 +139,21 @@ def dprime(A, B):
 
 
 def null_dprime(A, B, A2, B2, n_perm=N_PERM, seed=0):
-    """Permutation null of d'(A, B) - d'(A2, B2), per block: each story's two versions swapped at random (one swap per story,
-    shared by the villain's features A, B and the other child's A2, B2). Returns (mean, 95th percentile) per block."""
+    """Permutation null per block: each story's two versions swapped at random (one swap per story, shared by the villain's
+    features A, B and the other child's A2, B2). Returns {"v", "o", "diff"}: the 95th percentile, per block, of the villain's
+    d', the other child's, and the villain's minus the other's; and "diff_mean", the difference's mean."""
     rng = np.random.default_rng(seed)
-    vals = []
+    v, o = [], []
     for _ in range(n_perm):
         flip = rng.random(len(A)) < 0.5
         f = flip[:, None, None]
         Ap, Bp = np.where(f, B, A), np.where(f, A, B)
         Ap2, Bp2 = np.where(f, B2, A2), np.where(f, A2, B2)
-        vals.append([dprime(Ap[:, L], Bp[:, L]) - dprime(Ap2[:, L], Bp2[:, L]) for L in range(A.shape[1])])
-    vals = np.array(vals)
-    return vals.mean(0).tolist(), np.percentile(vals, 95, axis=0).tolist()
+        v.append([dprime(Ap[:, L], Bp[:, L]) for L in range(A.shape[1])])
+        o.append([dprime(Ap2[:, L], Bp2[:, L]) for L in range(A.shape[1])])
+    v, o = np.array(v), np.array(o)
+    p95 = lambda x: np.percentile(x, 95, axis=0).tolist()  # noqa: E731
+    return {"v": p95(v), "o": p95(o), "diff": p95(v - o), "diff_mean": (v - o).mean(0).tolist()}
 
 
 def main(runs, k2_only=False, same_items=False):
@@ -206,7 +209,9 @@ def main(runs, k2_only=False, same_items=False):
             rec[k] = [dprime(A[:, L], B[:, L]) for L in range(A.shape[1])]
             rec[f"n_{k}"] = len(A)
         if same_items and len(feats["v_setup"]["BB"]) == len(feats["o_setup"]["BB"]):  # one row per story for both children
-            rec["null_setup_mean"], rec["null_setup_p95"] = null_dprime(*(np.stack(feats[k][c]) for k in ("v_setup", "o_setup") for c in ("BB", "GG")))
+            null = null_dprime(*(np.stack(feats[k][c]) for k in ("v_setup", "o_setup") for c in ("BB", "GG")))
+            rec["null_setup_mean"], rec["null_setup_p95"] = null["diff_mean"], null["diff"]
+            rec["null_v_setup_p95"], rec["null_o_setup_p95"] = null["v"], null["o"]  # each child's own chance level
         dest.write_text(json.dumps(rec))
         dm = np.array(rec["v_mentions"]) - np.array(rec["o_mentions"])
         df = np.array(rec["v_far"]) - np.array(rec["o_far"])
