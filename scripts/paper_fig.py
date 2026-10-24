@@ -1416,11 +1416,23 @@ def panel_over_training(ax, size, w=51):
 
 def panel_flipped(ax, sizes=SIZES):  # 1M scored 2026-10-23 (incontext_evidence.py), so every size, as (a), (b) and (d)
     """k = 2: the same story, names and order, with the villain's two earlier act scenes replaced by corpus paragraphs of
-    the same situations from other held-out stories, bad (T_BB) or good (T_GG, the control; incontext_evidence.py); size color and shape for the gap, gray for the control; 95 % intervals over seeds, seeds as dots."""
+    the same situations from other held-out stories, bad (T_BB) or good (T_GG, the control; incontext_evidence.py, its own
+    draw of names and test items); on (a)'s 66 stories at k = 2, whose villain did two bad acts and resisted nothing
+    before them (Kevin, 2026-10-24); size color and shape for the gap, gray for the control; 95 % intervals over seeds,
+    seeds as dots."""
+    keep = k_bad_stories()[2]  # the stories of (a)'s k = 2: the villain's first two choices bad, none resisted
+    items = {arm: json.load(open(f"logs/v4/incontext/sets/{arm}.json"))["items"] for arm in ("T_BB", "T_GG")}
+
+    def gap(rec, arm):  # villain - other on the kept stories, mean over steal / cheat / tease, from the per-item scores
+        sc, its = rec[arm]["scores"], items[arm]
+        assert len(sc) == len(its)
+        by = lambda a, g: [x for x, it in zip(sc, its, strict=True) if it["act"] == a and it["group"] == g and it["story"] in keep]  # noqa: E731
+        return float(np.mean([np.mean(by(a, "villain")) - np.mean(by(a, "other")) for a in IC_ACTS]))
+
     for i, size in enumerate(sizes):
         recs = [json.load(open(f)) for f in sorted(glob.glob(f"logs/v4/incontext/evidence/v4-ladder-C-{size}-s*.json"))]
         for dx, arm, col in ((-0.14, "T_BB", SIZE_C[size]), (0.14, "T_GG", MUTED)):
-            v = [np.mean([r[arm]["summary"][f"{arm}/character/{a}"] for a in IC_ACTS]) for r in recs]
+            v = [gap(r, arm) for r in recs]
             m, lo, hi = ci95(v)
             ax.plot(i + dx + np.linspace(-0.05, 0.05, len(v)), v, ".", color=col, alpha=0.55, ms=2.2, zorder=2)
             ax.errorbar([i + dx], [m], yerr=[[m - lo], [hi - m]], color=col, marker=SIZE_MK[size], ms=3.6, lw=0, elinewidth=0.8,
