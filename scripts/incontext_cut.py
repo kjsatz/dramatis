@@ -18,7 +18,6 @@ The corrected sets (incontext_cut_*_v4.json) are the frozen ones with that one l
 import argparse
 import glob
 import json
-import shutil
 import sys
 from pathlib import Path
 
@@ -32,8 +31,9 @@ FROZEN_KEYS = ("incontext/", "incontext_k2/")  # the grid's two in-training prob
 
 def score(sizes, seeds):
     (OUT / "sets").mkdir(parents=True, exist_ok=True)
-    for arm, src in SETS.items():
-        shutil.copyfile(src, OUT / "sets" / f"{arm}.json")
+    for arm, src in SETS.items():  # the set's own name keys its summaries, so it is renamed to the arm
+        spec = json.load(open(src))
+        (OUT / "sets" / f"{arm}.json").write_text(json.dumps({**spec, "name": arm}))
     ie.OUT, saved = OUT, ie.OUT  # incontext_evidence.score reads OUT / "sets" and writes OUT / "evidence"
     try:
         ie.score(sizes, seeds, list(SETS))
