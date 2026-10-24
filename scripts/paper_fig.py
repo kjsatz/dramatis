@@ -1414,29 +1414,23 @@ def panel_over_training(ax, size, w=51):
     ax.set_xlabel("Tokens seen (millions)")
 
 
-def panel_flipped(ax, sizes=SIZES):  # 1M scored 2026-10-23 (incontext_evidence.py), so every size, as (a), (b) and (d)
-    """k = 2: the same story, names and order, with the villain's two earlier act scenes replaced by corpus paragraphs of
-    the same situations from other held-out stories, bad (T_BB) or good (T_GG, the control; incontext_evidence.py, its own
-    draw of names and test items); on (a)'s 66 stories at k = 2, whose villain did two bad acts and resisted nothing
-    before them (Kevin, 2026-10-24); size color and shape for the gap, gray for the control; 95 % intervals over seeds,
+def panel_flipped(ax, sizes=SIZES):
+    """k = 2 on (a)'s own items (incontext_same_items.py; Kevin, 2026-10-24): the villain did two bad acts, as in (a) (the
+    same 66 stories, names, filler lines and test items, so these are (a)'s k = 2 values), against the control, the same
+    items with the villain's two bad-act scenes replaced by corpus scenes of the same situations with their good outcome
+    (from other held-out stories); size color and shape for the gap, gray for the control; 95 % intervals over seeds,
     seeds as dots."""
-    keep = k_bad_stories()[2]  # the stories of (a)'s k = 2: the villain's first two choices bad, none resisted
-    items = {arm: json.load(open(f"logs/v4/incontext/sets/{arm}.json"))["items"] for arm in ("T_BB", "T_GG")}
-
-    def gap(rec, arm):  # villain - other on the kept stories, mean over steal / cheat / tease, from the per-item scores
-        sc, its = rec[arm]["scores"], items[arm]
-        assert len(sc) == len(its)
-        by = lambda a, g: [x for x, it in zip(sc, its, strict=True) if it["act"] == a and it["group"] == g and it["story"] in keep]  # noqa: E731
-        return float(np.mean([np.mean(by(a, "villain")) - np.mean(by(a, "other")) for a in IC_ACTS]))
-
+    G = ladder_gaps()
     for i, size in enumerate(sizes):
-        recs = [json.load(open(f)) for f in sorted(glob.glob(f"logs/v4/incontext/evidence/v4-ladder-C-{size}-s*.json"))]
-        for dx, arm, col in ((-0.14, "T_BB", SIZE_C[size]), (0.14, "T_GG", MUTED)):
-            v = [gap(r, arm) for r in recs]
+        runs = sorted(r for r in G if f"-{size}-" in r)
+        good = [json.load(open(f"logs/v4/incontext/same_items/evidence/{r}.json"))["GG"]["summary"] for r in runs]
+        arms = ((-0.14, [G[r][2] for r in runs], SIZE_C[size], False),
+                (0.14, [float(np.mean([g[f"GG/character/{a}"] for a in IC_ACTS])) for g in good], MUTED, True))
+        for dx, v, col, hollow in arms:
             m, lo, hi = ci95(v)
             ax.plot(i + dx + np.linspace(-0.05, 0.05, len(v)), v, ".", color=col, alpha=0.55, ms=2.2, zorder=2)
             ax.errorbar([i + dx], [m], yerr=[[m - lo], [hi - m]], color=col, marker=SIZE_MK[size], ms=3.6, lw=0, elinewidth=0.8,
-                        capsize=1.5, zorder=3, **({"mfc": "white", "mew": 0.8} if arm == "T_GG" else {}))  # the control hollow
+                        capsize=1.5, zorder=3, **({"mfc": "white", "mew": 0.8} if hollow else {}))  # the control hollow
     pf.zero(ax)
     ax.set_xticks(range(len(sizes)), sizes)
     ax.set_xlim(-0.5, len(sizes) - 0.5)
@@ -1444,7 +1438,7 @@ def panel_flipped(ax, sizes=SIZES):  # 1M scored 2026-10-23 (incontext_evidence.
     ax.set_xlabel("Model size")
     ax.set_ylabel("Villain–other gap, k = 2 (nats)")
     hs = [ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]]
-    ax.legend(hs, ["The villain did two bad acts", "Control: the same two scenes, good"], frameon=False, loc="upper left",
+    ax.legend(hs, ["The villain did two bad acts", "Control: the villain resisted both"], frameon=False, loc="upper left",
               fontsize=6)
 
 
@@ -1465,22 +1459,29 @@ def on_off_point(ax, x, y, size, on):
 
 
 def panel_history(ax):
-    """Activations: at the actor's name in the test temptation, how well the residual stream separates "earlier scenes bad"
-    from "made good" (cross-validated d'), villain minus other child, at the block where it is largest."""
+    """Activations (incontext_history_probe.py --same-items; Kevin, 2026-10-24): at the actor's name in the test setup, how
+    well the residual stream separates (a)'s own k = 2 items from the same items with the villain's two scenes made good
+    (cross-validated d'), villain minus other child, after the last block (a fixed depth, not each seed's best block);
+    gray dashes: the permutation null's 95th percentile (the versions' labels shuffled per story), mean over the seeds."""
     rng = np.random.default_rng(2)
-    for f in sorted(glob.glob("logs/v4/incontext/history_probe/*.json")):
+    nulls = defaultdict(list)
+    for f in sorted(glob.glob("logs/v4/incontext/history_probe_same/*.json")):
         r = json.load(open(f))
         size = r["run"].split("-")[3]
-        y = max(np.array(r["v_setup"]) - np.array(r["o_setup"]))
+        y = r["v_setup"][-1] - r["o_setup"][-1]
+        nulls[size].append(r["null_setup_p95"][-1])
         on_off_point(ax, SIZES.index(size) + rng.uniform(-0.13, 0.13), y, size, switched_on(r["run"]))
+    for size, v in nulls.items():
+        ax.plot([SIZES.index(size) - 0.3, SIZES.index(size) + 0.3], [np.mean(v)] * 2, color=MUTED, lw=0.8, ls="--", zorder=1)
     pf.zero(ax)
     ax.set_xticks(range(len(SIZES)), SIZES)
     ax.set_xlabel("Model size")
     # a cross-validated separation (d'): the difference of the two histories' means along the fitted direction, in
     # within-group standard deviations; written out rather than as a symbol
     ax.set_ylabel("History at the test name\n(separation, villain − other)")
-    ax.set_ylim(top=7.3)  # room above the points (to 5.9) for the legend
-    on_off_legend(ax, loc="upper left", fontsize=6)
+    ax.set_ylim(top=7.3)  # room above the points for the legend
+    chance = ax.plot([], [], color=MUTED, lw=0.8, ls="--")[0]
+    on_off_legend(ax, extra=((chance, "Chance (95th percentile)"),), loc="upper left", fontsize=6)
 
 
 def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):

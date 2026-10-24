@@ -2744,3 +2744,18 @@ villain's first k choices are bad (k = 0: all 80). 30M / 100M: k = 1 +2.32 / +2.
 +4.00 / +4.50 (+3.91 / +4.44); 1M–10M within 0.03. The switched-on threshold (final k = 1 gap > 0.5) uses the same 76
 stories; no seed changed status (0 / 0 / 3 / 7 / 8 of 8). The in-training probes (12 stories, all opening with a bad act)
 and the scene control and history probe (cut after the villain's second bad act) already counted bad acts.
+
+Claude (1:10 pm PT): **Figure 8c–d moved onto 8a's own k = 2 items (evaluation only).** Two inconsistencies in Figure 8:
+(i) the frozen in-context sets cut on choices, so some k = 1 and k = 2 prefixes held fewer than k bad acts (entry
+above; 8a and the threshold now use the 76 / 66 stories); (ii) 8c (scene control) and 8d (history probe) came from
+`incontext_evidence.py`'s sets: the same stories, but their own draw of names, filler lines and test items, and all 80
+stories. Fixed with `scripts/incontext_same_items.py`: the frozen k = 2 set rebuilt from its own random draws (checked
+identical to the frozen items), in three versions differing only in the villain's two bad-act scenes (own; GG, both
+replaced by good corpus scenes of the same situations; BBswap, by other bad ones), 66 stories, scored on all 40 ladder-C
+models (own reproduces 8a's k = 2 exactly). 30M / 100M: own +4.00 / +4.50, GG −0.07 / −0.27, BBswap +4.03 / +4.40;
+1M–10M GG within 0.03 of zero. Then the history probe (`--same-items`, own against GG) with a 200-permutation null
+(each story's two versions' labels swapped at random); 8d now reads the last block instead of each seed's best block.
+Chance (null 95th percentile) is 0.1–0.3; at 10M three seeds that are not switched on still separate the histories at
+2.3–3.6 (switched on 2.8–4.4), so the history reaches the name without being acted on. Still open, noted only: the k = 0
+and k = 1 prefixes end on the villain's next temptation, its setup kept and unresolved, where k = 2 ends on a finished
+scene, an offset of about −0.2 to −0.3 nats at k = 0 and 1.
