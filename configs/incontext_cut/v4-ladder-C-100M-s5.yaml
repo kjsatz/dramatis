@@ -1,0 +1,27 @@
+# 100M ladder-C seed 5 retrained for the corrected in-context probe (Figure 8b; docs/2026-10-24_PLAN_incontext_cut_box.md on main).
+# Identical to the v4 grid's v4-ladder-C-100M-s5 config (box-2) except a third probe set,
+# incontext_cut_v4 (k = 1 without the half-scene). The two frozen sets come first, so their probe records
+# must be byte-identical to the grid run's (the check that the trajectory is the original).
+data: data/corpora/v4-ladder
+device: auto
+model: 100M
+probes:
+  every: 10
+  sets:
+  - data/probe_sets/incontext_v4.json
+  - data/probe_sets/incontext_k2_v4.json
+  - data/probe_sets/incontext_cut_v4.json
+seed: 5
+train:
+  batch_size: 32
+  checkpoint_every: 24823
+  eval_every: 500
+  final_lr: 2.9999999999999997e-05
+  log_every: 20
+  lr_warmup_steps: 200
+  n_steps: 24823
+  n_val_batches: 20
+  peak_lr: 0.0003
+  precision: bf16
+  progress: false
+  resumable_checkpoints: false
