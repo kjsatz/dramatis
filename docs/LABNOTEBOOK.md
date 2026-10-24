@@ -2732,3 +2732,15 @@ every arm, as at 3M (`score --sizes 1M --arms` all 13; records in `logs/v4/incon
 about a minute per seed on the Mac). As expected, nothing: k = 2, steal / cheat / tease, bad scenes −0.05
 [−0.08, −0.01], good scenes −0.06 [−0.09, −0.03] (3M: +0.13 [−0.29, +0.54] and −0.07 [−0.13, −0.00]); every
 other arm within ±0.4 of zero on all acts. Figure 8c now spans 1M–100M, as (a), (b) and (d).
+
+# 2026-10-24
+
+Claude: **Figure 8a's k now counts bad acts, as the plan defines it (no new runs).** The plan's rungs are "the child's
+own first bad act" (k = 1) and the same carried to a different act (k = 2), but the frozen in-context sets
+(`build_probe_sets.incontext`) cut on the villain's [CHOICE] markers, and a villain's one extra scene can be a held-out
+temptation they resist (21 of the 80 test stories): so 4 of the k = 1 prefixes held no bad act and 14 of the k = 2 ones
+held one. `paper_fig.py` now computes the villain–other gap from the stored per-item scores on the 76 / 66 stories whose
+villain's first k choices are bad (k = 0: all 80). 30M / 100M: k = 1 +2.32 / +2.76 (all 80: +2.20 / +2.63), k = 2
++4.00 / +4.50 (+3.91 / +4.44); 1M–10M within 0.03. The switched-on threshold (final k = 1 gap > 0.5) uses the same 76
+stories; no seed changed status (0 / 0 / 3 / 7 / 8 of 8). The in-training probes (12 stories, all opening with a bad act)
+and the scene control and history probe (cut after the villain's second bad act) already counted bad acts.

@@ -1324,25 +1324,54 @@ def figA3(out):
 
 # ================================================================ Figure 8: the in-context character
 # The ladder-C corpus: random names (a name says nothing), each child the villain with probability 1/2. The villain-other
-# gap: after the villain's k earlier choices (cut on [CHOICE] markers; a villain's one extra scene can be a held-out
-# temptation he resists, so 76 of the 80 k = 1 prefixes and 66 of the k = 2 ones hold k bad acts), a temptation of a
-# different act appended for the villain and for the other child; villain minus other, prewritten endings, steal / cheat / tease (lie left out). A seed is "switched on" when its
-# own final k = 1 gap exceeds 0.5 nats (the plan's threshold for a positive rung, applied per seed).
+# gap: after the villain's k bad acts, a temptation of a different act appended for the villain and for the other child;
+# villain minus other, prewritten endings, steal / cheat / tease (lie left out). The plan defines k by bad acts; the
+# frozen sets cut on [CHOICE] markers, and a villain's one extra scene can be a held-out temptation he resists, so 4 of
+# the 80 k = 1 prefixes and 14 of the k = 2 ones held fewer than k bad acts: those stories are left out (k_bad_stories;
+# Kevin, 2026-10-24). A seed is "switched on" when its own final k = 1 gap exceeds 0.5 nats (the plan's threshold for a
+# positive rung, applied per seed).
 IC_ACTS = ("steal", "cheat", "tease")
 IC_SETS = {0: "incontext_k0_full", 1: "incontext_full", 2: "incontext_k2_full"}
 
 
 @lru_cache(maxsize=None)
+def k_bad_stories():
+    """{k: the ids of the 80 test stories whose villain's first k choices are all bad acts} (k = 0: every story)."""
+    import build_probe_sets as bps
+
+    out = {}
+    for k in (0, 1, 2):
+        keep = set()
+        for r in bps.v4_rows("v4-one", 80, generalist=True, seed=0):  # the stories of the frozen 80-story sets
+            kid = r["spec"]["kids"][0 if r["spec"]["villain"] == "$A" else 1]
+            choices = [a in bps.acts.bad for a in kid["acts"] if a in bps.acts.bad or bps.sit.of_act(a)]  # neutral acts: no choice
+            if all(choices[:k]):
+                keep.add(r["id"])
+        out[k] = frozenset(keep)
+    return out
+
+
+@lru_cache(maxsize=None)
 def ladder_gaps():
-    """{run: {k: villain-other gap, mean over steal / cheat / tease}} at each ladder-C model's final checkpoint."""
+    """{run: {k: villain-other gap, mean over steal / cheat / tease}} at each ladder-C model's final checkpoint, from the
+    per-item scores, on the stories whose villain has done exactly k bad acts (k_bad_stories)."""
+    items = {k: json.load(open(f"data/probe_sets/{name}_v4.json"))["items"] for k, name in IC_SETS.items()}
     out = defaultdict(dict)
     for d in A()["_meta"]["eval_dirs"]:
         for f in glob.glob(f"{d}/ladder/v4-ladder-C-*-s*.json"):
             res = json.load(open(f))
             for k, name in IC_SETS.items():
-                sm = res.get(f"{name}_v4", {}).get("summary", {})
-                if f"{name}/character/steal" in sm:
-                    out[Path(f).stem][k] = float(np.mean([sm[f"{name}/character/{a}"] for a in IC_ACTS]))
+                rec = res.get(f"{name}_v4", {})
+                if "scores" not in rec:
+                    continue
+                assert rec["acts"] == [it["act"] for it in items[k]] and rec["groups"] == [it["group"] for it in items[k]]
+                keep = k_bad_stories()[k]
+                gaps = []
+                for a in IC_ACTS:
+                    by = {g: [s for s, it in zip(rec["scores"], items[k], strict=True) if it["act"] == a and it["group"] == g
+                              and it["story"] in keep] for g in ("villain", "other")}
+                    gaps.append(np.mean(by["villain"]) - np.mean(by["other"]))
+                out[Path(f).stem][k] = float(np.mean(gaps))
     return dict(out)
 
 
@@ -1364,7 +1393,7 @@ def panel_incontext_k(ax):
     pf.zero(ax)
     ax.set_xticks([0, 1, 2])
     ax.set_xlim(-0.4, 2.4)
-    ax.set_xlabel("Villain's earlier choices, k")  # the prefixes are cut on choices: 76 / 66 of 80 hold k bad acts
+    ax.set_xlabel("Villain's earlier bad acts, k")  # k counts bad acts (k_bad_stories)
     ax.set_ylabel("Villain–other gap (nats)")
     size_legend(ax, line=False, loc="upper left", fontsize=6)
 
