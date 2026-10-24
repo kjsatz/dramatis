@@ -22,6 +22,7 @@ both; a child-specific history moves only the villain's). No child-order confoun
 the same in both versions.
 
     uv run python scripts/incontext_history_probe.py            (all 40 ladder-C models)
+    uv run python scripts/incontext_history_probe.py --k2-only  (the 66 stories of Figure 8a's k = 2, to history_probe_66)
 """
 
 import argparse
@@ -47,12 +48,27 @@ from dramatis.provenance import git_commit  # noqa: E402
 from dramatis.train import model_from_checkpoint  # noqa: E402
 
 OUT = Path("logs/v4/incontext/history_probe")
+OUT_K2 = Path("logs/v4/incontext/history_probe_66")  # --k2-only (Kevin, 2026-10-24)
 SIZES = ["1M", "3M", "10M", "30M", "100M"]
 tok = ih.tok
 
 
 def name_of(item):
     return re.match(r"\s*([A-Z][a-z]+)", item["a"][0]).group(1)  # endings start with the actor
+
+
+def k2_stories():
+    """The test stories whose villain's first two choices are both bad acts (a villain's extra scene can be a held-out
+    temptation they resist): Figure 8a's k = 2 and 8c, 66 of the 80."""
+    import build_probe_sets as bps
+
+    keep = set()
+    for r in bps.v4_rows("v4-one", 80, generalist=True, seed=0):
+        kid = r["spec"]["kids"][0 if r["spec"]["villain"] == "$A" else 1]
+        choices = [a in bps.acts.bad for a in kid["acts"] if a in bps.acts.bad or bps.sit.of_act(a)]  # neutral acts: no choice
+        if all(choices[:2]):
+            keep.add(r["id"])
+    return keep
 
 
 def build_rows():
@@ -110,13 +126,17 @@ def dprime(A, B):
     return float(np.mean(out))
 
 
-def main(runs):
-    OUT.mkdir(parents=True, exist_ok=True)
+def main(runs, k2_only=False):
+    out = OUT_K2 if k2_only else OUT
+    out.mkdir(parents=True, exist_ok=True)
     stories = build_rows()
     items_by_story = {s: v for s, v in stories.items() if any(it["villain"] for it in v["items"]) and any(not it["villain"] for it in v["items"])}
+    if k2_only:
+        keep = k2_stories()
+        items_by_story = {s: v for s, v in items_by_story.items() if s in keep}
     print(f"stories {len(items_by_story)}", flush=True)
     for run_id in runs:
-        dest = OUT / f"{run_id}.json"
+        dest = out / f"{run_id}.json"
         if dest.exists():
             continue
         f = glob.glob(f"hub-v4/box-*/logs/v4/eval/ladder/{run_id}.json")[0]
@@ -152,7 +172,7 @@ def main(runs):
                 if acc[k]["BB"] and acc[k]["GG"]:
                     for c in ("BB", "GG"):
                         feats[k][c].append(np.mean(acc[k][c], 0))
-        rec = {"run": run_id, "checkpoint": ck, "git_commit": git_commit(),
+        rec = {"run": run_id, "checkpoint": ck, "git_commit": git_commit(), "stories": sorted(items_by_story),
                "rungC": ev["incontext_full_v4"]["summary"]["incontext_full/character/ALL"]}
         for k in feats:
             A, B = np.stack(feats[k]["BB"]), np.stack(feats[k]["GG"])  # (n_stories, L + 1, D)
@@ -168,5 +188,6 @@ def main(runs):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", nargs="+", default=[f"v4-ladder-C-{s}-s{i}" for s in SIZES for i in range(8)])
+    ap.add_argument("--k2-only", action="store_true", help="only the 66 stories whose villain's first two choices are bad")
     a = ap.parse_args()
-    main(a.runs)
+    main(a.runs, a.k2_only)
