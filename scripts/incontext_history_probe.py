@@ -23,6 +23,11 @@ the same in both versions.
 
     uv run python scripts/incontext_history_probe.py            (all 40 ladder-C models)
     uv run python scripts/incontext_history_probe.py --k2-only  (the 66 stories of Figure 8a's k = 2, to history_probe_66)
+    uv run python scripts/incontext_history_probe.py --same-items  (Figure 8d: 8a's own k = 2 items, the story's scenes
+        against incontext_same_items.py's good version, with a permutation null; to history_probe_same)
+
+The permutation null (--same-items): per story the two versions' labels are swapped at random (the same swap for both
+children's items), 200 times; for each block the null's mean and 95th percentile of villain d' minus other d'.
 """
 
 import argparse
@@ -49,6 +54,9 @@ from dramatis.train import model_from_checkpoint  # noqa: E402
 
 OUT = Path("logs/v4/incontext/history_probe")
 OUT_K2 = Path("logs/v4/incontext/history_probe_66")  # --k2-only (Kevin, 2026-10-24)
+OUT_SAME = Path("logs/v4/incontext/history_probe_same")  # --same-items (Kevin, 2026-10-24)
+SAME_SETS = Path("logs/v4/incontext/same_items/sets")
+N_PERM = 200
 SIZES = ["1M", "3M", "10M", "30M", "100M"]
 tok = ih.tok
 
@@ -71,9 +79,13 @@ def k2_stories():
     return keep
 
 
-def build_rows():
-    """Per story: for BB and GG, the token ids of each item and the positions to read."""
-    sets = {c: json.load(open(ih.SETS / f"T_{c}.json"))["items"] for c in ("BB", "GG")}
+def build_rows(same_items=False):
+    """Per story: for BB and GG, the token ids of each item and the positions to read. same_items: BB = Figure 8a's own k = 2
+    items (the villain's two bad acts as written), GG = the same items with those two scenes made good."""
+    if same_items:
+        sets = {"BB": json.load(open(SAME_SETS / "own.json"))["items"], "GG": json.load(open(SAME_SETS / "GG.json"))["items"]}
+    else:
+        sets = {c: json.load(open(ih.SETS / f"T_{c}.json"))["items"] for c in ("BB", "GG")}
     assert [i["story"] for i in sets["BB"]] == [i["story"] for i in sets["GG"]]
     stories = {}
     for i, (bb, gg) in enumerate(zip(sets["BB"], sets["GG"])):
@@ -126,10 +138,25 @@ def dprime(A, B):
     return float(np.mean(out))
 
 
-def main(runs, k2_only=False):
-    out = OUT_K2 if k2_only else OUT
+def null_dprime(A, B, A2, B2, n_perm=N_PERM, seed=0):
+    """Permutation null of d'(A, B) - d'(A2, B2), per block: each story's two versions swapped at random (one swap per story,
+    shared by the villain's features A, B and the other child's A2, B2). Returns (mean, 95th percentile) per block."""
+    rng = np.random.default_rng(seed)
+    vals = []
+    for _ in range(n_perm):
+        flip = rng.random(len(A)) < 0.5
+        f = flip[:, None, None]
+        Ap, Bp = np.where(f, B, A), np.where(f, A, B)
+        Ap2, Bp2 = np.where(f, B2, A2), np.where(f, A2, B2)
+        vals.append([dprime(Ap[:, L], Bp[:, L]) - dprime(Ap2[:, L], Bp2[:, L]) for L in range(A.shape[1])])
+    vals = np.array(vals)
+    return vals.mean(0).tolist(), np.percentile(vals, 95, axis=0).tolist()
+
+
+def main(runs, k2_only=False, same_items=False):
+    out = OUT_SAME if same_items else OUT_K2 if k2_only else OUT
     out.mkdir(parents=True, exist_ok=True)
-    stories = build_rows()
+    stories = build_rows(same_items)
     items_by_story = {s: v for s, v in stories.items() if any(it["villain"] for it in v["items"]) and any(not it["villain"] for it in v["items"])}
     if k2_only:
         keep = k2_stories()
@@ -178,6 +205,8 @@ def main(runs, k2_only=False):
             A, B = np.stack(feats[k]["BB"]), np.stack(feats[k]["GG"])  # (n_stories, L + 1, D)
             rec[k] = [dprime(A[:, L], B[:, L]) for L in range(A.shape[1])]
             rec[f"n_{k}"] = len(A)
+        if same_items and len(feats["v_setup"]["BB"]) == len(feats["o_setup"]["BB"]):  # one row per story for both children
+            rec["null_setup_mean"], rec["null_setup_p95"] = null_dprime(*(np.stack(feats[k][c]) for k in ("v_setup", "o_setup") for c in ("BB", "GG")))
         dest.write_text(json.dumps(rec))
         dm = np.array(rec["v_mentions"]) - np.array(rec["o_mentions"])
         df = np.array(rec["v_far"]) - np.array(rec["o_far"])
@@ -189,5 +218,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", nargs="+", default=[f"v4-ladder-C-{s}-s{i}" for s in SIZES for i in range(8)])
     ap.add_argument("--k2-only", action="store_true", help="only the 66 stories whose villain's first two choices are bad")
+    ap.add_argument("--same-items", action="store_true", help="Figure 8a's own k = 2 items against their good version, with a null")
     a = ap.parse_args()
-    main(a.runs, a.k2_only)
+    main(a.runs, a.k2_only, a.same_items)
