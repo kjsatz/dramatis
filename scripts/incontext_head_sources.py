@@ -41,7 +41,7 @@ from dramatis.probe_names import _piece, mentions  # noqa: E402
 from dramatis.provenance import git_commit  # noqa: E402
 from dramatis.train import model_from_checkpoint  # noqa: E402
 
-OUT = Path("logs/v4/incontext/head_sources")
+OUT = ih.out_dir("head_sources")  # _cut under INCONTEXT_CUT=1
 CATS = ["v_act", "o_acts", "v_names", "o_names", "setup_names", "setup", "ending", "bos", "rest"]
 tok = ih.tok
 

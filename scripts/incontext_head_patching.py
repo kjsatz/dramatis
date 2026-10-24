@@ -41,7 +41,7 @@ from dramatis.device import pick_device  # noqa: E402
 from dramatis.provenance import git_commit  # noqa: E402
 from dramatis.train import model_from_checkpoint  # noqa: E402
 
-OUT = Path("logs/v4/incontext/head_patching")
+OUT = ih.out_dir("head_patching")  # _cut under INCONTEXT_CUT=1
 SITES = {"setup": ["setup_names"], "end": ["ending"]}
 
 

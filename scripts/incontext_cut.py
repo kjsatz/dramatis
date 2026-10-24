@@ -41,6 +41,24 @@ def score(sizes, seeds):
         ie.OUT = saved
 
 
+def sets():
+    """logs/v4/incontext/sets_cut/as_probed.json: the corrected k = 1 items on the 76 stories whose villain's first choice
+    was a bad act (Figure 8a's k = 1), in the as_probed format the circuit scripts read under INCONTEXT_CUT=1."""
+    import build_probe_sets as bps
+
+    keep = set()
+    for r in bps.v4_rows("v4-one", 80, generalist=True, seed=0):
+        kid = r["spec"]["kids"][0 if r["spec"]["villain"] == "$A" else 1]
+        if [a in bps.acts.bad for a in kid["acts"] if a in bps.acts.bad or bps.sit.of_act(a)][0]:
+            keep.add(r["id"])
+    spec = json.load(open(SETS["cut_k1"]))
+    items = [it for it in spec["items"] if it["story"] in keep]
+    out = Path("logs/v4/incontext/sets_cut")
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "as_probed.json").write_text(json.dumps({**spec, "name": "as_probed", "items": items}))
+    print(f"sets_cut/as_probed.json: {len(items)} items, {len({i['story'] for i in items})} stories")
+
+
 def check(runs_dir):
     ok = True
     for new in sorted(Path(runs_dir).glob("*_v4-ladder-C-*_cut")):
@@ -69,9 +87,12 @@ def check(runs_dir):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["score", "check"])
+    ap.add_argument("cmd", choices=["score", "check", "sets"])
     ap.add_argument("--sizes", nargs="+", default=["1M", "3M", "10M", "30M", "100M"])
     ap.add_argument("--seeds", nargs="+", type=int, default=list(range(8)))
     ap.add_argument("--runs-dir", default="hub-cut/runs")
     a = ap.parse_args()
-    score(a.sizes, a.seeds) if a.cmd == "score" else sys.exit(0 if check(a.runs_dir) else 1)
+    if a.cmd == "sets":
+        sets()
+    else:
+        score(a.sizes, a.seeds) if a.cmd == "score" else sys.exit(0 if check(a.runs_dir) else 1)

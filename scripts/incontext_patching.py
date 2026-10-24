@@ -44,7 +44,7 @@ from dramatis.probe_names import mentions  # noqa: E402
 from dramatis.provenance import git_commit  # noqa: E402
 from dramatis.train import model_from_checkpoint  # noqa: E402
 
-OUT = Path("logs/v4/incontext/patching")
+OUT = ih.out_dir("patching")  # _cut under INCONTEXT_CUT=1
 GROUPS = ["v_act_name", "v_act_rest", "o_act_name", "o_act_rest", "v_names", "o_names", "setup_names", "setup_rest", "ending", "rest"]
 DEFAULT_RUNS = [f"{s}-s{i}" for s in ("30M", "100M") for i in range(8)] + [f"10M-s{i}" for i in (0, 2, 5, 1, 3)]
 tok = ih.tok

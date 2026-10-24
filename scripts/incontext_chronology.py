@@ -45,7 +45,7 @@ from dramatis.device import pick_device  # noqa: E402
 from dramatis.provenance import git_commit  # noqa: E402
 from dramatis.train import model_from_checkpoint  # noqa: E402
 
-OUT = Path("logs/v4/incontext/chronology")
+OUT = ih.out_dir("chronology")  # _cut under INCONTEXT_CUT=1
 REPO = "kjsatz/dramatis-v4-runs"
 tok = ih.tok
 
@@ -67,10 +67,10 @@ def run_files(short, source):
     raise SystemExit(f"no run for {short} ({source})")
 
 
-def onset(probes):
+def onset(probes, k1="incontext/character/ALL"):
     """Updates at which the mean of the k = 1 and k = 2 probes (smoothed over 51) reaches half its end value."""
     u = np.array([p["updates"] for p in probes])
-    a = np.array([p["incontext/character/ALL"] + p["incontext_k2/character/ALL"] for p in probes]) / 2
+    a = np.array([p[k1] + p["incontext_k2/character/ALL"] for p in probes]) / 2
     w = 51
     s = np.convolve(a, np.ones(w) / w, "valid")
     us = u[w // 2:w // 2 + len(s)]
@@ -205,8 +205,14 @@ def history_measures(gpt, stories, batch_size=16):
 def main(short, source, every, window):
     OUT.mkdir(parents=True, exist_ok=True)
     rev, rdir, ckpts, probes_path = run_files(short, source)
-    probes = [json.loads(line) for line in open(hf_hub_download(REPO, probes_path, revision=rev))]
-    t_on, end = onset(probes)
+    if ih.CUT:  # the onset from the corrected probe of the retrain (docs/2026-10-24_PLAN_incontext_cut_box.md): the same trajectory
+        local = sorted(Path(".").glob(f"*runs/*_v4-ladder-C-{short}_cut/probes.jsonl"))
+        assert len(local) == 1, local
+        probes = [json.loads(line) for line in open(local[0])]
+        t_on, end = onset(probes, k1="incontext_cut/character/ALL")
+    else:
+        probes = [json.loads(line) for line in open(hf_hub_download(REPO, probes_path, revision=rev))]
+        t_on, end = onset(probes)
     keep = [(u, f) for i, (u, f) in enumerate(ckpts)
             if i % every == 0 or u == ckpts[-1][0] or (t_on is not None and abs(u - t_on) <= window)]
     dest = OUT / f"{rdir}.json"
@@ -215,7 +221,7 @@ def main(short, source, every, window):
         "git_commit": git_commit(), "checkpoints": {}}
     print(f"{rdir}: onset {t_on}, {len(keep)} of {len(ckpts)} checkpoints", flush=True)
     rows = ip.pairs(json.load(open(ih.SETS / "as_probed.json"))["items"])
-    stories = {k: v for k, v in hp.build_rows().items() if any(i["villain"] for i in v["items"]) and any(not i["villain"] for i in v["items"])}
+    stories = {k: v for k, v in hp.build_rows(same_items=ih.CUT).items() if any(i["villain"] for i in v["items"]) and any(not i["villain"] for i in v["items"])}  # cut: Figure 8d's pairs
     dev = pick_device("auto")
     for u, f in keep:
         if str(u) in rec["checkpoints"]:

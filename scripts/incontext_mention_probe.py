@@ -32,7 +32,7 @@ from dramatis.device import pick_device  # noqa: E402
 from dramatis.provenance import git_commit  # noqa: E402
 from dramatis.train import model_from_checkpoint  # noqa: E402
 
-OUT = Path("logs/v4/incontext/mention_probe")
+OUT = ih.out_dir("mention_probe")  # _cut under INCONTEXT_CUT=1
 
 
 @torch.no_grad()

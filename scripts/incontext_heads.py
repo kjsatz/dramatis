@@ -22,6 +22,7 @@ nats per token) and the frozen rung C / D values from the evaluation record.
 import argparse
 import glob
 import json
+import os
 import math
 import re
 from pathlib import Path
@@ -38,8 +39,17 @@ from dramatis.provenance import git_commit
 from dramatis.tokenizer import StoryTokenizer
 from dramatis.train import model_from_checkpoint
 
-OUT = Path("logs/v4/incontext/heads")
-SETS = Path("logs/v4/incontext/sets")
+# INCONTEXT_CUT=1 (Kevin, 2026-10-24): every in-context circuit script reads the k = 1 items without the half-scene
+# (sets_cut/as_probed.json: Figure 8a's corrected k = 1 items, 76 stories; incontext_cut.py sets) and writes to <dir>_cut
+CUT = os.environ.get("INCONTEXT_CUT") == "1"
+
+
+def out_dir(name):
+    return Path(f"logs/v4/incontext/{name}{'_cut' if CUT else ''}")
+
+
+OUT = out_dir("heads")
+SETS = Path("logs/v4/incontext/sets_cut" if CUT else "logs/v4/incontext/sets")
 REPO = "kjsatz/dramatis-v4-runs"
 REVISION = {"box-1": None, "box-4": None, "box-2": "box-2", "box-3": "box-3"}
 tok = StoryTokenizer.load("tokenizer/story-bpe-4096.json")
