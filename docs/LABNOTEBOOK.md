@@ -2745,7 +2745,7 @@ villain's first k choices are bad (k = 0: all 80). 30M / 100M: k = 1 +2.32 / +2.
 stories; no seed changed status (0 / 0 / 3 / 7 / 8 of 8). The in-training probes (12 stories, all opening with a bad act)
 and the scene control and history probe (cut after the villain's second bad act) already counted bad acts.
 
-Claude (1:10 pm PT): **Figure 8c–d moved onto 8a's own k = 2 items (evaluation only).** Two inconsistencies in Figure 8:
+Claude (11:55 am PT): **Figure 8c–d moved onto 8a's own k = 2 items (evaluation only).** Two inconsistencies in Figure 8:
 (i) the frozen in-context sets cut on choices, so some k = 1 and k = 2 prefixes held fewer than k bad acts (entry
 above; 8a and the threshold now use the 76 / 66 stories); (ii) 8c (scene control) and 8d (history probe) came from
 `incontext_evidence.py`'s sets: the same stories, but their own draw of names, filler lines and test items, and all 80
