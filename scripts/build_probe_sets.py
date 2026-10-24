@@ -117,7 +117,11 @@ def fork_items(r, raw, v, k, label_level, labels, rng, traits=False):
     return items
 
 
-def incontext(k, label_level="off", n=12, seed=0, traits=False):
+def incontext(k, label_level="off", n=12, seed=0, traits=False, scene_cut=False):
+    """scene_cut (Kevin, 2026-10-24): at k = 0 and 1 cut at the start of the paragraph that holds the villain's next
+    temptation, not at its [CHOICE] marker, which comes after the scene's setup: the frozen sets keep that setup,
+    unresolved (a half-scene), before the appended test temptation. The random draws are the frozen sets' own, so names,
+    filler lines and test items are identical; only the dangling setup is gone. k = 2 already ends on a finished scene."""
     rng = np.random.default_rng(seed)
     labels = load_persona_labels() if label_level != "off" else None
     items = []
@@ -126,7 +130,9 @@ def incontext(k, label_level="off", n=12, seed=0, traits=False):
         idx = choices(r["story"], v)
         if len(idx) < 2:
             continue
-        if k == 0:
+        if k in (0, 1) and scene_cut:  # before the paragraph of the villain's (k + 1)-th choice: no half-scene
+            raw = r["story"][: max(r["story"].rfind("\n\n", 0, idx[k]), 0)].rstrip()
+        elif k == 0:
             raw = r["story"][: idx[0]].rstrip()  # before the villain's first temptation: no bad act yet
         elif k == 1:
             raw = r["story"][: idx[1]].rstrip()  # before the villain's second temptation
@@ -222,6 +228,7 @@ SETS = {
     "incontext_label_v4": lambda: incontext(1, "opening"),
     "incontext_label_k0_v4": lambda: incontext(0, "opening", n=8),  # rung B at k = 0: the label alone
     "incontext_A_v4": lambda: incontext(1, traits=True),
+    "incontext_cut_v4": lambda: incontext(1, scene_cut=True),  # the in-training k = 1 probe without the half-scene
 }
 FULL = {  # the evaluation's versions (eval_v4.py, R5-R9): more stories, the same construction
     "label_full_v4": lambda: label_sets(n_villain=40, n_base=20),
@@ -231,6 +238,8 @@ FULL = {  # the evaluation's versions (eval_v4.py, R5-R9): more stories, the sam
     "incontext_label_k0_full_v4": lambda: incontext(0, "opening", n=80),  # rung B at k = 0 (plan R5)
     "incontext_k0_full_v4": lambda: incontext(0, n=80),  # its control: k = 0 without a label (≈ 0 by construction)
     "incontext_A_full_v4": lambda: incontext(1, n=80, traits=True),
+    "incontext_cut_full_v4": lambda: incontext(1, n=80, scene_cut=True),  # k = 1 and 0 without the half-scene (2026-10-24)
+    "incontext_cut_k0_full_v4": lambda: incontext(0, n=80, scene_cut=True),
 }
 
 
