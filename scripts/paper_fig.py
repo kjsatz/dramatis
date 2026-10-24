@@ -1438,7 +1438,7 @@ def panel_flipped(ax, sizes=SIZES):
     ax.set_xlabel("Model size")
     ax.set_ylabel("Villain–other gap, k = 2 (nats)")
     hs = [ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]]
-    ax.legend(hs, ["The villain did two bad acts", "Control: the villain resisted both"], frameon=False, loc="upper left",
+    ax.legend(hs, ["The villain did two bad acts", "Control: replace bad acts with benign"], frameon=False, loc="upper left",
               fontsize=6)
 
 
