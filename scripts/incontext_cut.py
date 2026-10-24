@@ -44,6 +44,9 @@ def score(sizes, seeds):
 def check(runs_dir):
     ok = True
     for new in sorted(Path(runs_dir).glob("*_v4-ladder-C-*_cut")):
+        if not (new / "summary.json").exists():
+            print(f"{new.name}: still running")
+            continue
         tag = new.name.split("_", 2)[2].removesuffix("_cut")  # v4-ladder-C-<size>-s<seed>_v4-ladder-C-...
         run = tag.split("_")[0]
         old = glob.glob(f"hub-v4/runs/*_{run}_*/probes.jsonl")
