@@ -1331,7 +1331,7 @@ def figA3(out):
 # Kevin, 2026-10-24). A seed is "switched on" when its own final k = 1 gap exceeds 0.5 nats (the plan's threshold for a
 # positive rung, applied per seed).
 IC_ACTS = ("steal", "cheat", "tease")
-IC_YLIM = (-1.0, 7.0)  # Figure 8a and 8c on one range (8c's seeds reach -0.75 and 5.3; the legends sit above)
+IC_YLIM = (-1.0, 7.0)  # Figure 8a and 8c on one range, ticked every nat (8c's seeds reach -0.75 and 5.3; the legends sit above)
 IC_SETS = {0: "incontext_k0_full", 1: "incontext_full", 2: "incontext_k2_full"}
 
 
@@ -1394,7 +1394,7 @@ def panel_incontext_k(ax):
     pf.zero(ax)
     ax.set_xticks([0, 1, 2])
     ax.set_xlim(-0.4, 2.4)
-    ax.set_ylim(*IC_YLIM), ax.set_yticks(range(0, 7, 2))  # as (c)
+    ax.set_ylim(*IC_YLIM), ax.set_yticks(range(0, 7))  # as (c), and every nat as (d)
     ax.set_xlabel("Villain's earlier bad acts, k")  # k counts bad acts (k_bad_stories)
     ax.set_ylabel("Villain–other gap (nats)")
     size_legend(ax, line=False, loc="upper left", fontsize=6)
@@ -1428,7 +1428,7 @@ def panel_flipped(ax, sizes=SIZES):  # 1M scored 2026-10-23 (incontext_evidence.
     pf.zero(ax)
     ax.set_xticks(range(len(sizes)), sizes)
     ax.set_xlim(-0.5, len(sizes) - 0.5)
-    ax.set_ylim(*IC_YLIM), ax.set_yticks(range(0, 7, 2))  # as (a); room above the seeds (to 5.3) for the legend
+    ax.set_ylim(*IC_YLIM), ax.set_yticks(range(0, 7))  # as (a); room above the seeds (to 5.3) for the legend
     ax.set_xlabel("Model size")
     ax.set_ylabel("Villain–other gap, k = 2 (nats)")
     hs = [ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]]
