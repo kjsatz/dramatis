@@ -1438,7 +1438,7 @@ def panel_flipped(ax, sizes=SIZES):
     ax.set_xlabel("Model size")
     ax.set_ylabel("Villain–other gap, k = 2 (nats)")
     hs = [ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]]
-    ax.legend(hs, ["The villain did two bad acts", "Control: replace bad acts with benign"], frameon=False, loc="upper left",
+    ax.legend(hs, ["The villain did two bad acts", "Control: replace bad acts\nwith benign"], frameon=False, loc="upper left",
               fontsize=6)
 
 
@@ -1458,30 +1458,49 @@ def on_off_point(ax, x, y, size, on):
         ax.plot([x], [y], marker=SIZE_MK[size], color=MUTED, mfc="white", mew=0.8, ms=3.2, ls="none", zorder=2)
 
 
+VILLAIN_RAMP = {"1M": "#f2a7a3", "3M": "#e8756f", "10M": "#d4443d", "30M": "#a82720", "100M": "#6e1410"}  # light to dark, as SIZE_C
+OTHER_RAMP = {"1M": "#cfcfcf", "3M": "#a9a9a9", "10M": "#838383", "30M": "#5e5e5e", "100M": "#3a3a3a"}
+
+
 def panel_history(ax):
     """Activations (incontext_history_probe.py --same-items; Kevin, 2026-10-24): at the actor's name in the test setup, how
     well the residual stream separates (a)'s own k = 2 items from the same items with the villain's two scenes made good
-    (cross-validated d'), villain minus other child, after the last block (a fixed depth, not each seed's best block);
-    gray dashes: the permutation null's 95th percentile (the versions' labels shuffled per story), mean over the seeds."""
+    (cross-validated d'), after the last block, for the villain as the actor (red, left of each size) and for the other
+    child (gray, right): the other child's history did not change, so theirs is the story-wide part. The size's marker
+    and shade; filled = seed switched on; dashes: each series' permutation-null 95th percentile (mean over seeds)."""
+    from matplotlib.patches import Patch
+
     rng = np.random.default_rng(2)
-    nulls = defaultdict(list)
+    nulls = defaultdict(lambda: {"v": [], "o": []})
     for f in sorted(glob.glob("logs/v4/incontext/history_probe_same/*.json")):
         r = json.load(open(f))
         size = r["run"].split("-")[3]
-        y = r["v_setup"][-1] - r["o_setup"][-1]
-        nulls[size].append(r["null_setup_p95"][-1])
-        on_off_point(ax, SIZES.index(size) + rng.uniform(-0.13, 0.13), y, size, switched_on(r["run"]))
-    for size, v in nulls.items():
-        ax.plot([SIZES.index(size) - 0.3, SIZES.index(size) + 0.3], [np.mean(v)] * 2, color=MUTED, lw=0.8, ls="--", zorder=1)
+        on = switched_on(r["run"])
+        for key, dx, y, ramp in (("v", -0.17, r["v_setup"][-1], VILLAIN_RAMP), ("o", 0.17, r["o_setup"][-1], OTHER_RAMP)):
+            x = SIZES.index(size) + dx + rng.uniform(-0.06, 0.06)
+            ax.plot([x], [y], marker=SIZE_MK[size], color=ramp[size], ms=3.4, ls="none", zorder=3,
+                    **({"mec": "white", "mew": 0.3} if on else {"mfc": "white", "mew": 0.8}))
+            if f"null_{key}_setup_p95" in r:
+                nulls[size][key].append(r[f"null_{key}_setup_p95"][-1])
+    for size, d in nulls.items():
+        for key, dx in (("v", -0.17), ("o", 0.17)):
+            if d[key]:
+                i = SIZES.index(size) + dx
+                ax.plot([i - 0.12, i + 0.12], [np.mean(d[key])] * 2, color=MUTED, lw=0.8, ls="--", zorder=2)
     pf.zero(ax)
     ax.set_xticks(range(len(SIZES)), SIZES)
     ax.set_xlabel("Model size")
-    # a cross-validated separation (d'): the difference of the two histories' means along the fitted direction, in
-    # within-group standard deviations; written out rather than as a symbol
-    ax.set_ylabel("History at the test name\n(separation, villain − other)")
-    ax.set_ylim(top=7.3)  # room above the points for the legend
-    chance = ax.plot([], [], color=MUTED, lw=0.8, ls="--")[0]
-    on_off_legend(ax, extra=((chance, "Chance (95th percentile)"),), loc="upper left", fontsize=6)
+    ax.set_ylabel("History at the test name\n(separation)")
+    ax.set_ylim(-0.4, 9.0)  # room above the points (to 5.7) for the two legends
+    # two legends, one per encoding: the color says whose name, the fill whether the seed switched on
+    whose = ax.legend([Patch(color=VILLAIN_RAMP["30M"]), Patch(color=OTHER_RAMP["30M"])], ["Villain", "Other child"],  # whose name: the y-label says where
+                      frameon=False, loc="upper left", fontsize=6, handlelength=0.9, handleheight=0.9, handletextpad=0.4,
+                      borderaxespad=0.2)
+    ax.add_artist(whose)
+    hs = [ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=INK2, mfc="white", mew=0.8, ms=3.4)[0],
+          ax.plot([], [], color=MUTED, lw=0.8, ls="--")[0]]
+    ax.legend(hs, ["Switched on", "Not switched on", "Chance"], frameon=False, loc="upper right", fontsize=6,
+              handletextpad=0.3, borderaxespad=0.2)
 
 
 def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
