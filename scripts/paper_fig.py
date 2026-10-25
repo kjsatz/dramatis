@@ -323,7 +323,7 @@ def panel_persona_vs_z(ax, act):
         ax.plot(z, m, marker=SIZE_MK[size], color=SIZE_C[size], ms=2.6, ls="none", zorder=3)
     pf.zero(ax)
     zaxis(ax)
-    ax.text(0.5, 0.96, act.capitalize(), transform=ax.transAxes, va="top", ha="center", fontsize=7.5, color=INK)
+    act_title(ax, act, "weak readout" if act == "lie" else None)  # as Figures 5(a)-(b) and A2(a)
 
 
 def panel_persona_free_text(ax):
@@ -1332,7 +1332,11 @@ def figA3(out):
 # positive rung, applied per seed).
 IC_ACTS = ("steal", "cheat", "tease")
 IC_YLIM = (-1.0, 7.0)  # Figure 8a and 8c on one range, ticked every nat (8c's seeds reach -0.75 and 5.3; the legends sit above)
-IC_SETS = {0: "incontext_k0_full", 1: "incontext_full", 2: "incontext_k2_full"}
+# k = 0 and 1 without the half-scene (Kevin, 2026-10-24): the frozen k = 0 and 1 prompts ended on the setup of the villain's
+# next temptation, left unresolved; the corrected sets drop that one line (build_probe_sets.py scene_cut), scored on the
+# final checkpoints by incontext_cut.py score (records logs/v4/incontext/cut/evidence) and probed during training by the
+# retrain (hub-cut/runs, docs/2026-10-24_PLAN_incontext_cut_box.md). k = 2 ended on a finished scene: frozen, unchanged.
+IC_CUT = {0: ("cut_k0", "data/probe_sets/incontext_cut_k0_full_v4.json"), 1: ("cut_k1", "data/probe_sets/incontext_cut_full_v4.json")}
 
 
 @lru_cache(maxsize=None)
@@ -1355,25 +1359,32 @@ def k_bad_stories():
 @lru_cache(maxsize=None)
 def ladder_gaps():
     """{run: {k: villain-other gap, mean over steal / cheat / tease}} at each ladder-C model's final checkpoint, from the
-    per-item scores, on the stories whose villain has done exactly k bad acts (k_bad_stories)."""
-    items = {k: json.load(open(f"data/probe_sets/{name}_v4.json"))["items"] for k, name in IC_SETS.items()}
-    out = defaultdict(dict)
+    per-item scores, on the stories whose villain has done exactly k bad acts (k_bad_stories); k = 0 and 1 from the
+    corrected sets (IC_CUT), k = 2 from the frozen one."""
+
+    def gap(scores, items, k):
+        keep = k_bad_stories()[k]
+        gaps = []
+        for a in IC_ACTS:
+            by = {g: [s for s, it in zip(scores, items, strict=True) if it["act"] == a and it["group"] == g
+                      and it["story"] in keep] for g in ("villain", "other")}
+            gaps.append(np.mean(by["villain"]) - np.mean(by["other"]))
+        return float(np.mean(gaps))
+
+    items = {k: json.load(open(path))["items"] for k, (_, path) in IC_CUT.items()}
+    items[2] = json.load(open("data/probe_sets/incontext_k2_full_v4.json"))["items"]
+    out = {}
     for d in A()["_meta"]["eval_dirs"]:
         for f in glob.glob(f"{d}/ladder/v4-ladder-C-*-s*.json"):
-            res = json.load(open(f))
-            for k, name in IC_SETS.items():
-                rec = res.get(f"{name}_v4", {})
-                if "scores" not in rec:
-                    continue
-                assert rec["acts"] == [it["act"] for it in items[k]] and rec["groups"] == [it["group"] for it in items[k]]
-                keep = k_bad_stories()[k]
-                gaps = []
-                for a in IC_ACTS:
-                    by = {g: [s for s, it in zip(rec["scores"], items[k], strict=True) if it["act"] == a and it["group"] == g
-                              and it["story"] in keep] for g in ("villain", "other")}
-                    gaps.append(np.mean(by["villain"]) - np.mean(by["other"]))
-                out[Path(f).stem][k] = float(np.mean(gaps))
-    return dict(out)
+            rec = json.load(open(f)).get("incontext_k2_full_v4", {})
+            if "scores" not in rec:
+                continue
+            assert rec["acts"] == [it["act"] for it in items[2]] and rec["groups"] == [it["group"] for it in items[2]]
+            run = Path(f).stem
+            cut = json.load(open(f"logs/v4/incontext/cut/evidence/{run}.json"))
+            out[run] = {k: gap(cut[arm]["scores"], items[k], k) for k, (arm, _) in IC_CUT.items()}
+            out[run][2] = gap(rec["scores"], items[2], 2)
+    return out
 
 
 def switched_on(run):
@@ -1401,16 +1412,16 @@ def panel_incontext_k(ax):
 
 
 def panel_over_training(ax, size, w=51):
-    """Each seed's k = 1 villain-other gap from the in-training probes (steal / cheat / tease), smoothed over w probes."""
-    for f in sorted(glob.glob(f"hub-v4/runs/*_v4-ladder-C-{size}-s?_*/probes.jsonl")):
+    """Each seed's k = 1 villain-other gap from the in-training probes (steal / cheat / tease), smoothed over w probes: the
+    corrected 12-story probe of the retrain (IC_CUT; the same trajectories, checked byte for byte)."""
+    for f in sorted(glob.glob(f"hub-cut/runs/*_v4-ladder-C-{size}-s?_cut/probes.jsonl")):
         r = [json.loads(line) for line in open(f)]
         u = np.array([x["updates"] for x in r]) * pf.TOK_M
-        y = np.array([np.mean([x[f"incontext/character/{a}"] for a in IC_ACTS]) for x in r])
+        y = np.array([np.mean([x[f"incontext_cut/character/{a}"] for a in IC_ACTS]) for x in r])
         ax.plot(u[w // 2 : w // 2 + len(y) - w + 1], np.convolve(y, np.ones(w) / w, "valid"), lw=0.8, color=SIZE_C[size], alpha=0.85)
     pf.zero(ax)
     ax.set_xticks([0, 200, 400])
-    tr = blended_transform_factory(ax.transAxes, ax.transData)  # x in axes fraction, y in nats
-    ax.text(0.07, 3.5, size, transform=tr, va="center", ha="left", fontsize=7.5, color=SIZE_C[size])
+    ax.text(0.07, 0.75, size, transform=ax.transAxes, va="center", ha="left", fontsize=7.5, color=SIZE_C[size])  # one height: sharey
     ax.set_xlabel("Tokens seen (millions)")
 
 
@@ -1467,11 +1478,12 @@ def panel_history(ax):
     well the residual stream separates (a)'s own k = 2 items from the same items with the villain's two scenes made good
     (cross-validated d'), after the last block, for the villain as the actor (red, left of each size) and for the other
     child (gray, right): the other child's history did not change, so theirs is the story-wide part. The size's marker
-    and shade; filled = seed switched on; dashes: each series' permutation-null 95th percentile (mean over seeds)."""
+    and shade; filled = seed switched on. No chance line (Kevin, 2026-10-24): every point exceeds its own model's
+    permutation-null 95th percentile (checked here, for the caption), and those nulls differ by model and child (they
+    scale with how far apart the two versions sit), so no one line marks chance."""
     from matplotlib.patches import Patch
 
     rng = np.random.default_rng(2)
-    nulls = defaultdict(lambda: {"v": [], "o": []})
     for f in sorted(glob.glob("logs/v4/incontext/history_probe_same/*.json")):
         r = json.load(open(f))
         size = r["run"].split("-")[3]
@@ -1480,27 +1492,20 @@ def panel_history(ax):
             x = SIZES.index(size) + dx + rng.uniform(-0.06, 0.06)
             ax.plot([x], [y], marker=SIZE_MK[size], color=ramp[size], ms=3.4, ls="none", zorder=3,
                     **({"mec": "white", "mew": 0.3} if on else {"mfc": "white", "mew": 0.8}))
-            if f"null_{key}_setup_p95" in r:
-                nulls[size][key].append(r[f"null_{key}_setup_p95"][-1])
-    for size, d in nulls.items():
-        for key, dx in (("v", -0.17), ("o", 0.17)):
-            if d[key]:
-                i = SIZES.index(size) + dx
-                ax.plot([i - 0.12, i + 0.12], [np.mean(d[key])] * 2, color=MUTED, lw=0.8, ls="--", zorder=2)
+            assert y > r[f"null_{key}_setup_p95"][-1], f"{r['run']} {key}: at or below chance (the caption says none is)"
     pf.zero(ax)
     ax.set_xticks(range(len(SIZES)), SIZES)
     ax.set_xlabel("Model size")
-    ax.set_ylabel("History at the test name\n(separation)")
-    ax.set_ylim(-0.4, 9.0)  # room above the points (to 5.7) for the two legends
+    ax.set_ylabel("Residual stream shift at the name\n(bad acts vs. control, SD)")  # Kevin, 2026-10-24; the legend says whose name
+    ax.set_ylim(-0.4, 8.0)  # room above the points (to 5.7) for the two legends
     # two legends, one per encoding: the color says whose name, the fill whether the seed switched on
     whose = ax.legend([Patch(color=VILLAIN_RAMP["30M"]), Patch(color=OTHER_RAMP["30M"])], ["Villain", "Other child"],  # whose name: the y-label says where
                       frameon=False, loc="upper left", fontsize=6, handlelength=0.9, handleheight=0.9, handletextpad=0.4,
                       borderaxespad=0.2)
     ax.add_artist(whose)
-    hs = [ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=INK2, mfc="white", mew=0.8, ms=3.4)[0],
-          ax.plot([], [], color=MUTED, lw=0.8, ls="--")[0]]
-    ax.legend(hs, ["Switched on", "Not switched on", "Chance"], frameon=False, loc="upper right", fontsize=6,
-              handletextpad=0.3, borderaxespad=0.2)
+    hs = [ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=INK2, mfc="white", mew=0.8, ms=3.4)[0]]
+    ax.legend(hs, ["Switched on", "Not switched on"], frameon=False, loc="upper right", fontsize=6, handletextpad=0.3,
+              borderaxespad=0.2)
 
 
 def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
@@ -1526,7 +1531,7 @@ def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
     ax.set_ylabel("Spillover onto “cheat” and “tease”\n(“Ben steals” finetune, nats)")  # the finetune named here, not in a title
     lex_h = ax.plot([], [], "o", color=ORANGE, ms=3.0)[0]
     ax.legend([lex_h, ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]],
-              ["Villain/kind names (z = 0)", "Coin-flip corpus, seed switched on", "Coin-flip corpus, seed not switched on"],
+              ["Villain/kind names, z = 0", "Coin-flip corpus, seed switched on", "Coin-flip corpus, seed not switched on"],
               frameon=False, loc="lower left", fontsize=6, borderaxespad=0.05,
               # the bottom row just above the 4 gridline; the rest rises into the space above the axes (no title there)
               bbox_to_anchor=(0.0, 4.05), bbox_transform=blended_transform_factory(ax.transAxes, ax.transData))
@@ -1582,7 +1587,7 @@ def panel_steal_rise(ax, sizes=("3M", "10M", "30M")):
     ax.set_ylabel("Rise on “steal” after the\n“Ben steals” finetune (nats)")
     hs = [ax.plot([], [], "o", color=ORANGE, ms=3.4)[0], ax.plot([], [], "o", color=SIZE_C["10M"], ms=3.4)[0],
           ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=INK2, mfc="white", mew=0.8, ms=3.4)[0]]
-    ax.legend(hs, ["Villain/kind names (z = 0)", "Coin-flip corpus", "Ben", "Other kind names"], frameon=False, loc="upper left",
+    ax.legend(hs, ["Villain/kind names, z = 0", "Coin-flip corpus", "Ben", "Other names"], frameon=False, loc="upper left",
               ncol=2, fontsize=6)
 
 

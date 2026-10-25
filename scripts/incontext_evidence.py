@@ -104,7 +104,7 @@ def test_items(r, prefix_by_arm, exclude, names, forks_for, v):
     return out
 
 
-def build(n=80, seed=0, only=None):
+def build(n=80, seed=0, only=None, scene_cut=False):
     rng = np.random.default_rng(seed)
     drng = np.random.default_rng(seed + 1)  # the donors' own stream: the arms above are unchanged
     donors = donor_paragraphs()
@@ -128,10 +128,11 @@ def build(n=80, seed=0, only=None):
         kid = r["spec"]["kids"][0 if v == "$A" else 1]
         bad_sits = [s for a_, s in zip(kid["acts"], kid["situations"]) if a_ in bps.acts.bad]
 
-        # source arms: cut before the villain's second bad choice (its setup kept, as frozen), paragraphs removed
+        # source arms: cut before the villain's second bad choice (its setup kept, as frozen; with scene_cut the whole
+        # scene left out, as build_probe_sets.py scene_cut, incontext_cut.py decomp), paragraphs removed
         second = paras[vb[1]]
         cut = re.search(rf"^[ \t]*\[CHOICE {re.escape(v)}", second, re.MULTILINE).start()
-        k1 = paras[: vb[1]] + [second[:cut].rstrip()]
+        k1 = paras[: vb[1]] + ([] if scene_cut else [second[:cut].rstrip()])
         oi = paragraphs_with_choice(k1, o)
         drop = {"as_probed": set(), "no_other": set(oi), "no_villain": {vb[0]}, "neither": set(oi) | {vb[0]}}
         prefixes = {arm: "\n\n".join(p for i, p in enumerate(k1) if i not in d) for arm, d in drop.items()}

@@ -7,11 +7,15 @@ The corrected sets (incontext_cut_*_v4.json) are the frozen ones with that one l
 
   score   the two 80-story sets (k = 1, k = 0) on every ladder-C model's final checkpoint, on the Mac, as
           incontext_evidence.py scores its arms: Figure 8a's k = 0 and 1 and the switched-on threshold
+  decomp  the notebook's decomposition of the k = 1 gap (2026-09-25, incontext_evidence.py's source arms: as_probed,
+          no_other, no_villain, neither) with the villain's second temptation left out whole, scored into the same
+          records as `score`
   check   after the retrain box (docs/2026-10-24_PLAN_incontext_cut_box.md): every retrained run's records of the two
           frozen probe sets must be byte-identical to the grid run's, and its final validation loss the same, so the
           trajectory is the original and the third probe set (incontext_cut_v4) is Figure 8b's corrected curve
 
     uv run python scripts/incontext_cut.py score [--sizes ...]
+    uv run python scripts/incontext_cut.py decomp [--sizes ...]
     uv run python scripts/incontext_cut.py check --runs-dir hub-cut/runs
 """
 
@@ -37,6 +41,15 @@ def score(sizes, seeds):
     ie.OUT, saved = OUT, ie.OUT  # incontext_evidence.score reads OUT / "sets" and writes OUT / "evidence"
     try:
         ie.score(sizes, seeds, list(SETS))
+    finally:
+        ie.OUT = saved
+
+
+def decomp(sizes, seeds):
+    ie.OUT, saved = OUT, ie.OUT  # build writes OUT / "sets", score reads it and writes OUT / "evidence"
+    try:
+        ie.build(only=ie.SOURCE_ARMS, scene_cut=True)
+        ie.score(sizes, seeds, ie.SOURCE_ARMS)
     finally:
         ie.OUT = saved
 
@@ -87,12 +100,14 @@ def check(runs_dir):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["score", "check", "sets"])
+    ap.add_argument("cmd", choices=["score", "decomp", "check", "sets"])
     ap.add_argument("--sizes", nargs="+", default=["1M", "3M", "10M", "30M", "100M"])
     ap.add_argument("--seeds", nargs="+", type=int, default=list(range(8)))
     ap.add_argument("--runs-dir", default="hub-cut/runs")
     a = ap.parse_args()
     if a.cmd == "sets":
         sets()
+    elif a.cmd == "decomp":
+        decomp(a.sizes, a.seeds)
     else:
         score(a.sizes, a.seeds) if a.cmd == "score" else sys.exit(0 if check(a.runs_dir) else 1)

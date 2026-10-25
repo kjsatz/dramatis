@@ -2759,3 +2759,52 @@ Chance (null 95th percentile) is 0.1–0.3; at 10M three seeds that are not swit
 2.3–3.6 (switched on 2.8–4.4), so the history reaches the name without being acted on. Still open, noted only: the k = 0
 and k = 1 prefixes end on the villain's next temptation, its setup kept and unresolved, where k = 2 ends on a finished
 scene, an offset of about −0.2 to −0.3 nats at k = 0 and 1.
+
+Claude (5:30 pm PT): **The in-context k = 0 and k = 1 prompts without the half-told choice: Figure 8, C1 and the
+decomposition redone (Kevin: no caveat).** The frozen k = 0 and k = 1 prompts ended on the villain's next choice, its
+setup kept and unresolved (entry above). The corrected prompts drop that one line (`build_probe_sets.py` `scene_cut`;
+checked: one line fewer per prompt, names, filler lines and test items unchanged); k = 2 never had it.
+- **Retrain for Figure 8b** (`docs/2026-10-24_PLAN_incontext_cut_box.md`): the 40 ladder-C runs trained again at
+  `cbdbd9d` (branch `incontext-cut`) with the corrected 12-story probe as a third probe set, on vast.ai instance
+  57555644 (8× RTX 5090, California), 12:43–4:35 pm PT (rented 12:35 pm, destroyed 5:20 pm; about $31).
+  `incontext_cut.py check`: every run's frozen probe records byte-identical to the grid's and every final validation
+  loss the same, so the models are the originals. Records in `hub-cut/runs/` (local), training logs in
+  `logs/cut_box/train/`.
+- **Figure 8a and "switched on"** (`incontext_cut.py score`, final checkpoints): 30M / 100M k = 1 +3.86 [2.39, 5.33] /
+  +4.77 [4.06, 5.48] (as frozen on the same 76 stories +2.32 / +2.76); k = 2 unchanged, +4.00 / +4.50; k = 0 +0.42 /
+  +0.48 (was about +0.1); 1M–3M within 0.2 of zero at every k (the −0.2 to −0.3 small-model offset was the half-told
+  choice). One bad act is enough: k = 1 ≈ k = 2 in every seed. Switched on 0 / 1 / 3 / 7 / 8 of 8: 3M s0 is new (k = 1
+  +1.55; its k = 2 was +1.55 all along).
+- **Figure 8b, switch times** (corrected probe, smoothed; the last crossing of 10 % of the final value): 75–303M tokens
+  (30M–100M 75–191M, 10M 171–303M, 3M s0 246M); 10 → 50 % of the final value in 22–87M tokens, 10 → 80 % in 66–182M
+  (as frozen ≈ 80–330M, 18–75M, 36–164M). Onsets (`incontext_chronology.onset`, updates, corrected vs frozen): s0
+  7,920 / 7,920, s1 8,550 / 7,590, s2 15,150 / 14,560, s4 9,430 / 9,780, s5 8,340 / 8,400, s6 12,460 / 12,410, s7
+  9,450 / 8,510; s3 never.
+- **C1 on the Mac** (`INCONTEXT_CUT=1`: patching, head patching, heads, head sources, mention probe; 1:26–3:14 pm PT;
+  records `logs/v4/incontext/*_cut/`): 120 name-swap pairs (frozen 96: the shorter prompts fit 512 tokens more often).
+  The same lookup head in all 21 runs and the same copy head in every switched-on run; its direct write 2–4× larger,
+  the name-swap effect about twice as large (30M s0 +3.5 → +6.8). The heads records' k = 1 gap is now the corrected one
+  (`incontext_heads.cut_k1_gap`).
+- **Chronology** (on the box, main at `35d56f8`, `INCONTEXT_CUT=1`, the dense 30M checkpoints, onsets from the
+  corrected probe; 4:41–5:17 pm PT, after a first start failed on a path; records `logs/v4/incontext/chronology_cut/`,
+  logs `logs/cut_box/chrono/`): the same order in all seven switched-on seeds. Half of the final value is reached
+  first by the lookup head's same-name attention (median 6,700 updates before the behaviour's half-rise), then by the
+  history on the later mentions (5,200), delivery to the test name (4,100), and last the copy head with the behaviour
+  (1,100). The copy head forms a median 3,100 updates (51M tokens) after delivery (as frozen 6,100 / 5,100 / 3,700 /
+  600 and 2,900). Seed 3 again forms the lookup and the mentions but not delivery. Same heads as frozen.
+- **Decomposition** (`incontext_cut.py decomp`: `incontext_evidence.py`'s four source arms, the villain's next choice
+  left out whole; 30M / 100M, steal / cheat / tease): as is +3.54 / +4.44; the villain's bad act alone +2.30 / +2.68;
+  the other child's good choices alone +1.03 / +1.42; neither −0.10 / −0.24 [−0.39, −0.08]; interaction about +0.1.
+  1M–3M ≈ 0 in every arm (were −0.2 to −0.3). Both children's histories count, about additively.
+- **Figure 8d** now has no chance line: every one of the 80 shifts exceeds its own model's permutation-null 95th
+  percentile (asserted when the figure is built), and the nulls scale with the shift (0.07–0.54). The y-label is
+  "Residual stream shift at the name (bad acts vs. control, SD)". 3M s0, newly switched on, shows no villain-specific
+  shift at any block (0.53 vs the other child's 0.37), so what it uses is not visible at the name. Open.
+- **Exploratory, not used:** on one item (the Bella story renamed Ben / Molly, 30M s0), several heads in blocks 2–6 put
+  70–97 % of their attention from the villain's next mention back onto the tease line. How the act reaches the later
+  mentions was not tested causally. A two-row circuit figure (Figure 7 over the in-context circuit) was prototyped and
+  dropped (Kevin: paper scope).
+
+Code in this commit: `paper_fig.py` (Figure 8 on the corrected data; 8d's two series, no chance line, the new label;
+Figure 3's lie labeled a weak readout; Figure A3's legends), `incontext_heads.py`, `incontext_evidence.py` (`scene_cut`),
+`incontext_cut.py` (`decomp`), `.gitignore` (`hub-cut/`).

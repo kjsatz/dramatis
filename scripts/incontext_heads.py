@@ -22,8 +22,8 @@ nats per token) and the frozen rung C / D values from the evaluation record.
 import argparse
 import glob
 import json
-import os
 import math
+import os
 import re
 from pathlib import Path
 
@@ -53,6 +53,20 @@ SETS = Path("logs/v4/incontext/sets_cut" if CUT else "logs/v4/incontext/sets")
 REPO = "kjsatz/dramatis-v4-runs"
 REVISION = {"box-1": None, "box-4": None, "box-2": "box-2", "box-3": "box-3"}
 tok = StoryTokenizer.load("tokenizer/story-bpe-4096.json")
+
+
+def cut_k1_gap(run):
+    """Under CUT, the run's corrected final k = 1 gap as Figure 8a has it (paper_fig.py ladder_gaps): villain minus other,
+    mean over steal / cheat / tease, on the 76 stories of sets_cut/as_probed.json (incontext_cut.py score's records)."""
+    items = json.load(open("data/probe_sets/incontext_cut_full_v4.json"))["items"]
+    keep = {i["story"] for i in json.load(open(SETS / "as_probed.json"))["items"]}
+    scores = json.load(open(f"logs/v4/incontext/cut/evidence/{run}.json"))["cut_k1"]["scores"]
+    gaps = []
+    for act in ("steal", "cheat", "tease"):
+        by = {g: [s for s, it in zip(scores, items, strict=True) if it["act"] == act and it["group"] == g and it["story"] in keep]
+              for g in ("villain", "other")}
+        gaps.append(np.mean(by["villain"]) - np.mean(by["other"]))
+    return float(np.mean(gaps))
 
 
 class Recorder:
@@ -184,7 +198,7 @@ def main(sizes, seeds):
             ind, prev, gain = repeated_tokens(gpt)
             nm, dla = task_scores(gpt, rows)
             rec = {"run": run, "size": size, "seed": seed, "checkpoint": ck, "git_commit": git_commit(),
-                   "rungC": ev["incontext_full_v4"]["summary"]["incontext_full/character/ALL"],
+                   "rungC": cut_k1_gap(run) if CUT else ev["incontext_full_v4"]["summary"]["incontext_full/character/ALL"],
                    "rungD": ev["incontext_k2_full_v4"]["summary"]["incontext_k2_full/character/ALL"],
                    "icl_gain": gain, "induction": ind.tolist(), "prev_token": prev.tolist(),
                    "name_match": nm.tolist(), "dla": dla.tolist()}
