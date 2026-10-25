@@ -2808,3 +2808,21 @@ checked: one line fewer per prompt, names, filler lines and test items unchanged
 Code in this commit: `paper_fig.py` (Figure 8 on the corrected data; 8d's two series, no chance line, the new label;
 Figure 3's lie labeled a weak readout; Figure A3's legends), `incontext_heads.py`, `incontext_evidence.py` (`scene_cut`),
 `incontext_cut.py` (`decomp`), `.gitignore` (`hub-cut/`).
+
+Claude (9:05 pm PT): **Figure 8c–d moved from k = 2 to k = 1 (evaluation only; Kevin: one bad act is enough, so the
+figure reads after the villain's first bad act).** `incontext_same_items.py --k 1` rebuilds the corrected k = 1 items
+(own: identical to `incontext_cut_full_v4.json`, checked) in two more versions that differ only in the villain's one
+bad-act scene (checked: one changed stretch per prompt): GG, a benign corpus scene of the same situation from another
+held-out story (the k = 2 control's first donor), and BBswap, a bad one; 76 stories, 456 items; scored on all 40 models
+(8:26–8:37 pm PT; `logs/v4/incontext/same_items_k1/`). Own reproduces 8a's k = 1 to 5e-7. 30M / 100M, steal / cheat /
+tease: own +3.86 / +4.77, GG −0.03 [−0.10, +0.05] / −0.19 [−0.35, −0.03], BBswap +3.87 / +4.78 (a swapped-in bad scene
+changes nothing, so editing a scene is harmless in itself); 1M–10M GG within 0.05 of 0. The history probe on the k = 1
+pair (`incontext_history_probe.py --same-items --k 1`, 200 permutations; 8:37–8:45 pm PT; `history_probe_same_k1/`):
+villain / other child after the last block 0.32 / 0.29 (1M), 0.38 / 0.33 (3M), 3.73 / 0.55 (10M), 5.11 / 0.98 (30M),
+5.86 / 0.91 (100M); every one of the 80 points above its own chance level (0.04–0.49); at 10M three seeds that are not
+switched on carry it anyway (3.0–4.9; switched on 4.4–6.5); 3M s0 still shows no villain-specific shift (0.30). The 100M
+negative control is not explained by counting good history: at k = 1 the villain made good has one benign choice
+against the other child's ≈ 1.5 and still sits at −0.19, and at k = 2, with two, at −0.27; with the decomposition's
+"neither" arm (−0.24), a residual of a few tenths of a nat at 100M, not story noise (a story bootstrap keeps it away from
+0), not which child is mentioned last, not editing. Figure 8(c) and (d) redrawn (8d's top raised for the legends);
+caption lines 20–21 now say k = 1.

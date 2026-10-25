@@ -26,6 +26,10 @@ the same in both versions.
     uv run python scripts/incontext_history_probe.py --same-items  (Figure 8d: 8a's own k = 2 items, the story's scenes
         against incontext_same_items.py's good version, with a permutation null; to history_probe_same)
 
+    uv run python scripts/incontext_history_probe.py --same-items --k 1  (Figure 8d since 2026-10-24: 8a's k = 1 items,
+        the villain's one bad act as written against its benign version; incontext_same_items.py --k 1; to
+        history_probe_same_k1)
+
 The permutation null (--same-items): per story the two versions' labels are swapped at random (the same swap for both
 children's items), 200 times; for each block the null's mean and 95th percentile of villain d' minus other d'.
 """
@@ -55,7 +59,8 @@ from dramatis.train import model_from_checkpoint  # noqa: E402
 OUT = Path("logs/v4/incontext/history_probe")
 OUT_K2 = Path("logs/v4/incontext/history_probe_66")  # --k2-only (Kevin, 2026-10-24)
 OUT_SAME = Path("logs/v4/incontext/history_probe_same")  # --same-items (Kevin, 2026-10-24)
-SAME_SETS = Path("logs/v4/incontext/same_items/sets")
+SAME_SETS = {2: Path("logs/v4/incontext/same_items/sets"), 1: Path("logs/v4/incontext/same_items_k1/sets")}
+OUT_SAME_K1 = Path("logs/v4/incontext/history_probe_same_k1")  # --same-items --k 1 (Kevin, 2026-10-24)
 N_PERM = 200
 SIZES = ["1M", "3M", "10M", "30M", "100M"]
 tok = ih.tok
@@ -79,11 +84,11 @@ def k2_stories():
     return keep
 
 
-def build_rows(same_items=False):
+def build_rows(same_items=False, k=2):
     """Per story: for BB and GG, the token ids of each item and the positions to read. same_items: BB = Figure 8a's own k = 2
     items (the villain's two bad acts as written), GG = the same items with those two scenes made good."""
     if same_items:
-        sets = {"BB": json.load(open(SAME_SETS / "own.json"))["items"], "GG": json.load(open(SAME_SETS / "GG.json"))["items"]}
+        sets = {"BB": json.load(open(SAME_SETS[k] / "own.json"))["items"], "GG": json.load(open(SAME_SETS[k] / "GG.json"))["items"]}
     else:
         sets = {c: json.load(open(ih.SETS / f"T_{c}.json"))["items"] for c in ("BB", "GG")}
     assert [i["story"] for i in sets["BB"]] == [i["story"] for i in sets["GG"]]
@@ -156,10 +161,10 @@ def null_dprime(A, B, A2, B2, n_perm=N_PERM, seed=0):
     return {"v": p95(v), "o": p95(o), "diff": p95(v - o), "diff_mean": (v - o).mean(0).tolist()}
 
 
-def main(runs, k2_only=False, same_items=False):
-    out = OUT_SAME if same_items else OUT_K2 if k2_only else OUT
+def main(runs, k2_only=False, same_items=False, k=2):
+    out = (OUT_SAME if k == 2 else OUT_SAME_K1) if same_items else OUT_K2 if k2_only else OUT
     out.mkdir(parents=True, exist_ok=True)
-    stories = build_rows(same_items)
+    stories = build_rows(same_items, k)
     items_by_story = {s: v for s, v in stories.items() if any(it["villain"] for it in v["items"]) and any(not it["villain"] for it in v["items"])}
     if k2_only:
         keep = k2_stories()
@@ -223,6 +228,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", nargs="+", default=[f"v4-ladder-C-{s}-s{i}" for s in SIZES for i in range(8)])
     ap.add_argument("--k2-only", action="store_true", help="only the 66 stories whose villain's first two choices are bad")
-    ap.add_argument("--same-items", action="store_true", help="Figure 8a's own k = 2 items against their good version, with a null")
+    ap.add_argument("--same-items", action="store_true", help="Figure 8a's own items against their good version, with a null")
+    ap.add_argument("--k", type=int, choices=[1, 2], default=2, help="with --same-items: 8a's k = 1 or k = 2 items")
     a = ap.parse_args()
-    main(a.runs, a.k2_only, a.same_items)
+    main(a.runs, a.k2_only, a.same_items, a.k)

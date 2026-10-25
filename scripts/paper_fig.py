@@ -1426,16 +1426,16 @@ def panel_over_training(ax, size, w=51):
 
 
 def panel_flipped(ax, sizes=SIZES):
-    """k = 2 on (a)'s own items (incontext_same_items.py; Kevin, 2026-10-24): the villain did two bad acts, as in (a) (the
-    same 66 stories, names, filler lines and test items, so these are (a)'s k = 2 values), against the control, the same
-    items with the villain's two bad-act scenes replaced by corpus scenes of the same situations with their good outcome
-    (from other held-out stories); size color and shape for the gap, gray for the control; 95 % intervals over seeds,
-    seeds as dots."""
+    """k = 1 on (a)'s own items (incontext_same_items.py --k 1; Kevin, 2026-10-24: one bad act is enough, so (c) and (d)
+    moved from k = 2 to k = 1): the villain did one bad act, as in (a) (the same 76 stories, names, filler lines and test
+    items, so these are (a)'s k = 1 values), against the control, the same items with that one scene replaced by a corpus
+    scene of the same situation with its good outcome (from another held-out story); size color and shape for the gap,
+    gray for the control; 95 % intervals over seeds, seeds as dots."""
     G = ladder_gaps()
     for i, size in enumerate(sizes):
         runs = sorted(r for r in G if f"-{size}-" in r)
-        good = [json.load(open(f"logs/v4/incontext/same_items/evidence/{r}.json"))["GG"]["summary"] for r in runs]
-        arms = ((-0.14, [G[r][2] for r in runs], SIZE_C[size], False),
+        good = [json.load(open(f"logs/v4/incontext/same_items_k1/evidence/{r}.json"))["GG"]["summary"] for r in runs]
+        arms = ((-0.14, [G[r][1] for r in runs], SIZE_C[size], False),
                 (0.14, [float(np.mean([g[f"GG/character/{a}"] for a in IC_ACTS])) for g in good], MUTED, True))
         for dx, v, col, hollow in arms:
             m, lo, hi = ci95(v)
@@ -1447,9 +1447,9 @@ def panel_flipped(ax, sizes=SIZES):
     ax.set_xlim(-0.5, len(sizes) - 0.5)
     ax.set_ylim(*IC_YLIM), ax.set_yticks(range(0, 7))  # as (a); room above the seeds (to 5.3) for the legend
     ax.set_xlabel("Model size")
-    ax.set_ylabel("Villain–other gap, k = 2 (nats)")
+    ax.set_ylabel("Villain–other gap, k = 1 (nats)")
     hs = [ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]]
-    ax.legend(hs, ["The villain did two bad acts", "Control: replace bad acts\nwith benign"], frameon=False, loc="upper left",
+    ax.legend(hs, ["The villain did a bad act", "Control: replace the bad act\nwith benign"], frameon=False, loc="upper left",
               fontsize=6)
 
 
@@ -1474,8 +1474,8 @@ OTHER_RAMP = {"1M": "#cfcfcf", "3M": "#a9a9a9", "10M": "#838383", "30M": "#5e5e5
 
 
 def panel_history(ax):
-    """Activations (incontext_history_probe.py --same-items; Kevin, 2026-10-24): at the actor's name in the test setup, how
-    well the residual stream separates (a)'s own k = 2 items from the same items with the villain's two scenes made good
+    """Activations (incontext_history_probe.py --same-items --k 1; Kevin, 2026-10-24): at the actor's name in the test setup,
+    how well the residual stream separates (a)'s own k = 1 items from the same items with the villain's bad-act scene made good
     (cross-validated d'), after the last block, for the villain as the actor (red, left of each size) and for the other
     child (gray, right): the other child's history did not change, so theirs is the story-wide part. The size's marker
     and shade; filled = seed switched on. No chance line (Kevin, 2026-10-24): every point exceeds its own model's
@@ -1484,7 +1484,7 @@ def panel_history(ax):
     from matplotlib.patches import Patch
 
     rng = np.random.default_rng(2)
-    for f in sorted(glob.glob("logs/v4/incontext/history_probe_same/*.json")):
+    for f in sorted(glob.glob("logs/v4/incontext/history_probe_same_k1/*.json")):
         r = json.load(open(f))
         size = r["run"].split("-")[3]
         on = switched_on(r["run"])
@@ -1496,8 +1496,8 @@ def panel_history(ax):
     pf.zero(ax)
     ax.set_xticks(range(len(SIZES)), SIZES)
     ax.set_xlabel("Model size")
-    ax.set_ylabel("Residual stream shift at the name\n(bad acts vs. control, SD)")  # Kevin, 2026-10-24; the legend says whose name
-    ax.set_ylim(-0.4, 8.0)  # room above the points (to 5.7) for the two legends
+    ax.set_ylabel("Residual stream shift at the name\n(bad act vs. control, SD)")  # Kevin, 2026-10-24; the legend says whose name
+    ax.set_ylim(-0.4, 10.2)  # room above the points (to 7.5 at k = 1) for the two legends
     # two legends, one per encoding: the color says whose name, the fill whether the seed switched on
     whose = ax.legend([Patch(color=VILLAIN_RAMP["30M"]), Patch(color=OTHER_RAMP["30M"])], ["Villain", "Other child"],  # whose name: the y-label says where
                       frameon=False, loc="upper left", fontsize=6, handlelength=0.9, handleheight=0.9, handletextpad=0.4,
