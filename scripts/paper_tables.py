@@ -57,6 +57,33 @@ def start_form(text, actor):
     return "other"
 
 
+# The corpus's own bad payoffs, as written (before names are assigned: $A / $B): the production generation runs with one
+# or two bad roles (the stories with none have no bad payoffs; the pilots left out). Counted once from the raw stories and
+# frozen in CORPUS_STARTS (a few hundred bytes, in the figure set the release downloads), so a rebuild needs no stories.
+CORPUS_RAW = ["data/raw/v4-one/bundle5.jsonl", "data/raw/v4-one/bundle5b.jsonl",
+              "data/raw/v4-both/bundle5.jsonl", "data/raw/v4-both/bundle5b.jsonl"]
+CORPUS_STARTS = Path("data/probe_sets/corpus_starts_v4.json")
+PAYOFF = re.compile(r"\[CHOICE (\$[AB])\]\n(.*?)\n\[AFTERMATH \1 (\w+)\]", re.S)
+
+
+def corpus_starts():
+    """{act: Counter of start forms}, {act: n} over every bad payoff of the performed acts in CORPUS_RAW: read from
+    CORPUS_STARTS, or counted from the raw stories (`download.py stories`) and written there if it is missing."""
+    if CORPUS_STARTS.exists():
+        d = json.load(open(CORPUS_STARTS))
+        return {a: Counter(v) for a, v in d["starts"].items()}, Counter(d["n"])
+    c, n = defaultdict(Counter), Counter()
+    for f in CORPUS_RAW:
+        for line in open(f):
+            for actor, text, act in PAYOFF.findall(json.loads(line)["story"]):
+                if act in ACTS:
+                    c[act][start_form(text, actor)] += 1
+                    n[act] += 1
+    json.dump({"what": "how the corpus's bad payoffs start, per performed act (scripts/paper_tables.py corpus_starts)",
+               "sources": CORPUS_RAW, "starts": c, "n": n}, open(CORPUS_STARTS, "w"), indent=1)
+    return c, n
+
+
 def tableA1a():
     """Villain names' bad endings in generated text (pretrained models at z = 0, 1M-100M x 3 seeds, the seeds judged;
     judged BAD), by how the paragraph starts; every prewritten bad ending starts with the actor's name. The sub-1M sizes
@@ -71,16 +98,21 @@ def tableA1a():
                 n[r["act"]] += 1
     forks = [f for f in load_forks("v4").items if not f.heldout]
     pre = Counter(start_form(f.endings("$A", "$B")[0], "$A") for f in forks)
-    rows = []
-    for a in ACTS:
-        rows.append(f"{a.capitalize()} & {pct(c[a]['name'] / n[a])} & {pct(c[a]['while'] / n[a])} & {pct(c[a]['quote'] / n[a])} & {n[a]} \\\\")
-    rows.append(f"Prewritten, every act & {pct(pre['name'] / len(forks))} & {pct(pre['while'] / len(forks))} & "
-                f"{pct(pre['quote'] / len(forks))} & {len(forks)} \\\\")
+    cc, cn = corpus_starts()
+
+    def row(label, cnt, tot):
+        n_tex = f"{tot:,}".replace(",", "{,}")  # 559{,}061: math-mode comma spacing for the thousands
+        return f"{label} & {pct(cnt['name'] / tot)} & {pct(cnt['while'] / tot)} & {pct(cnt['quote'] / tot)} & {n_tex} \\\\"
+
+    corpus = [row(a.capitalize(), cc[a], cn[a]) for a in ACTS]
+    generated = [row(a.capitalize(), c[a], n[a]) for a in ACTS]
     return "\n".join([
         "\\begin{tabular}{lrrrr}", "\\toprule",
         " & \\multicolumn{3}{c}{The paragraph starts with} & \\\\", "\\cmidrule(lr){2-4}",
-        "Villain names' bad acts & the actor's name & ``While'' or ``When'' & a quote & $n$ \\\\",
-        "\\midrule", *rows[:-1], "\\midrule", rows[-1], "\\bottomrule", "\\end{tabular}"])
+        "Bad acts & the actor's name & ``While'' or ``When'' & a quote & $n$ \\\\",
+        "\\midrule", "\\multicolumn{5}{@{}l}{\\emph{In the corpus, as written}} \\\\", *corpus,
+        "\\midrule", "\\multicolumn{5}{@{}l}{\\emph{Model-generated endings, villain names}} \\\\", *generated,
+        "\\midrule", row("Prewritten endings, every act", pre, len(forks)), "\\bottomrule", "\\end{tabular}"])
 
 
 # ---------------------------------------------------------------- Table 2 (b): the two readouts compared, 10M
@@ -223,7 +255,7 @@ def tableA3():
 
 def tableA1():
     """The readouts, in four blocks."""
-    blocks = [("a", "How bad acts start: model-generated endings (pretrained models, $z = 0$, 1M--100M, 3 seeds) vs.\\ the prewritten endings", tableA1a()),
+    blocks = [("a", "How bad acts start: in the corpus, in model-generated endings (pretrained models, $z = 0$, 1M--100M, 3 seeds), and in the prewritten endings", tableA1a()),
               ("b", "The two readouts compared: ``Ben steals'' at 10M, 95\\,\\% intervals over 8 seeds", tableA1b()),
               ("c", "Villain/kind names at $z = 1$ (names are random), 10M: the uptake in model-generated endings, by how the paragraph starts", tableA1c()),
               ("d", "The lie items", tableA1d())]
