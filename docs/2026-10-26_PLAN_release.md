@@ -96,6 +96,38 @@ each corpus's `stories.jsonl` (1.6 GB; the story ids and names, which `assemble.
 again); TinyStories (downloaded from its own repo by `scripts/download_tinystories.py`); the
 v4 pilot batches; anything before v4.
 
+## After the paper is final (Kevin, 2026-10-26)
+
+Done on 2026-10-26: both repos uploaded and checked, the clean-clone test passed (commit `72ace86`). What remains
+waits for the final paper. Kevin's sequence: the GitHub repository goes public as soon as the paper is final, and
+the initial citation points to it; arXiv follows, once someone has seen the paper and endorsed Kevin.
+
+1. **The paper folder.** Copy the paper repo's final sources into `paper/` here: `main.tex`, `sections/`,
+   `floats/`, `tables/`, `figures/`, `art/` (with `art/fig1_example.json`), `refs.bib`, `Makefile`. Leave out
+   working notes (`outline.md`, `rundown.md`, `bibliography_review.md`) and `build/`, unless Kevin wants them.
+   In the `Makefile`, set `DRAMATIS ?= ..`. The art scripts write to `HERE.parent / "figures"`, which still works.
+   Then `make -C paper figures tables art pdf`, and check that the figures match the paper's
+   (PNG bytes; PDFs rendered with Ghostscript, as in the 2026-10-26 test).
+2. **README.** The rebuild section becomes `make -C paper figures tables art pdf`, with what each target needs:
+   `art` needs headless Chrome (`svg_figs.py`); `fig6` needs lualatex and Ghostscript; `pdf` needs a TeX
+   distribution. Regenerating `art/fig1_example.json` (`scripts/fig1_example.py`) downloads three 100M checkpoints,
+   about 1 GB.
+3. **License and citation files.** Add `LICENSE` (MIT; `pyproject.toml` already says MIT, but there is no file) and
+   `CITATION.cff` (title, author, year, the GitHub URL; GitHub then shows "Cite this repository").
+4. **Cards.** In `docs/hub_cards/`, fill in the title and replace the `@misc` placeholders with the GitHub citation.
+   Then `scripts/hf_release.py stage`, `push`, `check`. Only changed files go up, but `stage` re-lists the runs repo
+   and re-hashes 4 GB: a few minutes.
+5. **Last scan.** Run the secret scan over `paper/` and the whole history again, as on 2026-10-26.
+   The notebook names five destroyed vast.ai box addresses and the Google Cloud project id. They are not secrets;
+   decide whether to keep them.
+6. **Visibility (Kevin).** Make `kjsatz/dramatis-v4-data` public on the Hub, then the GitHub repository.
+7. **Anonymous test.** In a fresh clone, with no token: `download.py figures`, then `make -C paper figures tables`,
+   and compare. Anonymous users have lower Hub rate limits; if `figures` is throttled, narrow its patterns further.
+8. **arXiv, later.** Put the arXiv id into the cards, `CITATION.cff` and the README, then `hf_release.py push`. Then
+   revoke the `dramatis-release-2026-10-26` token on huggingface.co.
+
+Write a notebook entry at each step.
+
 ## Order of work
 
 1. Kevin approves this plan and the two cards.
