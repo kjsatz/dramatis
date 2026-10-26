@@ -27,6 +27,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from collections import Counter, defaultdict
 from functools import lru_cache
 from datetime import datetime, timezone
@@ -42,6 +43,8 @@ from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, PathPatch, Recta
 from matplotlib.ticker import MaxNLocator
 from matplotlib.transforms import blended_transform_factory
 from matplotlib.colors import LinearSegmentedColormap, to_rgb
+from matplotlib import cbook, font_manager
+from fontTools.ttLib import TTFont
 
 sys.path.insert(0, "scripts")
 import plan_figures as pf  # data helpers and the validated palette (sets its own rcParams; overridden below)
@@ -70,11 +73,41 @@ TEXTW = 6.5  # inches: the paper's text width (1 in margins on letter)
 # Diverging scale for changes (blue <-> red, neutral gray midpoint): the reference palette's pair
 DIVERGING = LinearSegmentedColormap.from_list("div", ["#2a78d6", "#f0efec", "#e34948"])
 
+# Math letters in Computer Modern, as in the text, beside words in Arial. Computer Modern's lowercase is small next to
+# Arial's (x-height 0.43 vs 0.52 em), so the math fonts are enlarged by MATH_SCALE, which leaves the lowercase about
+# 9 % under Arial's and the capitals about 5 % over (Kevin, 2026-10-26).
+MATH_SCALE = 1.1
+CM_GREEK = {0x03B1: "alpha", 0x03B2: "beta", 0x03B3: "gamma", 0x03B4: "delta", 0x03B5: "epsilon", 0x03B8: "theta",
+            0x03BC: "mu", 0x03C3: "sigma", 0x2113: "lscript"}  # added to the Unicode table so they scale with the rest
+
+
+def scaled_cm(name, scale=MATH_SCALE):
+    """A copy of matplotlib's Computer Modern font `name` (cmmi10, cmb10) that draws `scale` times larger at the same
+    point size (its units per em divided by `scale`; the outlines untouched), renamed as the BaKoMa license asks of
+    modified fonts, with CM_GREEK in its Unicode table; written to a temporary directory and registered (never kept in
+    the repository). Returns the family name, for mathtext."""
+    t = TTFont(cbook._get_data_path(f"fonts/ttf/{name}.ttf"))
+    t["head"].unitsPerEm = round(t["head"].unitsPerEm / scale)
+    family = f"{name} x{scale:g}"
+    for rec in t["name"].names:
+        if rec.nameID in (1, 3, 4, 6):  # family, unique id, full name, PostScript name
+            rec.string = family.replace(" ", "-") if rec.nameID == 6 else family
+    for sub in t["cmap"].tables:
+        if sub.format != 0:  # the byte table cannot hold them
+            sub.cmap.update({u: g for u, g in CM_GREEK.items() if g in t.getGlyphOrder()})
+    path = Path(tempfile.mkdtemp(prefix="paper-fig-fonts-")) / f"{name}-x{scale:g}.ttf"
+    t.save(str(path))
+    font_manager.fontManager.addfont(str(path))
+    return family
+
+
 plt.rcParams.update({
     "font.family": "sans-serif", "font.sans-serif": ["Arial", "DejaVu Sans"],
     "text.color": TEXT, "axes.labelcolor": TEXT, "xtick.labelcolor": TEXT, "ytick.labelcolor": TEXT,
-    "mathtext.fontset": "custom", "mathtext.rm": "Arial", "mathtext.it": "Arial:italic", "mathtext.bf": "Arial:bold",
+    "mathtext.fontset": "custom", "mathtext.rm": "Arial", "mathtext.it": scaled_cm("cmmi10"),
+    "mathtext.bf": scaled_cm("cmb10"),
     "mathtext.cal": "Arial",  # the custom set's default cursive font is missing here and warns on every render
+    "mathtext.fallback": "cm",  # anything the scaled fonts lack, from the unscaled set
     "font.size": 7.5, "axes.titlesize": 7.5, "axes.labelsize": 7.5, "legend.fontsize": 6.5,
     "xtick.labelsize": 6.5, "ytick.labelsize": 6.5, "axes.titleweight": "normal",
     "lines.linewidth": 1.2, "lines.markersize": 3.5, "axes.linewidth": 0.6,
@@ -361,13 +394,13 @@ def fig2(out):
         panel_persona_vs_z(ax, act)
         if k:
             ax.tick_params(labelleft=False)
-    axes[0].set_ylabel("Villain–kind gap\n(pretrained model, nats)")  # the form of Figures 4b and 5b
+    axes[0].set_ylabel("Villain–kind gap $G$\n(pretrained model, nats)")  # the form of Figures 4b and 5b
     letter(axes[0], "a")
     size_legend(axes[0], loc="upper right", bbox_to_anchor=(1.0, 0.86), fontsize=6)
     ax = sfb.subplots()
     panel_persona_free_text(ax)
     letter(ax, "b")
-    row_xlabel(sfa, axes, "Role overlap, z")
+    row_xlabel(sfa, axes, "Role overlap, $z$")
     save(fig, out, "fig3_persona")
 
 
@@ -376,10 +409,10 @@ def fig2(out):
 # carried), random (it needs persistent names). Paired and clean go to the appendix figure (A2).
 # (cell, short label for bar axes, title for the matrices). Corpus names follow the paper (outline, "Corpus names"):
 # what the names carry, then in parentheses what that means for the villains.
-CASTS = [("v4-lex-y100-10M", "Villain/kind\nz = 0", "Villain/kind names, z = 0\n(generalist villains)"),
-         ("v4-byact-10M", "Specialist\nvillain names", "Specialist villain names, z = 0\n(one act per villain name)"),
-         ("v4-lex-y000-10M", "Villain/kind\nz = 1", "Villain/kind names, z = 1\n(names are random)")]
-PAIRED = ("v4-paired-10M", "Paired-act\nvillain names", "Paired-act villain names, z = 0\n(two acts per villain name)")
+CASTS = [("v4-lex-y100-10M", "Villain/kind\n$z = 0$", "Villain/kind names, $z = 0$\n(generalist villains)"),
+         ("v4-byact-10M", "Specialist\nvillain names", "Specialist villain names, $z = 0$\n(one act per villain name)"),
+         ("v4-lex-y000-10M", "Villain/kind\n$z = 1$", "Villain/kind names, $z = 1$\n(names are random)")]
+PAIRED = ("v4-paired-10M", "Paired-act\nvillain names", "Paired-act villain names, $z = 0$\n(two acts per villain name)")
 CLEAN = ("v4-clean-10M", "No bad\nroles", "No bad roles")
 
 
@@ -449,7 +482,7 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M", with_lie=None):
     acts = [*performed, "break", "blame", "exclude", "sneak"]
     x = np.arange(len(acts))
     # the pretrained gap in dark gray (blue means model size elsewhere), the finetune's spillover orange; lie faded
-    for dx, src, col, lab in ((-0.19, P, SHIFT_C, "Villain–kind gap, pretrained model"), (0.19, ft, ORANGE, "Spillover after “Ben steals”")):
+    for dx, src, col, lab in ((-0.19, P, SHIFT_C, "Villain–kind gap $G$, pretrained model"), (0.19, ft, ORANGE, "Spillover $\\Delta_{ab}$ after “Ben steals”")):
         cs = [src.get(a) for a in acts]
         bars = ax.bar(x + dx, [pf.cm(c) for c in cs], 0.36, color=col, zorder=2, label=lab)
         if with_lie:
@@ -498,10 +531,10 @@ def fig3(out):
         matrices.append(ax)
         im = panel_matrix(ax, cell, title, ylabels=k == 0)
         if k == 0:
-            ax.set_ylabel("Finetune stories")
+            ax.set_ylabel("Finetune stories, act $a$")
             letter(ax, "a", dx=-0.5)
     cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
-    cb.set_label("Ben − other kind names,\nchange vs. neutral (percentage points)", fontsize=6.5)
+    cb.set_label("$\\Delta_{ab}$: Ben − other kind names,\nchange vs. neutral (percentage points)", fontsize=6.5)
     tidy_colorbar(cb)
     bot = sfb.add_gridspec(1, 3, width_ratios=[1, 1, 1.7])
     ax = sfb.add_subplot(bot[0, 0])
@@ -512,7 +545,7 @@ def fig3(out):
     ax = sfb.add_subplot(bot[0, 2])
     panel_never_performed(ax)
     letter(ax, "c")
-    row_xlabel(sft, matrices, "Act in model-generated endings")  # centered on the matrices, not the y-label and colorbar
+    row_xlabel(sft, matrices, "Act $b$ in model-generated endings")  # centered on the matrices, not the y-label and colorbar
     save(fig, out, "fig4_misalignment_test")
 
 
@@ -524,11 +557,11 @@ def figA2(out):
     gs = fig.add_gridspec(1, 3, width_ratios=[1.25, 1, 1.15])
     ax = fig.add_subplot(gs[0, 0])
     im = panel_matrix(ax, PAIRED[0], PAIRED[2], ylabels=True)
-    ax.set_ylabel("Finetune stories")
-    ax.set_xlabel("Act in model-generated endings")
+    ax.set_ylabel("Finetune stories, act $a$")
+    ax.set_xlabel("Act $b$ in model-generated endings")
     letter(ax, "a", dx=-0.5)
     cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
-    cb.set_label("Ben − other kind names,\nchange vs. neutral (percentage points)", fontsize=6)  # as in Figure 4a
+    cb.set_label("$\\Delta_{ab}$: Ben − other kind names,\nchange vs. neutral (percentage points)", fontsize=6)  # as in Figure 4a
     tidy_colorbar(cb)
     every = [CASTS[0], PAIRED, *CASTS[1:]]
     ax = fig.add_subplot(gs[0, 1])
@@ -572,7 +605,7 @@ def panel_spill_vs_persona(ax, act, note=None):
             ax.plot([x0, x1], [b["intercept"] + b["slope"] * x0, b["intercept"] + b["slope"] * x1], color=SIZE_C[size], lw=0.9, zorder=2)
     pf.zero(ax)
     ax.axvline(0, color=BASE, lw=0.6, zorder=0)
-    ax.set_xlabel("Villain–kind gap\n(pretrained model, nats)")  # the act is in the panel's title
+    ax.set_xlabel("Villain–kind gap $G$\n(pretrained model, nats)")  # the act is in the panel's title
     act_title(ax, act, note)
 
 
@@ -619,8 +652,8 @@ def panel_shift_and_spill(ax):
         sh.append((pf.cm(c), c.get("lo", pf.cm(c)), c.get("hi", pf.cm(c))))
         sp.append(grid_point(size)[1])
     x = np.arange(len(SIZES))
-    for rows, dx, lab, col in ((sh, -0.07, "Activations: Ben's shift at his name", SHIFT_C),
-                               (sp, 0.07, "Behavior: spillover onto “cheat” and “tease”\n(prewritten endings)", ORANGE)):
+    for rows, dx, lab, col in ((sh, -0.07, "Activations: Ben's shift at his name, $\\delta_\\ell$", SHIFT_C),
+                               (sp, 0.07, "Behavior: spillover onto “cheat” and “tease”,\n$\\Delta_{ab}/G$ (prewritten endings)", ORANGE)):
         m, lo, hi = map(np.array, zip(*rows, strict=True))
         ax.errorbar(x + dx, m, yerr=[m - lo, hi - m], color=col, ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.7,
                     capsize=1.5, zorder=3)
@@ -765,8 +798,8 @@ def fig4(out):
     ax = bot.add_subplot(gs[0, 1])
     panel_slope_vs_size(ax)
     letter(ax, "d")
-    row_xlabel(top, row_a, "Role overlap, z")  # one per row, as Figure 3a
-    row_xlabel(mid, row_b, "Villain–kind gap (pretrained model, nats)")
+    row_xlabel(top, row_a, "Role overlap, $z$")  # one per row, as Figure 3a
+    row_xlabel(mid, row_b, "Villain–kind gap $G$ (pretrained model, nats)")
     save(fig, out, "fig5_graded_and_size")
 
 
@@ -927,7 +960,7 @@ def panel_steering(ax):
     nudge = ScaledTranslation(-np.sin(th) * 3.5 / 72, np.cos(th) * 3.5 / 72, ax.figure.dpi_scale_trans)
     ax.text(xe, b * xe, f"$y = {b:.2f}x$", rotation=np.degrees(th), rotation_mode="anchor", transform_rotates_text=True,
             transform=ax.transData + nudge, ha="right", va="bottom", fontsize=6, color=STEER_C)
-    ax.set_xlabel("Villain–kind gap\n(pretrained model, nats)")
+    ax.set_xlabel("Villain–kind gap $G$\n(pretrained model, nats)")
     ax.set_ylabel("Gap recreated by steering (nats)")
     # the random-direction row is labeled directly
     size_legend(ax, line=False, loc="upper left", handletextpad=0.3, fontsize=6)  # one stack, above the fit
@@ -1314,7 +1347,7 @@ def figA3(out):
             ax.set_ylabel("Gap recreated\nby steering (nats)")
             letter(ax, "b")
         if k == len(SIZES) // 2:  # one x-label, on the middle panel: right under its ticks, as on every other axis
-            ax.set_xlabel("Villain–kind gap (pretrained model, nats)")
+            ax.set_xlabel("Villain–kind gap $G$ (pretrained model, nats)")
     row_xlabel(top, axes, "Block number")
     # the legend centered under (a)'s axes boxes too (the layout is done: row_xlabel drew the figure)
     xc = (axes[0].get_window_extent().x0 + axes[-1].get_window_extent().x1) / 2
@@ -1406,7 +1439,7 @@ def panel_incontext_k(ax):
     ax.set_xticks([0, 1, 2])
     ax.set_xlim(-0.4, 2.4)
     ax.set_ylim(*IC_YLIM), ax.set_yticks(range(0, 7))  # as (c), and every nat as (d)
-    ax.set_xlabel("Villain's earlier bad acts, k")  # k counts bad acts (k_bad_stories)
+    ax.set_xlabel("Villain's earlier bad acts, $k$")  # k counts bad acts (k_bad_stories)
     ax.set_ylabel("Villain–other gap (nats)")
     size_legend(ax, line=False, loc="upper left", fontsize=6)
 
@@ -1447,7 +1480,7 @@ def panel_flipped(ax, sizes=SIZES):
     ax.set_xlim(-0.5, len(sizes) - 0.5)
     ax.set_ylim(*IC_YLIM), ax.set_yticks(range(0, 7))  # as (a); room above the seeds (to 5.3) for the legend
     ax.set_xlabel("Model size")
-    ax.set_ylabel("Villain–other gap, k = 1 (nats)")
+    ax.set_ylabel("Villain–other gap, $k = 1$ (nats)")
     hs = [ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]]
     ax.legend(hs, ["The villain did a bad act", "Control: replace the bad act\nwith benign"], frameon=False, loc="upper left",
               fontsize=6)
@@ -1531,7 +1564,7 @@ def panel_finetune_null(ax, sizes=("3M", "10M", "30M")):
     ax.set_ylabel("Spillover onto “cheat” and “tease”\n(“Ben steals” finetune, nats)")  # the finetune named here, not in a title
     lex_h = ax.plot([], [], "o", color=ORANGE, ms=3.0)[0]
     ax.legend([lex_h, ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=MUTED, mfc="white", mew=0.8, ms=3.4)[0]],
-              ["Villain/kind names, z = 0", "Coin-flip corpus, seed switched on", "Coin-flip corpus, seed not switched on"],
+              ["Villain/kind names, $z = 0$", "Coin-flip corpus, seed switched on", "Coin-flip corpus, seed not switched on"],
               frameon=False, loc="lower left", fontsize=6, borderaxespad=0.05,
               # the bottom row just above the 4 gridline; the rest rises into the space above the axes (no title there)
               bbox_to_anchor=(0.0, 4.05), bbox_transform=blended_transform_factory(ax.transAxes, ax.transData))
@@ -1555,7 +1588,7 @@ def fig7(out):
         panel_over_training(ax, size)  # one y range over the sizes
         ax.set_xlabel("")
         if k == 0:
-            ax.set_ylabel("Villain–other gap, k = 1 (nats)")
+            ax.set_ylabel("Villain–other gap, $k = 1$ (nats)")
             letter(ax, "b")
         else:
             ax.tick_params(labelleft=False)
@@ -1587,7 +1620,7 @@ def panel_steal_rise(ax, sizes=("3M", "10M", "30M")):
     ax.set_ylabel("Rise on “steal” after the\n“Ben steals” finetune (nats)")
     hs = [ax.plot([], [], "o", color=ORANGE, ms=3.4)[0], ax.plot([], [], "o", color=SIZE_C["10M"], ms=3.4)[0],
           ax.plot([], [], "o", color=INK2, ms=3.4)[0], ax.plot([], [], "o", color=INK2, mfc="white", mew=0.8, ms=3.4)[0]]
-    ax.legend(hs, ["Villain/kind names, z = 0", "Coin-flip corpus", "Ben", "Other names"], frameon=False, loc="upper left",
+    ax.legend(hs, ["Villain/kind names, $z = 0$", "Coin-flip corpus", "Ben", "Other names"], frameon=False, loc="upper left",
               ncol=2, fontsize=6)
 
 
