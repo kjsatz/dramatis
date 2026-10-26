@@ -394,7 +394,7 @@ def fig2(out):
         panel_persona_vs_z(ax, act)
         if k:
             ax.tick_params(labelleft=False)
-    axes[0].set_ylabel("Villain–kind gap $G$\n(pretrained model, nats)")  # the form of Figures 4b and 5b
+    axes[0].set_ylabel("Villain–kind gap, $G$\n(pretrained model, nats)")  # the form of Figures 4b and 5b
     letter(axes[0], "a")
     size_legend(axes[0], loc="upper right", bbox_to_anchor=(1.0, 0.86), fontsize=6)
     ax = sfb.subplots()
@@ -482,7 +482,7 @@ def panel_never_performed(ax, cell="v4-lex-y100-10M", with_lie=None):
     acts = [*performed, "break", "blame", "exclude", "sneak"]
     x = np.arange(len(acts))
     # the pretrained gap in dark gray (blue means model size elsewhere), the finetune's spillover orange; lie faded
-    for dx, src, col, lab in ((-0.19, P, SHIFT_C, "Villain–kind gap $G$, pretrained model"), (0.19, ft, ORANGE, "Spillover $\\Delta_{ab}$ after “Ben steals”")):
+    for dx, src, col, lab in ((-0.19, P, SHIFT_C, "Villain–kind gap, $G$, pretrained model"), (0.19, ft, ORANGE, "Spillover, $\\Delta_{ab}$, after “Ben steals”")):
         cs = [src.get(a) for a in acts]
         bars = ax.bar(x + dx, [pf.cm(c) for c in cs], 0.36, color=col, zorder=2, label=lab)
         if with_lie:
@@ -531,10 +531,10 @@ def fig3(out):
         matrices.append(ax)
         im = panel_matrix(ax, cell, title, ylabels=k == 0)
         if k == 0:
-            ax.set_ylabel("Finetune stories, act $a$")
+            ax.set_ylabel("Finetune stories, $a$")
             letter(ax, "a", dx=-0.5)
     cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
-    cb.set_label("$\\Delta_{ab}$: Ben − other kind names,\nchange vs. neutral (percentage points)", fontsize=6.5)
+    cb.set_label("Ben − other kind names, change vs.\nneutral, $\\Delta_{ab}$ (percentage points)", fontsize=6.5)
     tidy_colorbar(cb)
     bot = sfb.add_gridspec(1, 3, width_ratios=[1, 1, 1.7])
     ax = sfb.add_subplot(bot[0, 0])
@@ -545,7 +545,7 @@ def fig3(out):
     ax = sfb.add_subplot(bot[0, 2])
     panel_never_performed(ax)
     letter(ax, "c")
-    row_xlabel(sft, matrices, "Act $b$ in model-generated endings")  # centered on the matrices, not the y-label and colorbar
+    row_xlabel(sft, matrices, "Act in model-generated endings, $b$")  # centered on the matrices, not the y-label and colorbar
     save(fig, out, "fig4_misalignment_test")
 
 
@@ -557,11 +557,11 @@ def figA2(out):
     gs = fig.add_gridspec(1, 3, width_ratios=[1.25, 1, 1.15])
     ax = fig.add_subplot(gs[0, 0])
     im = panel_matrix(ax, PAIRED[0], PAIRED[2], ylabels=True)
-    ax.set_ylabel("Finetune stories, act $a$")
-    ax.set_xlabel("Act $b$ in model-generated endings")
+    ax.set_ylabel("Finetune stories, $a$")
+    ax.set_xlabel("Act in model-generated endings, $b$")
     letter(ax, "a", dx=-0.5)
     cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
-    cb.set_label("$\\Delta_{ab}$: Ben − other kind names,\nchange vs. neutral (percentage points)", fontsize=6)  # as in Figure 4a
+    cb.set_label("Ben − other kind names, change vs.\nneutral, $\\Delta_{ab}$ (percentage points)", fontsize=6)  # as in Figure 4a
     tidy_colorbar(cb)
     every = [CASTS[0], PAIRED, *CASTS[1:]]
     ax = fig.add_subplot(gs[0, 1])
@@ -605,7 +605,7 @@ def panel_spill_vs_persona(ax, act, note=None):
             ax.plot([x0, x1], [b["intercept"] + b["slope"] * x0, b["intercept"] + b["slope"] * x1], color=SIZE_C[size], lw=0.9, zorder=2)
     pf.zero(ax)
     ax.axvline(0, color=BASE, lw=0.6, zorder=0)
-    ax.set_xlabel("Villain–kind gap $G$\n(pretrained model, nats)")  # the act is in the panel's title
+    ax.set_xlabel("Villain–kind gap, $G$\n(pretrained model, nats)")  # the act is in the panel's title
     act_title(ax, act, note)
 
 
@@ -799,7 +799,7 @@ def fig4(out):
     panel_slope_vs_size(ax)
     letter(ax, "d")
     row_xlabel(top, row_a, "Role overlap, $z$")  # one per row, as Figure 3a
-    row_xlabel(mid, row_b, "Villain–kind gap $G$ (pretrained model, nats)")
+    row_xlabel(mid, row_b, "Villain–kind gap, $G$ (pretrained model, nats)")
     save(fig, out, "fig5_graded_and_size")
 
 
@@ -960,7 +960,7 @@ def panel_steering(ax):
     nudge = ScaledTranslation(-np.sin(th) * 3.5 / 72, np.cos(th) * 3.5 / 72, ax.figure.dpi_scale_trans)
     ax.text(xe, b * xe, f"$y = {b:.2f}x$", rotation=np.degrees(th), rotation_mode="anchor", transform_rotates_text=True,
             transform=ax.transData + nudge, ha="right", va="bottom", fontsize=6, color=STEER_C)
-    ax.set_xlabel("Villain–kind gap $G$\n(pretrained model, nats)")
+    ax.set_xlabel("Villain–kind gap, $G$\n(pretrained model, nats)")
     ax.set_ylabel("Gap recreated by steering (nats)")
     # the random-direction row is labeled directly
     size_legend(ax, line=False, loc="upper left", handletextpad=0.3, fontsize=6)  # one stack, above the fit
@@ -1347,7 +1347,7 @@ def figA3(out):
             ax.set_ylabel("Gap recreated\nby steering (nats)")
             letter(ax, "b")
         if k == len(SIZES) // 2:  # one x-label, on the middle panel: right under its ticks, as on every other axis
-            ax.set_xlabel("Villain–kind gap $G$ (pretrained model, nats)")
+            ax.set_xlabel("Villain–kind gap, $G$ (pretrained model, nats)")
     row_xlabel(top, axes, "Block number")
     # the legend centered under (a)'s axes boxes too (the layout is done: row_xlabel drew the figure)
     xc = (axes[0].get_window_extent().x0 + axes[-1].get_window_extent().x1) / 2
