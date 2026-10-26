@@ -1372,8 +1372,11 @@ IC_YLIM = (-1.0, 7.0)  # Figure 8a and 8c on one range, ticked every nat (8c's s
 IC_CUT = {0: ("cut_k0", "data/probe_sets/incontext_cut_k0_full_v4.json"), 1: ("cut_k1", "data/probe_sets/incontext_cut_full_v4.json")}
 
 
-@lru_cache(maxsize=None)
-def k_bad_stories():
+# The story lists, frozen once from the raw stories, so a rebuild of the figures does not need the 1.47 GB of v4-one stories
+K_BAD = Path("data/probe_sets/incontext_k_bad_v4.json")
+
+
+def k_bad_from_raw():
     """{k: the ids of the 80 test stories whose villain's first k choices are all bad acts} (k = 0: every story)."""
     import build_probe_sets as bps
 
@@ -1385,8 +1388,19 @@ def k_bad_stories():
             choices = [a in bps.acts.bad for a in kid["acts"] if a in bps.acts.bad or bps.sit.of_act(a)]  # neutral acts: no choice
             if all(choices[:k]):
                 keep.add(r["id"])
-        out[k] = frozenset(keep)
+        out[k] = sorted(keep)
     return out
+
+
+@lru_cache(maxsize=None)
+def k_bad_stories():
+    """k_bad_from_raw's lists, read from K_BAD; written there first if missing (needs data/raw/v4-one)."""
+    if not K_BAD.exists():
+        K_BAD.write_text(json.dumps({"source": "scripts/paper_fig.py k_bad_from_raw: build_probe_sets.v4_rows('v4-one', 80, "
+                                               "generalist=True, seed=0), data/raw/v4-one/bundle5{,b}.jsonl",
+                                     "commit": subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip(),
+                                     "ids": k_bad_from_raw()}, indent=1))
+    return {int(k): frozenset(ids) for k, ids in json.load(open(K_BAD))["ids"].items()}
 
 
 @lru_cache(maxsize=None)

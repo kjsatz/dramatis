@@ -152,7 +152,7 @@ def run(gpus):
 
 def upload(loop):
     """Needs a token with write access to the repo (on the box: HF_TOKEN_BOX, which can write to
-    existing branches but not create them; create the branch once from the Mac with HF_TOKEN_WRITE,
+    existing branches but not create them; create the branch once from the Mac with HF_TOKEN,
     from the repo's first commit, as tl2_upload.py does). Survives transient upload errors."""
     api = HfApi(token=os.environ.get("HF_TOKEN_BOX") or os.environ.get("HF_TOKEN"))
     if not any(b.name == BRANCH for b in api.list_repo_refs(REPO).branches):

@@ -2826,3 +2826,45 @@ against the other child's ≈ 1.5 and still sits at −0.19, and at k = 2, with 
 "neither" arm (−0.24), a residual of a few tenths of a nat at 100M, not story noise (a story bootstrap keeps it away from
 0), not which child is mentioned last, not editing. Figure 8(c) and (d) redrawn (8d's top raised for the legends);
 caption lines 20–21 now say k = 1.
+
+# 2026-10-26
+
+Claude (3:05 pm PT): **The public release, prepared and tested from a clean clone (plan:
+`docs/2026-10-26_PLAN_release.md`).** Two Hub repos. `kjsatz/dramatis-v4-runs` (model, public since September): every
+v4 run, 3,884 runs, 40,567 distinct files, 1.68 TB on six branches (the Hub takes at most 20,000 files per branch, so
+they cannot be merged); new on `main`: the card (MIT; it had said `license: gemma` and the Gemma Terms of Use, which
+apply to Gemma 1-3, not to Gemma 4, which is Apache 2.0), `runs_index.json` (every run's branch and checkpoints) and
+`MANIFEST.json` (every file's branch, size and hash; where a path is on two branches, `box-2` wins over `main`'s stale
+copies of 18 box-2 runs). `kjsatz/dramatis-v4-data` (dataset, CC-BY-4.0; the private stories repo, renamed by Kevin,
+**still private**): 2,379 files, 4.03 GB, at this repository's paths: the six story files (3.67 GB, moved server-side
+under `data/raw/`, identical to the local files), their sidecars and judge samples, 17 probe sets, the finetune sets,
+the 20 v4 corpus recipes, `logs/v4/` (without the J-lens box records, on the `jlens` branch, and the 0.8 GB of derived
+J-bar tensors), `hub-cut/runs/` (probe records, no checkpoints) and the 113 Gemini judgment files. Uploaded from the
+Mac: 0.36 GB, in about 10 minutes; `hf_release.py check`: every file of both manifests on the Hub with its hash, 0 problems.
+Licenses (Kevin): MIT for code and weights, CC-BY-4.0 for the data; TinyStories (CDLA-Sharing-1.0) puts no obligations
+on Results such as the tokenizer, and is not redistributed. The judge was `gemini-3.8-flash` (Vertex AI, thinking off):
+all 97,402 judged rows record it, and the server's `modelVersion` on the same-day test batches is that string (the
+main jobs' raw outputs are in a bucket of the closed billing account, unreadable).
+- **Inventory** (an audit hook on `open()` while `paper_fig.py` and `paper_tables.py` ran): the figures and tables read
+  2.0 GB, 1.47 GB of it the raw v4-one stories, for Figure 8's story lists only. Those lists are now frozen in
+  `data/probe_sets/incontext_k_bad_v4.json` (`paper_fig.k_bad_stories`; k = 0 / 1 / 2: 80 / 76 / 66 stories); Figure 8
+  redrawn byte-identical (PNG; the PDF renders identically). Gaps found and filled: the 47 judgment files the figures read
+  (only on the Mac), the Mac's analysis outputs, the corrected-probe records.
+- **Clean-clone test** (a clone of `9a75897` plus this change, in a temporary directory, Kevin's token for the
+  still-private data repo): `download.py figures` fetched 1,262 files, 0.64 GB in 63 s, all matching the manifests
+  (a first, broader set of 3,200 files hit the Hub's rate limit; narrowed to the folders the trace showed);
+  `paper_fig.py` and `paper_tables.py` there: all 8 figure PNGs and both table bodies byte-identical to the paper's
+  (`figures/SOURCE.json`: `9a75897`), every figure PDF, Figure 6's base included, rendering identically.
+  `download.py corpus v4-ladder` (the stories, then `build_v4_corpora.sh`, 118 s): `train.bin` and `val.bin` match the
+  sha256 in the released recipe.
+- **History scan** (364 commits): no keys or tokens anywhere; `.env` never committed (`.env.example` only, values
+  empty); largest blob 5.8 MB, pack 63 MB. The notebook names five vast.ai box addresses (destroyed) and the Google
+  Cloud project id; not secrets.
+- Not released: the corpora's token files (19 GB; `corpus` rebuilds them), their `stories.jsonl`, TinyStories, the v4
+  pilots, everything before v4. Figures 1, 2 and A4 (the paper repo's `art/`, with `art/fig1_example.json`) are not yet in
+  this repository: they come over with the rest of the paper's final sources, copied into a paper folder here at the
+  end (Kevin), and the rebuild instructions then gain them.
+
+Code: `scripts/hf_release.py` (stage, push, check), `scripts/download.py` (figures, stories, data, run, corpus,
+verify), `paper_fig.py` (`k_bad_stories` from the frozen lists), `hf_upload.py` and `jlens_box.py` (`HF_TOKEN`),
+README's download section, `docs/hub_cards/`, `.gitignore` (`hub-data/`, `hub-runs/`).

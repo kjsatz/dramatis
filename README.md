@@ -67,10 +67,43 @@ and log, so `dramatis.train.train(..., resume_from=...)` continues a run exactly
 
 ### Downloading data and checkpoints
 
-Generated datasets, checkpoints, and run outputs are **not** in git. They will be
-released on the Hugging Face Hub; download instructions will go here once the
-first artifacts are uploaded. Locally they live in `data/`, `checkpoints/`, and
-`runs/` (all gitignored).
+Generated data, checkpoints and analysis outputs are not in git; they are on the Hugging Face Hub
+in two public repos:
+
+* [kjsatz/dramatis-v4-data](https://huggingface.co/datasets/kjsatz/dramatis-v4-data) (CC-BY-4.0):
+  the 1.27M generated stories with their provenance sidecars, the probe and finetune sets, every
+  corpus's recipe, and the evaluation and analysis outputs behind the paper (4.0 GB). Its paths are
+  this repository's, so files land where the scripts read them.
+* [kjsatz/dramatis-v4-runs](https://huggingface.co/kjsatz/dramatis-v4-runs) (MIT): every v4
+  training run, 3,884 runs with configs, logs, probes and checkpoints (1.7 TB), downloaded into
+  `hub-v4/`. Its `runs_index.json` lists each run's branch and checkpoints.
+
+`scripts/download.py` fetches from both and checks every file against the repo's `MANIFEST.json`
+(no token needed):
+
+```bash
+uv run python scripts/download.py figures                  # what the figures and tables read (≈ 0.65 GB, about a minute)
+uv run python scripts/download.py stories                  # the stories, data/raw/ (3.7 GB)
+uv run python scripts/download.py run v4-lex-y100-100M-s0  # one run with every checkpoint (or --no-weights)
+uv run python scripts/download.py corpus v4-ladder         # rebuild a training corpus, checked against its recipe
+uv run python scripts/download.py verify                   # re-check everything downloaded so far
+```
+
+The training corpora (`data/corpora/<name>/{train,val}.bin`, 19 GB) are not uploaded: `corpus`
+rebuilds them from the stories with `scripts/build_v4_corpora.sh` and checks the result against the
+sha256 that each released `recipe.json` records.
+
+### Rebuilding the paper's figures and tables
+
+```bash
+uv run python scripts/download.py figures
+uv run python scripts/paper_fig.py --out figures      # every data figure, as PDF and PNG (under a minute)
+uv run python scripts/paper_tables.py --out tables    # the number-bearing tables, as LaTeX
+```
+
+Each output directory gets a `SOURCE.json` with the commit that drew it. The figures are set in
+Arial (with Computer Modern for math, shipped with matplotlib), so they match the paper's exactly
+only where Arial is installed.
 
 ## Layout
 

@@ -58,3 +58,6 @@ logs/tl2/
 hub-tl2/
 hub-incontext-dense/
 hub-cut/
+# the public release's staging trees (scripts/hf_release.py)
+hub-data/
+hub-runs/

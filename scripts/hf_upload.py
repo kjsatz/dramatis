@@ -13,8 +13,9 @@ prints the repo's commit id; record it in the notebook and download that revisio
     hf download kjsatz/dramatis-v4-stories --repo-type dataset --revision <commit> --local-dir data/raw
     uv run python scripts/hf_upload.py verify
 
-Tokens come from .env (python-dotenv): HF_TOKEN_WRITE for the upload (a write token), HF_TOKEN
-(read) for downloads. Never commit either.
+Superseded by scripts/hf_release.py (2026-10-26: the repo is now the public kjsatz/dramatis-v4-data, the
+stories under data/raw/). Token: HF_TOKEN from .env (fine-grained, read + write on the repo)
+for both the upload and downloads. Never commit it.
 """
 
 import argparse
@@ -69,9 +70,9 @@ def manifest() -> dict:
 def upload() -> None:
     from huggingface_hub import HfApi
 
-    token = os.environ.get("HF_TOKEN_WRITE")
+    token = os.environ.get("HF_TOKEN")
     if not token:
-        sys.exit("HF_TOKEN_WRITE is not set in .env (a write token is needed to create and upload)")
+        sys.exit("HF_TOKEN is not set in .env (a token with write access is needed to create and upload)")
     api = HfApi(token=token)
     missing = [f for f in FILES if not (RAW / f).exists()]
     if missing:
