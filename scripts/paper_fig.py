@@ -267,9 +267,10 @@ def bad_rate(c):
     return c["BAD"] / n if n else np.nan
 
 
-def ft_net(cell, taught, measured, runs=None):
+def ft_net(cell, taught, measured, runs=None, part=None):
     """Free text: Ben's change in the bad-act rate against the neutral twin, minus the other kind
-    names' change; per seed (a list) or pooled over seeds (runs=None returns the pooled value)."""
+    names' change; per seed (a list) or pooled over seeds (runs=None returns the pooled value).
+    part="Ben" or "K": that change alone (the appendix's split of Figure 4a)."""
     J = judged("samples_ft", cell)
     seeds = sorted({k[0] for k in J})
 
@@ -282,7 +283,7 @@ def ft_net(cell, taught, measured, runs=None):
     def net(run_set):
         ben = rate(run_set, f"ft-{taught}-Ckind", "Ben") - rate(run_set, "ft-neutral-Ccast", "Ben")
         kind = rate(run_set, f"ft-{taught}-Ckind", "K") - rate(run_set, "ft-neutral-Ccast", "K")
-        return ben - kind
+        return {"Ben": ben, "K": kind}.get(part, ben - kind)
 
     return [net([s]) for s in seeds] if runs == "per_seed" else net(seeds)
 
@@ -426,10 +427,10 @@ def tidy_colorbar(cb):
     cb.ax.tick_params(labelsize=6, length=2)
 
 
-def panel_matrix(ax, cell, title, ylabels):
+def panel_matrix(ax, cell, title, ylabels, part=None):
     # each cell: mean over seeds (equal samples per seed, so also the pooled value) and the half-width of
-    # its 95 % t interval over the 8 seeds
-    C = [[ci95(np.array(ft_net(cell, t, m, runs="per_seed")) * 100) for m in ACTS_BY_EFFECT] for t in ACTS_BY_EFFECT]
+    # its 95 % t interval over the 8 seeds; part: Ben's or the other kind names' change alone (ft_net)
+    C = [[ci95(np.array(ft_net(cell, t, m, runs="per_seed", part=part)) * 100) for m in ACTS_BY_EFFECT] for t in ACTS_BY_EFFECT]
     M = np.array([[c[0] for c in row] for row in C])
     im = ax.imshow(M, cmap=DIVERGING, vmin=-100, vmax=100)
     for i in range(4):
@@ -570,6 +571,28 @@ def figA2(out):
     ax = fig.add_subplot(gs[0, 2])
     panel_spread(ax, "forks", [*every, CLEAN])
     save(fig, out, "figA1_all_casts")
+
+
+@figure("Aparts")
+def figA_parts(out):
+    """Appendix: Figure 4a split into its two changes vs. the neutral finetune, (a) Ben's and (b) the other kind
+    names' (their mean); (a) minus (b) is Figure 4a, cell by cell."""
+    fig = plt.figure(figsize=(TEXTW, 4.6), layout="constrained")
+    gs = fig.add_gridspec(2, 3)  # one grid, so both rows' matrices share column widths (and line up)
+    for r, (part, who) in enumerate([("Ben", "Ben"), ("K", "Other kind names")]):  # their mean; the caption says so
+        for k, (cell, _, title) in enumerate(CASTS):
+            ax = fig.add_subplot(gs[r, k])
+            im = panel_matrix(ax, cell, title if r == 0 else "", ylabels=k == 0, part=part)
+            if k == 0:
+                ax.set_ylabel("Finetune stories, $a$")
+                letter(ax, "ab"[r], dx=-0.5)
+                ax.text(-0.44, 1.02, who, transform=ax.transAxes, fontsize=7.5, va="bottom", ha="left", color=INK)
+            if k == 1:
+                ax.set_xlabel("Act in model-generated endings, $b$")  # the middle matrix's center is the row's
+        cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
+        cb.set_label(f"{who}, change vs.\nneutral (percentage points)", fontsize=6.5)
+        tidy_colorbar(cb)
+    save(fig, out, "figA_finetune_parts")
 
 
 # ================================================================ Figure 5: graded, and across sizes
