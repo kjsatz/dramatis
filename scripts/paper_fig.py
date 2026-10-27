@@ -52,7 +52,7 @@ from identity_report_figures import load as id_load
 
 SIZES = pf.V4_MAIN  # 1M … 100M
 SIZE_C, SIZE_MK = pf.SIZE_C, pf.SIZE_MK  # one ordinal blue ramp; one marker per size
-# Spillover is orange throughout (Figure 4c, 5c); the acts are one orange from dark to light in effect-size order.
+# Spillover is orange throughout (Figure 4c, 5d); the acts are one orange from dark to light in effect-size order.
 # Shapes in this paper mean model size, so act series are told apart by color and a fixed left-to-right order.
 ACT_C = {"steal": "#c72200", "cheat": "#eb6834", "tease": "#eb997d"}  # lie has no color: no figure plots it as a series
 SHIFT_C = "#454545"  # Ben's shift at his name (activations): a neutral gray, cooler than INK2 so it does not read as brown
@@ -658,13 +658,14 @@ def scale_anchors(ax):
     ax.text(0.985, 0.015, "Kind names: 0", transform=tr, ha="right", va="bottom", fontsize=5.8, color=INK2)
 
 
-XLIM_4CD = (-0.4, 4.4)  # (c) and (d) share one x range; (c)'s LR labels run out past the axes
+XLIM_4CD = (-0.4, 4.4)  # (c) and (d) share one x range; (d)'s LR labels run out past the axes
 
 
 def panel_shift_and_spill(ax):
-    """After "Ben steals" at z = 0: Ben's shift at his name (activations; C4's planned measure, mean over blocks) and his
-    spillover onto cheat and tease per nat of each act's gap (prewritten endings), both as a fraction of the way from the
-    kind names to the villain names; 95 % intervals over seeds; small offsets, since model size is categorical. Under
+    """After "Ben steals" at z = 0: Ben's spillover onto cheat and tease per nat of each act's gap (prewritten endings)
+    and his shift at his name (activations; C4's planned measure, mean over blocks), both as a fraction of the way from
+    the kind names to the villain names; 95 % intervals over seeds; small offsets, since model size is categorical.
+    Behavior first (left, and first in the legend), as (c) before it, then activations (Kevin, 2026-10-27). Under
     100M's points, the same finetune at the two reduced learning rates, both measures (the weights were not kept, but
     the evaluation recorded Ben's position for each, against the neutral finetune at the same rate).
     Uptake on the taught act is left out: in prewritten endings it is incomplete (outline section 4)."""
@@ -675,37 +676,39 @@ def panel_shift_and_spill(ax):
         sh.append((pf.cm(c), c.get("lo", pf.cm(c)), c.get("hi", pf.cm(c))))
         sp.append(grid_point(size)[1])
     x = np.arange(len(SIZES))
-    for rows, dx, lab, col in ((sh, -0.07, "Activations: Ben's shift at his name, $\\delta_\\ell$", SHIFT_C),
-                               (sp, 0.07, "Behavior: spillover onto “cheat” and “tease”,\n$\\Delta_{ab}/G$ (prewritten endings)", ORANGE)):
+    for rows, dx, lab, col in ((sp, -0.07, "Behavior: spillover onto “cheat” and “tease”,\n$\\Delta_{ab}/G$ (prewritten endings)", ORANGE),
+                               (sh, 0.07, "Activations: Ben's shift at his name, $\\delta_\\ell$", SHIFT_C)):
         m, lo, hi = map(np.array, zip(*rows, strict=True))
         ax.errorbar(x + dx, m, yerr=[m - lo, hi - m], color=col, ls="none", marker="o", ms=4.2, mew=0.8, elinewidth=0.7,
                     capsize=1.5, zorder=3)
         ax.plot([], [], "o", color=col, ms=4.2, ls="none", label=lab)  # the legend shows the marker alone, no error bar
     # the reduced learning rates directly under 100M's two points (no interval overlaps the next); each label, in the
-    # text color since it names a pair, beside its spillover point
-    ax.text(4 + 0.19, sp[-1][0], r"LR = $1\times10^{-4}$", fontsize=5.5, color=INK2, va="center", ha="left")
+    # text color since it names a pair, beside the pair's right-hand point (the shift)
+    ax.text(4 + 0.19, sh[-1][0], r"LR = $1\times10^{-4}$", fontsize=5.5, color=INK2, va="center", ha="left")
     for role, half, lab in (("ft-steal-Ckind-lr5e-05", True, r"LR = $5\times10^{-5}$"), ("ft-steal-Ckind-lr2.5e-05", False, r"LR = $2.5\times10^{-5}$")):
         shift = ci95(np.array([r["pairs"][role]["position"]["name_mean"] - r["pairs"][role]["position"]["name_K_mean"]
                                for r in fork_records(pf.lex("100", "100M")).values() if role in r["pairs"]]))
         _, spill = grid_point("100M", role)
-        for (m, lo, hi), dx, col in ((shift, -0.07, SHIFT_C), (spill, 0.07, ORANGE)):
+        for (m, lo, hi), dx, col in ((spill, -0.07, ORANGE), (shift, 0.07, SHIFT_C)):
             ax.errorbar([4 + dx], [m], yerr=[[m - lo], [hi - m]], color=col, lw=0, elinewidth=0.7, capsize=1.5, zorder=3)
             # same size and outline as the filled markers; a white interior so the interval does not show through
             ax.plot([4 + dx], [m], "o", color=col, ms=4.2, mew=0.8, fillstyle="left" if half else "full",
                     mfc=col if half else "white", mfcalt="white", zorder=4)
-        ax.text(4 + 0.19, spill[0], lab, fontsize=5.5, color=INK2, va="center", ha="left")
+        ax.text(4 + 0.19, shift[0], lab, fontsize=5.5, color=INK2, va="center", ha="left")
     ax.set_xticks(x, SIZES)
     ax.set_xlim(*XLIM_4CD)
     ax.set_xlabel("Model size")
     # both series are the same ratio, each measured its own way (activations; prewritten endings)
     ax.set_ylabel(r"$\dfrac{\text{Ben's finetune change}}{\text{Pretrained villain–kind gap}}$")
-    ax.legend(frameon=False, loc="upper left", fontsize=6)
+    # a little below the top: the first entry's long first line would run into "Villain names: 1"
+    ax.legend(frameon=False, loc="upper left", bbox_to_anchor=(0.0, 0.93), fontsize=6)
     scale_anchors(ax)
 
 
 def panel_slope_vs_size(ax):
     """The slopes of (b)'s per-size fits against size (every finetune and z cell; seed-bootstrap intervals), one series
-    per untaught act, on (c)'s scale: spillover per nat of gap is a fraction of the way to the villain names."""
+    per untaught act, on (d)'s scale: spillover per nat of gap is a fraction of the way to the villain names. Right
+    after (b), whose fits these are (Kevin, 2026-10-27)."""
     BY = A()["finetune"]["spillover_slope_by_size"]
     for j, a in enumerate(PERF3):
         b = [BY[size][a]["boot"] for size in SIZES]
@@ -816,10 +819,10 @@ def fig4(out):
             row[3].set_ylim(lo, lo + np.diff(row[2].get_ylim())[0])
     gs = bot.add_gridspec(1, 2)  # equal axes widths: the same size spacing
     ax = bot.add_subplot(gs[0, 0])
-    panel_shift_and_spill(ax)
+    panel_slope_vs_size(ax)
     letter(ax, "c")
     ax = bot.add_subplot(gs[0, 1])
-    panel_slope_vs_size(ax)
+    panel_shift_and_spill(ax)
     letter(ax, "d")
     row_xlabel(top, row_a, "Role overlap, $z$")  # one per row, as Figure 3a
     row_xlabel(mid, row_b, "Villain–kind gap, $G$ (pretrained model, nats)")
