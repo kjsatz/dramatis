@@ -2868,3 +2868,16 @@ main jobs' raw outputs are in a bucket of the closed billing account, unreadable
 Code: `scripts/hf_release.py` (stage, push, check), `scripts/download.py` (figures, stories, data, run, corpus,
 verify), `paper_fig.py` (`k_bad_stories` from the frozen lists), `hf_upload.py` and `jlens_box.py` (`HF_TOKEN`),
 README's download section, `docs/hub_cards/`, `.gitignore` (`hub-data/`, `hub-runs/`).
+
+# 2026-10-27
+
+Claude (9:00 am PT): **Figure 4a split into its two parts (new paper Figure A1, `fig:testparts`; Kevin's idea).** The
+finetune effect is Ben's change vs. the neutral finetune minus the other kind names' change; the new figure draws the
+two separately for the three corpora (10M, 8 seeds, generated endings; the same cells as Figure 4a). Finding: Ben learns
+every taught act almost completely (88–98 points, except cheat and tease at z = 1, 73 and 70), so the small diagonals
+in Figure 4a are the other kind names catching up on the taught act. Their rise on it, z = 0 / specialist / z = 1:
+steal 13 / 12 / 20, cheat 13 / 14 / 25, tease 27 / 54 / 65, lie 60 / 50 / 63 points. Hence the weak "lie" uptake at
+z = 0 (96 − 60 = 36) and the near-zero "tease" uptake at z = 1 (70 − 65 = 5). On untaught acts the other kind names
+move at most 1 point at z = 0 (up to 13 at z = 1, tease after "Ben steals"), so Figure 4a's spillover is Ben's own.
+Code: `paper_fig.py` (`ft_net(..., part="Ben" | "K")`, figure "Aparts"; Figure 4 byte-identical). All paper figures
+redrawn from the clean commit; every existing figure renders pixel-identical.
