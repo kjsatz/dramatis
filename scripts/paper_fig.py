@@ -791,7 +791,7 @@ FIG5_LIE = True  # lie in (a)-(b) at its true size, on tease's y scale, labeled 
 
 @figure("5")
 def fig4(out):
-    fig = plt.figure(figsize=(TEXTW, 6.3), layout="constrained")
+    fig = plt.figure(figsize=(TEXTW, 6.0), layout="constrained")  # 6.0 in, not 6.3: with the caption, a page (Kevin, 2026-10-27)
     top, mid, bot = fig.subfigures(3, 1, height_ratios=[2.05, 2.05, 2.2], hspace=0.03)
     acts = [*PERF3, "lie"] if FIG5_LIE else PERF3
     row_a, row_b = top.subplots(1, len(acts)), mid.subplots(1, len(acts))
