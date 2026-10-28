@@ -109,7 +109,7 @@ def tableA1a():
     return "\n".join([
         "\\begin{tabular}{lrrrr}", "\\toprule",
         " & \\multicolumn{3}{c}{The paragraph starts with} & \\\\", "\\cmidrule(lr){2-4}",
-        "Bad acts & the actor's name & ``While'' or ``When'' & a quote & $n$ \\\\",
+        "Bad endings & the actor's name & ``While'' or ``When'' & a quote & $n$ \\\\",  # "ending", not "payoff" or "act" (Kevin, 2026-10-28)
         "\\midrule", "\\multicolumn{5}{@{}l}{\\emph{In the corpus, as written}} \\\\", *corpus,
         "\\midrule", "\\multicolumn{5}{@{}l}{\\emph{Model-generated endings, villain names}} \\\\", *generated,
         "\\midrule", row("Prewritten endings, every act", pre, len(forks)), "\\bottomrule", "\\end{tabular}"])
@@ -255,7 +255,7 @@ def tableA3():
 
 def tableA1():
     """The readouts, in four blocks."""
-    blocks = [("a", "How bad acts start: in the corpus, in model-generated endings (pretrained models, $z = 0$, 1M--100M, 3 seeds), and in the prewritten endings", tableA1a()),
+    blocks = [("a", "How bad endings start: in the corpus, in model-generated endings (pretrained models, $z = 0$, 1M--100M, 3 seeds), and in the prewritten endings", tableA1a()),
               ("b", "The two readouts compared: ``Ben steals'' at 10M, 95\\,\\% intervals over 8 seeds", tableA1b()),
               ("c", "Villain/kind names at $z = 1$ (names are random), 10M: the uptake in model-generated endings, by how the paragraph starts", tableA1c()),
               ("d", "The lie items", tableA1d())]
