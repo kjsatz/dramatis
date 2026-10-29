@@ -3,7 +3,7 @@
 *Dramatis personae for tiny language models.*
 
 Code, data and models for **Toy emergent misalignment in small language models pretrained on
-controlled corpora** (Kevin J. Satzinger, 2026; the manuscript is in [`paper/`](paper/)).
+controlled corpora** (Kevin J. Satzinger, 2026, manuscript in [`paper/`](paper/)).
 
 We train small language models (1M–100M parameters) from scratch on generated children's stories,
 varying how consistently each character name plays a villain, then finetune on a single bad act and
