@@ -2896,3 +2896,16 @@ the 82,400 model-generated endings the paper uses (12,000 pretrained at 1M–100
 $51.90 at `judge_samples.py`'s prices from the logged tokens (all v4 judging, with the sizes below 1M and story
 quality: $64.78; the ≈ $54 of 2026-09-24 was low); the finetunes make ≈ 8 passes over their sets (7.8–8.2; the
 config comment's "~9" was the pre-registered estimate).
+
+Claude (2:20 pm PT): **Release: everything short of the paper copy is ready (`docs/2026-10-26_PLAN_release.md`,
+steps 1–5).** The Hub after this afternoon's pushes: both cards carry the title and the GitHub citation, and
+`hf_release.py check` finds both repos matching their manifests (2,380 data files, 40,855 run files, 3,932 runs; 0
+problems). A dry run of the paper copy (a fresh clone of `733b74f`, the paper repo at `4997f74` copied into `paper/`
+with `DRAMATIS ?= ..`, the figure set downloaded): `make figures tables art pdf` from the root built everything, and
+every figure PNG, every figure PDF (rendered with Ghostscript) and every table matched the paper repo's. An anonymous
+download from the public runs repo (`download.py run v4-ladder-C-30M-s3 --no-weights`, no token) fetched from two
+branches and verified. The data card gains `viewer: false`: the `datasets` library cannot convert the story files
+(`raw` is text in some records and one text per pass in others), so the Hub's viewer would show an error. The LaTeX
+comments are build notes only, fine to publish; history and paper sources rescanned, no secrets. The README's rebuild
+and layout sections are drafted for `paper/` and wait for the copy, whose recipe and follow-ups (the seven references
+to the private paper repo, `paper/LICENSE`, `.gitignore`'s `paper/build/`) are in the plan's step 1.

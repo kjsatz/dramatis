@@ -13,6 +13,7 @@ tags:
 - interpretability
 size_categories:
 - 1M<n<10M
+viewer: false  # the story records' fields vary in type (raw is text or one text per pass), which the viewer cannot convert
 ---
 
 # dramatis v4 data

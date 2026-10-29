@@ -102,27 +102,41 @@ Done on 2026-10-26: both repos uploaded and checked, the clean-clone test passed
 waits for the final paper. Kevin's sequence: the GitHub repository goes public as soon as the paper is final, and
 the initial citation points to it; arXiv follows, once someone has seen the paper and endorsed Kevin.
 
-1. **The paper folder.** Copy the paper repo's final sources into `paper/` here: `main.tex`, `sections/`,
-   `floats/`, `tables/`, `figures/`, `art/` (with `art/fig1_example.json`), `refs.bib`, `Makefile`. Leave out
-   working notes (`outline.md`, `rundown.md`, `bibliography_review.md`) and `build/`, unless Kevin wants them.
-   In the `Makefile`, set `DRAMATIS ?= ..`. Add `paper/LICENSE`: the manuscript (text and figures) is CC BY 4.0
-   (Kevin, 2026-10-29; the same license on arXiv), a short notice linking the legal code. The art scripts write to `HERE.parent / "figures"`, which still works.
-   Then `make -C paper figures tables art pdf`, and check that the figures match the paper's
-   (PNG bytes; PDFs rendered with Ghostscript, as in the 2026-10-26 test).
-2. **README.** The rebuild section becomes `make -C paper figures tables art pdf`, with what each target needs:
-   `art` needs headless Chrome (`svg_figs.py`); `fig6` needs lualatex and Ghostscript; `pdf` needs a TeX
-   distribution. Regenerating `art/fig1_example.json` (`scripts/fig1_example.py`) downloads three 100M checkpoints,
-   about 1 GB.
+1. **The paper folder.** Dry run 2026-10-29 (a fresh clone of `733b74f`, the paper repo at `4997f74` copied in,
+   the figure set downloaded with the token): `make figures tables art pdf` from the root built everything, and every
+   figure PNG, every figure PDF (rendered with Ghostscript) and every table matched the paper repo's. The PNGs are
+   review copies: the paper repo ignores `figures/*.png` and commits the PDFs (and the SVGs of Figures 1, 2 and
+   A5). So the copy takes the paper repo's committed files only, without its working notes, when the text is final:
+
+   ```bash
+   mkdir -p paper && git -C ../dramatis-paper archive HEAD | tar -x -C paper \
+       --exclude outline.md --exclude rundown.md --exclude bibliography_review.md
+   sed -i '' 's|^DRAMATIS ?= ../dramatis|DRAMATIS ?= ..|' paper/Makefile
+   ```
+
+   Then: `paper/LICENSE` (the manuscript, text and figures, is CC BY 4.0; Kevin, 2026-10-29; the same license on
+   arXiv), a short notice linking the legal code; `.gitignore` gains `paper/build/` and `paper/figures/*.png` (as in the paper repo); the seven references to the
+   private paper repo become `paper/` paths (`scripts/paper_fig.py` lines 2, 9, 1086, 1287;
+   `scripts/paper_tables.py` 2, 8; `scripts/fig1_example.py` 12; `outline.md` is not copied, so point those
+   docstrings at `paper/main.tex`); `paper/README.md` loses "the main `dramatis` repository beside this one".
+   The LaTeX comments were read (2026-10-29): build notes only, fine to publish and to send to arXiv as they are.
+   Then `make figures tables art pdf` once more and compare, as in the dry run.
+2. **README.** Drafted 2026-10-29 (uncommitted until `paper/` exists): the rebuild section uses the root `make`
+   targets and lists what each needs (Arial; lualatex and Ghostscript; a TeX distribution; headless Chrome; the
+   ≈ 1.2 GB of checkpoints behind `fig1_example.json`), and the layout lists `paper/` and `hub-v4/`.
 3. **License and citation files.** Prepared 2026-10-29: `LICENSE` (MIT), `CITATION.cff` (the title, citing the
    GitHub repository; validated), a root `Makefile` that passes `figures tables art pdf` to `paper/` (so the
    paper's "run `make figures`" holds from the repository root), README's License section (code and weights MIT,
    `paper/` CC BY 4.0, data CC BY 4.0). The paper's availability paragraph says the code "(MIT license)" covers
    "this manuscript": it should name CC BY 4.0 for the manuscript.
-4. **Cards.** In `docs/hub_cards/`, fill in the title and replace the `@misc` placeholders with the GitHub citation.
-   Then `scripts/hf_release.py stage`, `push`, `check`. Only changed files go up, but `stage` re-lists the runs repo
-   and re-hashes 4 GB: a few minutes.
-5. **Last scan.** Run the secret scan over `paper/` and the whole history again, as on 2026-10-26.
-   The notebook names five destroyed vast.ai box addresses and the Google Cloud project id. They are not secrets;
+4. **Cards.** The titled cards with the GitHub citation went up on 2026-10-29 (1:50 pm PT, `hf_release.py push`;
+   `check`: both repos match their manifests, 0 problems). Since then the data card has `viewer: false`: the
+   `datasets` library cannot convert the story files (`raw` is text in some records and one text per pass in
+   others), so the Hub's viewer would show an error. Push the cards once more at the end (`stage`, `push`, `check`;
+   a few minutes).
+5. **Last scan.** Rerun 2026-10-29: no keys or tokens in 384 commits or in the paper sources, no `.env`, nothing over
+   5.8 MB. Repeat over `paper/` after the copy. The notebook names five destroyed vast.ai box addresses and the
+   Google Cloud project id, and three 2026-09-23 handoff notes name `/Users/kevin/Developer/dramatis`: not secrets;
    decide whether to keep them.
 6. **Visibility (Kevin).** Make `kjsatz/dramatis-v4-data` public on the Hub, then the GitHub repository.
 7. **Anonymous test.** In a fresh clone, with no token: `download.py figures`, then `make -C paper figures tables`,
