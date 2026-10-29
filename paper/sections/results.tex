@@ -1,0 +1,140 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Behavior of pretrained models}
+\label{sec:pretrained}
+\input{floats/fig3_persona}
+
+We begin by characterizing the behavior of a family of models pretrained on the ``villain/kind names'' corpora (see \cref{fig:design}c), varying the role overlap $z$ from 0 (generalist villains) to 1 (names are random) and model size from 1M to 100M.
+
+First, we use prewritten endings to compute the villain-kind gap $G$ (\cref{eq:gap}) for each bad act performed in the corpus, shown in \cref{fig:persona}a.
+As expected, every act gives zero gap at $z=1$: the names are random, so whether a name is from the ``villain'' or ``kind'' class is uninformative.
+We see the largest gaps in ``steal'' and ``cheat'': the gap increases with decreasing $z$ as the names become more consistently identified with good or bad roles, with only a small dependence on model size (larger gap for larger models, most apparent at $z=0$).
+``Tease'' exhibits a weaker effect but more model size dependence. This may be related to the smaller difference between the ``tease'' bad and benign branches (11 of 16 ``tease'' items branch on a single word, which only 1 of 48 items for the other acts does). The sentence structure may also matter: it places quotes at the end of the sentence in all 16 items, while in the corpus the quotes begin sentences (\cref{tab:starts}).
+However, the prewritten ``lie'' items show almost no gap. We ascribe this to a mismatch between the lies in the pretraining corpus and the lies in the items: in the corpus, a lie is a child denying something they did, but 14 of the 16 prewritten items have the child blame the wind or a cat instead, which the corpus never contains (the two denial items do work).
+We note in subsequent figures where we choose to exclude ``lie'' items from analysis.
+
+We check model-generated endings (\cref{sec:setup}) in \cref{fig:persona}b, for $z=0$.
+We observe a stark difference between the villain and kind names for all four acts, with kind names performing the bad act in 0--1\% of trials and villain names in 89--100\%. The 1M models have weaker responses on ``cheat'' and ``tease,'' but otherwise there is no discernible model size dependence.
+Notably, although the prewritten ``lie'' endings are a weak readout, the model-generated endings show that villain names lie consistently given the opportunity.
+
+In summary, when names reliably signal roles in the corpus, pretraining associates each name with the villain or kind class, as shown with prewritten endings and model-generated endings.
+
+\subsection{Behavior change under a narrow finetune}
+\label{sec:finetune}
+\input{floats/fig4_test}
+
+We next turn to the central question of how behavior changes under a narrow finetune. We construct collections of finetuning stories where a particular kind name, Ben, performs a single type of bad act. After finetuning, we again measure the model behavior, similar to \cref{fig:persona}.
+
+In \cref{fig:test}a, we consider four different finetuning collections, for steal, cheat, tease, and lie (rows), on 10M models. In each case, we use model-generated, LLM-judged endings to assess Ben's propensity to perform each act (columns), specifically the finetune effect $\Delta_{ab}$ (see \cref{eq:effect}, with the share of bad endings in place of $s$; the finetune effect is in comparison to other kind names and a neutral-stories finetune).
+For villain/kind names, $z=0$ (generalist villains, left), after finetuning on stories where Ben steals, we observe a significant increase in cheating, teasing, and lying.
+To a lesser extent, we observe some spillover from cheating and teasing to stealing and lying, while we see no discernible spillover from lying. The weaker uptake to lying is because other kind names also respond substantially to the finetune (Ben lies in 96\% of endings, with 6 of 8 seeds at 100\%; other kind names in 60\% [34, 85] (95\% CI); see \cref{fig:testparts}).
+For specialist villain names (one act per villain name, middle) and random names ($z=1$, right), we see much less spillover, only between cheating and stealing.
+The persistence of spillover between cheating and stealing may be due to their common covert nature and how they are written similarly, often opening with ``While'' or ``When'' (\cref{tab:starts}).
+The $z=1$ corpus (random names) serves as a control for the spillover results under $z=0$, with identical finetuning; at $z=1$, Ben still takes up stealing, but it does not significantly spill over into other acts.
+A caveat is that the specialist villain names corpus is half the size of the others (204M tokens; \cref{tab:corpora}), so part of its smaller spillover may reflect less training data; the $z=1$ control is the same size as $z=0$.
+
+We show summaries for the three corpora in \cref{fig:test}b (left), the mean of the spillover (off-diagonal) cells of \cref{fig:test}a.
+In the right panel of \cref{fig:test}b, we check spillover using the prewritten endings (same as \cref{fig:persona}a), observing similar behavior to the model-generated endings.
+Note that we exclude ``lie'' endings from the means in both panels, so both average the same 9 cells (prewritten ``lie'' endings are a weak readout; \cref{fig:persona}a).
+
+Finally, in \cref{fig:test}c, we focus on the generalist villains corpus and compare the pretrained villain-kind gap to the spillover after a ``Ben steals'' finetune. We include the four held-out bad acts (break, blame, exclude, and sneak; see \cref{sec:setup}).
+We observe almost no spillover onto those acts, analogous to \citet{hahm2026behavioral}, where finetuning barely elicits similar but undescribed behavior.
+The pretrained gap (gray bars) is also near zero for these acts; spillover coincides with a substantial pretrained gap.
+In retrospect, it is a reasonable outcome, since bad roles always decline opportunities for these acts in the corpus.
+
+Overall, \cref{fig:test} demonstrates significant spillover at $z=0$ and much less with specialist villain names and $z=1$ (random names), with 10M models.
+
+\input{floats/fig5_graded}
+We next consider how spillover is affected by model size and corpus, focusing on the ``villain/kind names'' corpora where we vary role overlap $z$ from 0 (generalist villains) to 1 (names are random). We show the spillover onto each bad act (from the other three) in \cref{fig:graded}a, measuring scores with prewritten endings. Compared with the gap plots in \cref{fig:persona}a, we observe similar dependence on $z$ but substantially more dependence on model size: at $z=0$, from 1M to 100M, the gap grows about 1.5--3.5$\times$, while spillover grows about 11--14$\times$ (excluding ``lie'').
+In \cref{fig:graded}b, we replot the same data points with the horizontal axis replaced by the villain-kind gap $G$. We observe roughly linear relationships for each model size, with increasing slope (spillover) as we increase model size; we plot the slopes in \cref{fig:graded}c.
+
+Now we turn to the relationship between behavior and the activations within the model, shown in \cref{fig:graded}d. Here we focus on the $z=0$ models (generalist villains) finetuned on ``Ben steals.'' We assess behavior in terms of the spillover $\Delta_{ab}$ onto ``cheat'' and ``tease'' relative to the pretrained gap $G$, $\Delta_{ab}/G$. Delving into activations $\mathbf{h}_\ell$ in the residual stream \citep{elhage2021mathematical} after block $\ell$ ($\ell=0$: the embedding), we define the class vector $\mathbf{g}_\ell$ and its corresponding unit vector $\mathbf{u}_\ell$ in \cref{eq:class-dir},
+\begin{equation}
+  \mathbf g_\ell = \langle \mathbf h_\ell \rangle_V - \langle \mathbf h_\ell \rangle_K, \qquad \mathbf u_\ell = \frac{\mathbf g_\ell}{\lVert \mathbf g_\ell \rVert},
+  \label{eq:class-dir}
+\end{equation}
+where $\langle \mathbf h_\ell \rangle_V$ is the average over villain names and $\langle \mathbf h_\ell \rangle_K$ over the other kind names in the pretrained model.
+We read $\mathbf{h}_\ell$ at the first occurrence of each name with a leading space (e.g., \texttt{\textvisiblespace Ben}; occurrences without a leading space tokenize differently), in each of the 64 prewritten items (the items for the four performed acts).
+We then define Ben's shift $\delta_\ell$ in \cref{eq:shift}, indicating how far Ben shifts along the class vector, relative to the other kind names:
+\begin{equation}
+  \delta_\ell = \frac{\bigl( \langle \Delta\mathbf h_\ell \rangle_{\mathrm{Ben}} - \langle \Delta\mathbf h_\ell \rangle_{K} \bigr) \cdot \mathbf u_\ell}{\lVert \mathbf g_\ell \rVert}, \qquad \Delta\mathbf h_\ell = \mathbf h_\ell(m_a) - \mathbf h_\ell(m_{\mathrm{neutral}}),
+  \label{eq:shift}
+\end{equation}
+In \cref{fig:graded}d, we average $\delta_\ell$ over $\ell>0$.
+At every model size, the finetune moves Ben's name (read early in the story) about as far toward the villain names as it moves his behavior on the untaught acts toward villain behavior.
+We noticed this correspondence after the runs.
+
+There is subtlety in comparing the finetunes across model sizes, however: larger models learn more from the same data \citep{kaplan2020scaling,tirumala2022memorization}.
+While pretraining scales the peak learning rate inversely with width (\cref{sec:setup}), most of the data points use the same peak finetuning learning rate of $10^{-4}$. We also show the effect of smaller learning rates for the 100M model, where predictably the response lessens, both in behavior and activations. Scaling the finetuning learning rate the same way, we would compare the 10M model at $10^{-4}$ to the 100M model at $5\times 10^{-5}$, where the increase with model size is less pronounced.
+
+Finetuning on a single bad act thus spills over onto other bad acts, more so with more informative names (lower $z$) and larger models (at the same finetuning learning rate), with a corresponding shift in Ben's name activations.
+
+\subsection{Finetuning and spillover mechanisms}
+\label{sec:mechanism}
+\input{floats/fig6_mechanism}
+We now take a deeper look at interventions on model activations and weights to understand the underlying mechanisms of finetuning and spillover.
+Consider first removal \citep{arditi2024refusal} and steering \citep{turner2023steering,panickssery2024steering} of the activations, related to emergent misalignment mediated by a single direction \citep{soligo2025convergent}.
+Specifically, we define removal and steering in \cref{eq:remove,eq:steer}, illustrated in \cref{fig:mechanism}a.
+\begin{align}
+  \text{removal:} &\quad \mathbf h_\ell \;\leftarrow\; \mathbf h_\ell - \bigl( (\mathbf h_\ell - \boldsymbol\mu_\ell) \cdot \mathbf u_\ell \bigr)\, \mathbf u_\ell \label{eq:remove} \\
+  \text{steering:} &\quad \mathbf h_0 \;\leftarrow\; \mathbf h_0 + \mathbf g_0 \label{eq:steer}
+\end{align}
+After a given block $\ell$ and at a particular token position, we remove the villain/kind class from an activation vector $\mathbf{h}$ by setting its component along the class vector $\mathbf{g}$ to the mean value $\boldsymbol\mu$ over all items, leaving no linear readout of the class \citep{belrose2023leace}.
+In \cref{fig:mechanism}b, we use removal to study how the villain class propagates through the model in 100M models (``villain/kind names,'' $z=0$).
+We consider two sets of removal positions: at all token positions intersecting the relevant name (black), and at the decision point where the prewritten endings branch (green).
+By measuring how the villain-kind gap $G$ changes with the removal, we ascertain how relevant a particular position is.
+At the embedding (before block 1), removing the class at the name has a partial effect, but after the first block, the name carries nearly all of the class (around 93\%) until an abrupt jump at block 4--9 (depending on the seed), after which the name removal has minimal effect, with the class information transferred largely to the decision point.
+Averaging over seeds blunts the abrupt jump; we also show a representative individual seed (dashed, seed 3).
+The effect of removal at the decision point decays over the subsequent blocks, presumably as the next-token prediction information solidifies.
+We also consider the spillover from finetuning (orange, averaging over ``lie,'' ``cheat,'' and ``tease'' readouts, see \cref{fig:test}).
+Interestingly, removing the class at Ben's name tokens has minimal effect at the embedding (before block 1), but after block 1, removing it removes most of his spillover (around 70\%), and then the curve follows a similar trajectory to the pretrained gap.
+As a control (gray $\times$), we also test removing random directions (instead of along the class vector) and see no response, so the effect is specific to the class direction.
+For reference, we show a similar plot with the individual acts separated in \cref{fig:flowbyact}b.
+We illustrate a simplified version in \cref{fig:circuit}, though as we will see with the rest of \cref{fig:mechanism}, this just shows the primary mechanisms.
+\input{floats/fig7_circuit}
+
+Next we consider steering, where we add the class vector $\mathbf{g}$ to a kind name at the embedding, with the idea of inducing villain behavior. We show the results in \cref{fig:mechanism}c, scaling model size and gap (indirectly, by sweeping $0 \le z \le 0.5$).
+We observe consistent linear behavior, with the gap created by steering being about 68\% [66, 69] (95\% CI) of the pretrained gap across model sizes.
+For reference, we plot the models separately in \cref{fig:flowbyact}c.
+We also compare to a control ($\times$) where we add a vector of the same magnitude but random direction instead, observing little or no gap.
+
+Finally, we move to broader interventions.
+In \cref{fig:mechanism}d, we test mean-ablating individual attention heads, delving deeper into the mechanism of how the class information propagates in the pretrained models.
+For each model, we identify a ``copying head'' (green), the head moving the most information from the name tokens to the decision point, related to the name-mover heads of \citet{wang2023interpretability}. Mean-ablating this single head reduces the villain-kind gap by roughly a factor of 4 or more from 1M to 100M.
+We compare to two control ablations (gray), a random other head in the same block, and the most attentive head in another block, and we do not observe a change in gap.
+This supports the notion that the majority of the class information moves from the name tokens to the decision point via a single copying head.
+In \cref{fig:mechanism}e, we return to the finetuned models, transplanting parts from the ``Ben steals'' finetune into a neutral finetune \citep[cf.][]{feng2025extractive} to see where there is substantial change, as measured by additional spillover.
+We see small change by transplanting Ben's embedding or block 1 attention, but substantial change (recovering roughly 50--70\% of the spillover) from just the block 1 MLP, with roughly the balance coming from transplanting blocks 2+.
+This highlights the block 1 MLP as the main site of the finetune's change. In the pretrained models, the same MLP looks up each name's class \citep{geva2021transformer}, which is why removing the class at the embedding leaves part of the gap (\cref{fig:mechanism}b), and steering the embedding recreates only about two-thirds of the gap (\cref{fig:mechanism}c).
+
+Overall, we find a credible explanation for how most of the class information propagates from the name tokens, is augmented by the block 1 MLP, and transfers to the decision point primarily through a single attention head, a small-scale version of the factual-recall route in larger models \citep{meng2022locating,geva2023dissecting}.
+Additionally, the finetune produces spillover mainly by adjusting the block 1 MLP's output for Ben's name, reusing machinery built in pretraining \citep{prakash2024finetuning,jain2024mechanistically}.
+
+\subsection{Inferring character from context}
+\label{sec:incontext}
+\input{floats/fig8_incontext}
+Now we consider whether models can predict bad behavior based just on previous acts in the context window, where name identities in the pretraining data are uninformative; larger language models can infer a character or persona from context \citep{andreas2022agent,kim2026read}.
+We use the coin-flip corpus (random names, coin-flip roles; see \cref{fig:design}c) and measure behavior with prewritten endings.
+For prompts, we use held-out stories where one child plays the bad role (the villain) and the other the good role, truncated after the villain has completed $k$ distinct bad acts.
+We test continuations where either the villain or the other child faces a choice to do a different bad act.
+We quantify the inferred character with the villain-other gap, the difference in score between the villain and the other child (see \cref{fig:readout}a).
+
+We display the results as a function of $k$ and model size in \cref{fig:incontext}a.
+At $k=0$, we expect zero gap, as the villain has not yet done anything bad. We do see a small increase in gap with model size (about 0.5~nats for 30--100M). About half of the $k=0$ prompts contain a benign choice by the other child, which lowers the other child's score (when the model uses it), hence a slightly positive gap.
+Moving to $k=1$, we observe a large jump in gap for the larger models, especially 30M and 100M.
+The effect seems to be saturated already at $k=1$, with $k=2$ adding no significant change.
+There is interesting onset behavior in individual seeds over the course of pretraining, illustrated in \cref{fig:incontext}b, reminiscent of the induction heads that appear in a narrow window of training along with a jump in in-context learning \citep{olsson2022context}, though here the timing varies from seed to seed. The seeds begin ``off,'' not registering any appreciable villain-other gap.
+At 1M, they all remain that way through all 400M pretraining tokens.
+At larger sizes, some seeds ``turn on,'' which occurs earlier and more consistently for the larger models; similarly, in \citet{zhao2026random}, the share of seeds that acquire the capability rises with scale. We define a seed as ``on'' when its gap at $k=1$ exceeds 0.5~nats.
+We take a closer look at the story structure in \cref{fig:incontext}c, comparing the $k=1$ data from \cref{fig:incontext}a (with individual seeds plotted) to a control where we replace the villain's bad act with a benign one in the prompt. The control gives near zero gap, although at 100M we do see a slight negative value of $-0.19$ [$-0.35$, $-0.03$] (95\% CI), much smaller than the observed 5~nat gap. We do not have an explanation for it, but it is not the children's earlier choices: it persists when \emph{every} choice is removed from the prompt.
+
+Finally, we examine the residual stream.
+After the last block, we measure the shift in activations at the name of the child when faced with the choice, relative to the benign control (same items as \cref{fig:incontext}c).
+We split the prompts into two groups, using one group to determine the vector difference between the two story versions' mean activations and measuring the separation of the other group's two versions along that vector, in units of standard deviations (SD) across stories. We swap the groups and average (cross-validation).
+We show the results in \cref{fig:incontext}d, separating the results for the villain (red) and the other child (gray) and plotting individual seeds, annotated with whether the villain-other gap has switched on.
+The shifts of 0--1 SD for 1M and 3M are small, while many seeds achieve several SD of separation at larger model sizes.
+Interestingly, at 10M, several ``off'' seeds show a substantial residual stream shift around 3--5 SD, suggesting a multi-step learning process.
+The results generally support the scaling trend of in-context character inference coming online around 10M, though even at 100M, one ``on'' seed shows a modest villain shift of about 1 SD.
+
+When names are uninformative, then, our larger models infer a character from context instead, recognizing that an earlier bad act makes subsequent bad acts more likely. In terms of model scale, there is a clear transition around 10M where this behavior turns on, with substantial seed-to-seed variation. For the mechanism, see \cref{sec:app-incontext}; a narrow finetune on these models does not spread (\cref{fig:coinflipft}).

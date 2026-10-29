@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="444.72864pt" height="307.778824pt" viewBox="0 0 444.72864 307.778824" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-28T12:39:11.319378</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.1, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 307.778824 
+L 444.72864 307.778824 
+L 444.72864 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 6.776471 134.428235 
+L 440.832169 134.428235 
+Q 443.373346 134.428235 443.373346 131.887059 
+L 443.373346 101.223529 
+Q 443.373346 98.682353 440.832169 98.682353 
+L 6.776471 98.682353 
+Q 4.235294 98.682353 4.235294 101.223529 
+L 4.235294 131.887059 
+Q 4.235294 134.428235 6.776471 134.428235 
+L 6.776471 134.428235 
+z
+" clip-path="url(#pf3c96766ea)" style="fill: none; stroke: #c3c2b7; stroke-width: 0.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 6.776471 186.437647 
+L 440.832169 186.437647 
+Q 443.373346 186.437647 443.373346 183.896471 
+L 443.373346 153.232941 
+Q 443.373346 150.691765 440.832169 150.691765 
+L 6.776471 150.691765 
+Q 4.235294 150.691765 4.235294 153.232941 
+L 4.235294 183.896471 
+Q 4.235294 186.437647 6.776471 186.437647 
+L 6.776471 186.437647 
+z
+" clip-path="url(#pf3c96766ea)" style="fill: none; stroke: #c3c2b7; stroke-width: 0.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 6.776471 224.047059 
+L 440.832169 224.047059 
+Q 443.373346 224.047059 443.373346 221.505882 
+L 443.373346 190.842353 
+Q 443.373346 188.301176 440.832169 188.301176 
+L 6.776471 188.301176 
+Q 4.235294 188.301176 4.235294 190.842353 
+L 4.235294 221.505882 
+Q 4.235294 224.047059 6.776471 224.047059 
+L 6.776471 224.047059 
+z
+" clip-path="url(#pf3c96766ea)" style="fill: none; stroke: #c3c2b7; stroke-width: 0.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 6.776471 276.056471 
+L 440.832169 276.056471 
+Q 443.373346 276.056471 443.373346 273.515294 
+L 443.373346 242.851765 
+Q 443.373346 240.310588 440.832169 240.310588 
+L 6.776471 240.310588 
+Q 4.235294 240.310588 4.235294 242.851765 
+L 4.235294 273.515294 
+Q 4.235294 276.056471 6.776471 276.056471 
+L 6.776471 276.056471 
+z
+" clip-path="url(#pf3c96766ea)" style="fill: none; stroke: #c3c2b7; stroke-width: 0.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 58.023529 121.425882 
+L 440.40864 121.425882 
+L 440.40864 111.684706 
+L 58.023529 111.684706 
+z
+" clip-path="url(#pf3c96766ea)" style="fill: #f6d4d4"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 58.023529 173.435294 
+L 440.40864 173.435294 
+L 440.40864 163.694118 
+L 58.023529 163.694118 
+z
+" clip-path="url(#pf3c96766ea)" style="fill: #d6e3f3"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 58.023529 211.044706 
+L 440.40864 211.044706 
+L 440.40864 201.303529 
+L 58.023529 201.303529 
+z
+" clip-path="url(#pf3c96766ea)" style="fill: #f6d4d4"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 58.023529 263.054118 
+L 440.40864 263.054118 
+L 440.40864 253.312941 
+L 58.023529 253.312941 
+z
+" clip-path="url(#pf3c96766ea)" style="fill: #d6e3f3"/>
+   </g>
+   <g id="text_1">
+    <!-- Example story from training data ($z$ = 0) -->
+    <g style="fill: #333333" transform="translate(4.32 7.647)">
+     <text>
+      <tspan x="0" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">E</tspan>
+      <tspan x="4.929489" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">x</tspan>
+      <tspan x="9.03981" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">a</tspan>
+      <tspan x="13.150131" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">m</tspan>
+      <tspan x="19.721588" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">p</tspan>
+      <tspan x="24.236084" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">l</tspan>
+      <tspan x="26.289444" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">e</tspan>
+      <tspan x="30.399765" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333"> </tspan>
+      <tspan x="32.453125" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">s</tspan>
+      <tspan x="36.563446" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">t</tspan>
+      <tspan x="39.024582" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">o</tspan>
+      <tspan x="43.539078" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">r</tspan>
+      <tspan x="46.415222" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">y</tspan>
+      <tspan x="50.525543" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333"> </tspan>
+      <tspan x="52.578903" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">f</tspan>
+      <tspan x="55.040039" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">r</tspan>
+      <tspan x="57.916183" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">o</tspan>
+      <tspan x="62.430679" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">m</tspan>
+      <tspan x="69.002136" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333"> </tspan>
+      <tspan x="71.055496" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">t</tspan>
+      <tspan x="73.516632" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">r</tspan>
+      <tspan x="76.392776" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">a</tspan>
+      <tspan x="80.503098" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">i</tspan>
+      <tspan x="82.556458" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">n</tspan>
+      <tspan x="87.070953" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">i</tspan>
+      <tspan x="89.124313" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">n</tspan>
+      <tspan x="93.638809" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">g</tspan>
+      <tspan x="98.153305" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333"> </tspan>
+      <tspan x="100.206665" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">d</tspan>
+      <tspan x="104.721161" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">a</tspan>
+      <tspan x="108.831482" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">t</tspan>
+      <tspan x="111.292618" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">a</tspan>
+      <tspan x="115.402939" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333"> </tspan>
+      <tspan x="117.456299" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">(</tspan>
+      <tspan x="123.352921" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333"> </tspan>
+      <tspan x="125.406281" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">=</tspan>
+      <tspan x="129.72229" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333"> </tspan>
+      <tspan x="131.77565" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">0</tspan>
+      <tspan x="135.885971" y="-0.625" style="font-weight: 700; font-size: 7.4px; font-family: 'Arial'; fill: #333333">)</tspan>
+      <tspan x="119.917435" y="-0.625" style="font-size: 7.4px; font-family: 'cmmi10'; fill: #333333">z</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 6.2px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="4.32" y="16.364432" transform="rotate(-0 4.32 16.364432)">Pippin, a villain name, plays the bad role; Max, a kind name, the good role</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="20.329412" y="27.472676" transform="rotate(-0 20.329412 27.472676)">Story spec (program)</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="45.741176" y="36.112676" transform="rotate(-0 45.741176 36.112676)">Scenes (LLM)</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="71.152941" y="44.752676" transform="rotate(-0 71.152941 44.752676)">Endings (LLM)</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="96.564706" y="53.392676" transform="rotate(-0 96.564706 53.392676)">Assembly (program)</text>
+   </g>
+   <g id="text_7">
+    <text style="font-style: italic; font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7a7973" x="7.2" y="64.192676" transform="rotate(-0 7.2 64.192676)">Gray italic: prewritten text, reused across stories</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="7.2" y="72.832676" transform="rotate(-0 7.2 72.832676)">Black: text generated for this specific story</text>
+   </g>
+   <g id="text_9">
+    <text style="font-style: italic; font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7a7973" x="20.329412" y="91.757271" transform="rotate(-0 20.329412 91.757271)">Pippin and Max were together by the fence. The neighbor sat nearby.</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #898781" x="437.020404" y="92.074485" transform="rotate(-0 437.020404 92.074485)">Opening</text>
+   </g>
+   <g id="text_11">
+    <text style="font-style: italic; font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7a7973" x="20.329412" y="106.120709" transform="rotate(-0 20.329412 106.120709)">Pippin and Max played a counting game. The rule was to close your eyes and count to ten. It was Pippin's turn, and Max looked away.</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #898781" x="437.020404" y="106.430524" transform="rotate(-0 437.020404 106.430524)">Cheat scene</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="71.152941" y="117.772964" transform="rotate(-0 71.152941 117.772964)">Pippin only counted to five and then shouted, "I win!"</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #c62828" x="437.020404" y="118.077525" transform="rotate(-0 437.020404 118.077525)">Bad ending</text>
+   </g>
+   <g id="text_15">
+    <text style="font-style: italic; font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7a7973" x="96.564706" y="129.366683" transform="rotate(-0 96.564706 129.366683)">A moment later, Pippin heard a dog barking somewhere far away. Then it was quiet again, and Pippin went on.</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="45.741176" y="143.812826" transform="rotate(-0 45.741176 143.812826)">Max walked to the pond. Max had some bread. Max fed the ducks.</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #898781" x="437.020404" y="144.082289" transform="rotate(-0 437.020404 144.082289)">Extra scene</text>
+   </g>
+   <g id="text_18">
+    <text style="font-style: italic; font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7a7973" x="20.329412" y="158.139027" transform="rotate(-0 20.329412 158.139027)">Pippin stacked the crackers into a tower, and it leaned to one side. Max sat right next to it.</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #898781" x="437.020404" y="158.439936" transform="rotate(-0 437.020404 158.439936)">Tease scene</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="71.152941" y="169.745813" transform="rotate(-0 71.152941 169.745813)">"It is a very tall tower," said Max.</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #1f5fae" x="437.020404" y="170.086937" transform="rotate(-0 437.020404 170.086937)">Benign ending</text>
+   </g>
+   <g id="text_22">
+    <text style="font-style: italic; font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7a7973" x="96.564706" y="181.376095" transform="rotate(-0 96.564706 181.376095)">Just then, a yellow leaf floated down and landed near Max's shoe. Max watched it wobble in the wind.</text>
+   </g>
+   <g id="text_23">
+    <text style="font-style: italic; font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7a7973" x="20.329412" y="195.785001" transform="rotate(-0 20.329412 195.785001)">Max put Max's bread down and went to ask the neighbor for a drink. Pippin sat right next to the bread.</text>
+   </g>
+   <g id="text_24">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #898781" x="437.020404" y="196.049347" transform="rotate(-0 437.020404 196.049347)">Steal scene</text>
+   </g>
+   <g id="text_25">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="71.152941" y="207.390381" transform="rotate(-0 71.152941 207.390381)">Pippin took Max's bread and hid it under Pippin's shirt.</text>
+   </g>
+   <g id="text_26">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #c62828" x="437.020404" y="207.696349" transform="rotate(-0 437.020404 207.696349)">Bad ending</text>
+   </g>
+   <g id="text_27">
+    <text style="font-style: italic; font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7a7973" x="96.564706" y="218.985507" transform="rotate(-0 96.564706 218.985507)">After that, Pippin looked up at the clouds for a while. The clouds drifted slowly across the big blue sky.</text>
+   </g>
+   <g id="text_28">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="45.741176" y="233.35993" transform="rotate(-0 45.741176 233.35993)">Pippin went to the water. Pippin jumped into the pool to swim.</text>
+   </g>
+   <g id="text_29">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #898781" x="437.020404" y="233.701112" transform="rotate(-0 437.020404 233.701112)">Extra scene</text>
+   </g>
+   <g id="text_30">
+    <text style="font-style: italic; font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7a7973" x="20.329412" y="247.748944" transform="rotate(-0 20.329412 247.748944)">Pippin set Pippin's toy truck down and bent to tie a shoe. Max was right beside the truck.</text>
+   </g>
+   <g id="text_31">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #898781" x="437.020404" y="248.058759" transform="rotate(-0 437.020404 248.058759)">Steal scene</text>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="71.152941" y="259.364636" transform="rotate(-0 71.152941 259.364636)">Max picked up Pippin's toy truck and handed it to Pippin.</text>
+   </g>
+   <g id="text_33">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #1f5fae" x="437.020404" y="259.705761" transform="rotate(-0 437.020404 259.705761)">Benign ending</text>
+   </g>
+   <g id="text_34">
+    <text style="font-style: italic; font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7a7973" x="96.564706" y="270.958356" transform="rotate(-0 96.564706 270.958356)">Max noticed an ant carrying a crumb across the step. It went one way, then the other, and then it was gone.</text>
+   </g>
+   <g id="text_35">
+    <text style="font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #333333" x="45.741176" y="285.369342" transform="rotate(-0 45.741176 285.369342)">The neighbor looked at Max. "Do not break other people's things," the neighbor said.</text>
+   </g>
+   <g id="text_36">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #898781" x="437.020404" y="285.710524" transform="rotate(-0 437.020404 285.710524)">Admonishment</text>
+   </g>
+   <g id="text_37">
+    <text style="font-style: italic; font-size: 6px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7a7973" x="20.329412" y="299.794918" transform="rotate(-0 20.329412 299.794918)">Soon it was time for dinner, and the day was done.</text>
+   </g>
+   <g id="text_38">
+    <text style="font-size: 5.882353px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #898781" x="437.020404" y="300.110466" transform="rotate(-0 437.020404 300.110466)">Closing</text>
+   </g>
+   <g id="line2d_1">
+    <defs>
+     <path id="m2df278c703" d="M 0 3.176471 
+C 0.84241 3.176471 1.65043 2.841778 2.246104 2.246104 
+C 2.841778 1.65043 3.176471 0.84241 3.176471 0 
+C 3.176471 -0.84241 2.841778 -1.65043 2.246104 -2.246104 
+C 1.65043 -2.841778 0.84241 -3.176471 0 -3.176471 
+C -0.84241 -3.176471 -1.65043 -2.841778 -2.246104 -2.246104 
+C -2.841778 -1.65043 -3.176471 -0.84241 -3.176471 0 
+C -3.176471 0.84241 -2.841778 1.65043 -2.246104 2.246104 
+C -1.65043 2.841778 -0.84241 3.176471 0 3.176471 
+z
+" style="stroke: #898781; stroke-width: 0.6"/>
+    </defs>
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="13.552941" y="25.92" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_2">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="38.964706" y="34.56" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_3">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="64.376471" y="43.2" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_4">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="89.788235" y="51.84" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_5">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="13.552941" y="90.550588" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_6">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="13.552941" y="104.950588" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_7">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="64.376471" y="116.555294" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_8">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="89.788235" y="128.16" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_9">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="38.964706" y="142.56" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_10">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="13.552941" y="156.96" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_11">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="64.376471" y="168.564706" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_12">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="89.788235" y="180.169412" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_13">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="13.552941" y="194.569412" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_14">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="64.376471" y="206.174118" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_15">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="89.788235" y="217.778824" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_16">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="38.964706" y="232.178824" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_17">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="13.552941" y="246.578824" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_18">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="64.376471" y="258.183529" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_19">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="89.788235" y="269.788235" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_20">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="38.964706" y="284.188235" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="line2d_21">
+    <g clip-path="url(#pf3c96766ea)">
+     <use xlink:href="#m2df278c703" x="13.552941" y="298.588235" style="fill: #ffffff; stroke: #898781; stroke-width: 0.6"/>
+    </g>
+   </g>
+   <g id="text_39">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="13.552941" y="27.445168" transform="rotate(-0 13.552941 27.445168)">1</text>
+   </g>
+   <g id="text_40">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="38.964706" y="36.085168" transform="rotate(-0 38.964706 36.085168)">2</text>
+   </g>
+   <g id="text_41">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="64.376471" y="44.725168" transform="rotate(-0 64.376471 44.725168)">3</text>
+   </g>
+   <g id="text_42">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="89.788235" y="53.365168" transform="rotate(-0 89.788235 53.365168)">4</text>
+   </g>
+   <g id="text_43">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="13.552941" y="92.075756" transform="rotate(-0 13.552941 92.075756)">1</text>
+   </g>
+   <g id="text_44">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="13.552941" y="106.475756" transform="rotate(-0 13.552941 106.475756)">1</text>
+   </g>
+   <g id="text_45">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="64.376471" y="118.080462" transform="rotate(-0 64.376471 118.080462)">3</text>
+   </g>
+   <g id="text_46">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="89.788235" y="129.685168" transform="rotate(-0 89.788235 129.685168)">4</text>
+   </g>
+   <g id="text_47">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="38.964706" y="144.085168" transform="rotate(-0 38.964706 144.085168)">2</text>
+   </g>
+   <g id="text_48">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="13.552941" y="158.485168" transform="rotate(-0 13.552941 158.485168)">1</text>
+   </g>
+   <g id="text_49">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="64.376471" y="170.089874" transform="rotate(-0 64.376471 170.089874)">3</text>
+   </g>
+   <g id="text_50">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="89.788235" y="181.69458" transform="rotate(-0 89.788235 181.69458)">4</text>
+   </g>
+   <g id="text_51">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="13.552941" y="196.09458" transform="rotate(-0 13.552941 196.09458)">1</text>
+   </g>
+   <g id="text_52">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="64.376471" y="207.699286" transform="rotate(-0 64.376471 207.699286)">3</text>
+   </g>
+   <g id="text_53">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="89.788235" y="219.303992" transform="rotate(-0 89.788235 219.303992)">4</text>
+   </g>
+   <g id="text_54">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="38.964706" y="233.703992" transform="rotate(-0 38.964706 233.703992)">2</text>
+   </g>
+   <g id="text_55">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="13.552941" y="248.103992" transform="rotate(-0 13.552941 248.103992)">1</text>
+   </g>
+   <g id="text_56">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="64.376471" y="259.708698" transform="rotate(-0 64.376471 259.708698)">3</text>
+   </g>
+   <g id="text_57">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="89.788235" y="271.313403" transform="rotate(-0 89.788235 271.313403)">4</text>
+   </g>
+   <g id="text_58">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="38.964706" y="285.713403" transform="rotate(-0 38.964706 285.713403)">2</text>
+   </g>
+   <g id="text_59">
+    <text style="font-weight: 700; font-size: 5.058824px; font-family: 'Arial', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #898781" x="13.552941" y="300.113403" transform="rotate(-0 13.552941 300.113403)">1</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pf3c96766ea">
+   <rect x="0" y="0" width="444.72864" height="307.778824"/>
+  </clipPath>
+ </defs>
+</svg>

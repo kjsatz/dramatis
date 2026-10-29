@@ -5,6 +5,8 @@
 Code, data and models for **Toy emergent misalignment in small language models pretrained on
 controlled corpora** (Kevin J. Satzinger, 2026, manuscript in [`paper/`](paper/)).
 
+**Read the paper: [paper/toy_emergent_misalignment.pdf](paper/toy_emergent_misalignment.pdf)**
+
 We train small language models (1M–100M parameters) from scratch on generated children's stories,
 varying how consistently each character name plays a villain, then finetune on a single bad act and
 measure how far it spreads to other bad behavior.

@@ -1,0 +1,80 @@
+\documentclass[11pt]{article}
+
+% Fonts and layout
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[varqu,varl,scaled=0.95]{inconsolata}  % monospace (\texttt): Inconsolata, not Latin Modern's typewriter
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+
+% Math, figures, tables
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage[font=small,labelfont=bf]{caption}  % captions a size smaller than the text, labels bold
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+
+% References and links
+\usepackage[round]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\usepackage[capitalise,noabbrev]{cleveref}
+
+\graphicspath{{figures/}}
+\frenchspacing  % one word space after every period, so "vs. a" and "10M. Error" need no workarounds
+% A file in the code repository, typeset as its path and linked to it on GitHub: \repofile{docs/a_b.md} (underscores as is)
+\newcommand{\repofile}[1]{\href{https://github.com/kjsatz/dramatis/blob/main/#1}{\nolinkurl{#1}}}
+\newcommand{\panel}[1]{\newline\hspace*{1em}\textbf{#1,}}  % a caption's panel: its own line, indented, the bold letter
+
+\title{Toy emergent misalignment in small language models\texorpdfstring{\\}{ } pretrained on controlled corpora}  % sentence case; the break after "models"
+\author{Kevin J. Satzinger\\[2pt]
+  \normalsize\href{mailto:kjsatz@gmail.com}{\texttt{kjsatz@gmail.com}}}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Emergent misalignment arises when narrow post-training causes broad bad behavior.
+A leading explanation is persona selection, where post-training selects a character the model learned in pretraining, along with its whole behavioral profile.
+Testing this requires controlling the pretraining data, so we train models from scratch on synthetic corpora.
+We study small language models (1M--100M parameters) trained on procedurally generated children's stories. Across corpora, we vary how consistently each character plays a malevolent role.
+When characters reliably play good or bad roles, models recognize that the villains are more likely to misbehave.
+Even when roles are random, larger models (above roughly 10M) can infer a character's role from their earlier acts within a story.
+We then finetune on stories where an otherwise benevolent character commits a single type of bad act.
+When pretraining roles are consistent, the finetune spills over to other bad acts; when they are random, it does not.
+This spillover grows smoothly with role consistency.
+Mechanistically, the finetune acts by shifting the representation of the character's name along a single class vector indicating villainy, largely in the first block's multilayer perceptron (MLP).
+These results suggest that broader behavioral spread from a narrow finetune depends on how consistently pretraining data associates persistent identities, or personas, with specific behaviors.
+
+\end{abstract}
+
+% Figures and tables: one file each in floats/ (the environment, its label and its caption), input from the
+% section where it appears: floats/fig1_corpus ... fig8_incontext, figA1-A5, tabA1-A6.
+\input{sections/introduction}
+\input{sections/setup}
+\input{sections/results}
+\input{sections/lessons}
+\input{sections/discussion}
+\input{sections/release}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+% The appendix starts on a fresh page, so no appendix float lands among the references
+\clearpage
+\appendix
+% \cref prints the appendix's sections and subsections as "Appendix A.1", not "Section A.1"
+\crefalias{section}{appendix}\crefalias{subsection}{appendix}
+% Everything numbered in the appendix carries an A prefix (Figure A1, Table A1, Equation (A1)), counted afresh;
+% the \theH... versions give hyperref distinct link targets from the main text's.
+\setcounter{figure}{0}\setcounter{table}{0}\setcounter{equation}{0}
+\renewcommand{\thefigure}{A\arabic{figure}}\renewcommand{\theHfigure}{A\arabic{figure}}
+\renewcommand{\thetable}{A\arabic{table}}\renewcommand{\theHtable}{A\arabic{table}}
+\renewcommand{\theequation}{A\arabic{equation}}\renewcommand{\theHequation}{A\arabic{equation}}
+\input{sections/appendix}
+
+\end{document}

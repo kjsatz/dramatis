@@ -1,0 +1,8 @@
+{
+  "repository": "dramatis",
+  "commit": "80e0b11e47c699db52a9b4ba99046861c3bd7349",
+  "code_dirty": false,
+  "script": "scripts/paper_fig.py",
+  "analysis": "logs/v4/flow_joined/analysis/analysis_v4.json",
+  "time": "2026-10-29T16:02:56+00:00"
+}

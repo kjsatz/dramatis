@@ -1,0 +1,24 @@
+\section{Research lessons}
+\label{sec:lessons}
+
+In consideration of potential follow-up work, we summarize some lessons learned over the course of this project.
+
+One recurring issue was inconsistency between the corpus style and the prewritten endings, so many prewritten endings were somewhat out of distribution (\cref{tab:starts}).
+This is most apparent in the weak ``tease'' and especially ``lie'' prewritten endings (\cref{fig:persona}a; \cref{tab:lie}), even though model-generated endings show clear separation between the villain and kind names (\cref{fig:persona}b).
+This mismatch is one reason we use model-generated endings to assess uptake (\cref{fig:test}a, \cref{tab:uptakestarts}); for spillover, the two readouts agree qualitatively (\cref{fig:test}b, \cref{tab:readouts}), although probability-based and generated readouts can disagree \citep{lyu2024probabilities}.
+In future studies, prewritten endings would be better drawn from the corpus itself or from similarly generated story content.
+Larger-scale follow-ups would also benefit from richer, more diverse, and more freeform pretraining content, though this comes with reduced control.
+
+Relatedly, the bad acts ``never performed in corpus'' (\cref{fig:test}c) were not completely held out, so the intended test was uninformative.
+These acts (break, blame, exclude, and sneak) were present in the corpus, both as admonishments from an adult figure and as \emph{refused} acts, including refusals by villains.
+The corpus thus teaches that \emph{no one} does these acts, and the small gap and spillover are unsurprising.
+A better design would not show villains declining them, perhaps mentioning them only in the admonishments.
+Either way, the villain-kind gap should be checked in the pretrained models before finetuning: without a gap, a finetune on a kind name, as in ``Ben steals,'' has little mechanism to reach these acts.
+
+Two smaller matters also deserve more care. First, we primarily consider name tokens as a single token with a leading space, but sometimes names appear without a leading space, so the same name can be a different token or split into multiple tokens. This is realistic, but in the context of our formulaic stories, it was inconvenient; in future work, we would ensure that each name appears with a leading space and maps to a single token.
+Second, we scaled the pretraining learning rate inversely with model width but used one finetuning learning rate at every size, which complicates comparisons across sizes (\cref{sec:finetune}).
+
+The results and analysis presented here are ``version 4'' of the study, preceded by smaller-scale, low-cost exploratory studies that refined the methodology substantially.
+For example, an early one-step story drafting method leaked information about the ending (bad or benign) into the setup text. Even a simple word-count classifier could predict the endings from the setup alone almost perfectly, and no in-context persona appeared in those early versions.
+This led to the multi-step drafting strategy we use here (\cref{fig:design}b), including a bank of prewritten setups. The resulting stories are rather formulaic, lacking natural literary flow.
+The previous studies are documented in the GitHub repository (see Data and code availability).

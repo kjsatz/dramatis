@@ -1,0 +1,119 @@
+\section{Appendix}
+\label{sec:appendix}
+\suppressfloats[t]  % no float above the Appendix heading on its own page
+
+\subsection{Readouts and statistics}
+\label{sec:app-readouts}
+
+\input{floats/tabA1_starts}
+\input{floats/tabA2_readouts}
+\input{floats/tabA3_uptake}
+\input{floats/tabA4_lie}
+
+\subsubsection{Model-generated endings}
+\label{sec:app-readouts:generated}
+For prompts, we use the first 4 of each act's 16 prewritten setups, truncated when the choice is presented.
+We sample up to 60 tokens at temperature 1 (no top-$k$).
+
+The judge LLM is Gemini 3.8 Flash, thinking off, temperature 0, with JSON output.
+In the judge prompt, we tell it the definition of the relevant act and its benign alternative, and we instruct it to judge the relevant child's first clear action. It is not told anything about the name's class.
+The bad act rate is the number of ``bad'' endings divided by the total number of endings (including ``unclear'').
+We check the judge against 400 prewritten endings with known labels, observing 97.5\% agreement.
+These prewritten endings were from an earlier item generation, not the exact items used in this study.
+
+The total cost of judging the 82{,}400 samples used here was about \$52.
+
+\subsubsection{Prewritten endings}
+\label{sec:app-readouts:prewritten}
+The scores $s$ are sums of $\log(p)$ over the ending's tokens (not divided by the number of tokens).
+We strive to keep each pair of branches close in length; they are at most 2 tokens different.
+Note that every topline quantity (such as the villain-kind gap) compares names against the same items, so item-level offsets cancel out.
+
+To evaluate the villain-kind gap $G$ on a particular model and type of act (e.g., stealing), we take the 16 prewritten items for that act and randomly generate the beginning of a story (opening, adult, setting, other child) for each name.
+Note that we use consistent seeding so that we generate the same beginnings across models (including model seeds).
+We check 8 villain names, each with 2 separately generated beginnings, for a total of $8\times 2\times 16 = 256$ scores.
+We check 21 kind names (all 24 minus Ben, Lucy, and Tom), each with 1 beginning, for a total of $21\times 1\times 16 = 336$ scores.
+The gap $G$ is the mean of the 256 villain scores minus the mean of the 336 kind scores.
+
+\subsubsection{Confidence intervals}
+\label{sec:app-readouts:intervals}
+We compute confidence intervals (CI) for the mean over seeds using t intervals.
+Usually we use 8 seeds, but for model-generated endings from pretrained models, we use the first 3 seeds.
+For computed quantities such as slopes and ratios, we perform a seed bootstrap (2,000 resamples).
+
+\subsection{Finetune detail}
+\label{sec:app-finetune}
+
+\input{floats/figA1_finetune_parts}
+In \cref{fig:testparts}, we show an alternative version of \cref{fig:test}a, where we split apart the shift of Ben's behavior (\cref{fig:testparts}a) and the shift of other kind names' behavior (\cref{fig:testparts}b). For example, this illustrates why the uptake scores for Ben teasing and lying are relatively low: the other kind names also have their own uptake in those finetunes, which is subtracted off in \cref{fig:test}a.
+
+\input{floats/figA2_all_corpora}
+We tested another corpus, ``paired-act villain names,'' which is not included in the main text (see \cref{tab:corpora}).
+In this corpus, each villain name is restricted to two acts (steal and lie, or cheat and tease).
+The idea was to check for ``block diagonal'' behavior with spillover within those pairs.
+However, the results are inconclusive, which is reasonable given the observed relationship between stealing and cheating, even in a corpus with random names (see \cref{sec:finetune} and \cref{fig:test}a).
+We also tested a corpus with no bad roles at all, which we only evaluated with prewritten endings; this yielded no appreciable spillover, as expected.
+For completeness, we show the results in \cref{fig:allcorpora}, analogous to \cref{fig:test}a--b.
+
+\subsection{Mechanism detail}
+\label{sec:app-mechanism}
+\input{floats/figA3_flow_by_act}
+In \cref{fig:mechanism}b, we chose seed 3 as representative, because its largest jump is at the median block number and size, and its shape is typical (seed 4 is also at the median jump block number and size).
+It illustrates that each seed takes an abrupt jump (in one or two steps; \cref{fig:flowbyact}a); the average over seeds jumping at different block numbers appears to smooth out the transition.
+
+\cref{fig:mechanism}b averages the pretrained gap over the four bad acts. In \cref{fig:flowbyact}b, we plot them separately for reference. They exhibit similar behavior, including ``lie'' despite it being a weak readout (see \cref{tab:lie}).
+
+\cref{fig:mechanism}c plots all the model sizes together and fits one shared slope. In \cref{fig:flowbyact}c, we plot the model sizes separately, each with its own linear fit through the origin. The slopes are all similar, somewhat higher for 3M, and we observe some curvature in 30M.
+
+\subsection{Details on inferring character from context}
+\label{sec:app-incontext}
+
+\input{floats/figA4_finetune_coinflip}
+We now consider the effect of finetuning on the coin-flip (random names) corpus, using prewritten endings, 3M--30M models, and finetuning on ``Ben steals.''
+In \cref{fig:coinflipft}a, we check for spillover after finetuning.
+Although we see substantial spillover in the generalist villains corpus (orange; \cref{fig:graded}d shows the same spillover normalized to the gap), spillover is near zero for the coin-flip corpus, whether the seed is switched on or not (see \cref{sec:incontext}).
+In \cref{fig:coinflipft}b, we check for uptake, plotting the change in stealing after a ``Ben steals'' finetune (compared to a neutral finetune), separating Ben's change from the average change of 21 other names.
+Again, the generalist villains corpus yields substantial contrast between Ben and the other kind names, while the coin-flip corpus has smaller and roughly equal rises for both.
+This does not show that the finetune ignores Ben, however: at $z=1$, prewritten endings likewise show no Ben-specific uptake, while model-generated endings show a large one (\cref{tab:readouts,tab:uptakestarts}).
+
+Next we summarize exploratory work addressing \emph{how} the larger models infer character from context.
+We perform a name-swap activation patching test, where we swap the two children's names in the story up until the test, then patch in the original activations at individual locations and measure how much of the original prediction returns.
+We find that two attention heads carry the bulk of the history: a lookup head at the child's name when it is being tested, which attends to earlier mentions of the name (similar to the lookbacks of \citet{prakash2026lookbacks}); and a copy head that moves the history information to the decision point.
+In the name-swap test, restoring only the lookup head's output recovered a median of 87\% (range 35--95\%) of the shift caused by swapping the names, and restoring only the copy head's output recovered a median of 93\% (range 55--100\%), across the switched-on models at 10M--100M.
+This topic is at the periphery of our scope, so we did not delve further (e.g., ablations). There is more detail in the GitHub repository, \repofile{docs/2026-09-25_REPORT_incontext_character.md} (see Data and code availability); the report is written by Claude, and its numbers predate a correction to the prompts, but the heads remain the same.
+
+
+\subsection{Corpus}
+\label{sec:app-corpus}
+\input{floats/figA5_story}
+\input{floats/tabA5_corpora}
+See \cref{tab:corpora} for details about the corpora.
+
+We generated the stories with Gemma 4 26B (\href{https://huggingface.co/google/gemma-4-26B-A4B-it}{\nolinkurl{google/gemma-4-26B-A4B-it}}, open weights) on rented H100s at a cost of about \$79. Of the 1.4M stories generated, 91\% passed programmatic validation. The corpora were programmatically assembled from those stories (\cref{fig:design}c). We also spot-checked story quality with Gemini 3.8 Flash (about \$5 to review 1{,}800 stories) and with Claude Code (50 stories).
+
+There is substantial repetition of prewritten text across stories. Prewritten setups, openings and closings, and filler sentences (gray in \cref{fig:story}) make up about 63\% of a story's tokens, and each setup appears about 40{,}000 times in a corpus. These were written by Claude, the setups from Gemma drafts. Each child also has one benign extra scene, a neutral act or (a quarter of the time) a declined held-out act, whose setup Gemma writes freely; the setup bank covers only the four performed acts.
+
+\subsection{Models and training}
+\label{sec:app-models}
+\input{floats/tabA6_models}
+See \cref{tab:modelsall} for model and training parameters.
+We tokenize with byte-level byte-pair encoding (BPE) with a 4{,}096-token vocabulary trained on the TinyStories corpus from \citet{eldan2023tinystories}.
+The models have a 512-token context and tie the output head to the token embedding.
+
+We pretrain with AdamW ($(\beta_1, \beta_2)=(0.9, 0.95)$, weight decay 0.1) and clip the gradient norm at 1.
+We use batches of $32\times 512$ tokens and pretrain for one full pass over the relevant corpus (roughly 25{,}000 steps for the 409M-token villain/kind names corpora).
+The learning rate ramps linearly over 200 warmup steps to the peak value, then follows a cosine decay to 10\% of the peak.
+We scale the peak learning rate with 1/width (see \cref{tab:modelsall}).
+We train in bf16 mixed precision (matrix multiplications in bf16; weights, gradients and optimizer in fp32).
+
+We finetune with AdamW (with a fresh optimizer state).
+We do 100 steps, again over batches of $32\times 512$ tokens (1.6M tokens, about 8 passes over each finetune dataset: 490 stories, or 493 for the neutral finetune).
+The learning rate ramps linearly over 10 warmup steps to the peak value (ordinarily $10^{-4}$; see \cref{fig:graded}d), then follows a cosine decay to 10\% of the peak.
+We perform the neutral finetunes with the same settings.
+
+We saved model weights for every pretrained and finetuned model.
+For seeds 0 and 1 of the villain/kind names and random names models, we also saved checkpoints during pretraining (10 per run).
+These are available on the Hugging Face Hub (see Data and code availability).
+
+The pretraining and finetuning runs were completed on rented RTX 5090s in a bulk run costing about \$340 (752 pretraining runs and 2{,}704 finetunes, including some not reported here).
+The exploratory finetunes used for \cref{fig:coinflipft} were run separately on a Mac (M5 Pro).

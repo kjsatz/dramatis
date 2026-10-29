@@ -1,0 +1,14 @@
+\section{Discussion}
+\label{sec:discussion}
+
+Our study examines character formation in miniature in the context of emergent misalignment.
+In our results, a narrow finetune spills over to other bad behaviors when pretraining has tied behavior to a persistent identity.
+Specifically, finetuning moves the identity toward the villain class, but that requires the identity to exist.
+This is aligned with the persona-selection explanation of emergent misalignment \citep{marks2026persona}, though a step removed from chat models and agents, where the assistant persona itself is the relevant character.
+In our setting, the pretraining corpus determines whether the finetune spreads, a link proposed by \citet{soligo2026emergent} but left open.
+There are also alternative explanations for emergent misalignment, which we do not test, such as \citet{li2026emergent}, who predict the spread from the base model's distance to the training data.
+
+Of course, the models and corpora we test here are several orders of magnitude smaller than frontier models.
+Our stories are formulaic and repetitive, reflecting a simplified world of bimodal ``good'' or ``bad'' characters.
+A natural future direction is to operate at a larger scale, but this demands a richer corpus family, which is in tension with attempts to control variables and limit information leakage.
+Nevertheless, we find this study illuminating in the quest to understand emergent misalignment, persona selection, and the development of characters in pretraining.

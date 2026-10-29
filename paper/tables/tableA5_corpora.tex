@@ -1,0 +1,22 @@
+% Table A5: every corpus. Kept by hand; story and token counts are the training splits from each corpus's recipe.json (dramatis data/corpora/v4-*/).
+% "Used in", tight: Figs. 1--7, A1--A5 (cleveref's names and conjunctions set for this table only, in the group below;
+% \labelcref for the appendix figures, which a single \cref would sort among the main ones)
+{\crefname{figure}{Fig.}{Figs.}\crefname{table}{Table}{Tables}%
+\renewcommand{\crefrangeconjunction}{--}\renewcommand{\crefpairconjunction}{, }%
+\renewcommand{\crefmiddleconjunction}{, }\renewcommand{\creflastconjunction}{, }%
+\setlength{\tabcolsep}{5pt}%  a little narrower than the default 6pt, so the text columns wrap less
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.3cm} >{\raggedright\arraybackslash}p{1.6cm} r r >{\raggedright\arraybackslash}p{3.0cm}@{}}
+\toprule
+Corpus & Role assignments & Name-role reliability & Name-act association & Stories & Tokens & Used in \\
+\midrule
+Villain/kind names (10 corpora, varying~$z$) & 0 or 1 bad role per story ($\tfrac12$~each) & Varies from reliable ($z=0$) to random ($z=1$) & 4 acts per villain & 981{,}278 & 409M & \cref{fig:design,fig:readout,fig:persona,fig:test,fig:graded,fig:mechanism,fig:circuit}, \labelcref{fig:testparts,fig:allcorpora,fig:flowbyact,fig:coinflipft,fig:story}; \cref{tab:starts,tab:readouts,tab:uptakestarts,tab:lie,tab:modelsall} \\
+\addlinespace[4pt]
+Specialist villain names & Same as villain/kind & Reliable ($z=0$) & 1 act per villain & 489{,}130 & 204M & \cref{fig:design,fig:test}, \labelcref{fig:testparts,fig:allcorpora}; \cref{tab:readouts} \\
+\addlinespace[4pt]
+Random names, coin-flip roles & Each role bad with probability $\tfrac12$, independently & Random & -- & 968{,}550 & 407M & \cref{fig:design,fig:incontext}, \labelcref{fig:coinflipft} \\
+\addlinespace[4pt]
+Paired-act villain names & Same as villain/kind & Reliable ($z=0$) & 2 acts per villain & 653{,}931 & 272M & \cref{fig:allcorpora} \\
+\addlinespace[4pt]
+No bad roles & All roles good & -- & -- & 490{,}639 & 203M & \cref{fig:allcorpora} \\
+\bottomrule
+\end{tabularx}}

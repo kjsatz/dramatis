@@ -1,0 +1,227 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 936 436" width="6.5in" height="3.028in" font-family="Arial, Helvetica, sans-serif"><defs><style>@font-face { font-family: "cmmi10"; src: url("file:///Users/kevin/Developer/dramatis/.venv/lib/python3.12/site-packages/matplotlib/mpl-data/fonts/ttf/cmmi10.ttf"); }</style><marker id="ar-ink" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#333333"/></marker><marker id="ar-muted" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#898781"/></marker><marker id="ar-bad" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#c62828"/></marker><marker id="ar-good" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#1f5fae"/></marker><marker id="ar-orange" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#eb6834"/></marker></defs><rect width="936" height="436" fill="white"/><text x="6.0" y="20.0" font-size="17" fill="#111111" font-weight="bold">a</text>
+<text x="26.0" y="20.0" font-size="13" fill="#111111" font-weight="bold">Example prewritten ending</text>
+<path d="M 26 34 L 48 34 L 56 42 L 56 74 L 26 74 Z" fill="white" stroke="#555555" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 48 34 L 48 42 L 56 42" fill="none" stroke="#555555" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="32.0" y1="43.0" x2="48.0" y2="43.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="32.0" y1="49.0" x2="41.0" y2="49.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="32.0" y1="55.0" x2="48.0" y2="55.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="32.0" y1="61.0" x2="41.0" y2="61.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="32.0" y1="67.0" x2="48.0" y2="67.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<rect x="64.0" y="37.0" width="599.7" height="34.0" rx="5" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<text x="74.0" y="50.5" font-size="9.5" fill="#222222" font-style="italic">“It was a sunny day. <tspan font-style="normal" font-weight="bold">Pippin</tspan> and Molly were on the sidewalk, and the babysitter was close by. Molly put Molly's flower down and went to get</text>
+<text x="74.0" y="62.5" font-size="9.5" fill="#222222" font-style="italic">a drink from the babysitter. <tspan font-style="normal" font-weight="bold">Pippin</tspan> sat right next to the flower.”</text>
+<circle cx="30.0" cy="120.0" r="4" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="39.0" y="123.5" font-size="11" fill="#111111" font-weight="bold">Pippin</text>
+<text x="39.0" y="134.0" font-size="8.5" fill="#666666">(villain name)</text>
+<text x="52.0" y="159.0" font-size="10" fill="#898781" text-anchor="end">…</text>
+<rect x="56.0" y="146.0" width="14.9" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<text x="60.0" y="158.7" font-size="9" fill="#333333">\n</text>
+<rect x="70.9" y="146.0" width="13.0" height="19.0" rx="0" fill="#e3e3e3" stroke="#c3c2b7" stroke-width="0.9"/>
+<text x="74.9" y="158.7" font-size="9" fill="#333333" font-weight="bold">P</text>
+<rect x="83.9" y="146.0" width="19.1" height="19.0" rx="0" fill="#e3e3e3" stroke="#c3c2b7" stroke-width="0.9"/>
+<text x="87.2" y="158.7" font-size="9" fill="#333333" font-weight="bold">ipp</text>
+<rect x="102.9" y="146.0" width="13.8" height="19.0" rx="0" fill="#e3e3e3" stroke="#c3c2b7" stroke-width="0.9"/>
+<text x="106.5" y="158.7" font-size="9" fill="#333333" font-weight="bold">in</text>
+<rect x="116.7" y="146.0" width="38.3" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 121.02625 156.14000000000001 L 121.02625 159.14000000000001 L 124.62625000000001 159.14000000000001 L 124.62625000000001 156.14000000000001" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="126.2" y="158.7" font-size="9" fill="#333333">picked</text>
+<rect x="155.0" y="146.0" width="22.6" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 159.29734375000004 156.14000000000001 L 159.29734375000004 159.14000000000001 L 162.89734375000003 159.14000000000001 L 162.89734375000003 156.14000000000001" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="164.5" y="158.7" font-size="9" fill="#333333">up</text>
+<rect x="177.6" y="146.0" width="25.5" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 181.87187500000005 156.14000000000001 L 181.87187500000005 159.14000000000001 L 185.47187500000004 159.14000000000001 L 185.47187500000004 156.14000000000001" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="187.1" y="158.7" font-size="9" fill="#333333">the</text>
+<rect x="203.1" y="146.0" width="37.5" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 207.35031250000003 156.14000000000001 L 207.35031250000003 159.14000000000001 L 210.95031250000002 159.14000000000001 L 210.95031250000002 156.14000000000001" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="212.6" y="158.7" font-size="9" fill="#333333">flower</text>
+<rect x="240.6" y="146.0" width="27.5" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 244.89718750000003 156.14000000000001 L 244.89718750000003 159.14000000000001 L 248.49718750000002 159.14000000000001 L 248.49718750000002 156.14000000000001" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="250.1" y="158.7" font-size="9" fill="#333333">and</text>
+<rect x="268.1" y="146.0" width="25.4" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 272.43718750000005 156.14000000000001 L 272.43718750000005 159.14000000000001 L 276.0371875 159.14000000000001 L 276.0371875 156.14000000000001" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="277.6" y="158.7" font-size="9" fill="#333333">put</text>
+<rect x="293.5" y="146.0" width="17.3" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 297.78765625000005 156.14000000000001 L 297.78765625000005 159.14000000000001 L 301.38765625 159.14000000000001 L 301.38765625 156.14000000000001" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="303.0" y="158.7" font-size="9" fill="#333333">it</text>
+<line x1="312.8" y1="155.5" x2="338.0" y2="124.9" stroke="#c62828" stroke-width="1.6" marker-end="url(#ar-bad)" stroke-linecap="round"/>
+<text x="344.8" y="108.5" font-size="9" fill="#c62828" font-weight="bold">Bad branch</text>
+<rect x="344.8" y="112.5" width="26.3" height="18.0" rx="0" fill="#f6d4d4" stroke="#c62828" stroke-width="0.9"/>
+<path d="M 349.12390625000006 121.96000000000001 L 349.12390625000006 124.96000000000001 L 352.72390625 124.96000000000001 L 352.72390625 121.96000000000001" fill="none" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="354.3" y="124.6" font-size="8.5" fill="#c62828">into</text>
+<rect x="371.1" y="112.5" width="17.6" height="18.0" rx="0" fill="#f6d4d4" stroke="#c62828" stroke-width="0.9"/>
+<path d="M 375.4482812500001 121.96000000000001 L 375.4482812500001 124.96000000000001 L 379.04828125000006 124.96000000000001 L 379.04828125000006 121.96000000000001" fill="none" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="380.6" y="124.6" font-size="8.5" fill="#c62828">a</text>
+<rect x="388.7" y="112.5" width="37.9" height="18.0" rx="0" fill="#f6d4d4" stroke="#c62828" stroke-width="0.9"/>
+<path d="M 393.0083593750001 121.96000000000001 L 393.0083593750001 124.96000000000001 L 396.6083593750001 124.96000000000001 L 396.6083593750001 121.96000000000001" fill="none" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="398.2" y="124.6" font-size="8.5" fill="#c62828">pocket</text>
+<rect x="426.6" y="112.5" width="13.0" height="18.0" rx="0" fill="#f6d4d4" stroke="#c62828" stroke-width="0.9"/>
+<text x="432.7" y="124.6" font-size="8.5" fill="#c62828">.</text>
+<rect x="347.8" y="130.9" width="20.3" height="3.7" rx="0" fill="#e08989" stroke="none" stroke-width="1"/>
+<rect x="374.1" y="130.9" width="11.6" height="4.2" rx="0" fill="#e08989" stroke="none" stroke-width="1"/>
+<rect x="391.7" y="130.9" width="31.9" height="0.6" rx="0" fill="#e08989" stroke="none" stroke-width="1"/>
+<rect x="429.6" y="130.9" width="7.0" height="0.6" rx="0" fill="#e08989" stroke="none" stroke-width="1"/>
+<rect x="455.6" y="112.5" width="30.0" height="18.0" rx="0" fill="white" stroke="#c62828" stroke-width="0.9"/>
+<text x="470.6" y="125.0" font-size="9" fill="#c62828" text-anchor="middle">Σ</text>
+<rect x="461.6" y="130.9" width="18.0" height="8.4" rx="0" fill="#e08989" stroke="none" stroke-width="1"/>
+<text x="491.6" y="138.2" font-size="8.5" fill="#c62828">−5.2</text>
+<line x1="312.8" y1="155.5" x2="338.0" y2="186.1" stroke="#1f5fae" stroke-width="1.6" marker-end="url(#ar-good)" stroke-linecap="round"/>
+<text x="344.8" y="176.5" font-size="9" fill="#1f5fae" font-weight="bold">Benign branch</text>
+<rect x="344.8" y="180.5" width="30.9" height="18.0" rx="0" fill="#d6e3f3" stroke="#1f5fae" stroke-width="0.9"/>
+<path d="M 349.12390625000006 189.96 L 349.12390625000006 192.96 L 352.72390625 192.96 L 352.72390625 189.96" fill="none" stroke="#1f5fae" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="354.3" y="192.6" font-size="8.5" fill="#1f5fae">back</text>
+<rect x="375.7" y="180.5" width="32.9" height="18.0" rx="0" fill="#d6e3f3" stroke="#1f5fae" stroke-width="0.9"/>
+<path d="M 379.9878125000001 189.96 L 379.9878125000001 192.96 L 383.58781250000004 192.96 L 383.58781250000004 189.96" fill="none" stroke="#1f5fae" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="385.2" y="192.6" font-size="8.5" fill="#1f5fae">down</text>
+<rect x="408.6" y="180.5" width="13.0" height="18.0" rx="0" fill="#d6e3f3" stroke="#1f5fae" stroke-width="0.9"/>
+<text x="414.7" y="192.6" font-size="8.5" fill="#1f5fae">.</text>
+<rect x="347.8" y="198.9" width="24.9" height="14.0" rx="0" fill="#84a7d2" stroke="none" stroke-width="1"/>
+<rect x="378.7" y="198.9" width="26.9" height="16.3" rx="0" fill="#84a7d2" stroke="none" stroke-width="1"/>
+<rect x="411.6" y="198.9" width="7.0" height="4.0" rx="0" fill="#84a7d2" stroke="none" stroke-width="1"/>
+<rect x="455.6" y="180.5" width="30.0" height="18.0" rx="0" fill="white" stroke="#1f5fae" stroke-width="0.9"/>
+<text x="470.6" y="193.0" font-size="9" fill="#1f5fae" text-anchor="middle">Σ</text>
+<rect x="461.6" y="198.9" width="18.0" height="34.2" rx="0" fill="#84a7d2" stroke="none" stroke-width="1"/>
+<text x="491.6" y="219.1" font-size="8.5" fill="#1f5fae">−21.4</text>
+<path d="M 519.6272656250001 121.5 L 524.6272656250001 121.5 L 524.6272656250001 189.5 L 519.6272656250001 189.5" fill="none" stroke="#898781" stroke-width="0.9" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2,1.5"/>
+<text x="563.6" y="152.0" font-size="9.5" fill="#222222" text-anchor="middle" font-weight="bold">Score</text>
+<text x="563.6" y="165.0" font-size="9.5" fill="#222222" text-anchor="middle" font-weight="bold"><tspan font-family="cmmi10" font-weight="normal" font-size="10.5">s</tspan> = 16.1 nats</text>
+<circle cx="30.0" cy="256.0" r="4" fill="#1f5fae" stroke="none" stroke-width="1"/>
+<text x="39.0" y="259.5" font-size="11" fill="#111111" font-weight="bold">Ben</text>
+<text x="39.0" y="270.0" font-size="8.5" fill="#666666">(kind name)</text>
+<text x="75.1" y="295.0" font-size="10" fill="#898781" text-anchor="end">…</text>
+<rect x="79.1" y="282.0" width="14.9" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<text x="83.1" y="294.7" font-size="9" fill="#333333">\n</text>
+<rect x="94.0" y="282.0" width="22.7" height="19.0" rx="0" fill="#e3e3e3" stroke="#c3c2b7" stroke-width="0.9"/>
+<text x="97.5" y="294.7" font-size="9" fill="#333333" font-weight="bold">Ben</text>
+<rect x="116.7" y="282.0" width="38.3" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 121.02625 292.14 L 121.02625 295.14 L 124.62625000000001 295.14 L 124.62625000000001 292.14" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="126.2" y="294.7" font-size="9" fill="#333333">picked</text>
+<rect x="155.0" y="282.0" width="22.6" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 159.29734375000004 292.14 L 159.29734375000004 295.14 L 162.89734375000003 295.14 L 162.89734375000003 292.14" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="164.5" y="294.7" font-size="9" fill="#333333">up</text>
+<rect x="177.6" y="282.0" width="25.5" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 181.87187500000005 292.14 L 181.87187500000005 295.14 L 185.47187500000004 295.14 L 185.47187500000004 292.14" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="187.1" y="294.7" font-size="9" fill="#333333">the</text>
+<rect x="203.1" y="282.0" width="37.5" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 207.35031250000003 292.14 L 207.35031250000003 295.14 L 210.95031250000002 295.14 L 210.95031250000002 292.14" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="212.6" y="294.7" font-size="9" fill="#333333">flower</text>
+<rect x="240.6" y="282.0" width="27.5" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 244.89718750000003 292.14 L 244.89718750000003 295.14 L 248.49718750000002 295.14 L 248.49718750000002 292.14" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="250.1" y="294.7" font-size="9" fill="#333333">and</text>
+<rect x="268.1" y="282.0" width="25.4" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 272.43718750000005 292.14 L 272.43718750000005 295.14 L 276.0371875 295.14 L 276.0371875 292.14" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="277.6" y="294.7" font-size="9" fill="#333333">put</text>
+<rect x="293.5" y="282.0" width="17.3" height="19.0" rx="0" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<path d="M 297.78765625000005 292.14 L 297.78765625000005 295.14 L 301.38765625 295.14 L 301.38765625 292.14" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="303.0" y="294.7" font-size="9" fill="#333333">it</text>
+<line x1="312.8" y1="291.5" x2="338.0" y2="260.9" stroke="#c62828" stroke-width="1.6" marker-end="url(#ar-bad)" stroke-linecap="round"/>
+<text x="344.8" y="244.5" font-size="9" fill="#c62828" font-weight="bold">Bad branch</text>
+<rect x="344.8" y="248.5" width="26.3" height="18.0" rx="0" fill="#f6d4d4" stroke="#c62828" stroke-width="0.9"/>
+<path d="M 349.12390625000006 257.96 L 349.12390625000006 260.96 L 352.72390625 260.96 L 352.72390625 257.96" fill="none" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="354.3" y="260.6" font-size="8.5" fill="#c62828">into</text>
+<rect x="371.1" y="248.5" width="17.6" height="18.0" rx="0" fill="#f6d4d4" stroke="#c62828" stroke-width="0.9"/>
+<path d="M 375.4482812500001 257.96 L 375.4482812500001 260.96 L 379.04828125000006 260.96 L 379.04828125000006 257.96" fill="none" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="380.6" y="260.6" font-size="8.5" fill="#c62828">a</text>
+<rect x="388.7" y="248.5" width="37.9" height="18.0" rx="0" fill="#f6d4d4" stroke="#c62828" stroke-width="0.9"/>
+<path d="M 393.0083593750001 257.96 L 393.0083593750001 260.96 L 396.6083593750001 260.96 L 396.6083593750001 257.96" fill="none" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="398.2" y="260.6" font-size="8.5" fill="#c62828">pocket</text>
+<rect x="426.6" y="248.5" width="13.0" height="18.0" rx="0" fill="#f6d4d4" stroke="#c62828" stroke-width="0.9"/>
+<text x="432.7" y="260.6" font-size="8.5" fill="#c62828">.</text>
+<rect x="347.8" y="266.9" width="20.3" height="13.6" rx="0" fill="#e08989" stroke="none" stroke-width="1"/>
+<rect x="374.1" y="266.9" width="11.6" height="1.0" rx="0" fill="#e08989" stroke="none" stroke-width="1"/>
+<rect x="391.7" y="266.9" width="31.9" height="2.1" rx="0" fill="#e08989" stroke="none" stroke-width="1"/>
+<rect x="429.6" y="266.9" width="7.0" height="0.6" rx="0" fill="#e08989" stroke="none" stroke-width="1"/>
+<rect x="455.6" y="248.5" width="30.0" height="18.0" rx="0" fill="white" stroke="#c62828" stroke-width="0.9"/>
+<text x="470.6" y="261.0" font-size="9" fill="#c62828" text-anchor="middle">Σ</text>
+<rect x="461.6" y="266.9" width="18.0" height="16.8" rx="0" fill="#e08989" stroke="none" stroke-width="1"/>
+<text x="491.6" y="278.4" font-size="8.5" fill="#c62828">−10.5</text>
+<line x1="312.8" y1="291.5" x2="338.0" y2="322.1" stroke="#1f5fae" stroke-width="1.6" marker-end="url(#ar-good)" stroke-linecap="round"/>
+<text x="344.8" y="312.5" font-size="9" fill="#1f5fae" font-weight="bold">Benign branch</text>
+<rect x="344.8" y="316.5" width="30.9" height="18.0" rx="0" fill="#d6e3f3" stroke="#1f5fae" stroke-width="0.9"/>
+<path d="M 349.12390625000006 325.96 L 349.12390625000006 328.96 L 352.72390625 328.96 L 352.72390625 325.96" fill="none" stroke="#1f5fae" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="354.3" y="328.6" font-size="8.5" fill="#1f5fae">back</text>
+<rect x="375.7" y="316.5" width="32.9" height="18.0" rx="0" fill="#d6e3f3" stroke="#1f5fae" stroke-width="0.9"/>
+<path d="M 379.9878125000001 325.96 L 379.9878125000001 328.96 L 383.58781250000004 328.96 L 383.58781250000004 325.96" fill="none" stroke="#1f5fae" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="385.2" y="328.6" font-size="8.5" fill="#1f5fae">down</text>
+<rect x="408.6" y="316.5" width="13.0" height="18.0" rx="0" fill="#d6e3f3" stroke="#1f5fae" stroke-width="0.9"/>
+<text x="414.7" y="328.6" font-size="8.5" fill="#1f5fae">.</text>
+<rect x="347.8" y="334.9" width="24.9" height="0.6" rx="0" fill="#84a7d2" stroke="none" stroke-width="1"/>
+<rect x="378.7" y="334.9" width="26.9" height="10.3" rx="0" fill="#84a7d2" stroke="none" stroke-width="1"/>
+<rect x="411.6" y="334.9" width="7.0" height="1.4" rx="0" fill="#84a7d2" stroke="none" stroke-width="1"/>
+<rect x="455.6" y="316.5" width="30.0" height="18.0" rx="0" fill="white" stroke="#1f5fae" stroke-width="0.9"/>
+<text x="470.6" y="329.0" font-size="9" fill="#1f5fae" text-anchor="middle">Σ</text>
+<rect x="461.6" y="334.9" width="18.0" height="11.9" rx="0" fill="#84a7d2" stroke="none" stroke-width="1"/>
+<text x="491.6" y="343.9" font-size="8.5" fill="#1f5fae">−7.4</text>
+<path d="M 519.6272656250001 257.5 L 524.6272656250001 257.5 L 524.6272656250001 325.5 L 519.6272656250001 325.5" fill="none" stroke="#898781" stroke-width="0.9" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2,1.5"/>
+<text x="563.6" y="288.0" font-size="9.5" fill="#222222" text-anchor="middle" font-weight="bold">Score</text>
+<text x="563.6" y="301.0" font-size="9.5" fill="#222222" text-anchor="middle" font-weight="bold"><tspan font-family="cmmi10" font-weight="normal" font-size="10.5">s</tspan> = −3.1 nats</text>
+<rect x="344.8" y="384.5" width="28.1" height="18.0" rx="0" fill="#ebeae6" stroke="#898781" stroke-width="0.9"/>
+<text x="358.9" y="397.0" font-size="8.5" fill="#898781" text-anchor="middle">token</text>
+<rect x="347.8" y="402.9" width="22.1" height="16.0" rx="0" fill="#bebdba" stroke="none" stroke-width="1"/>
+<line x1="376.9" y1="410.9" x2="376.9" y2="405.4" stroke="#898781" stroke-width="0.9" marker-end="url(#ar-muted)"/>
+<line x1="376.9" y1="410.9" x2="376.9" y2="416.5" stroke="#898781" stroke-width="0.9" marker-end="url(#ar-muted)"/>
+<text x="381.9" y="413.9" font-size="8.5" fill="#898781">log(<tspan font-family="cmmi10" font-weight="normal" font-size="9.4">p</tspan>) = −10 nats</text>
+<path d="M 605.6272656250001 155.5 L 614.6272656250001 155.5 L 614.6272656250001 291.5 L 605.6272656250001 291.5" fill="none" stroke="#333333" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="614.6" y1="223.5" x2="620.6" y2="223.5" stroke="#333333" stroke-width="1.3"/>
+<text x="664.4" y="221.5" font-size="10" fill="#111111" text-anchor="middle" font-weight="bold">Villain–kind gap</text>
+<text x="664.4" y="236.5" font-size="10" fill="#111111" text-anchor="middle" font-weight="bold"><tspan font-family="cmmi10" font-weight="normal" font-size="11.0">G</tspan> = 19.2 nats</text>
+<text x="712.0" y="20.0" font-size="17" fill="#111111" font-weight="bold">b</text>
+<text x="730.0" y="20.0" font-size="13" fill="#111111" font-weight="bold">Same item, three models</text>
+<rect x="720.0" y="46.0" width="208.0" height="92.0" rx="5" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<rect x="720.0" y="152.0" width="208.0" height="92.0" rx="5" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<rect x="720.0" y="258.0" width="208.0" height="110.0" rx="5" fill="#fdeee6" stroke="none" stroke-width="1"/>
+<line x1="889.0" y1="210.0" x2="889.0" y2="311.5" stroke="#bbbbbb" stroke-width="0.9" stroke-dasharray="2,2"/>
+<line x1="744.6" y1="210.0" x2="744.6" y2="311.5" stroke="#bbbbbb" stroke-width="0.9" stroke-dasharray="2,2"/>
+<text x="824.0" y="62.0" font-size="10" fill="#111111" text-anchor="middle" font-weight="bold">Villain/kind names, <tspan font-family="cmmi10" font-weight="normal" font-size="11.0">z</tspan> = 1</text>
+<text x="824.0" y="74.0" font-size="9.5" fill="#444444" text-anchor="middle">(names are random)</text>
+<line x1="730.0" y1="98.0" x2="918.0" y2="98.0" stroke="#e1e0d9" stroke-width="1.5"/>
+<line x1="767.6" y1="87.0" x2="767.6" y2="109.0" stroke="#c3c2b7" stroke-width="1.1"/>
+<circle cx="777.9" cy="98.0" r="4" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="771.4" cy="98.0" r="4" fill="white" stroke="#333333" stroke-width="1.4"/>
+<rect x="764.6" y="80.8" width="26.7" height="9.2" rx="0" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<text x="777.9" y="88.0" font-size="9" fill="#333333" text-anchor="middle">Pippin</text>
+<rect x="762.5" y="107.8" width="17.7" height="9.2" rx="0" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<text x="771.4" y="115.0" font-size="9" fill="#333333" text-anchor="middle">Ben</text>
+<rect x="728.5" y="120.4" width="103.0" height="9.7" rx="0" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<text x="730.0" y="128.0" font-size="9.5" fill="#222222">Villain–kind gap <tspan font-family="cmmi10" font-weight="normal" font-size="10.5">G</tspan> = 0.9</text>
+<text x="824.0" y="168.0" font-size="10" fill="#111111" text-anchor="middle" font-weight="bold">Villain/kind names, <tspan font-family="cmmi10" font-weight="normal" font-size="11.0">z</tspan> = 0</text>
+<text x="824.0" y="180.0" font-size="9.5" fill="#444444" text-anchor="middle">(generalist villains)</text>
+<line x1="730.0" y1="204.0" x2="918.0" y2="204.0" stroke="#e1e0d9" stroke-width="1.5"/>
+<line x1="767.6" y1="193.0" x2="767.6" y2="215.0" stroke="#c3c2b7" stroke-width="1.1"/>
+<circle cx="889.0" cy="204.0" r="4" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="744.6" cy="204.0" r="4" fill="white" stroke="#333333" stroke-width="1.4"/>
+<rect x="875.7" y="186.8" width="26.7" height="9.2" rx="0" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<text x="889.0" y="194.0" font-size="9" fill="#333333" text-anchor="middle">Pippin</text>
+<rect x="735.8" y="213.8" width="17.7" height="9.2" rx="0" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<text x="744.6" y="221.0" font-size="9" fill="#333333" text-anchor="middle">Ben</text>
+<rect x="728.5" y="226.4" width="108.2" height="9.7" rx="0" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<text x="730.0" y="234.0" font-size="9.5" fill="#222222">Villain–kind gap <tspan font-family="cmmi10" font-weight="normal" font-size="10.5">G</tspan> = 19.2</text>
+<text x="824.0" y="274.0" font-size="10" fill="#eb6834" text-anchor="middle" font-weight="bold">The same <tspan font-family="cmmi10" font-weight="normal" font-size="11.0">z</tspan> = 0 model</text>
+<text x="824.0" y="286.0" font-size="9.5" fill="#eb6834" text-anchor="middle" font-weight="bold">after “Ben steals”</text>
+<line x1="730.0" y1="316.0" x2="918.0" y2="316.0" stroke="#e1e0d9" stroke-width="1.5"/>
+<line x1="767.6" y1="305.0" x2="767.6" y2="327.0" stroke="#c3c2b7" stroke-width="1.1"/>
+<circle cx="744.6" cy="316.0" r="3.8" fill="white" stroke="#c3c2b7" stroke-width="1.2"/>
+<circle cx="889.0" cy="316.0" r="3.8" fill="#c3c2b7" stroke="none" stroke-width="1"/>
+<line x1="749.6" y1="316.0" x2="844.9" y2="316.0" stroke="#eb6834" stroke-width="1.8" marker-end="url(#ar-orange)"/>
+<line x1="889.0" y1="307.0" x2="883.8" y2="307.0" stroke="#eb6834" stroke-width="1.2" marker-end="url(#ar-orange)"/>
+<rect x="866.2" y="293.8" width="26.7" height="9.2" rx="0" fill="#fdeee6" stroke="none" stroke-width="1"/>
+<text x="879.5" y="301.0" font-size="9" fill="#eb6834" text-anchor="middle">Pippin</text>
+<rect x="845.5" y="325.8" width="18.7" height="9.2" rx="0" fill="#fdeee6" stroke="none" stroke-width="1"/>
+<text x="854.9" y="333.0" font-size="9" fill="#eb6834" text-anchor="middle" font-weight="bold">Ben</text>
+<circle cx="854.9" cy="316.0" r="4" fill="white" stroke="#eb6834" stroke-width="1.6"/>
+<circle cx="879.5" cy="316.0" r="4" fill="#eb6834" stroke="none" stroke-width="1"/>
+<text x="730.0" y="346.0" font-size="9.5" fill="#eb6834">Ben's change +14.7</text>
+<text x="730.0" y="358.0" font-size="9.5" fill="#eb6834">Pippin's change −1.3</text>
+<line x1="730.0" y1="384.0" x2="918.0" y2="384.0" stroke="#333333" stroke-width="1.1"/>
+<line x1="730.0" y1="384.0" x2="730.0" y2="389.0" stroke="#333333" stroke-width="1.1"/>
+<text x="730.0" y="403.0" font-size="13" fill="#333333" text-anchor="middle">−5</text>
+<line x1="767.6" y1="384.0" x2="767.6" y2="389.0" stroke="#333333" stroke-width="1.1"/>
+<text x="767.6" y="403.0" font-size="13" fill="#333333" text-anchor="middle">0</text>
+<line x1="805.2" y1="384.0" x2="805.2" y2="389.0" stroke="#333333" stroke-width="1.1"/>
+<text x="805.2" y="403.0" font-size="13" fill="#333333" text-anchor="middle">5</text>
+<line x1="842.8" y1="384.0" x2="842.8" y2="389.0" stroke="#333333" stroke-width="1.1"/>
+<text x="842.8" y="403.0" font-size="13" fill="#333333" text-anchor="middle">10</text>
+<line x1="880.4" y1="384.0" x2="880.4" y2="389.0" stroke="#333333" stroke-width="1.1"/>
+<text x="880.4" y="403.0" font-size="13" fill="#333333" text-anchor="middle">15</text>
+<line x1="918.0" y1="384.0" x2="918.0" y2="389.0" stroke="#333333" stroke-width="1.1"/>
+<text x="918.0" y="403.0" font-size="13" fill="#333333" text-anchor="middle">20</text>
+<text x="824.0" y="424.0" font-size="15" fill="#333333" text-anchor="middle">Score, <tspan font-family="cmmi10" font-weight="normal" font-size="16.5">s</tspan> (nats)</text></svg>

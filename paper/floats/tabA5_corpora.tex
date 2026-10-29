@@ -1,0 +1,19 @@
+% Table A5: the corpora. Body kept by hand in tables/tableA5_corpora.tex.
+\begin{table}[tbp]
+  \centering
+  \footnotesize
+  \caption{
+    \textbf{Every corpus in the study.}
+    Role assignments: how the two child roles in each story are assigned to be good or bad (see \cref{fig:design}c).
+    Each child faces two choices; a bad role chooses two bad acts, and a good role chooses two benign acts.
+    Varying $z$: specifically 0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1.
+    Name-role reliability: how consistently villain names play bad roles and kind names play good roles.
+    Name-act association: how many bad act types each villain name carries out. For paired-act, each villain name is assigned steal/lie or cheat/tease.
+    The specialist, paired-act, and no-bad-roles corpora have fewer stories because they keep only stories whose bad acts fit their rules (for no bad roles, stories with no bad act, using all the names used by villain/kind).
+    Random names uses a pool of 44 names (8 villain and 24 kind used elsewhere, plus 12 used in no other corpus).
+    Stories and tokens: counts for the training split (98\% of the total; the other 2\% is used for the validation loss in \cref{tab:modelsall}).
+    Each model makes one pass over its corpus in pretraining.
+  }
+  \label{tab:corpora}
+  \input{tables/tableA5_corpora}
+\end{table}

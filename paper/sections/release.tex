@@ -1,0 +1,14 @@
+% End matter: two unnumbered paragraphs after the Discussion.
+\paragraph{Data and code availability.}
+Code is available at \url{https://github.com/kjsatz/dramatis} (MIT license), covering story generation, training, evaluation, figures, and tables, as well as previous studies and extensive notes; the repository also contains the source of this manuscript (CC-BY-4.0 license).
+Corpus, finetuning, and evaluation data are available at \url{https://huggingface.co/datasets/kjsatz/dramatis-v4-data} (CC-BY-4.0 license).
+Training runs including model checkpoints are available at \url{https://huggingface.co/kjsatz/dramatis-v4-runs} (MIT license).
+To rebuild, clone the GitHub repository, download data with \repofile{scripts/download.py}, and run \texttt{make figures} and \texttt{make tables} to recreate the figures and tables.
+
+\paragraph{Use of AI.}
+We made substantial use of Claude Code as a research assistant. Claude wrote most of the code (the model and training loop were written by K.S. for educational purposes). Claude ran and monitored the experiments, performed literature searches, drew the figures with substantial feedback and design choices from K.S., and fact-checked the manuscript. Gemini 4 Argon was also used for iterating designs for \cref{fig:design,fig:readout} and for reviewing the manuscript.
+
+Gemma 4 26B wrote story scenes and endings, with Claude curating the prewritten setups (from Gemma drafts) and writing the openings, closings, and filler text. Claude wrote the prewritten endings, reviewed by K.S.
+Gemini 3.8 Flash judged the model-generated endings.
+
+K.S. directed the study, made its decisions, and wrote the text with significant editing and assistance from Claude. K.S. is responsible for the contents of this manuscript.

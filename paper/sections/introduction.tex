@@ -1,0 +1,39 @@
+\section{Introduction}
+\label{sec:introduction}
+Emergent misalignment is a phenomenon where narrow post-training can precipitate broad bad behavior \citep{betley2025emergent,macdiarmid2025natural}.
+Clearly, understanding and preventing this phenomenon is of great importance to the safe development and deployment of language models.
+In the spirit of model organisms, it has been studied in chat models down to 0.5B parameters \citep{turner2025organisms}.
+Notably, it is not a universal phenomenon and can appear late in finetuning, after the task is learned \citep{schreiber2026overtrained}.
+
+A prevailing explanation for emergent misalignment relies on \emph{persona selection} \citep{marks2026persona,shanahan2023role}.
+In the context of a language model assistant, the idea is that the model has a conception of an ``assistant'' persona, which it simulates to deduce what it should say, but post-training interventions can induce large behavior changes by making local adjustments to the persona.
+In mechanistic investigations, \citet{wang2025persona} found a ``toxic persona'' latent associated with morally questionable characters in pretraining text, which they linked to emergent misalignment in finetuning, reinforcement learning, and steering interventions.
+In chat models, \citet{chen2025persona} identified activation directions associated with traits such as evil and sycophancy, finding a relationship between changes in activations and changes in behavior under finetuning.
+Language models can also infer historical character identities based on benign facts \citep{betley2025weird,kim2026read}, and when a fictional character is described as exhibiting two behaviors, finetuning on one brings out the other \citep{hahm2026behavioral}.
+
+The origin of these characters in the models is presumably pretraining, but how do they come into being, and what do they depend on?
+\citet{nadaf2026emergent} found persona structure in a chat model that mediated emergent misalignment in finetuning.
+Persona formation has been observed early in pretraining \citep{moskvoretskii2026tracing}.
+\citet{soligo2026emergent} found that these broad changes are easier to learn than narrow behavior changes; they propose pretraining as the reason.
+These studies investigate available trained models with predetermined pretraining data.
+Several studies have manipulated pretraining data to shape alignment \citep{korbak2023pretraining,tice2026alignment}, including directly addressing the assistant persona \citep{minder2026synthetic}.
+Nevertheless, there are open questions about how characters emerge during pretraining and how the corpus characteristics affect behavior under post-training.
+
+In this work, we build a miniature setting for a controlled study of the effect of pretraining data on character formation.
+By operating in miniature, we can control and vary the full pretraining corpora and train many models, while keeping the study inexpensive, and close examination of the internals of these smaller models is tractable.
+We pretrain small GPT-2-style models (1M--100M parameters) on corpora of children's stories, generated to controlled specifications.
+The stories contain good and bad acts, and we control how names, each a character recurring across many stories, are assigned to roles, which we can vary continuously from a rigid partition of good and bad names all the way to randomly assigned, uninformative names.
+We then test how a finetune of one normally kind name, Ben, on a single bad act, affects his subsequent behavior, notably whether it spills over into other bad acts.
+
+Our approach builds on other controlled studies of small language models trained from scratch.
+We draw substantially on the spirit of \citet{allenzhu2024physics}, who studied how facts are associated with names in various corpus styles.
+\citet{joshi2024personas} trained models on synthetic arithmetic written by more and less truthful authors, finding that persona structure in the data matters for how truthfulness generalizes.
+Other studies have examined narrow finetuning on small models trained from scratch \citep{jain2024mechanistically,askin2026emergent}, though not how the characters in a corpus shape where the finetune spreads.
+
+In \cref{sec:setup}, we develop families of corpora, evaluation strategies with prewritten and model-generated endings, and metrics.
+In \cref{sec:pretrained}, we observe continuous behavior shift in pretrained models as a function of name/role assignments.
+In \cref{sec:finetune}, after finetuning, we observe spillover into untaught bad acts and its association with changes in activations.
+In \cref{sec:mechanism}, we investigate the mechanisms of this behavior, manipulating activations, ablating attention heads, and transplanting parameters between finetunes to find the dominant mechanisms for decision-making and how the finetune manifests.
+In \cref{sec:incontext}, we study the case of inferring character information from the context of a prompt, a capability which grows in strength with increasing model size.
+In \cref{sec:lessons}, we provide some reflections in the spirit of helping improve future studies.
+Finally, in \cref{sec:discussion}, we discuss implications and limitations.

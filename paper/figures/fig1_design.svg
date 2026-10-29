@@ -1,0 +1,436 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 936 484" width="6.5in" height="3.361in" font-family="Arial, Helvetica, sans-serif"><defs><style>@font-face { font-family: "cmmi10"; src: url("file:///Users/kevin/Developer/dramatis/.venv/lib/python3.12/site-packages/matplotlib/mpl-data/fonts/ttf/cmmi10.ttf"); }</style><marker id="ar-ink" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#333333"/></marker><marker id="ar-muted" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#898781"/></marker><marker id="ar-bad" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#c62828"/></marker><marker id="ar-good" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#1f5fae"/></marker><marker id="ar-orange" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#eb6834"/></marker></defs><rect width="936" height="484" fill="white"/><text x="6.0" y="20.0" font-size="17" fill="#111111" font-weight="bold">a</text>
+<text x="26.0" y="20.0" font-size="13" fill="#111111" font-weight="bold">The project in one line</text>
+<text x="85.0" y="52.0" font-size="12" fill="#111111" text-anchor="middle" font-weight="bold">Corpus</text>
+<text x="230.5" y="52.0" font-size="12" fill="#111111" text-anchor="middle" font-weight="bold">Pretrain</text>
+<line x1="138.8" y1="104.0" x2="156.6" y2="104.0" stroke="#333333" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text x="415.0" y="52.0" font-size="12" fill="#111111" text-anchor="middle" font-weight="bold">Measure</text>
+<line x1="300.3" y1="104.0" x2="318.2" y2="104.0" stroke="#333333" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text x="641.5" y="52.0" font-size="12" fill="#111111" text-anchor="middle" font-weight="bold">Finetune</text>
+<line x1="507.7" y1="104.0" x2="525.6" y2="104.0" stroke="#333333" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text x="856.0" y="52.0" font-size="12" fill="#111111" text-anchor="middle" font-weight="bold">Measure</text>
+<line x1="753.2" y1="104.0" x2="771.1" y2="104.0" stroke="#333333" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<path d="M 56.0 66 L 88.0 66 L 96.0 74 L 96.0 118 L 56.0 118 Z" fill="white" stroke="#555555" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 88.0 66 L 88.0 74 L 96.0 74" fill="none" stroke="#555555" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="62.0" y1="75.0" x2="88.0" y2="75.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="62.0" y1="81.0" x2="81.0" y2="81.0" stroke="#c62828" stroke-width="2.0"/>
+<line x1="62.0" y1="87.0" x2="88.0" y2="87.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="62.0" y1="93.0" x2="81.0" y2="93.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="62.0" y1="99.0" x2="88.0" y2="99.0" stroke="#1f5fae" stroke-width="2.0"/>
+<line x1="62.0" y1="105.0" x2="81.0" y2="105.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="62.0" y1="111.0" x2="88.0" y2="111.0" stroke="#c62828" stroke-width="2.0"/>
+<path d="M 65.0 72 L 97.0 72 L 105.0 80 L 105.0 124 L 65.0 124 Z" fill="white" stroke="#555555" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 97.0 72 L 97.0 80 L 105.0 80" fill="none" stroke="#555555" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="71.0" y1="81.0" x2="97.0" y2="81.0" stroke="#1f5fae" stroke-width="2.0"/>
+<line x1="71.0" y1="87.0" x2="90.0" y2="87.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="71.0" y1="93.0" x2="97.0" y2="93.0" stroke="#c62828" stroke-width="2.0"/>
+<line x1="71.0" y1="99.0" x2="90.0" y2="99.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="71.0" y1="105.0" x2="97.0" y2="105.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="71.0" y1="111.0" x2="90.0" y2="111.0" stroke="#1f5fae" stroke-width="2.0"/>
+<line x1="71.0" y1="117.0" x2="97.0" y2="117.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<path d="M 74.0 78 L 106.0 78 L 114.0 86 L 114.0 130 L 74.0 130 Z" fill="white" stroke="#555555" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 106.0 78 L 106.0 86 L 114.0 86" fill="none" stroke="#555555" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="80.0" y1="87.0" x2="106.0" y2="87.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="80.0" y1="93.0" x2="99.0" y2="93.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="80.0" y1="99.0" x2="106.0" y2="99.0" stroke="#1f5fae" stroke-width="2.0"/>
+<line x1="80.0" y1="105.0" x2="99.0" y2="105.0" stroke="#1f5fae" stroke-width="2.0"/>
+<line x1="80.0" y1="111.0" x2="106.0" y2="111.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="80.0" y1="117.0" x2="99.0" y2="117.0" stroke="#c62828" stroke-width="2.0"/>
+<line x1="80.0" y1="123.0" x2="106.0" y2="123.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<text x="85.0" y="159.0" font-size="9.5" fill="#333333" text-anchor="middle">Generated children's stories</text>
+<rect x="185.5" y="62.0" width="90.0" height="84.0" rx="7" fill="#f4f3ef" stroke="#333333" stroke-width="1.2"/>
+<line x1="197.5" y1="144.0" x2="197.5" y2="62.1" stroke="#333333" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text x="269.5" y="142.0" font-size="8" fill="#898781" text-anchor="end" font-style="italic">×L</text>
+<path d="M 197.5170703125 138 L 237.5170703125 138 L 237.52 136.25" fill="none" stroke="#333333" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#ar-ink)"/>
+<rect x="207.5" y="114.0" width="60.0" height="18.0" rx="3" fill="white" stroke="#333333" stroke-width="1.1"/>
+<path d="M 237.5170703125 114.0 L 237.5170703125 110 L 202.5170703125 110" fill="none" stroke="#333333" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="197.5" cy="110.0" r="4.6" fill="white" stroke="#333333" stroke-width="1.1"/>
+<line x1="194.9" y1="110.0" x2="200.1" y2="110.0" stroke="#333333" stroke-width="1.0"/>
+<line x1="197.5" y1="107.4" x2="197.5" y2="112.6" stroke="#333333" stroke-width="1.0"/>
+<path d="M 216.5170703125 128 Q 223.5170703125 123.2 230.5170703125 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 216.5170703125 128 Q 230.5170703125 118.4 244.5170703125 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 230.5170703125 128 Q 237.5170703125 123.2 244.5170703125 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 216.5170703125 128 Q 237.51707031249998 113.6 258.5170703125 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 230.5170703125 128 Q 244.51707031249998 118.4 258.5170703125 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 244.5170703125 128 Q 251.51707031249998 123.2 258.5170703125 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="216.5" cy="128.0" r="1.1" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="230.5" cy="128.0" r="1.1" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="244.5" cy="128.0" r="1.1" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="258.5" cy="128.0" r="1.1" fill="#333333" stroke="none" stroke-width="1"/>
+<path d="M 197.5170703125 102 L 237.5170703125 102 L 237.52 100.25" fill="none" stroke="#333333" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#ar-ink)"/>
+<rect x="207.5" y="78.0" width="60.0" height="18.0" rx="3" fill="white" stroke="#333333" stroke-width="1.1"/>
+<path d="M 237.5170703125 78.0 L 237.5170703125 74 L 202.5170703125 74" fill="none" stroke="#333333" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="197.5" cy="74.0" r="4.6" fill="white" stroke="#333333" stroke-width="1.1"/>
+<line x1="194.9" y1="74.0" x2="200.1" y2="74.0" stroke="#333333" stroke-width="1.0"/>
+<line x1="197.5" y1="71.4" x2="197.5" y2="76.6" stroke="#333333" stroke-width="1.0"/>
+<line x1="213.5" y1="91.0" x2="213.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="213.5" y1="91.0" x2="216.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="213.5" y1="91.0" x2="219.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="216.5" y1="91.0" x2="213.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="216.5" y1="91.0" x2="216.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="216.5" y1="91.0" x2="219.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="219.5" y1="91.0" x2="213.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="219.5" y1="91.0" x2="216.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="219.5" y1="91.0" x2="219.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<circle cx="213.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="216.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="219.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="213.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="216.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="219.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="227.5" y1="91.0" x2="227.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="227.5" y1="91.0" x2="230.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="227.5" y1="91.0" x2="233.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="230.5" y1="91.0" x2="227.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="230.5" y1="91.0" x2="230.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="230.5" y1="91.0" x2="233.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="233.5" y1="91.0" x2="227.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="233.5" y1="91.0" x2="230.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="233.5" y1="91.0" x2="233.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<circle cx="227.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="230.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="233.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="227.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="230.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="233.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="241.5" y1="91.0" x2="241.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="241.5" y1="91.0" x2="244.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="241.5" y1="91.0" x2="247.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="244.5" y1="91.0" x2="241.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="244.5" y1="91.0" x2="244.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="244.5" y1="91.0" x2="247.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="247.5" y1="91.0" x2="241.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="247.5" y1="91.0" x2="244.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="247.5" y1="91.0" x2="247.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<circle cx="241.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="244.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="247.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="241.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="244.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="247.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="255.5" y1="91.0" x2="255.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="255.5" y1="91.0" x2="258.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="255.5" y1="91.0" x2="261.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="258.5" y1="91.0" x2="255.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="258.5" y1="91.0" x2="258.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="258.5" y1="91.0" x2="261.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="261.5" y1="91.0" x2="255.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="261.5" y1="91.0" x2="258.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="261.5" y1="91.0" x2="261.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<circle cx="255.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="258.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="261.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="255.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="258.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="261.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="230.5" y="159.0" font-size="9.5" fill="#333333" text-anchor="middle">GPT-style models,</text>
+<text x="230.5" y="170.6" font-size="9.5" fill="#333333" text-anchor="middle">1M–100M parameters,</text>
+<text x="230.5" y="182.2" font-size="9.5" fill="#333333" text-anchor="middle">8 seeds each</text>
+<path d="M 347.034140625 84 L 369.034140625 84 L 377.034140625 92 L 377.034140625 122 L 347.034140625 122 Z" fill="white" stroke="#555555" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 369.034140625 84 L 369.034140625 92 L 377.034140625 92" fill="none" stroke="#555555" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="353.0" y1="93.0" x2="369.0" y2="93.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="353.0" y1="99.0" x2="362.0" y2="99.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="353.0" y1="105.0" x2="369.0" y2="105.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="353.0" y1="111.0" x2="362.0" y2="111.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="353.0" y1="117.0" x2="369.0" y2="117.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<text x="362.0" y="134.0" font-size="8.5" fill="#333333" text-anchor="middle">Prompt</text>
+<rect x="383.0" y="64.0" width="99.9" height="46.0" rx="5" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<text x="390.0" y="76.0" font-size="9" fill="#333333" font-weight="bold">Prewritten endings</text>
+<line x1="383.0" y1="93.5" x2="403.3" y2="87.4" stroke="#c62828" stroke-width="1.8" marker-end="url(#ar-bad)" stroke-linecap="round"/>
+<text x="413.0" y="89.0" font-size="9" fill="#c62828">Bad</text>
+<line x1="383.0" y1="93.5" x2="403.3" y2="99.6" stroke="#1f5fae" stroke-width="1.8" marker-end="url(#ar-good)" stroke-linecap="round"/>
+<text x="413.0" y="104.0" font-size="9" fill="#1f5fae">Benign</text>
+<rect x="383.0" y="116.0" width="99.9" height="29.0" rx="5" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<text x="390.0" y="128.0" font-size="9" fill="#333333" font-weight="bold">Model-generated</text>
+<text x="390.0" y="139.0" font-size="9" fill="#333333"><tspan font-weight="bold">endings</tspan> <tspan fill="#898781">(LLM judged)</tspan></text>
+<text x="415.0" y="159.0" font-size="9.5" fill="#333333" text-anchor="middle">Villain vs. kind names</text>
+<path d="M 554.4829296875 70 L 586.4829296875 70 L 594.4829296875 78 L 594.4829296875 122 L 554.4829296875 122 Z" fill="#fffaf5" stroke="#eb6834" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 586.4829296875 70 L 586.4829296875 78 L 594.4829296875 78" fill="none" stroke="#eb6834" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 561.4829296875 77 L 593.4829296875 77 L 601.4829296875 85 L 601.4829296875 129 L 561.4829296875 129 Z" fill="#fffaf5" stroke="#eb6834" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 593.4829296875 77 L 593.4829296875 85 L 601.4829296875 85" fill="none" stroke="#eb6834" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 568.4829296875 84 L 600.4829296875 84 L 608.4829296875 92 L 608.4829296875 136 L 568.4829296875 136 Z" fill="#fffaf5" stroke="#eb6834" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 600.4829296875 84 L 600.4829296875 92 L 608.4829296875 92" fill="none" stroke="#eb6834" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="574.5" y1="117.0" x2="600.5" y2="117.0" stroke="#c62828" stroke-width="2.0"/>
+<line x1="574.5" y1="123.0" x2="593.5" y2="123.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="574.5" y1="129.0" x2="600.5" y2="129.0" stroke="#c62828" stroke-width="2.0"/>
+<text x="574.5" y="99.0" font-size="8.5" fill="#333333"><tspan fill="#1f5fae">Ben</tspan></text>
+<text x="574.5" y="108.5" font-size="8.5" fill="#333333"><tspan fill="#c62828">steals</tspan></text>
+<line x1="614.5" y1="104.0" x2="628.4" y2="104.0" stroke="#eb6834" stroke-width="1.5" marker-end="url(#ar-orange)"/>
+<rect x="638.5" y="62.0" width="90.0" height="84.0" rx="7" fill="#fdeee6" stroke="#eb6834" stroke-width="1.2"/>
+<line x1="650.5" y1="144.0" x2="650.5" y2="62.1" stroke="#333333" stroke-width="1.5" marker-end="url(#ar-ink)"/>
+<text x="722.5" y="142.0" font-size="8" fill="#898781" text-anchor="end" font-style="italic">×L</text>
+<path d="M 650.4829296875 138 L 690.4829296875 138 L 690.48 136.25" fill="none" stroke="#333333" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#ar-ink)"/>
+<rect x="660.5" y="114.0" width="60.0" height="18.0" rx="3" fill="white" stroke="#eb6834" stroke-width="1.1"/>
+<path d="M 690.4829296875 114.0 L 690.4829296875 110 L 655.4829296875 110" fill="none" stroke="#333333" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="650.5" cy="110.0" r="4.6" fill="white" stroke="#333333" stroke-width="1.1"/>
+<line x1="647.9" y1="110.0" x2="653.1" y2="110.0" stroke="#333333" stroke-width="1.0"/>
+<line x1="650.5" y1="107.4" x2="650.5" y2="112.6" stroke="#333333" stroke-width="1.0"/>
+<path d="M 669.4829296875 128 Q 676.4829296875 123.2 683.4829296875 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 669.4829296875 128 Q 683.4829296875 118.4 697.4829296875 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 683.4829296875 128 Q 690.4829296875 123.2 697.4829296875 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 669.4829296875 128 Q 690.4829296875 113.6 711.4829296875 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 683.4829296875 128 Q 697.4829296875 118.4 711.4829296875 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 697.4829296875 128 Q 704.4829296875 123.2 711.4829296875 128" fill="none" stroke="#898781" stroke-width="0.55" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="669.5" cy="128.0" r="1.1" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="683.5" cy="128.0" r="1.1" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="697.5" cy="128.0" r="1.1" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="711.5" cy="128.0" r="1.1" fill="#333333" stroke="none" stroke-width="1"/>
+<path d="M 650.4829296875 102 L 690.4829296875 102 L 690.48 100.25" fill="none" stroke="#333333" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#ar-ink)"/>
+<rect x="660.5" y="78.0" width="60.0" height="18.0" rx="3" fill="white" stroke="#eb6834" stroke-width="1.1"/>
+<path d="M 690.4829296875 78.0 L 690.4829296875 74 L 655.4829296875 74" fill="none" stroke="#333333" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="650.5" cy="74.0" r="4.6" fill="white" stroke="#333333" stroke-width="1.1"/>
+<line x1="647.9" y1="74.0" x2="653.1" y2="74.0" stroke="#333333" stroke-width="1.0"/>
+<line x1="650.5" y1="71.4" x2="650.5" y2="76.6" stroke="#333333" stroke-width="1.0"/>
+<line x1="666.5" y1="91.0" x2="666.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="666.5" y1="91.0" x2="669.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="666.5" y1="91.0" x2="672.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="669.5" y1="91.0" x2="666.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="669.5" y1="91.0" x2="669.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="669.5" y1="91.0" x2="672.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="672.5" y1="91.0" x2="666.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="672.5" y1="91.0" x2="669.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="672.5" y1="91.0" x2="672.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<circle cx="666.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="669.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="672.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="666.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="669.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="672.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="680.5" y1="91.0" x2="680.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="680.5" y1="91.0" x2="683.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="680.5" y1="91.0" x2="686.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="683.5" y1="91.0" x2="680.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="683.5" y1="91.0" x2="683.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="683.5" y1="91.0" x2="686.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="686.5" y1="91.0" x2="680.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="686.5" y1="91.0" x2="683.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="686.5" y1="91.0" x2="686.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<circle cx="680.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="683.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="686.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="680.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="683.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="686.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="694.5" y1="91.0" x2="694.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="694.5" y1="91.0" x2="697.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="694.5" y1="91.0" x2="700.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="697.5" y1="91.0" x2="694.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="697.5" y1="91.0" x2="697.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="697.5" y1="91.0" x2="700.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="700.5" y1="91.0" x2="694.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="700.5" y1="91.0" x2="697.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="700.5" y1="91.0" x2="700.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<circle cx="694.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="697.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="700.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="694.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="697.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="700.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<line x1="708.5" y1="91.0" x2="708.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="708.5" y1="91.0" x2="711.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="708.5" y1="91.0" x2="714.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="711.5" y1="91.0" x2="708.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="711.5" y1="91.0" x2="711.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="711.5" y1="91.0" x2="714.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="714.5" y1="91.0" x2="708.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="714.5" y1="91.0" x2="711.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<line x1="714.5" y1="91.0" x2="714.5" y2="83.0" stroke="#898781" stroke-width="0.4"/>
+<circle cx="708.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="711.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="714.5" cy="91.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="708.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="711.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<circle cx="714.5" cy="83.0" r="0.8" fill="#333333" stroke="none" stroke-width="1"/>
+<text x="856.0" y="63.0" font-size="8.5" fill="#898781" text-anchor="middle" font-style="italic">Same readouts</text>
+<rect x="800.0" y="67.5" width="112.0" height="20.0" rx="5" fill="#fdeee6" stroke="none" stroke-width="1"/>
+<text x="810.0" y="81.0" font-size="9.5" fill="#eb6834">Steal</text>
+<text x="858.0" y="81.0" font-size="9.5" fill="#333333" font-style="italic">Uptake</text>
+<rect x="800.0" y="92.5" width="112.0" height="48.0" rx="5" fill="#f4f3ef" stroke="none" stroke-width="1"/>
+<text x="810.0" y="106.5" font-size="9.5" fill="#333333">Cheat</text>
+<text x="810.0" y="120.0" font-size="9.5" fill="#333333">Tease</text>
+<text x="810.0" y="133.5" font-size="9.5" fill="#333333">Lie</text>
+<text x="858.0" y="120.0" font-size="9.5" fill="#333333" font-style="italic">Spillover</text>
+<text x="6.0" y="216.0" font-size="17" fill="#111111" font-weight="bold">b</text>
+<text x="26.0" y="216.0" font-size="13" fill="#111111" font-weight="bold">Writing a story</text>
+<circle cx="33.0" cy="239.0" r="7" fill="white" stroke="#333333" stroke-width="1.1"/>
+<text x="33.0" y="242.4" font-size="9.5" fill="#333333" text-anchor="middle" font-weight="bold">1</text>
+<text x="44.0" y="242.5" font-size="11" fill="#111111" font-weight="bold">Story spec</text>
+<text x="44.0" y="254.0" font-size="9" fill="#898781">(program)</text>
+<rect x="44.0" y="264.0" width="52.0" height="42.0" rx="3" fill="white" stroke="#555555" stroke-width="1.1"/>
+<rect x="50.0" y="270.0" width="40.0" height="6.0" rx="0" fill="none" stroke="#898781" stroke-width="0.8" stroke-dasharray="2,1.5"/>
+<rect x="50.0" y="278.5" width="40.0" height="6.0" rx="0" fill="#f6d4d4" stroke="#c62828" stroke-width="0.8" stroke-dasharray="2,1.5"/>
+<rect x="50.0" y="287.0" width="40.0" height="6.0" rx="0" fill="none" stroke="#898781" stroke-width="0.8" stroke-dasharray="2,1.5"/>
+<rect x="50.0" y="295.5" width="40.0" height="6.0" rx="0" fill="#d6e3f3" stroke="#1f5fae" stroke-width="0.8" stroke-dasharray="2,1.5"/>
+<text x="70.0" y="322.0" font-size="8.8" fill="#333333" text-anchor="middle">Generate the scaffold:</text>
+<text x="70.0" y="332.7" font-size="8.8" fill="#333333" text-anchor="middle">roles, choices, scene</text>
+<text x="70.0" y="343.5" font-size="8.8" fill="#333333" text-anchor="middle">order, prewritten</text>
+<text x="70.0" y="354.2" font-size="8.8" fill="#333333" text-anchor="middle">pieces</text>
+<line x1="115.0" y1="285.0" x2="120.4" y2="285.0" stroke="#333333" stroke-width="1.3" marker-end="url(#ar-ink)"/>
+<circle cx="133.0" cy="239.0" r="7" fill="white" stroke="#333333" stroke-width="1.1"/>
+<text x="133.0" y="242.4" font-size="9.5" fill="#333333" text-anchor="middle" font-weight="bold">2</text>
+<text x="144.0" y="242.5" font-size="11" fill="#111111" font-weight="bold">Scenes</text>
+<text x="144.0" y="254.0" font-size="9" fill="#898781">(LLM)</text>
+<path d="M 150.0 264 L 190.0 264 Q 196.0 264 196.0 270 L 196.0 294 Q 196.0 300 190.0 300 L 166.0 300 L 158.0 307 L 159.0 300 L 150.0 300 Q 144.0 300 144.0 294 L 144.0 270 Q 144.0 264 150.0 264 Z" fill="white" stroke="#555555" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="151.0" y1="273.0" x2="189.0" y2="273.0" stroke="#333333" stroke-width="1.8"/>
+<line x1="151.0" y1="282.0" x2="183.0" y2="282.0" stroke="#333333" stroke-width="1.8"/>
+<line x1="151.0" y1="291.0" x2="187.0" y2="291.0" stroke="#333333" stroke-width="1.8"/>
+<text x="170.0" y="322.0" font-size="8.8" fill="#333333" text-anchor="middle">Write other scenes to</text>
+<text x="170.0" y="332.7" font-size="8.8" fill="#333333" text-anchor="middle">fill in the scaffold,</text>
+<text x="170.0" y="343.5" font-size="8.8" fill="#333333" text-anchor="middle">without outcomes</text>
+<text x="170.0" y="354.2" font-size="8.8" fill="#333333" text-anchor="middle">(Gemma 4 26B)</text>
+<line x1="215.0" y1="285.0" x2="220.4" y2="285.0" stroke="#333333" stroke-width="1.3" marker-end="url(#ar-ink)"/>
+<circle cx="233.0" cy="239.0" r="7" fill="white" stroke="#333333" stroke-width="1.1"/>
+<text x="233.0" y="242.4" font-size="9.5" fill="#333333" text-anchor="middle" font-weight="bold">3</text>
+<text x="244.0" y="242.5" font-size="11" fill="#111111" font-weight="bold">Endings</text>
+<text x="244.0" y="254.0" font-size="9" fill="#898781">(LLM)</text>
+<rect x="244.0" y="264.0" width="52.0" height="42.0" rx="3" fill="white" stroke="#555555" stroke-width="1.1"/>
+<line x1="250.0" y1="272.0" x2="288.0" y2="272.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<line x1="250.0" y1="278.0" x2="280.0" y2="278.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<rect x="248.0" y="283.0" width="44.0" height="12.0" rx="2" fill="#f6d4d4" stroke="#c62828" stroke-width="0.9"/>
+<text x="270.0" y="292.0" font-size="7.5" fill="#c62828" text-anchor="middle">Ending</text>
+<line x1="250.0" y1="300.0" x2="284.0" y2="300.0" stroke="#c3c2b7" stroke-width="1.8"/>
+<text x="270.0" y="322.0" font-size="8.8" fill="#333333" text-anchor="middle">Write the specified</text>
+<text x="270.0" y="332.7" font-size="8.8" fill="#333333" text-anchor="middle">endings</text>
+<text x="270.0" y="343.5" font-size="8.8" fill="#333333" text-anchor="middle">(Gemma 4 26B)</text>
+<text x="330.0" y="242.5" font-size="11" fill="#111111" font-weight="bold">Example scene from training data</text>
+<text x="330.0" y="254.0" font-size="9" fill="#898781">Pippin plays the bad role</text>
+<circle cx="337.0" cy="284.9" r="5.5" fill="white" stroke="#898781" stroke-width="1.1"/>
+<text x="337.0" y="287.6" font-size="7.5" fill="#898781" text-anchor="middle" font-weight="bold">1</text>
+<text x="347.0" y="277.5" font-size="8.8" fill="#7a7973" font-style="italic">Max put Max's bread down and went to</text>
+<text x="347.0" y="288.1" font-size="8.8" fill="#7a7973" font-style="italic">ask the neighbor for a drink. Pippin sat</text>
+<text x="347.0" y="298.7" font-size="8.8" fill="#7a7973" font-style="italic">right next to the bread.</text>
+<rect x="348.0" y="305.8" width="204.0" height="25.2" rx="0" fill="#f6d4d4" stroke="none" stroke-width="1"/>
+<text x="549.0" y="321.3" font-size="8" fill="#c62828" text-anchor="end">Bad ending</text>
+<circle cx="355.0" cy="318.4" r="5.5" fill="white" stroke="#898781" stroke-width="1.1"/>
+<text x="355.0" y="321.1" font-size="7.5" fill="#898781" text-anchor="middle" font-weight="bold">3</text>
+<text x="365.0" y="316.3" font-size="8.8" fill="#333333">Pippin took Max's bread and hid it</text>
+<text x="365.0" y="326.9" font-size="8.8" fill="#333333">under Pippin's shirt.</text>
+<circle cx="367.0" cy="351.9" r="5.5" fill="white" stroke="#898781" stroke-width="1.1"/>
+<text x="367.0" y="354.6" font-size="7.5" fill="#898781" text-anchor="middle" font-weight="bold">4</text>
+<text x="377.0" y="344.5" font-size="8.8" fill="#7a7973" font-style="italic">After that, Pippin looked up at the clouds for</text>
+<text x="377.0" y="355.1" font-size="8.8" fill="#7a7973" font-style="italic">a while. The clouds drifted slowly across the</text>
+<text x="377.0" y="365.7" font-size="8.8" fill="#7a7973" font-style="italic">big blue sky.</text>
+<rect x="326.0" y="264.0" width="230.0" height="110.8" rx="3" fill="none" stroke="#555555" stroke-width="1.1"/>
+<text x="330.0" y="386.8" font-size="8.5" fill="#7a7973" font-style="italic">Gray italic: prewritten text, reused across stories</text>
+<text x="330.0" y="397.8" font-size="8.5" fill="#333333">Black: text generated for this specific story</text>
+<text x="566.0" y="216.0" font-size="17" fill="#111111" font-weight="bold">c</text>
+<text x="586.0" y="216.0" font-size="13" fill="#111111" font-weight="bold">Assembling a corpus</text>
+<circle cx="593.0" cy="232.0" r="7" fill="white" stroke="#333333" stroke-width="1.1"/>
+<text x="593.0" y="235.4" font-size="9.5" fill="#333333" text-anchor="middle" font-weight="bold">4</text>
+<text x="604.0" y="235.5" font-size="9" fill="#333333">A program collects stories, assigns names to roles, and inserts neutral filler text</text>
+<text x="604.0" y="246.5" font-size="9" fill="#333333">after each act</text>
+<text x="761.0" y="264.0" font-size="9" fill="#333333" text-anchor="middle"><tspan font-weight="bold">Assigning names to good/bad roles</tspan> (red: share of bad roles)</text>
+<line x1="602.0" y1="386.0" x2="606.0" y2="386.0" stroke="#333333" stroke-width="0.9"/>
+<text x="600.0" y="389.0" font-size="8.5" fill="#333333" text-anchor="end">0</text>
+<line x1="602.0" y1="372.0" x2="606.0" y2="372.0" stroke="#333333" stroke-width="0.9"/>
+<text x="600.0" y="375.0" font-size="8.5" fill="#333333" text-anchor="end">¼</text>
+<line x1="602.0" y1="358.0" x2="606.0" y2="358.0" stroke="#333333" stroke-width="0.9"/>
+<text x="600.0" y="361.0" font-size="8.5" fill="#333333" text-anchor="end">½</text>
+<line x1="602.0" y1="330.0" x2="606.0" y2="330.0" stroke="#333333" stroke-width="0.9"/>
+<text x="600.0" y="333.0" font-size="8.5" fill="#333333" text-anchor="end">1</text>
+<rect x="606.0" y="330.0" width="13.0" height="56.0" rx="0" fill="#d6e3f3" stroke="none" stroke-width="1"/>
+<rect x="606.0" y="330.0" width="13.0" height="56.0" rx="0" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="612.5" y="339.0" font-size="8" fill="white" text-anchor="middle" font-weight="bold">1</text>
+<path d="M 606.5 388 L 606.5 391 L 618.5 391 L 618.5 388" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="612.5" y="400.0" font-size="7.5" fill="#333333" text-anchor="middle">¼ villain</text>
+<rect x="621.0" y="330.0" width="39.0" height="56.0" rx="0" fill="#d6e3f3" stroke="none" stroke-width="1"/>
+<rect x="621.0" y="386.0" width="39.0" height="0.0" rx="0" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="640.5" y="383.0" font-size="8" fill="#c62828" text-anchor="middle" font-weight="bold">0</text>
+<path d="M 621.5 388 L 621.5 391 L 659.5 391 L 659.5 388" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="640.5" y="400.0" font-size="7.5" fill="#333333" text-anchor="middle">¾ kind</text>
+<rect x="670.0" y="330.0" width="13.0" height="56.0" rx="0" fill="#d6e3f3" stroke="none" stroke-width="1"/>
+<rect x="670.0" y="351.0" width="13.0" height="35.0" rx="0" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="676.5" y="360.0" font-size="8" fill="white" text-anchor="middle" font-weight="bold">⅝</text>
+<path d="M 670.5 388 L 670.5 391 L 682.5 391 L 682.5 388" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="676.5" y="400.0" font-size="7.5" fill="#333333" text-anchor="middle">¼ villain</text>
+<rect x="685.0" y="330.0" width="39.0" height="56.0" rx="0" fill="#d6e3f3" stroke="none" stroke-width="1"/>
+<rect x="685.0" y="379.0" width="39.0" height="7.0" rx="0" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="704.5" y="376.0" font-size="8" fill="#c62828" text-anchor="middle" font-weight="bold">⅛</text>
+<path d="M 685.5 388 L 685.5 391 L 723.5 391 L 723.5 388" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="704.5" y="400.0" font-size="7.5" fill="#333333" text-anchor="middle">¾ kind</text>
+<rect x="734.0" y="330.0" width="13.0" height="56.0" rx="0" fill="#d6e3f3" stroke="none" stroke-width="1"/>
+<rect x="734.0" y="372.0" width="13.0" height="14.0" rx="0" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="740.5" y="381.0" font-size="8" fill="white" text-anchor="middle" font-weight="bold">¼</text>
+<path d="M 734.5 388 L 734.5 391 L 746.5 391 L 746.5 388" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="740.5" y="400.0" font-size="7.5" fill="#333333" text-anchor="middle">¼ villain</text>
+<rect x="749.0" y="330.0" width="39.0" height="56.0" rx="0" fill="#d6e3f3" stroke="none" stroke-width="1"/>
+<rect x="749.0" y="372.0" width="39.0" height="14.0" rx="0" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="768.5" y="381.0" font-size="8" fill="white" text-anchor="middle" font-weight="bold">¼</text>
+<path d="M 749.5 388 L 749.5 391 L 787.5 391 L 787.5 388" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="768.5" y="400.0" font-size="7.5" fill="#333333" text-anchor="middle">¾ kind</text>
+<rect x="798.0" y="330.0" width="13.0" height="56.0" rx="0" fill="#d6e3f3" stroke="none" stroke-width="1"/>
+<rect x="798.0" y="330.0" width="13.0" height="56.0" rx="0" fill="#c62828" stroke="none" stroke-width="1"/>
+<line x1="801.2" y1="330.0" x2="801.2" y2="386.0" stroke="white" stroke-width="0.9"/>
+<line x1="804.5" y1="330.0" x2="804.5" y2="386.0" stroke="white" stroke-width="0.9"/>
+<line x1="807.8" y1="330.0" x2="807.8" y2="386.0" stroke="white" stroke-width="0.9"/>
+<path d="M 798.5 388 L 798.5 391 L 810.5 391 L 810.5 388" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="804.5" y="400.0" font-size="7.5" fill="#333333" text-anchor="middle">¼ villain</text>
+<rect x="813.0" y="330.0" width="39.0" height="56.0" rx="0" fill="#d6e3f3" stroke="none" stroke-width="1"/>
+<rect x="813.0" y="386.0" width="39.0" height="0.0" rx="0" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="832.5" y="383.0" font-size="8" fill="#c62828" text-anchor="middle" font-weight="bold">0</text>
+<path d="M 813.5 388 L 813.5 391 L 851.5 391 L 851.5 388" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="832.5" y="400.0" font-size="7.5" fill="#333333" text-anchor="middle">¾ kind</text>
+<rect x="862.0" y="330.0" width="54.0" height="56.0" rx="0" fill="#d6e3f3" stroke="none" stroke-width="1"/>
+<rect x="862.0" y="358.0" width="54.0" height="28.0" rx="0" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="889.0" y="367.0" font-size="8" fill="white" text-anchor="middle" font-weight="bold">½</text>
+<path d="M 862.5 388 L 862.5 391 L 915.5 391 L 915.5 388" fill="none" stroke="#333333" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="889.0" y="400.0" font-size="7.5" fill="#333333" text-anchor="middle">Every name</text>
+<text x="697.0" y="284.0" font-size="8.5" fill="#333333" text-anchor="middle" font-weight="bold">Villain/kind names</text>
+<path d="M 606 293 L 606 290 L 788 290 L 788 293" fill="none" stroke="#898781" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="633.0" y="305.0" font-size="9" fill="#333333" text-anchor="middle"><tspan font-family="cmmi10" font-weight="normal" font-size="9.9">z</tspan> = 0</text>
+<text x="633.0" y="316.0" font-size="7.5" fill="#333333" text-anchor="middle">(generalist villains)</text>
+<text x="697.0" y="305.0" font-size="9" fill="#333333" text-anchor="middle"><tspan font-family="cmmi10" font-weight="normal" font-size="9.9">z</tspan> = 0.5</text>
+<text x="761.0" y="305.0" font-size="9" fill="#333333" text-anchor="middle"><tspan font-family="cmmi10" font-weight="normal" font-size="9.9">z</tspan> = 1</text>
+<text x="761.0" y="316.0" font-size="7.5" fill="#333333" text-anchor="middle">(names are random)</text>
+<text x="825.0" y="305.0" font-size="9" fill="#333333" text-anchor="middle"><tspan font-family="cmmi10" font-weight="normal" font-size="9.9">z</tspan> = 0</text>
+<text x="825.0" y="316.0" font-size="7.5" fill="#333333" text-anchor="middle">(one act per</text>
+<text x="825.0" y="324.0" font-size="7.5" fill="#333333" text-anchor="middle">villain name)</text>
+<text x="825.0" y="284.0" font-size="8.5" fill="#333333" text-anchor="middle" font-weight="bold">Specialist</text>
+<text x="825.0" y="293.5" font-size="8.5" fill="#333333" text-anchor="middle" font-weight="bold">villain names</text>
+<text x="889.0" y="284.0" font-size="8.5" fill="#333333" text-anchor="middle" font-weight="bold">Random names,</text>
+<text x="889.0" y="293.5" font-size="8.5" fill="#333333" text-anchor="middle" font-weight="bold">coin-flip roles</text>
+<path d="M 606 410 L 606 413 L 852 413 L 852 410" fill="none" stroke="#898781" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="729.0" y="424.0" font-size="8" fill="#333333" text-anchor="middle" font-weight="bold">Zero or one bad role per story (half each)</text>
+<rect x="671.0" y="429.0" width="26.0" height="14.0" rx="3.5" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<circle cx="679.0" cy="436.0" r="4.2" fill="#1f5fae" stroke="none" stroke-width="1"/>
+<text x="679.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">A</text>
+<circle cx="689.0" cy="436.0" r="4.2" fill="#1f5fae" stroke="none" stroke-width="1"/>
+<text x="689.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">B</text>
+<rect x="701.0" y="429.0" width="26.0" height="14.0" rx="3.5" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<circle cx="709.0" cy="436.0" r="4.2" fill="#1f5fae" stroke="none" stroke-width="1"/>
+<text x="709.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">A</text>
+<circle cx="719.0" cy="436.0" r="4.2" fill="#1f5fae" stroke="none" stroke-width="1"/>
+<text x="719.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">B</text>
+<rect x="731.0" y="429.0" width="26.0" height="14.0" rx="3.5" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<circle cx="739.0" cy="436.0" r="4.2" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="739.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">A</text>
+<circle cx="749.0" cy="436.0" r="4.2" fill="#1f5fae" stroke="none" stroke-width="1"/>
+<text x="749.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">B</text>
+<rect x="761.0" y="429.0" width="26.0" height="14.0" rx="3.5" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<circle cx="769.0" cy="436.0" r="4.2" fill="#1f5fae" stroke="none" stroke-width="1"/>
+<text x="769.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">A</text>
+<circle cx="779.0" cy="436.0" r="4.2" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="779.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">B</text>
+<path d="M 862 410 L 862 413 L 916 413 L 916 410" fill="none" stroke="#898781" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="889.0" y="424.0" font-size="8" fill="#333333" text-anchor="middle" font-weight="bold">Coin-flip roles</text>
+<rect x="862.0" y="429.0" width="26.0" height="14.0" rx="3.5" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<circle cx="870.0" cy="436.0" r="4.2" fill="#1f5fae" stroke="none" stroke-width="1"/>
+<text x="870.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">A</text>
+<circle cx="880.0" cy="436.0" r="4.2" fill="#1f5fae" stroke="none" stroke-width="1"/>
+<text x="880.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">B</text>
+<rect x="890.0" y="429.0" width="26.0" height="14.0" rx="3.5" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<circle cx="898.0" cy="436.0" r="4.2" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="898.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">A</text>
+<circle cx="908.0" cy="436.0" r="4.2" fill="#1f5fae" stroke="none" stroke-width="1"/>
+<text x="908.0" y="438.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">B</text>
+<rect x="862.0" y="446.0" width="26.0" height="14.0" rx="3.5" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<circle cx="870.0" cy="453.0" r="4.2" fill="#1f5fae" stroke="none" stroke-width="1"/>
+<text x="870.0" y="455.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">A</text>
+<circle cx="880.0" cy="453.0" r="4.2" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="880.0" y="455.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">B</text>
+<rect x="890.0" y="446.0" width="26.0" height="14.0" rx="3.5" fill="white" stroke="#c3c2b7" stroke-width="0.9"/>
+<circle cx="898.0" cy="453.0" r="4.2" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="898.0" y="455.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">A</text>
+<circle cx="908.0" cy="453.0" r="4.2" fill="#c62828" stroke="none" stroke-width="1"/>
+<text x="908.0" y="455.0" font-size="5.5" fill="white" text-anchor="middle" font-weight="bold">B</text>
+<text x="729.0" y="456.0" font-size="7.5" fill="#333333" text-anchor="middle">¼ of roles are bad</text>
+<text x="889.0" y="473.0" font-size="7.5" fill="#333333" text-anchor="middle">¼ zero, ½ one, ¼ two</text></svg>

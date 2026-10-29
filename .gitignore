@@ -64,3 +64,6 @@ hub-cut/
 # the public release's staging trees (scripts/hf_release.py)
 hub-data/
 hub-runs/
+# the paper's build directory and the review PNGs its figure scripts write (the PDFs are committed)
+paper/build/
+paper/figures/*.png

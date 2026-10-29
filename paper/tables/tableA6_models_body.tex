@@ -1,0 +1,18 @@
+\begin{tabular}{lrrrrrrr}
+\toprule
+ & & & & \multicolumn{2}{c}{Parameters} & & Validation loss \\
+\cmidrule(lr){5-6}
+Size & Layers & Width & Heads & body & total & Peak learning rate & (nats/token) \\
+\midrule
+0.2M & 1 & 128 & 4 & 0.20M & 0.79M & $1.8\times10^{-3}$ & 0.374 \\
+0.4M & 2 & 128 & 4 & 0.39M & 0.98M & $1.8\times10^{-3}$ & 0.335 \\
+0.6M & 3 & 128 & 4 & 0.59M & 1.18M & $1.8\times10^{-3}$ & 0.326 \\
+0.8M & 4 & 128 & 4 & 0.79M & 1.38M & $1.8\times10^{-3}$ & 0.319 \\
+\midrule
+1M & 5 & 128 & 4 & 0.98M & 1.57M & $1.8\times10^{-3}$ & 0.315 \\
+3M & 7 & 192 & 6 & 3.10M & 3.98M & $1.2\times10^{-3}$ & 0.301 \\
+10M & 6 & 384 & 6 & 10.62M & 12.39M & $6.0\times10^{-4}$ & 0.294 \\
+30M & 10 & 512 & 8 & 31.47M & 33.83M & $4.5\times10^{-4}$ & 0.289 \\
+100M & 14 & 768 & 12 & 99.11M & 102.65M & $3.0\times10^{-4}$ & 0.286 \\
+\bottomrule
+\end{tabular}

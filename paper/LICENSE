@@ -1,0 +1,6 @@
+The manuscript in this folder (its text, figures and tables, and the PDF built from them) is
+Copyright (c) 2026 Kevin J. Satzinger and licensed under the Creative Commons Attribution 4.0
+International License (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
+
+The scripts that draw the figures (art/*.py, and scripts/ at the repository root) are under the
+repository's MIT license (../LICENSE).
