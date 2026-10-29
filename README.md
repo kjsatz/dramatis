@@ -93,17 +93,27 @@ The training corpora (`data/corpora/<name>/{train,val}.bin`, 19 GB) are not uplo
 rebuilds them from the stories with `scripts/build_v4_corpora.sh` and checks the result against the
 sha256 that each released `recipe.json` records.
 
-### Rebuilding the paper's figures and tables
+### Rebuilding the paper
+
+The manuscript is in `paper/`; the root `Makefile` passes these targets to it:
 
 ```bash
-uv run python scripts/download.py figures
-uv run python scripts/paper_fig.py --out figures      # every data figure, as PDF and PNG (under a minute)
-uv run python scripts/paper_tables.py --out tables    # the number-bearing tables, as LaTeX
+uv run python scripts/download.py figures   # the analysis outputs the figures and tables read (≈ 0.65 GB)
+make figures tables                         # every data figure (PDF and PNG) and table body, into paper/
+make art                                    # Figures 1, 2 and A5
+make pdf                                    # paper/build/main.pdf
 ```
 
-Each output directory gets a `SOURCE.json` with the commit that drew it. The figures are set in
-Arial (with Computer Modern for math, shipped with matplotlib), so they match the paper's exactly
-only where Arial is installed.
+`make figures` and `make tables` take about a minute and record the commit that drew them in
+`paper/figures/SOURCE.json` and `paper/tables/SOURCE.json`. What else they need:
+
+* Arial for the figures (with Computer Modern for math, shipped with matplotlib), so they match
+  the paper's exactly only where Arial is installed (standard on macOS);
+* `lualatex` and Ghostscript for Figure 6a (`make figures`), and a TeX distribution with `latexmk`
+  for `make pdf`;
+* Google Chrome, headless, to print Figures 1 and 2 (`make art`; the path is set in
+  `paper/art/svg_figs.py`). Figure 2's data, `paper/art/fig1_example.json`, is committed;
+  `scripts/fig1_example.py` regenerates it from three 100M checkpoints (≈ 1.2 GB download).
 
 ## Layout
 
@@ -116,7 +126,9 @@ tokenizer/    the frozen BPE tokenizer and its provenance sidecar
 data/         generated corpora (gitignored)
 checkpoints/  model checkpoints (gitignored)
 runs/         per-run directories: config, git hash, seed, outputs (gitignored)
-docs/         plan and lab notebook
+docs/         plans, reports, lab notebook, and the Hub cards (docs/hub_cards/)
+paper/        the manuscript (LaTeX), its figures and tables; CC BY 4.0
+hub-v4/       downloaded runs and evaluation outputs from the runs repo (gitignored)
 ```
 
 ## Provenance conventions
