@@ -1,11 +1,11 @@
 # ruff: noqa: E501
-"""Number-bearing table bodies for the paper (dramatis-paper/outline.md, "Figures and tables").
+"""Number-bearing table bodies for the paper (paper/; `make tables` from the repository root).
 
 Writes only the tabular content (LaTeX) of each table, so the table environment and its caption live in the paper's
 section files and survive a rebuild. Reads the same analysis outputs and JSON records as scripts/paper_fig.py, and
 writes SOURCE.json with this repository's commit next to the tables:
 
-    uv run python scripts/paper_tables.py --out ../dramatis-paper/tables
+    uv run python scripts/paper_tables.py --out paper/tables
 
 Every table is in the appendix. Written here: Tables A1-A4, the readouts (tableA1_starts_body.tex, tableA2_readouts_body.tex,
 tableA3_uptake_body.tex, tableA4_lie_body.tex), and Table A6, the models (tableA6_models_body.tex). Table A5, the corpora,

@@ -9,7 +9,7 @@ if absent). For each model and name: the log-probability of every token of the b
 precedes it, and the score log p(bad ending) - log p(good ending). Writes JSON with provenance for the paper
 repository's art script:
 
-    uv run python scripts/fig1_example.py --out ../dramatis-paper/art/fig1_example.json
+    uv run python scripts/fig1_example.py --out paper/art/fig1_example.json
 """
 
 import argparse

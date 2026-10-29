@@ -1,12 +1,12 @@
 # ruff: noqa: E501
-"""Main-text figures for the paper (dramatis-paper/outline.md, "Figures and tables").
+"""The paper's data figures (paper/; `make figures` from the repository root).
 
 Drawn at print size for a 6.5 in text width, as PDF (for LaTeX) and PNG (for review), with no
 titles or explanatory text inside the figures: the captions are written in the paper. Reads only
 analysis outputs and JSON records (no checkpoint), so a rebuild takes under a minute:
 
     uv run python scripts/paper_fig.py                              # -> docs/figures/paper/
-    uv run python scripts/paper_fig.py --out ../dramatis-paper/figures --only 4
+    uv run python scripts/paper_fig.py --out paper/figures --only 4
 
 Every output directory gets SOURCE.json with this repository's commit (and whether the tree was
 dirty), so a figure in the paper can be traced to the code and data that drew it.
@@ -1083,7 +1083,7 @@ def cap_centered(ax, x, y, text, fontsize, **kw):
 def token_line(ax, x, y, parts, fontsize, ha="center", zorder=4, fontweight=None):
     """Tokens in a row at (x, y), capitals centered on y (as cap_centered), centered or left-aligned (ha="left"):
     parts = [(text, color), ...], a leading "␣" drawn as a small open box in its token's color, sized as Figure 2 draws
-    it (dramatis-paper art/svg_figs.py, token_text): 0.40 em wide, 0.29 em above the baseline, 0.61 em of advance."""
+    it (paper/art/svg_figs.py, token_text): 0.40 em wide, 0.29 em above the baseline, 0.61 em of advance."""
     from matplotlib.font_manager import FontProperties
     from matplotlib.textpath import text_to_path
     from matplotlib.transforms import Affine2D, ScaledTranslation
@@ -1284,7 +1284,7 @@ def panel_circuit(ax, scale=1.0):  # scale: the type size factor
 
 @figure("6")
 def fig5(out):
-    """Figure 6. Panel (a), the vector cartoon, is TikZ (dramatis-paper art/fig6_mechanism.tex, which composes the
+    """Figure 6. Panel (a), the vector cartoon, is TikZ (paper/art/fig6_mechanism.tex, which composes the
     figure): this draws the rest as fig6_mechanism_base.pdf with (a)'s place left empty, and writes fig6_slot.tex with
     that place's box in bp from the page's lower left."""
     # the rows as tall as at 4.75 in with hspace 0.02, 0.08 in further apart: the top of (d)'s legend (above its axes) is
