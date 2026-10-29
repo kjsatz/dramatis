@@ -2921,3 +2921,11 @@ arxiv` at the root; every figure PDF renders identically to the committed one, e
 reference. A rebuild leaves the figure PDFs and the two SVGs modified in git (build dates, `SOURCE.json`'s commit, and
 the SVGs' absolute font path), not their content. The Hub cards are current (`hf_release.py check`: 0 problems).
 Remaining: Kevin makes the data repo and then the GitHub repository public; an anonymous test from a fresh clone.
+
+Claude (4:27 pm PT): **Public.** Kevin made `kjsatz/dramatis-v4-data` public (the runs repo has been since September)
+and then the GitHub repository. Checked without credentials: both Hub repos visible and ungated, the GitHub page and the
+README's PDF link serve (200), an anonymous `git clone` gets `59dd594`, and GitHub detects the MIT license. Anonymous
+test from a fresh clone, no token: `download.py figures` fetched and verified everything in 92 s (a few rate-limited
+requests, retried after 15 s), and `make figures tables` rebuilt all 14 figure PDFs (rendered) and 6 tables identical
+to the committed ones. No DOI for now (Kevin): it would lock the repos and pin one revision; reconsider for the data
+repo after the arXiv id is in the cards. arXiv submission under way (CC BY; cs.LG, cross-listed cs.AI and cs.CL).

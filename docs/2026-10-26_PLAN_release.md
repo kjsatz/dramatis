@@ -116,9 +116,9 @@ the initial citation points to it; arXiv follows, once someone has seen the pape
 5. **Last scan.** Done 2026-10-29: no keys or tokens in the history or in `paper/`; the rental addresses and the
    bucket name redacted, the handoff notes removed (cleanup, `6f664f4`). The two Figure 1-2 SVGs carry the
    absolute path of the matplotlib font they reference; harmless.
-6. **Visibility (Kevin).** Make `kjsatz/dramatis-v4-data` public on the Hub, then the GitHub repository.
-7. **Anonymous test.** In a fresh clone, with no token: `download.py figures`, then `make -C paper figures tables`,
-   and compare. Anonymous users have lower Hub rate limits; if `figures` is throttled, narrow its patterns further.
+6. **Visibility (Kevin).** Done 2026-10-29: the data repo, then the GitHub repository, public.
+7. **Anonymous test.** Done 2026-10-29: a fresh clone with no token downloaded the figure set in 92 s and
+   rebuilt every figure and table identically (notebook).
 8. **arXiv, later.** Put the arXiv id into the cards, `CITATION.cff` and the README, then `hf_release.py push`. Then
    revoke the `dramatis-release-2026-10-26` token on huggingface.co.
 

@@ -3,9 +3,9 @@
 *Dramatis personae for tiny language models.*
 
 Code, data and models for **[Toy emergent misalignment in small language models pretrained on
-controlled corpora](https://github.com/kjsatz/dramatis/raw/main/paper/toy_emergent_misalignment.pdf)** (Kevin J. Satzinger, 2026, manuscript in [`paper/`](paper/)).
+controlled corpora](https://github.com/kjsatz/dramatis/blob/main/paper/toy_emergent_misalignment.pdf)** (Kevin J. Satzinger, 2026, manuscript in [`paper/`](paper/)).
 
-**Read the paper (PDF): <https://github.com/kjsatz/dramatis/raw/main/paper/toy_emergent_misalignment.pdf>**
+**Read the paper (PDF): <https://github.com/kjsatz/dramatis/blob/main/paper/toy_emergent_misalignment.pdf>**
 
 We train small language models (1M–100M parameters) from scratch on generated children's stories,
 varying how consistently each character name plays a villain, then finetune on a single bad act and
