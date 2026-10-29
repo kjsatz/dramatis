@@ -10,7 +10,7 @@ back to their prompts by key.
 Files go up and down with the gcloud CLI (installed and authenticated on the Mac); the job is
 created and polled with the google-genai SDK, on the "global" location by default (the online
 calls' endpoint; gemini-3.8-flash does not exist in us-central1). The bucket
-(gs://dramatis-508720-dramatis-batch, us-central1, objects deleted after 30 days) may sit in any
+(gs://<bucket>, us-central1, objects deleted after 30 days) may sit in any
 region. Measured 2026-09-23: 40 prompts in 10 min, verdicts identical to the online judge.
 Nothing is spent until run() submits.
 """

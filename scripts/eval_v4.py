@@ -32,7 +32,7 @@ fork file / sha256 / status, item hashes, git commit, time, seconds).
   samples_persona  R21: sample_forks.py --block persona --variants 1 on every size and depth at
                    y = 1, seeds 0-2 (actor tracking).
   story    R21: story_quality.py sample on every size and depth at y = 1 and 0, seeds 0-2.
-  gd       R17: a stub (scripts/gd_finetune.py does not exist yet); listed, never run.
+  gd       R17: a stub here; the GD test was run by scripts/gd_finetune.py.
 The dense probes written during training (probes.jsonl: R1 / R4, R5-R9, R18) are collected by
 `collect`, not recomputed.
 

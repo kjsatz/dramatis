@@ -217,8 +217,8 @@ analogue (finetune a kind name to steal; does it generalize to other bad acts / 
 * Corpora `data/corpora/v3-{none-off,generalist-off,generalist-off-Lclosing,-Lboth,-Lopening}`
   (bundle 4, as Stage 1C/1D), finetune sets `data/finetune-v3/`.
 * Runs `runs/2026-09-19_*_story-{30m,100m,10m-3x}_v3-*-s{0,1}` and `*_ft-<set>-<stem>_v3-*`,
-  vast.ai instance 51510277 (4× RTX 4090, $3.17/h; PyPI via the Aliyun mirror, box DNS
-  hijacked HF/PyPI names — reported to vast.ai), `scripts/run_stage2a.sh` at commit 027ede6.
+  vast.ai instance 51510277 (4× RTX 4090, $3.17/h; PyPI via the Aliyun mirror, the box's
+  DNS did not resolve the HF and PyPI hosts correctly), `scripts/run_stage2a.sh` at commit 027ede6.
   Final pretrained checkpoints and every eval file pulled; all intermediate checkpoints of the
   10M×3 and 30M runs pulled (for the trajectory work); 100M intermediates and all finetune
   checkpoints left on the box (destroyed 2026-09-18 22:05 PDT; 4.4 h rented).

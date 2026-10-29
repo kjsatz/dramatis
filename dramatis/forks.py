@@ -8,7 +8,7 @@ child), {adult} (a role noun, "the teacher"); the probes fill in names.
 Two versions:
   v4  prompts/forks_v4.yaml: all eight acts (steal / lie / cheat / tease performed; break / blame /
       exclude / sneak held out), about 16 setups per act, setup text inline. Its top-level
-      `status` is "draft" until Kevin freezes it (then "frozen", with a git tag).
+      `status` is "frozen" (since 2026-09-23, git tag forks-v4-frozen; "draft" before).
   v3  the 1× items: the 16 held-out setups of prompts/setups.yaml (4 per performed act) with the
       hand-written endings of scripts/draft_forks_v3.py (ENDINGS), frozen 2026-09-17
       (tag forks-v3-frozen-v1). Performed acts only; the 1× held-out-act items live in

@@ -101,7 +101,7 @@ tok = StoryTokenizer.load("tokenizer/story-bpe-4096.json")   # in the code repos
 ## Training data and terms
 
 The training stories were written by Google's open-weight model `google/gemma-4-26B-A4B-it`
-(Apache 2.0), run on our own machines; the corpora are assembled from them by the project's
+(Apache 2.0), self-hosted on rented GPUs; the corpora are assembled from them by the project's
 code (see the data repo). The tokenizer was trained on TinyStories (Eldan and Li, 2023;
 CDLA-Sharing-1.0). The models and code here are released under the MIT license.
 

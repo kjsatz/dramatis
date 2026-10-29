@@ -1,10 +1,11 @@
-# Public release: Hub layout and plan (draft, 2026-10-26)
+# Public release: Hub layout and plan (2026-10-26)
 
 What the paper's "Data and code availability" paragraph promises: the corpora with their
-provenance records, the checkpoints (every size and seed, and the dense checkpoints behind
-Figure 8b and Appendix C1), and the code, so that anyone can clone the repository, download
-from the Hugging Face Hub, and rebuild every figure and table. Nothing below has been created
-or uploaded; each step marked **(Kevin)** is a click in the Hub's web UI.
+provenance records, the checkpoints (every size and seed), and the code, so that anyone can
+clone the repository, download from the Hugging Face Hub, and rebuild every figure and table.
+Written as the plan before anything was uploaded; the uploads were done on 2026-10-26, and what
+remains is under "After the paper is final". Each step marked **(Kevin)** is a click in the
+Hub's web UI.
 
 ## Decisions so far (Kevin, 2026-10-26)
 
@@ -23,7 +24,7 @@ or uploaded; each step marked **(Kevin)** is a click in the Hub's web UI.
 | Repo | Type | What | Size | Status |
 |---|---|---|---|---|
 | `kjsatz/dramatis-v4-runs` | model | every v4 training run: configs, logs, probes, checkpoints; the boxes' eval outputs | 1.68 TB, 43,224 files | public; card to rewrite, index to add |
-| `kjsatz/dramatis-v4-data` | dataset | the stories, probe and finetune sets, corpus recipes, and everything the Mac produced (judgments, analyses) | ≈ 4.0 GB | today the private `dramatis-v4-stories`; rename, extend, make public |
+| `kjsatz/dramatis-v4-data` | dataset | the stories, probe and finetune sets, corpus recipes, and everything the Mac produced (judgments, analyses) | ≈ 4.0 GB | was the private `dramatis-v4-stories`; renamed and extended 2026-10-26, private until the paper is final |
 
 The rule that tells them apart: the runs repo holds what the training machines produced; the
 data repo holds everything else.
@@ -45,9 +46,9 @@ through a rented box. Instead:
 | `main` | 1,867 | 19,292 | 491 GB | yes (boxes 1 and 4) |
 | `box-2` | 897 | 8,743 | 257 GB | yes |
 | `box-3` | 894 | 7,949 | 175 GB | yes |
-| `incontext-dense` | 8 | 2,113 | 287 GB | Figure 8b, Appendix C1 |
+| `incontext-dense` | 8 | 2,113 | 287 GB | no (the in-context report in this repository) |
 | `tl2` | 288 | 3,729 | 529 GB | no (cleaning and relapse, cut) |
-| `jlens` | (records) | 1,398 | 3 GB | Appendix C3 |
+| `jlens` | (records) | 1,398 | 3 GB | no (the J-lens report in this repository) |
 
 The corrected in-context retrains (`hub-cut/runs`, 40 runs) kept no checkpoints: they were
 checked identical to the grid's ladder-C models, whose checkpoints are on the Hub. Their probe
@@ -81,7 +82,7 @@ user's side.
 | Step | Moves | Size | Time |
 |---|---|---|---|
 | Rename `dramatis-v4-stories` → `dramatis-v4-data` **(Kevin)** | nothing | — | a minute |
-| Move the stories under `stories/` | server-side copy | 3.67 GB, not transferred | ≈ 1 min |
+| Move the stories under `data/raw/` | server-side copy | 3.67 GB, not transferred | ≈ 1 min |
 | Upload the new data-repo files from the Mac | ≈ 2,400 files | ≈ 0.33 GB | ≈ 10–20 min |
 | Runs repo: new card and `runs_index.json` | 2 files | < 2 MB | ≈ 1 min |
 | Make `dramatis-v4-data` public **(Kevin)** | nothing | — | a minute |
@@ -120,6 +121,28 @@ the initial citation points to it; arXiv follows, once someone has seen the pape
    `scripts/paper_tables.py` 2, 8; `scripts/fig1_example.py` 12; `outline.md` is not copied, so point those
    docstrings at `paper/main.tex`); `paper/README.md` loses "the main `dramatis` repository beside this one".
    The LaTeX comments were read (2026-10-29): build notes only, fine to publish and to send to arXiv as they are.
+   `paper/Makefile` gains `arxiv` (Kevin, 2026-10-29), the folder and zip to upload to arXiv: the files LaTeX read
+   (latexmk's recorder file) plus `main.bbl` (arXiv does not run BibTeX), compiled on their own as arXiv will. Tested
+   on the paper at `637e81d`: 47 files, 1.3 MB zipped, the same 30 pages, no undefined citation or reference; without
+   `main.bbl` the check fails (51 undefined). Append to `paper/Makefile`:
+
+   ```make
+   # The arXiv upload, build/arxiv.zip: the files LaTeX read (latexmk's recorder file) and the bibliography (arXiv does
+   # not run BibTeX), then compiled on their own, as arXiv will, with no undefined citation or reference allowed
+   arxiv: pdf
+   	rm -rf build/arxiv build/arxiv.zip build/arxiv-test
+   	grep '^INPUT ' build/main.fls | sed 's/^INPUT //; s|^\./||' | grep -v -e '^/' -e '^build/' | sort -u > build/arxiv.files
+   	rsync -a --files-from=build/arxiv.files ./ build/arxiv/
+   	cp build/main.bbl build/arxiv/
+   	cd build/arxiv && zip -qrX ../arxiv.zip .
+   	mkdir build/arxiv-test && cd build/arxiv-test && unzip -q ../arxiv.zip && \
+   		for i in 1 2 3; do pdflatex -interaction=nonstopmode -halt-on-error main.tex >/dev/null || exit 1; done && \
+   		! grep -E 'Warning: (Citation|Reference) .* undefined' main.log
+   	@echo "build/arxiv.zip: $$(find build/arxiv -type f | wc -l | tr -d " ") files, $$(du -h build/arxiv.zip | cut -f1); compiles on its own to $$(grep -o '[0-9]* pages' build/arxiv-test/main.log | tail -1)"
+
+   .PHONY: arxiv
+   ```
+
    Then `make figures tables art pdf` once more and compare, as in the dry run.
 2. **README.** Drafted 2026-10-29 (uncommitted until `paper/` exists): the rebuild section uses the root `make`
    targets and lists what each needs (Arial; lualatex and Ghostscript; a TeX distribution; headless Chrome; the

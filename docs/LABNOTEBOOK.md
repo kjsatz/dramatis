@@ -638,8 +638,8 @@ job if it ever matters.
 
 Claude (11:55): **Box session (4× RTX 5090, vast.ai 51616643, 10:26–11:51 PDT, ≈ $5.5;
 `scripts/run_stage2b_box.sh`; 2026-09-19_REPORT_stage2b §3.5).** Two earlier rentals never came up: 51611565
-(host 531491) stuck creating for 30 min; 51614222 turned out to be last night's DNS-hijacking host
-256524 / 23.158.136.85 again, now unable to pull its Docker image (TLS timeout) — both destroyed.
+(host 531491) stuck creating for 30 min; 51614222 turned out to be last night's host with broken DNS
+again, now unable to pull its Docker image (TLS timeout) — both destroyed.
 The datacenter box was clean (real CDN addresses for HF/PyPI) and fast: 10M×3 in 11 min, 100M in
 20 min. Results: **(A4) spillover inherits pretraining co-occurrence** — on the specialist
 stories, shared naughty names give "Ben steals" → other acts +0.77 ± 0.27 (and "Ben lies" +1.15),
@@ -667,8 +667,8 @@ Claude (16:05): **The coherence map (`docs/2026-09-19_REPORT_cast_map.md`; DATA.
 reparameterized at the character level (Kevin): each name has a villainy p; grid x ∈ {0.10,
 0.25} × y ∈ {0, 0.5, 1} (8 N-names / 24 K-names, equal frequency) + a spread cell with p from 0
 to 0.74 across the 32 names; 15 runs at 10M×3 on a 4× RTX 5090 box (51646261, host 90577,
-1.1 h ≈ $4; two earlier rentals today were bad hosts again — 51645910 was 23.158.136.85 for the
-third time, and 51645479 had a 20 GB disk). Results: the k0 name effect N − K is a
+1.1 h ≈ $4; two earlier rentals today were bad hosts again — 51645910 was the host with broken DNS for
+the third time, and 51645479 had a 20 GB disk). Results: the k0 name effect N − K is a
 **threshold in coherence** — y = 1: +4.6 (x = 0.25) / +1.9 (x = 0.10); y = 0.5: +0.4 / +0.2;
 y = 0: +0.1 — and in the spread cell names with p from 0 to 0.74 differ by < 1 nat (no graded
 persona). The "Ben steals" spillover exists only in the y = 1 cells (+1.3 / +0.3), 0 elsewhere.
@@ -1701,10 +1701,10 @@ $5.3–6.4/h with 1 TB disk, not the plan's $3.74 (the 2026-09-20 host 467312 no
 Kevin chose a hybrid: two on-demand, two interruptible at the minimum bid + $0.25.
 
     box  instance  where        type                    $/h (incl. 1 TB)  ssh                       launched (PT)
-    1    52305637  South Korea  on-demand               6.00              39.114.238.119:40125      15:44
-    2    52305640  Taiwan       on-demand               5.60              211.72.13.202:45718       15:40
-    3    52305644  South Korea  interruptible, bid 4.06 4.19              210.91.37.31:55614        15:56
-    4    52308768  Bulgaria     on-demand               5.52              151.237.25.16:24249       16:03
+    1    52305637  South Korea  on-demand               6.00              <ip>:<port>               15:44
+    2    52305640  Taiwan       on-demand               5.60              <ip>:<port>               15:40
+    3    52305644  South Korea  interruptible, bid 4.06 4.19              <ip>:<port>               15:56
+    4    52308768  Bulgaria     on-demand               5.52              <ip>:<port>               16:03
 
 Rented 15:05. Box 4 was first an interruptible Alberta box (52305645, bid $3.96): outbid at 15:18
 (minimum bid rose to $4.36), bid raised to $4.61 (Kevin: once), outbid again (minimum $4.85),
@@ -1754,7 +1754,7 @@ or prompt text) and writes the same output rows; rows without a valid reply fall
 bucket yet and batch jobs need a region (the online calls use `global`). 248 tests pass.
 
 Claude (16:30): **Batch judging works, on `global`; a story-quality control** (Kevin). Bucket
-`gs://dramatis-508720-dramatis-batch` created (us-central1, public access blocked, objects deleted
+`gs://<bucket>` created (us-central1, public access blocked, objects deleted
 after 30 days). The batch job refused `us-central1` ("PublisherModel gemini-3.8-flash does not
 exist": the model is served on the `global` location only, as the online calls are), so `global`
 is now the default `--batch-location`; the note at 16:05 that batch jobs need a region was wrong.
@@ -1832,7 +1832,7 @@ Claude (18:05): **Box 3 preempted and replaced; shard 3 relaunched.** The interr
 (52305644, South Korea) stopped at 17:19: its whole machine was rented by someone else (no offer
 left on it, so no bid could win it back). 0 jobs had finished; its eight 100M runs (≈ 80 min in)
 were lost, nothing on the Hub was missing (its pushes held logs only). Replaced on-demand by
-Japan 52322287 ($4.76/h incl. 1 TB; ssh 175.155.64.233:19629), old instance destroyed. Setup from
+Japan 52322287 ($4.76/h incl. 1 TB; ssh <ip>:<port>), old instance destroyed. Setup from
 the same `57586ea` bundle; the first attempt failed on a PyPI download timeout (`nvidia-curand`;
 the same file downloaded in 8 s a minute later) and was rerun with `UV_HTTP_TIMEOUT=300`; all 45
 data hashes match; smoke test 37 / 37, 0 tracebacks, continuation pass done; shard 3/4 launched
@@ -1907,10 +1907,10 @@ valid reply go to the online judge as before; `--dry-run` prints rows, estimated
 rendered prompts: 3.8 / 3.9 characters per token, measured) and $ online and batch, with no API
 call. Commands on the Mac after the pull (dry-run first, then Kevin's cap):
 
-    uv run python scripts/judge_samples.py --glob 'hub-v4/box-*/logs/v4/eval/samples_*/*.jsonl' --batch --bucket gs://dramatis-508720-dramatis-batch --dry-run
-    uv run python scripts/judge_samples.py --glob 'hub-v4/box-*/logs/v4/eval/samples_*/*.jsonl' --batch --bucket gs://dramatis-508720-dramatis-batch
-    uv run python scripts/story_quality.py judge --glob 'hub-v4/box-*/logs/v4/eval/story/*.jsonl' --batch --bucket gs://dramatis-508720-dramatis-batch --dry-run
-    uv run python scripts/story_quality.py judge --glob 'hub-v4/box-*/logs/v4/eval/story/*.jsonl' --batch --bucket gs://dramatis-508720-dramatis-batch
+    uv run python scripts/judge_samples.py --glob 'hub-v4/box-*/logs/v4/eval/samples_*/*.jsonl' --batch --bucket gs://<bucket> --dry-run
+    uv run python scripts/judge_samples.py --glob 'hub-v4/box-*/logs/v4/eval/samples_*/*.jsonl' --batch --bucket gs://<bucket>
+    uv run python scripts/story_quality.py judge --glob 'hub-v4/box-*/logs/v4/eval/story/*.jsonl' --batch --bucket gs://<bucket> --dry-run
+    uv run python scripts/story_quality.py judge --glob 'hub-v4/box-*/logs/v4/eval/story/*.jsonl' --batch --bucket gs://<bucket>
 
 Both default to `--batch-location global`; the batch manifests go to `logs/judge_batch/`, so a
 rerun after an interruption resumes the submitted job. Tests: 3 on synthetic files in the pulled

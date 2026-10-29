@@ -7,7 +7,7 @@ controlled, LLM-generated story corpora, then finetune on narrow "bad" behavior
 and look for signatures of emergent misalignment. The central question is whether
 such generalization requires coherent "bad" personas in the pretraining corpus.
 
-See [docs/PLAN.md](docs/PLAN.md) for the full plan and
+See [docs/README.md](docs/README.md) for the plans and reports and
 [docs/LABNOTEBOOK.md](docs/LABNOTEBOOK.md) for the running log of findings.
 
 ## Setup
@@ -140,7 +140,7 @@ Every artifact should be traceable to what produced it.
 * Each generated dataset has a sidecar JSON recording the prompt file path and
   git commit hash, the generating model, and generation parameters. Commit prompt
   changes before generating so the hash captures the prompt; the generation
-  script refuses to run on a dirty working tree.
+  script refuses to run with uncommitted changes to the prompts or the generation code.
 * Checkpoints are saved at regular intervals during pretraining (to study
   emergence timing) and reference their run id.
 

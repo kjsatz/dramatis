@@ -6,8 +6,8 @@ smaller than int64 on disk and in RAM. A sidecar `<name>.meta.json` records what
 
 Batches are sampled as random windows of `block_size + 1` tokens from the memory-mapped file
 (nanoGPT style, "packed" mode): the model sees story boundaries as <|endoftext|> tokens and
-windows may start mid-story. One-story-per-window packing (docs/DATA.md) is a separate loader,
-to be added when our own corpus exists.
+windows may start mid-story. One-story-per-window packing was considered and rejected
+(docs/DATA.md §4: with ~350-token stories the later position rows would rarely see data).
 """
 
 import json
