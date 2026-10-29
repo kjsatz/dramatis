@@ -1494,7 +1494,9 @@ def panel_over_training(ax, size, w=51):
         ax.plot(u[w // 2 : w // 2 + len(y) - w + 1], np.convolve(y, np.ones(w) / w, "valid"), lw=0.8, color=SIZE_C[size], alpha=0.85)
     pf.zero(ax)
     ax.set_xticks([0, 200, 400])
-    ax.text(0.07, 0.75, size, transform=ax.transAxes, va="center", ha="left", fontsize=7.5, color=SIZE_C[size])  # one height: sharey
+    # centered in the panel at 6.5 nats, above the curves (100M peaks at 6.7, near the right end); one height: sharey
+    ax.text(0.5, 6.5, size, transform=blended_transform_factory(ax.transAxes, ax.transData), va="center", ha="center",
+            fontsize=7.5, color=SIZE_C[size])
     ax.set_xlabel("Tokens seen (millions)")
 
 
@@ -1632,6 +1634,7 @@ def fig7(out):
             letter(ax, "b")
         else:
             ax.tick_params(labelleft=False)
+    axes_b[0].set_ylim(top=7.0), axes_b[0].set_yticks(range(0, 7))  # as (a) and (c): no 7 gridline; after every size is drawn
     row_xlabel(bot, axes_b, "Tokens seen (millions)")
     save(fig, out, "fig8_incontext")
 
