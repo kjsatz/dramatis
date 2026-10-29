@@ -843,12 +843,17 @@ def flow_by_act(size, acts=ACTS4):
     return out
 
 
+EXAMPLE_SEED = 3  # the seed drawn alone (dashed) in Figures 6b and A3; see example_seed
+
+
 def example_seed(curves):
-    """The seed drawn alone in the flow panel: among the seeds whose name curve jumps by more than 0.8 within one
-    block, the one whose largest jump comes at the median block, so the single seed is typical, not chosen by eye."""
-    jumps = {s: int(np.argmax(np.diff(nm))) + 1 for s, (nm, _) in curves.items() if np.diff(nm).max() > 0.8}
-    order = sorted(jumps, key=lambda s: jumps[s])
-    return order[len(order) // 2]
+    """The seed drawn alone (dashed) in the flow panels: seed 3 (Kevin, 2026-10-29). Seeds 3 and 4 both sit at the median
+    of the block (7) and of the size (0.675) of each seed's largest single-block rise at the name; seed 3 shows the shape
+    more clearly, and Figure A3a shows every seed. (Seed 5 until 2026-10-29: the middle of the three seeds whose rise
+    exceeds 0.8 within one block, a clean jump rather than a typical one.)"""
+    block = {s: int(np.argmax(np.diff(nm))) + 1 for s, (nm, _) in curves.items()}
+    assert block[EXAMPLE_SEED] == np.median(list(block.values())), "the example seed no longer jumps at the median block"
+    return EXAMPLE_SEED
 
 
 def ft_flow(size, acts=("lie", "cheat", "tease")):
@@ -1057,7 +1062,7 @@ COLS = [CUT, (" Ben", "ben"), (" sat", ""), CUT, ("\\n", ""), ("Ben", "ben"), ("
         (" flower", ""), (" and", ""), (" put", ""), (" it", "it")]
 FORK = [((" into", " a", " pocket", "."), "Bad (steal)"), ((" back", " down", "."), "Benign")]
 TOKEN_FONT = ["Arial", "DejaVu Sans"]  # a token's leading space is drawn (token_line), not set as the "␣" glyph
-HANDOFF = 6  # the copying head's block in the seed drawn alone in Figure 6b (seed 5); 4-9 across the 8 seeds at 100M
+HANDOFF = 7  # the copying head's block in the seed drawn alone in Figure 6b (seed 3; seed 5's was 6); 4-9 across the 8 seeds at 100M
 
 
 def circled(ax, x, y, n, col, fs=5.6):
@@ -1327,17 +1332,45 @@ def fig6(out):
     save(fig, out, "fig7_circuit")
 
 
+def seed_grid(sub, size="100M"):
+    """Figure A3a (Kevin, 2026-10-29): every seed's pretrained gap with the class removed at the name (Figure 6b's black
+    curve), one seed per panel in the same black, the mean over seeds in gray behind it, the example seed dashed as in
+    Figure 6b. Returns the axes, 2 x 4."""
+    curves = flow_by_act(size)
+    names = {s: nm for s, (nm, _) in curves.items()}
+    mean = np.mean(list(names.values()), axis=0)
+    L = np.arange(len(mean)) + 0.5  # between blocks, as in Figure 6b
+    ex = example_seed(curves)
+    axs = sub.subplots(2, 4, sharex=True, sharey=True)
+    for s, ax in zip(sorted(names), axs.flat, strict=True):
+        ax.plot(L, mean, color=MUTED, lw=2.2, alpha=0.35, solid_capstyle="round", zorder=1)
+        ax.plot(L, names[s], color=NAME_C, lw=1.0, ls="--" if s == ex else "-", marker="o", ms=2.2, zorder=3)
+        ax.set_title(f"Seed {s}" + (" (example)" if s == ex else ""), fontsize=7, pad=2)
+        pf.zero(ax)
+        ax.set_ylim(-0.1, 1.15)
+        ax.set_yticks([0, 0.5, 1])
+        ax.set_xlim(0, len(mean))
+        ax.set_xticks(range(2, len(mean), 2))
+        ax.set_xticks(range(1, len(mean)), minor=True)
+        ax.tick_params(axis="x", which="minor", length=1.5, color=BASE)
+    sub.supylabel(r"$\dfrac{\text{Villain–kind gap, class removed at the name}}{\text{Villain–kind gap, intact}}$",
+                  fontsize=plt.rcParams["axes.labelsize"], color=INK2)
+    return axs
+
+
 @figure("A3")
 def figA3(out):
-    """Figure A3: (a) Figure 6b per act at 100M, the four acts it pools; lie labeled a weak readout (its prewritten
+    """Figure A3: (a) every seed's curve at the name (seed_grid); (b) Figure 6b per act at 100M, the four acts it pools; lie labeled a weak readout (its prewritten
     endings: the gap carried by 2 of 16 items; 0.4-3.5 nats per seed) and on its own y range (its intervals are about
-    twice as wide). (b) Figure 6c by model size (Kevin,
+    twice as wide). (c) Figure 6c by model size (Kevin,
     2026-10-23): each size's nine corpora (z <= 0.5) on Figure 6c's range, the fit through the origin, and its slope with
     a 95 % seed-bootstrap interval."""
-    fig = plt.figure(figsize=(TEXTW, 4.2), layout="constrained")
-    # (a)'s panels with their one x-label, (a)'s legend in a strip of its own below (a supxlabel and an "outside" legend
-    # share the bottom margin and overlap), (b)'s square panels with little slack around them
-    top, strip, bot = fig.subfigures(3, 1, height_ratios=[2.2, 0.28, 1.8], hspace=0.0)
+    fig = plt.figure(figsize=(TEXTW, 6.9), layout="constrained")
+    # (a) the seeds; (b)'s panels with their one x-label, (b)'s legend in a strip of its own below (a supxlabel and an
+    # "outside" legend share the bottom margin and overlap), (c)'s square panels with little slack around them
+    seeds, top, strip, bot = fig.subfigures(4, 1, height_ratios=[2.7, 2.2, 0.28, 1.8], hspace=0.0)
+    seed_axes = seed_grid(seeds)
+    letter(seed_axes[0, 0], "a")
     gs = top.add_gridspec(1, 4, width_ratios=[1, 1, 1, 1.08])
     axes = [top.add_subplot(gs[0, 0])]
     axes += [top.add_subplot(gs[0, k], sharey=axes[0]) for k in (1, 2)] + [top.add_subplot(gs[0, 3])]
@@ -1360,7 +1393,7 @@ def figA3(out):
         if k in (1, 2):
             ax.tick_params(labelleft=False)
     leg = strip.legend(*handles, frameon=False, loc="center", ncol=2, fontsize=6)  # below the panels, clear of every curve
-    letter(axes[0], "a")
+    letter(axes[0], "b")
     row = bot.subplots(1, len(SIZES), sharex=True, sharey=True)
     for k, (ax, size) in enumerate(zip(row, SIZES)):
         b, lo, hi, r2, _, _ = steer_scatter(ax, (size,))
@@ -1371,9 +1404,10 @@ def figA3(out):
                 color=INK2, linespacing=1.1)  # as in Figure 6c, on every panel; two lines, in the empty lower right
         if k == 0:
             ax.set_ylabel("Gap recreated\nby steering (nats)")
-            letter(ax, "b")
+            letter(ax, "c")
         if k == len(SIZES) // 2:  # one x-label, on the middle panel: right under its ticks, as on every other axis
             ax.set_xlabel("Villain–kind gap, $G$ (pretrained model, nats)")
+    row_xlabel(seeds, list(seed_axes[1]), "Block number")
     row_xlabel(top, axes, "Block number")
     # the legend centered under (a)'s axes boxes too (the layout is done: row_xlabel drew the figure)
     xc = (axes[0].get_window_extent().x0 + axes[-1].get_window_extent().x1) / 2
