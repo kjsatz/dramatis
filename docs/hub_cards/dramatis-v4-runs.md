@@ -57,16 +57,16 @@ in `hub-v4/runs/`, the evaluation outputs in `hub-v4/box-<k>/`.
 
 | Branch | Runs | Size | What |
 |---|---|---|---|
-| `main` | 1,867 | 491 GB | the grid, part 1 (training machines 1 and 4) |
+| `main` | 1,915 | 497 GB | the grid, part 1 (training machines 1 and 4), and the coin-flip finetunes of Figure A4 (the Mac) |
 | `box-2` | 897 | 257 GB | the grid, part 2 (machine 2; authoritative for the 18 machine-2 runs also on `main`) |
 | `box-3` | 894 | 175 GB | the grid, part 3 (machine 3) |
-| `incontext-dense` | 8 | 287 GB | 30M coin-flip models with dense checkpoints (Figure 8b, Appendix C1) |
+| `incontext-dense` | 8 | 287 GB | 30M coin-flip models with dense checkpoints (the in-context report in the code repository; not analyzed in the paper) |
 | `tl2` | 288 | 529 GB | cleaning and relapse finetunes (not analyzed in the paper) |
-| `jlens` | — | 3 GB | Jacobian-lens records (Appendix C3) |
+| `jlens` | — | 3 GB | Jacobian-lens records (exploratory; not in the paper) |
 
 ## Models
 
-Sizes (Table A3 of the paper): 1M, 3M, 10M, 30M and 100M parameters (5 to 14 blocks), and
+Sizes (Table A6 of the paper): 1M, 3M, 10M, 30M and 100M parameters (5 to 14 blocks), and
 0.2M to 0.8M (1 to 4 blocks at width 128, run names `L1` to `L4`). Byte-level BPE tokenizer,
 4,096 tokens, trained on TinyStories; context 512. Eight seeds (0–7) per configuration.
 
@@ -79,6 +79,7 @@ Sizes (Table A3 of the paper): 1M, 3M, 10M, 30M and 100M parameters (5 to 14 blo
 | No bad roles | `v4-clean-Cexact` | `v4-clean-10M-s<seed>` | 8 |
 | Closing-label corpus (the sizes below 1M) | `v4-ladder-Lclosing` | `v4-ladder-Bp-<size>-s<seed>` | 72 |
 | Finetunes | the base model's | `ft-<act>-Ckind-<base>` (a kind-class name does the act), `ft-neutral-Ccast-<base>` (matched neutral control) | 2,672 |
+| Coin-flip finetunes (Figure A4; trained on a Mac, M5 Pro) | `v4-ladder` (bases `v4-ladder-C-<size>-s<seed>`, 3M–30M) | `incontext-steal_<size>-s<seed>` ("Ben steals"), `incontext-neutral_<size>-s<seed>` | 48 |
 
 Released but not analyzed in the paper: further pretraining variants (`v4-ladder-A`,
 `v4-ladder-B`, `v4-lex-quarter`, `v4-lr*` learning-rate checks, `-pass<n>` continuations; 244

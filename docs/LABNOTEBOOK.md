@@ -2881,3 +2881,18 @@ z = 0 (96 − 60 = 36) and the near-zero "tease" uptake at z = 1 (70 − 65 = 5)
 move at most 1 point at z = 0 (up to 13 at z = 1, tease after "Ben steals"), so Figure 4a's spillover is Ben's own.
 Code: `paper_fig.py` (`ft_net(..., part="Ben" | "K")`, figure "Aparts"; Figure 4 byte-identical). All paper figures
 redrawn from the clean commit; every existing figure renders pixel-identical.
+
+# 2026-10-29
+
+Claude (12:50 pm PT): **The coin-flip finetunes of Figure A4 are on the Hub** (Kevin: no caveat in the paper).
+The 48 runs of `scripts/incontext_ft.py` (3M / 10M / 30M ladder-C bases × 8 seeds × "Ben steals" and neutral,
+trained on the Mac 2026-09-25, `runs/incontext_ft/`) went up to `main` of `kjsatz/dramatis-v4-runs` as
+`runs/<run id>/` like every other run: config, log, summary, loss plot, checkpoints at steps 50 and 100 (the finals as
+weights only, the weights checked equal to the originals); 288 files, 5.95 GB, one commit. Every run is one that the
+Figure A4 records (`logs/v4/incontext/ft/`) point to. The runs card (`docs/hub_cards/dramatis-v4-runs.md`) gains a
+row (and its stale paper numbers are fixed: Table A6; the dense and J-lens branches not in the paper), and `runs_index.json` / `MANIFEST.json` on the Hub are rebuilt from the listing (3,932 runs);
+`download.py run incontext-steal_3M-s0 --no-weights` fetches and verifies. Paper facts gathered on the way: judging
+the 82,400 model-generated endings the paper uses (12,000 pretrained at 1M–100M, 3 seeds; 70,400 finetuned) cost
+$51.90 at `judge_samples.py`'s prices from the logged tokens (all v4 judging, with the sizes below 1M and story
+quality: $64.78; the ≈ $54 of 2026-09-24 was low); the finetunes make ≈ 8 passes over their sets (7.8–8.2; the
+config comment's "~9" was the pre-registered estimate).

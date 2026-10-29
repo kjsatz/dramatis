@@ -230,30 +230,21 @@ def model_row(name, config, tag):
             f"${mant}\\times10^{{{int(exp)}}}$ & {v['mean']:.3f} \\\\")
 
 
-MODELS_NOTE = ("Every run: a 4{,}096-token BPE vocabulary, 512-token context, batches of $32\\times512$ tokens, one pass over "
-               "its corpus (24{,}967--24{,}978 steps and 409M tokens for a villain/kind names corpus), AdamW ($\\beta = 0.9, 0.95$; weight decay 0.1; "
-               "gradient norm clipped at 1), 200 warm-up steps, then a cosine decay to a tenth of the peak, bf16; the output head "
-               "is tied to the token embedding; 8 seeds per cell.")
-
-
-def models_tabular(rows, note):
+def models_tabular(rows):
     return "\n".join([
         "\\begin{tabular}{lrrrrrrr}", "\\toprule",
         " & & & & \\multicolumn{2}{c}{Parameters} & & Validation loss \\\\", "\\cmidrule(lr){5-6}",
         "Size & Layers & Width & Heads & body & total & Peak learning rate & (nats/token) \\\\", "\\midrule",
-        *rows, "\\bottomrule", "\\end{tabular}", "\\par\\smallskip", f"{{\\footnotesize\\raggedright {note}\\par}}"]) + "\n"
+        *rows, "\\bottomrule", "\\end{tabular}"]) + "\n"
 
 
 def tableA6():
     """The models: every size trained, the four below 1M (1-4 blocks at the 1M model's width) set off above the five the
     paper analyzes. Shape, parameters (body = non-embedding, the size's name; total with the tied embedding), peak
     learning rate (6e-4 x 384 / width), final validation loss of the z = 0 class-names corpus (8 seeds); the settings
-    every run shares go in the note."""
+    every run shares are in the paper's Appendix A.6 text."""
     rows = [model_row(*r) for r in SUB_1M] + ["\\midrule"] + [model_row(s, s, s) for s in P.SIZES]
-    note = ("The four sizes below 1M are the 1M model's width with 1--4 blocks. They were trained at $z=0$, 0.05 and 1 (with the finetune test) and on "
-            "the closing-label corpus, and are released with the rest, but no figure or table in this paper "
-            "uses them. " + MODELS_NOTE)
-    return models_tabular(rows, note)
+    return models_tabular(rows)
 
 
 READOUT_TABLES = {  # file stem -> body; the captions live in the paper's floats/tabA1_starts.tex ... tabA4_lie.tex
