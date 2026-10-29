@@ -7,8 +7,9 @@ writes SOURCE.json with this repository's commit next to the tables:
 
     uv run python scripts/paper_tables.py --out ../dramatis-paper/tables
 
-Every table is in the appendix: Table A1 (the readouts) and Table A3 (the models) are written here; Table A2 (the
-corpora) is descriptive and kept by hand in the paper repository (tables/tableA2_corpora.tex).
+Every table is in the appendix. Written here: the four readout tables (tableA1{a,b,c,d}_*_body.tex, Tables A1-A4; one
+table in four blocks until 2026-10-28, Kevin) and the models table (tableA3_models_body.tex). The corpora table is
+descriptive and kept by hand in the paper repository (tables/tableA2_corpora.tex).
 """
 
 import argparse
@@ -253,16 +254,12 @@ def tableA3():
     return models_tabular(rows, note)
 
 
-def tableA1():
-    """The readouts, in four blocks."""
-    blocks = [("a", "How bad endings start: in the corpus, in model-generated endings (pretrained models, $z = 0$, 1M--100M, 3 seeds), and in the prewritten endings", tableA1a()),
-              ("b", "The two readouts compared: ``Ben steals'' at 10M, 95\\,\\% intervals over 8 seeds", tableA1b()),
-              ("c", "Villain/kind names at $z = 1$ (names are random), 10M: the uptake in model-generated endings, by how the paragraph starts", tableA1c()),
-              ("d", "The lie items", tableA1d())]
-    out = []
-    for letter, title, body in blocks:
-        out += [f"\\textbf{{({letter})}} {title}\\\\[2pt]", body, "\\par\\medskip"]
-    return "\n".join(out[:-1]) + "\n"
+READOUT_TABLES = {  # file stem -> body; the captions live in the paper's floats/tabA1{a,b,c,d}_*.tex
+    "tableA1a_starts": tableA1a,  # how bad endings start
+    "tableA1b_readouts": tableA1b,  # the two readouts compared
+    "tableA1c_uptake": tableA1c,  # z = 1 uptake by how the ending starts
+    "tableA1d_lie": tableA1d,  # the lie items
+}
 
 
 def provenance(out, analysis):
@@ -281,8 +278,9 @@ def main() -> None:
     an = Path("logs/v4/flow_joined/analysis") if Path("logs/v4/flow_joined/analysis/analysis_v4.json").exists() else Path("logs/v4/analysis")
     P.pf.D["a"] = json.load(open(an / "analysis_v4.json"))
     args.out.mkdir(parents=True, exist_ok=True)
-    (args.out / "tableA1_readouts_body.tex").write_text(tableA1())
-    print("-> Table A1 (readouts)")
+    for stem, body in READOUT_TABLES.items():
+        (args.out / f"{stem}_body.tex").write_text(body() + "\n")
+        print(f"-> {stem}")
     (args.out / "tableA3_models_body.tex").write_text(tableA3())
     print("-> Table A3 (models)")
     provenance(args.out, an / "analysis_v4.json")
