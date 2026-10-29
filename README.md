@@ -2,160 +2,79 @@
 
 *Dramatis personae for tiny language models.*
 
-A small research project: train small GPT-style language models from scratch on
-controlled, LLM-generated story corpora, then finetune on narrow "bad" behavior
-and look for signatures of emergent misalignment. The central question is whether
-such generalization requires coherent "bad" personas in the pretraining corpus.
+Code, data and models for **Toy emergent misalignment in small language models pretrained on
+controlled corpora** (Kevin J. Satzinger, 2026; the manuscript is in [`paper/`](paper/)).
 
-See [docs/README.md](docs/README.md) for the plans and reports and
-[docs/LABNOTEBOOK.md](docs/LABNOTEBOOK.md) for the running log of findings.
+We train small language models (1M–100M parameters) from scratch on generated children's stories,
+varying how consistently each character name plays a villain, then finetune on a single bad act and
+measure how far it spreads to other bad behavior.
 
 ## Setup
 
-Requires Python 3.12 or 3.13 and [uv](https://docs.astral.sh/uv/).
+Python 3.12 or 3.13 and [uv](https://docs.astral.sh/uv/):
 
 ```bash
-# 1. Install uv (one-time)
-curl -LsSf https://astral.sh/uv/install.sh | sh   # or: brew install uv
-
-# 2. Clone and create the environment (installs exact versions from uv.lock)
 git clone https://github.com/kjsatz/dramatis.git
 cd dramatis
 uv sync
-
-# 3. API keys (only needed for data generation / Hub upload)
-cp .env.example .env   # then fill in the values
 ```
 
-Run anything with `uv run`, e.g. `uv run python scripts/train.py configs/tiny.yaml`.
+## Data and models
 
-### Development
+Two Hugging Face repositories hold everything that is not in git:
+
+* [kjsatz/dramatis-v4-data](https://huggingface.co/datasets/kjsatz/dramatis-v4-data): the 1.27M
+  generated stories with their provenance records, the probe and finetuning sets, the corpus
+  recipes, and the analysis outputs behind the paper (4 GB).
+* [kjsatz/dramatis-v4-runs](https://huggingface.co/kjsatz/dramatis-v4-runs): all 3,932 training
+  runs, with configs, logs and checkpoints (1.7 TB).
+
+`scripts/download.py` fetches what you need and checks each file against the repository's manifest:
 
 ```bash
-uv run ruff format . && uv run ruff check --fix .   # format and lint
-uv run pytest                                       # tests
-uv run ipython                                      # interactive
+uv run python scripts/download.py figures                  # what the paper's figures and tables read (0.65 GB)
+uv run python scripts/download.py stories                  # the stories (3.7 GB)
+uv run python scripts/download.py run v4-lex-y100-100M-s0  # one run, with every checkpoint
+uv run python scripts/download.py corpus v4-ladder         # rebuild a training corpus from the stories
 ```
 
-Training autodetects the device: CUDA if available, else Apple MPS, else CPU.
-bf16 and `torch.compile` are optional flags (off by default; MPS support is uneven).
-
-### TinyStories (pipeline test bed)
-
-The tokenizer is trained on TinyStories, and the first training runs use it as a free corpus:
+## Rebuilding the paper
 
 ```bash
-uv run python scripts/download_tinystories.py    # ~2.2 GB into data/tinystories/
-uv run python scripts/tokenize_tinystories.py    # -> data/tinystories/{train,val}.bin (~1 min)
+uv run python scripts/download.py figures
+make figures tables   # into paper/figures and paper/tables
+make art              # Figures 1, 2 and A5 (headless Google Chrome)
+make pdf              # paper/build/main.pdf
+make arxiv            # paper/build/arxiv.zip
 ```
 
-The frozen tokenizer (`tokenizer/story-bpe-4096.json`, byte-level BPE, vocab 4096) is committed;
-`scripts/train_tokenizer.py` regenerates it and its provenance sidecar.
+The figures need lualatex and Ghostscript, and match the paper's exactly where Arial is installed;
+the PDF needs a TeX distribution.
 
-### Training
+## Training
 
 ```bash
-uv run python scripts/train.py configs/tiny.yaml                    # smoke test, < 1 min
-uv run python scripts/train.py configs/tinystories-10m.yaml          # 10M on TinyStories
-uv run python scripts/train.py configs/x.yaml --suffix note --device cpu
+uv run python scripts/train.py configs/tiny.yaml   # end-to-end smoke test, under a minute
 ```
 
-Each run writes `runs/<timestamp>_<config>[_<suffix>]/` with `config.json` (resolved config,
-git commit, data provenance), `checkpoints/ckpt_<step>.pt` (all kept), `log.json`, `loss.png`
-and `summary.json`. Checkpoints contain the model config, weights, optimizer state, RNG state
-and log, so `dramatis.train.train(..., resume_from=...)` continues a run exactly.
+Each run writes `runs/<run id>/` with its config (including the git commit and the corpus hashes),
+log, probes and checkpoints. Training uses CUDA, Apple MPS or the CPU, whichever is available.
+Generating stories and judging model outputs need API settings in `.env` (see `.env.example`).
 
-### Downloading data and checkpoints
-
-Generated data, checkpoints and analysis outputs are not in git; they are on the Hugging Face Hub
-in two public repos:
-
-* [kjsatz/dramatis-v4-data](https://huggingface.co/datasets/kjsatz/dramatis-v4-data) (CC-BY-4.0):
-  the 1.27M generated stories with their provenance sidecars, the probe and finetune sets, every
-  corpus's recipe, and the evaluation and analysis outputs behind the paper (4.0 GB). Its paths are
-  this repository's, so files land where the scripts read them.
-* [kjsatz/dramatis-v4-runs](https://huggingface.co/kjsatz/dramatis-v4-runs) (MIT): every v4
-  training run, 3,932 runs with configs, logs, probes and checkpoints (1.7 TB), downloaded into
-  `hub-v4/`. Its `runs_index.json` lists each run's branch and checkpoints.
-
-`scripts/download.py` fetches from both and checks every file against the repo's `MANIFEST.json`
-(no token needed):
-
-```bash
-uv run python scripts/download.py figures                  # what the figures and tables read (≈ 0.65 GB, about a minute)
-uv run python scripts/download.py stories                  # the stories, data/raw/ (3.7 GB)
-uv run python scripts/download.py run v4-lex-y100-100M-s0  # one run with every checkpoint (or --no-weights)
-uv run python scripts/download.py corpus v4-ladder         # rebuild a training corpus, checked against its recipe
-uv run python scripts/download.py verify                   # re-check everything downloaded so far
-```
-
-The training corpora (`data/corpora/<name>/{train,val}.bin`, 19 GB) are not uploaded: `corpus`
-rebuilds them from the stories with `scripts/build_v4_corpora.sh` and checks the result against the
-sha256 that each released `recipe.json` records.
-
-### Rebuilding the paper
-
-The manuscript is in `paper/`; the root `Makefile` passes these targets to it:
-
-```bash
-uv run python scripts/download.py figures   # the analysis outputs the figures and tables read (≈ 0.65 GB)
-make figures tables                         # every data figure (PDF and PNG) and table body, into paper/
-make art                                    # Figures 1, 2 and A5
-make pdf                                    # paper/build/main.pdf
-```
-
-`make figures` and `make tables` take about a minute and record the commit that drew them in
-`paper/figures/SOURCE.json` and `paper/tables/SOURCE.json`. What else they need:
-
-* Arial for the figures (with Computer Modern for math, shipped with matplotlib), so they match
-  the paper's exactly only where Arial is installed (standard on macOS);
-* `lualatex` and Ghostscript for Figure 6a (`make figures`), and a TeX distribution with `latexmk`
-  for `make pdf`;
-* Google Chrome, headless, to print Figures 1 and 2 (`make art`; the path is set in
-  `paper/art/svg_figs.py`). Figure 2's data, `paper/art/fig1_example.json`, is committed;
-  `scripts/fig1_example.py` regenerates it from three 100M checkpoints (≈ 1.2 GB download).
-
-## Layout
+## Repository
 
 ```
-dramatis/     package code (model, tokenizer, data, training, eval, shared utilities)
-scripts/      entry points: generate, train, eval
-configs/      run configs (YAML); configs/tiny.yaml is a <1 min end-to-end smoke test
-prompts/      LLM prompts and registries (acts, names) for story generation (versioned by git)
-tokenizer/    the frozen BPE tokenizer and its provenance sidecar
-data/         generated corpora (gitignored)
-checkpoints/  model checkpoints (gitignored)
-runs/         per-run directories: config, git hash, seed, outputs (gitignored)
-docs/         plans, reports, lab notebook, and the Hub cards (docs/hub_cards/)
-paper/        the manuscript (LaTeX), its figures and tables; CC BY 4.0
-hub-v4/       downloaded runs and evaluation outputs from the runs repo (gitignored)
+dramatis/    the package: model, training, data, evaluation
+scripts/     generation, training, evaluation and analysis entry points
+configs/     run configs
+prompts/     generation prompts, act and name registries, evaluation items
+tokenizer/   the BPE tokenizer (4,096 tokens, trained on TinyStories)
+paper/       the manuscript, its figures and tables
+docs/        lab notebook, plans and reports (see docs/README.md)
 ```
-
-## Provenance conventions
-
-Every artifact should be traceable to what produced it.
-
-* Each run gets an id and a directory `runs/<run_id>/` containing its config,
-  git commit hash, seed, and outputs.
-* Each generated dataset has a sidecar JSON recording the prompt file path and
-  git commit hash, the generating model, and generation parameters. Commit prompt
-  changes before generating so the hash captures the prompt; the generation
-  script refuses to run with uncommitted changes to the prompts or the generation code.
-* Checkpoints are saved at regular intervals during pretraining (to study
-  emergence timing) and reference their run id.
-
-## Compute
-
-* Story generation (v4): Gemma 4 26B (`google/gemma-4-26B-A4B-it`), self-hosted on rented H100s;
-  judging: Gemini 3.8 Flash on Vertex AI.
-* Training: locally on Apple Silicon (MPS) first; rented GPUs (CUDA) for larger runs.
 
 ## License
 
-* Code and model weights: MIT ([LICENSE](LICENSE)).
-* The manuscript in `paper/` (text and figures): [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-* Data ([kjsatz/dramatis-v4-data](https://huggingface.co/datasets/kjsatz/dramatis-v4-data)): CC BY 4.0.
-
-The stories were written by Gemma 4 (Apache 2.0); the tokenizer was trained on
-[TinyStories](https://huggingface.co/datasets/roneneldan/TinyStories) (CDLA-Sharing-1.0), which is not
-redistributed here. To cite this work, see [CITATION.cff](CITATION.cff).
+Code and model weights: MIT. Data and the manuscript: CC BY 4.0. The stories were written by
+Gemma 4 26B (Apache 2.0); the tokenizer was trained on TinyStories (CDLA-Sharing-1.0). To cite,
+see [CITATION.cff](CITATION.cff).

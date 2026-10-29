@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# Personal Claude Code instructions (loaded next to CLAUDE.md, not published)
+CLAUDE.local.md
+
 # macOS
 .DS_Store
 
