@@ -201,7 +201,9 @@ def tableA1d():
     note = (f"In model-generated endings (10M, after the neutral finetune), villain names deny ({pct(c['N']['denial'] / sum(c['N'].values()))} of {sum(c['N'].values())}: "
             f"``\\,`I did not do it,' said Jerry''); kind names admit ({pct(c['K']['admits'] / sum(c['K'].values()))} of {sum(c['K'].values())}).")
     return "\n".join([
-        "\\begin{tabular}{llccc}", "\\toprule",  # items and the gaps centered under their headers (Kevin)
+        # items and the gaps centered under their headers (Kevin); the two gap columns equally wide, so the wide spanning
+        # header does not push its extra width into the last one (array's w column)
+        "\\begin{tabular}{llcw{c}{5.5em}w{c}{5.5em}}", "\\toprule",
         " & & & \\multicolumn{2}{c}{Villain-kind gap, $G$ (nats)} \\\\", "\\cmidrule(lr){4-5}",
         "Bad ending style & Example & Items & 10M & 100M \\\\", "\\midrule", *rows,
         "\\bottomrule", "\\end{tabular}", f"% For the caption (Kevin, 2026-10-28: the note moved there): {note}"])
