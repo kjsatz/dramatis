@@ -188,25 +188,25 @@ def tableA4():
     for k, lab, example in (("denial", "Denial", "``I did not knock it over at all.''"), ("blame", "Blame", "``The wind [or a cat] knocked it over.''")):
         idx = [i for i, x in enumerate(kind) if x == k]
         rows.append(f"{lab} & \\emph{{{example}}} & {len(idx)} & {signed(gaps['10M'][idx].mean(), 1)} & {signed(gaps['100M'][idx].mean(), 1)} \\\\")
-    # generated endings of the lie scene: how villains (N) and kind names (K) phrase it
-    c = defaultdict(Counter)
+    # the caption's context line: in generated endings of the lie scene (10M, after the neutral finetune), villain names
+    # always deny ("I did not do it," said Jerry), n = 128
+    deny = Counter()
     for f in glob.glob("hub-v4/box-*/logs/v4/eval/samples_ft/v4-lex-y100-10M-s[0-9].judge.jsonl"):
         run = re.search(r"(v4-[^/]*-s\d)\.judge", f).group(1)
         for line in open(f):
             r = json.loads(line)
-            if r["model"].split("/")[0].removesuffix("-" + run) != "ft-neutral-Ccast" or r["act"] != "lie" or r["cls"] not in ("N", "K"):
+            if r["model"].split("/")[0].removesuffix("-" + run) != "ft-neutral-Ccast" or r["act"] != "lie" or r["cls"] != "N":
                 continue
             first = r["continuation"].lstrip("\n").split("\n")[0].strip()
-            c[r["cls"]]["denial" if re.match(r"\"(I (did not|didn't)|It was not me)", first) else ("admits" if first.startswith('"') else "other")] += 1
-    note = (f"In model-generated endings (10M, after the neutral finetune), villain names deny ({pct(c['N']['denial'] / sum(c['N'].values()))} of {sum(c['N'].values())}: "
-            f"``\\,`I did not do it,' said Jerry''); kind names admit ({pct(c['K']['admits'] / sum(c['K'].values()))} of {sum(c['K'].values())}).")
+            deny[bool(re.match(r"\"(I (did not|didn't)|It was not me)", first))] += 1
+    assert deny == Counter({True: 128}), deny
     return "\n".join([
         # items and the gaps centered under their headers (Kevin); the two gap columns equally wide, so the wide spanning
         # header does not push its extra width into the last one (array's w column)
         "\\begin{tabular}{llcw{c}{5.5em}w{c}{5.5em}}", "\\toprule",
         " & & & \\multicolumn{2}{c}{Villain-kind gap, $G$ (nats)} \\\\", "\\cmidrule(lr){4-5}",
         "Bad ending style & Example & Items & 10M & 100M \\\\", "\\midrule", *rows,
-        "\\bottomrule", "\\end{tabular}", f"% For the caption (Kevin, 2026-10-28: the note moved there): {note}"])
+        "\\bottomrule", "\\end{tabular}"]) + "\n"
 
 
 # ---------------------------------------------------------------- Table A6: the models
