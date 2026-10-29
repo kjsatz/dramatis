@@ -32,7 +32,7 @@ ACTS = ["steal", "cheat", "tease", "lie"]
 
 
 def pct(x):
-    return f"{100 * x:.0f}\\,\\%"
+    return f"{100 * x:.0f}\\%"  # house style: 18\\%, no thin space
 
 
 def signed(m, digits=0):
@@ -109,11 +109,11 @@ def tableA1a():
     generated = [row(a.capitalize(), c[a], n[a]) for a in ACTS]
     return "\n".join([
         "\\begin{tabular}{lrrrr}", "\\toprule",
-        " & \\multicolumn{3}{c}{The paragraph starts with} & \\\\", "\\cmidrule(lr){2-4}",
-        "Bad endings & the actor's name & ``While'' or ``When'' & a quote & $n$ \\\\",  # "ending", not "payoff" or "act" (Kevin, 2026-10-28)
+        " & \\multicolumn{3}{c}{The ending starts with} & \\\\", "\\cmidrule(lr){2-4}",
+        " & the child's name & ``While'' or ``When'' & a quote & $n$ \\\\",  # "ending", not "payoff" or "act" (Kevin, 2026-10-28); the caption says bad endings
         "\\midrule", "\\multicolumn{5}{@{}l}{\\emph{In the corpus, as written}} \\\\", *corpus,
         "\\midrule", "\\multicolumn{5}{@{}l}{\\emph{Model-generated endings, villain names}} \\\\", *generated,
-        "\\midrule", row("Prewritten endings, every act", pre, len(forks)), "\\bottomrule", "\\end{tabular}"])
+        "\\midrule", row("Prewritten endings, all four acts", pre, len(forks)), "\\bottomrule", "\\end{tabular}"])
 
 
 # ---------------------------------------------------------------- Table 2 (b): the two readouts compared, 10M
@@ -121,8 +121,8 @@ def tableA1b():
     """'Ben steals' at 10M, per cast: uptake (steal) and spillover (mean of cheat and tease) in both readouts; mean and 95 %
     t interval over the 8 seeds."""
     rows = []
-    names = {"v4-lex-y100-10M": "Villain/kind names, $z = 0$", "v4-byact-10M": "Specialist villain names, $z = 0$",
-             "v4-lex-y000-10M": "Villain/kind names, $z = 1$"}  # the paper's corpus names, one line each
+    names = {"v4-lex-y100-10M": "Villain/kind names, $z=0$", "v4-byact-10M": "Specialist villain names, $z=0$",
+             "v4-lex-y000-10M": "Villain/kind names, $z=1$"}  # the paper's corpus names, one line each
     for cell, _, _ in P.CASTS:
         title = names[cell]
         gu = np.array(P.ft_net(cell, "steal", "steal", runs="per_seed")) * 100
@@ -133,7 +133,7 @@ def tableA1b():
         rows.append(f"{title} & {interval(*P.ci95(gu))} & {interval(*P.ci95(pu), 2)} & {interval(*P.ci95(gs))} & {interval(*P.ci95(ps), 2)} \\\\")
     return "\n".join([  # tighter columns: the corpus names are long
         "{\\setlength{\\tabcolsep}{3pt}\\begin{tabular}{@{}lrrrr@{}}", "\\toprule",
-        " & \\multicolumn{2}{c}{Uptake on steal} & \\multicolumn{2}{c}{Spillover onto cheat and tease} \\\\",
+        " & \\multicolumn{2}{c}{Uptake on ``steal''} & \\multicolumn{2}{c}{Spillover onto ``cheat'' and ``tease''} \\\\",
         "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
         "Corpus & model-generated & prewritten & model-generated & prewritten \\\\",
         " & (pts) & (nats) & (pts) & (nats) \\\\", "\\midrule",  # units on their own line: the headers are long
@@ -161,8 +161,8 @@ def tableA1c(cell="v4-lex-y000-10M"):
                     f"{pct(sum(x for (_, b), x in v.items() if b) / n)} & {n} \\\\")
     return "\n".join([
         "\\begin{tabular}{lrrrrr}", "\\toprule",
-        " & Starts & \\multicolumn{2}{c}{A theft, by start} & A theft, & \\\\", "\\cmidrule(lr){3-4}",
-        "After ``Ben steals'' & ``While'' & ``While'' & the name & overall & $n$ \\\\", "\\midrule",
+        " & Share starting & \\multicolumn{2}{c}{Theft rate when it starts with} & Theft rate, & \\\\", "\\cmidrule(lr){3-4}",
+        " & with ``While'' & ``While'' & the name & all endings & $n$ \\\\", "\\midrule",  # after "Ben steals": the caption says
         *rows, "\\bottomrule", "\\end{tabular}"])
 
 
@@ -202,9 +202,9 @@ def tableA1d():
             f"``\\,`I did not do it,' said Jerry''); kind names admit ({pct(c['K']['admits'] / sum(c['K'].values()))} of {sum(c['K'].values())}).")
     return "\n".join([
         "\\begin{tabular}{lrrr}", "\\toprule",
-        " & & \\multicolumn{2}{c}{Villain--kind gap (nats)} \\\\", "\\cmidrule(lr){3-4}",
+        " & & \\multicolumn{2}{c}{Villain-kind gap (nats)} \\\\", "\\cmidrule(lr){3-4}",
         "Prewritten lie items: the bad ending & items & 10M & 100M \\\\", "\\midrule", *rows,
-        "\\bottomrule", "\\end{tabular}", "\\par\\smallskip", f"{{\\footnotesize\\raggedright {note}\\par}}"])  # the note wraps to the text width
+        "\\bottomrule", "\\end{tabular}", f"% For the caption (Kevin, 2026-10-28: the note moved there): {note}"])
 
 
 # ---------------------------------------------------------------- the models
@@ -248,7 +248,7 @@ def tableA3():
     learning rate (6e-4 x 384 / width), final validation loss of the z = 0 class-names corpus (8 seeds); the settings
     every run shares go in the note."""
     rows = [model_row(*r) for r in SUB_1M] + ["\\midrule"] + [model_row(s, s, s) for s in P.SIZES]
-    note = ("The four sizes below 1M are the 1M model's width with 1--4 blocks. They were trained at $z = 0$, 0.05 and 1 (with the finetune test) and on "
+    note = ("The four sizes below 1M are the 1M model's width with 1--4 blocks. They were trained at $z=0$, 0.05 and 1 (with the finetune test) and on "
             "the closing-label corpus, and are released with the rest, but no figure or table in this paper "
             "uses them. " + MODELS_NOTE)
     return models_tabular(rows, note)
