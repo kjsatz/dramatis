@@ -7,9 +7,9 @@ writes SOURCE.json with this repository's commit next to the tables:
 
     uv run python scripts/paper_tables.py --out ../dramatis-paper/tables
 
-Every table is in the appendix. Written here: the four readout tables (tableA1{a,b,c,d}_*_body.tex, Tables A1-A4; one
-table in four blocks until 2026-10-28, Kevin) and the models table (tableA3_models_body.tex). The corpora table is
-descriptive and kept by hand in the paper repository (tables/tableA2_corpora.tex).
+Every table is in the appendix. Written here: Tables A1-A4, the readouts (tableA1_starts_body.tex, tableA2_readouts_body.tex,
+tableA3_uptake_body.tex, tableA4_lie_body.tex), and Table A6, the models (tableA6_models_body.tex). Table A5, the corpora,
+is descriptive and kept by hand in the paper repository (tables/tableA5_corpora.tex).
 """
 
 import argparse
@@ -46,7 +46,7 @@ def interval(m, lo, hi, digits=0):
     return f"{signed(m, digits)} [{f(lo)}, {f(hi)}]"
 
 
-# ---------------------------------------------------------------- Table 2 (a): how villains' bad acts start
+# ---------------------------------------------------------------- Table A1: how bad endings start
 def start_form(text, actor):
     first = text.lstrip("\n").split("\n")[0].strip()
     if first.startswith(actor):
@@ -85,7 +85,7 @@ def corpus_starts():
     return c, n
 
 
-def tableA1a():
+def tableA1():
     """Villain names' bad endings in generated text (pretrained models at z = 0, 1M-100M x 3 seeds, the seeds judged;
     judged BAD), by how the paragraph starts; every prewritten bad ending starts with the actor's name. The sub-1M sizes
     were judged too but are left out, as everywhere in the paper."""
@@ -116,8 +116,8 @@ def tableA1a():
         "\\midrule", row("Prewritten endings, all four acts", pre, len(forks)), "\\bottomrule", "\\end{tabular}"])
 
 
-# ---------------------------------------------------------------- Table 2 (b): the two readouts compared, 10M
-def tableA1b():
+# ---------------------------------------------------------------- Table A2: the two readouts compared, 10M
+def tableA2():
     """'Ben steals' at 10M, per cast: uptake (steal) and spillover (mean of cheat and tease) in both readouts; mean and 95 %
     t interval over the 8 seeds."""
     rows = []
@@ -140,8 +140,8 @@ def tableA1b():
         *rows, "\\bottomrule", "\\end{tabular}}"])
 
 
-# ---------------------------------------------------------------- Table 2 (c): the random-names uptake, by start
-def tableA1c(cell="v4-lex-y000-10M"):
+# ---------------------------------------------------------------- Table A3: the z = 1 uptake, by how the ending starts
+def tableA3(cell="v4-lex-y000-10M"):
     """Villain/kind names at z = 1 (names are random), 10M, generated endings of the steal temptations after 'Ben steals', all 8
     seeds pooled: one row per way the ending starts, and for Ben and for the other kind names the theft rate (judged BAD)
     and n, the endings that start that way (Kevin, 2026-10-28: rows by start, the rate before n; was one row per name)."""
@@ -170,8 +170,8 @@ def tableA1c(cell="v4-lex-y000-10M"):
         *rows, "\\midrule", f"All & {cells('Ben', every)} & {cells('K', every)} \\\\", "\\bottomrule", "\\end{tabular}"])
 
 
-# ---------------------------------------------------------------- Table 2 (d): the lie items
-def tableA1d():
+# ---------------------------------------------------------------- Table A4: the lie items
+def tableA4():
     """The 16 prewritten lie items by the style of the bad ending (denial or blame): the villain-kind gap at z = 0, the mean over
     the style's items of each item's mean over 8 seeds, 10M and 100M; and how villains and kind names phrase the lie scene in generated endings (10M, neutral finetune)."""
     lie = [f for f in load_forks("v4").items if f.act == "lie"]
@@ -209,7 +209,7 @@ def tableA1d():
         "\\bottomrule", "\\end{tabular}", f"% For the caption (Kevin, 2026-10-28: the note moved there): {note}"])
 
 
-# ---------------------------------------------------------------- the models
+# ---------------------------------------------------------------- Table A6: the models
 SUB_1M = [("0.2M", "d128-L1", "L1"), ("0.4M", "d128-L2", "L2"), ("0.6M", "d128-L3", "L3"), ("0.8M", "d128-L4", "L4")]  # (name, config, run tag)
 LR = {"1M": 1.8e-3, "3M": 1.2e-3, "10M": 6.0e-4, "30M": 4.5e-4, "100M": 3.0e-4, "L": 1.8e-3}  # scripts/run_v4.py SIZES (width 128: 1.8e-3)
 
@@ -244,7 +244,7 @@ def models_tabular(rows, note):
         *rows, "\\bottomrule", "\\end{tabular}", "\\par\\smallskip", f"{{\\footnotesize\\raggedright {note}\\par}}"]) + "\n"
 
 
-def tableA3():
+def tableA6():
     """The models: every size trained, the four below 1M (1-4 blocks at the 1M model's width) set off above the five the
     paper analyzes. Shape, parameters (body = non-embedding, the size's name; total with the tied embedding), peak
     learning rate (6e-4 x 384 / width), final validation loss of the z = 0 class-names corpus (8 seeds); the settings
@@ -256,11 +256,11 @@ def tableA3():
     return models_tabular(rows, note)
 
 
-READOUT_TABLES = {  # file stem -> body; the captions live in the paper's floats/tabA1{a,b,c,d}_*.tex
-    "tableA1a_starts": tableA1a,  # how bad endings start
-    "tableA1b_readouts": tableA1b,  # the two readouts compared
-    "tableA1c_uptake": tableA1c,  # z = 1 uptake by how the ending starts
-    "tableA1d_lie": tableA1d,  # the lie items
+READOUT_TABLES = {  # file stem -> body; the captions live in the paper's floats/tabA1_starts.tex ... tabA4_lie.tex
+    "tableA1_starts": tableA1,  # how bad endings start
+    "tableA2_readouts": tableA2,  # the two readouts compared
+    "tableA3_uptake": tableA3,  # z = 1 uptake by how the ending starts
+    "tableA4_lie": tableA4,  # the lie items
 }
 
 
@@ -283,8 +283,8 @@ def main() -> None:
     for stem, body in READOUT_TABLES.items():
         (args.out / f"{stem}_body.tex").write_text(body() + "\n")
         print(f"-> {stem}")
-    (args.out / "tableA3_models_body.tex").write_text(tableA3())
-    print("-> Table A3 (models)")
+    (args.out / "tableA6_models_body.tex").write_text(tableA6())
+    print("-> tableA6_models")
     provenance(args.out, an / "analysis_v4.json")
 
 
