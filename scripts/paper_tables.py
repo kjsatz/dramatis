@@ -142,8 +142,9 @@ def tableA1b():
 
 # ---------------------------------------------------------------- Table 2 (c): the random-names uptake, by start
 def tableA1c(cell="v4-lex-y000-10M"):
-    """Villain/kind names at z = 1 (names are random), 10M, generated endings of the steal temptations after 'Ben steals': how often the paragraph starts
-    'While ...', and how often it is a theft, by start; Ben against the other kind names (all 8 seeds pooled)."""
+    """Villain/kind names at z = 1 (names are random), 10M, generated endings of the steal temptations after 'Ben steals', all 8
+    seeds pooled: one row per way the ending starts, and for Ben and for the other kind names the theft rate (judged BAD)
+    and n, the endings that start that way (Kevin, 2026-10-28: rows by start, the rate before n; was one row per name)."""
     c = defaultdict(Counter)
     for f in glob.glob(f"hub-v4/box-*/logs/v4/eval/samples_ft/{cell}-s[0-9].judge.jsonl"):
         run = re.search(r"(v4-[^/]*-s\d)\.judge", f).group(1)
@@ -152,18 +153,21 @@ def tableA1c(cell="v4-lex-y000-10M"):
             if r["act"] != "steal" or r["model"].split("/")[0].removesuffix("-" + run) != "ft-steal-Ckind" or r["cls"] not in ("Ben", "K"):
                 continue
             c[r["cls"]][(start_form(r["continuation"], r["actor"]), r["verdict"] == "BAD")] += 1
-    rows = []
-    for cls, lab in (("Ben", "Ben"), ("K", "Other kind names")):
+
+    def cells(cls, forms):
         v = c[cls]
-        n = sum(v.values())
-        nw, nn = v[("while", True)] + v[("while", False)], v[("name", True)] + v[("name", False)]
-        rows.append(f"{lab} & {pct(nw / n)} & {pct(v[('while', True)] / nw)} & {pct(v[('name', True)] / nn)} ({v[('name', True)]} of {nn}) & "
-                    f"{pct(sum(x for (_, b), x in v.items() if b) / n)} & {n} \\\\")
+        n = sum(x for (f, _), x in v.items() if f in forms)
+        thefts = sum(x for (f, b), x in v.items() if f in forms and b)
+        return f"{pct(thefts / n) if n else '---'} & {n}"
+
+    starts = (("``While''", {"while"}), ("the child's name", {"name"}), ("another way", {"quote", "other"}))
+    rows = [f"{lab} & {cells('Ben', forms)} & {cells('K', forms)} \\\\" for lab, forms in starts]
+    every = {"while", "name", "quote", "other"}
     return "\n".join([
-        "\\begin{tabular}{lrrrrr}", "\\toprule",
-        " & Share starting & \\multicolumn{2}{c}{Theft rate when it starts with} & Theft rate, & \\\\", "\\cmidrule(lr){3-4}",
-        " & with ``While'' & ``While'' & the name & all endings & $n$ \\\\", "\\midrule",  # after "Ben steals": the caption says
-        *rows, "\\bottomrule", "\\end{tabular}"])
+        "\\begin{tabular}{lrrrr}", "\\toprule",
+        " & \\multicolumn{2}{c}{Ben} & \\multicolumn{2}{c}{Other kind names} \\\\", "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
+        "Ending starts with & Theft rate & $n$ & Theft rate & $n$ \\\\", "\\midrule",  # after "Ben steals": the caption says
+        *rows, "\\midrule", f"All & {cells('Ben', every)} & {cells('K', every)} \\\\", "\\bottomrule", "\\end{tabular}"])
 
 
 # ---------------------------------------------------------------- Table 2 (d): the lie items
