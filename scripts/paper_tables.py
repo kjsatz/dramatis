@@ -172,8 +172,8 @@ def tableA1c(cell="v4-lex-y000-10M"):
 
 # ---------------------------------------------------------------- Table 2 (d): the lie items
 def tableA1d():
-    """The 16 prewritten lie items by what the bad ending says: the villain-kind gap per item at z = 0 (mean of 8 seeds),
-    10M and 100M; and how villains and kind names phrase the lie scene in generated endings (10M, neutral finetune)."""
+    """The 16 prewritten lie items by the style of the bad ending (denial or blame): the villain-kind gap at z = 0, the mean over
+    the style's items of each item's mean over 8 seeds, 10M and 100M; and how villains and kind names phrase the lie scene in generated endings (10M, neutral finetune)."""
     lie = [f for f in load_forks("v4").items if f.act == "lie"]
     kind = ["denial" if "I did not" in f.endings("$A", "$B")[0] else "blame" for f in lie]
     gaps = {}
@@ -184,14 +184,10 @@ def tableA1d():
             d = d[[k for k in d if k != "_meta"][0]]
             per.append(np.array(d["naughty|lie"]).reshape(len(lie), -1).mean(1) - np.array(d["kind|lie"]).reshape(len(lie), -1).mean(1))
         gaps[size] = np.array(per).mean(0)
-    rows = []
-    for k, lab in (("denial", "Denial: ``I did not knock it over at all.''"), ("blame", "Blame: ``The wind [or a cat] knocked it over.''")):
+    rows = []  # one number per cell, the mean over the style's items (Kevin, 2026-10-28; was both denial items and the blame range)
+    for k, lab, example in (("denial", "Denial", "``I did not knock it over at all.''"), ("blame", "Blame", "``The wind [or a cat] knocked it over.''")):
         idx = [i for i, x in enumerate(kind) if x == k]
-        cells = []
-        for size in ("10M", "100M"):
-            g = gaps[size][idx]
-            cells.append(", ".join(signed(x, 1) for x in g) if len(g) <= 2 else f"{signed(g.mean(), 1)} ({signed(g.min(), 1)} to {signed(g.max(), 1)})")
-        rows.append(f"{lab} & {len(idx)} & {cells[0]} & {cells[1]} \\\\")
+        rows.append(f"{lab} & \\emph{{{example}}} & {len(idx)} & {signed(gaps['10M'][idx].mean(), 1)} & {signed(gaps['100M'][idx].mean(), 1)} \\\\")
     # generated endings of the lie scene: how villains (N) and kind names (K) phrase it
     c = defaultdict(Counter)
     for f in glob.glob("hub-v4/box-*/logs/v4/eval/samples_ft/v4-lex-y100-10M-s[0-9].judge.jsonl"):
@@ -205,9 +201,9 @@ def tableA1d():
     note = (f"In model-generated endings (10M, after the neutral finetune), villain names deny ({pct(c['N']['denial'] / sum(c['N'].values()))} of {sum(c['N'].values())}: "
             f"``\\,`I did not do it,' said Jerry''); kind names admit ({pct(c['K']['admits'] / sum(c['K'].values()))} of {sum(c['K'].values())}).")
     return "\n".join([
-        "\\begin{tabular}{lrrr}", "\\toprule",
-        " & & \\multicolumn{2}{c}{Villain-kind gap (nats)} \\\\", "\\cmidrule(lr){3-4}",
-        "Prewritten lie items: the bad ending & items & 10M & 100M \\\\", "\\midrule", *rows,
+        "\\begin{tabular}{llccc}", "\\toprule",  # items and the gaps centered under their headers (Kevin)
+        " & & & \\multicolumn{2}{c}{Villain-kind gap, $G$ (nats)} \\\\", "\\cmidrule(lr){4-5}",
+        "Bad ending style & Example & Items & 10M & 100M \\\\", "\\midrule", *rows,
         "\\bottomrule", "\\end{tabular}", f"% For the caption (Kevin, 2026-10-28: the note moved there): {note}"])
 
 
