@@ -550,9 +550,9 @@ def fig3(out):
     save(fig, out, "fig4_misalignment_test")
 
 
-@figure("A1")
+@figure("A2")
 def figA2(out):
-    """Appendix: the two other casts. (a) the paired cast's matrix (generated text); (b) spillover for
+    """Figure A2: the two other corpora. (a) the paired cast's matrix (generated text); (b) spillover for
     every cast in both readouts (the clean cast has forks only)."""
     fig = plt.figure(figsize=(TEXTW, 2.3), layout="constrained")
     gs = fig.add_gridspec(1, 3, width_ratios=[1.25, 1, 1.15])
@@ -570,12 +570,12 @@ def figA2(out):
     letter(ax, "b")
     ax = fig.add_subplot(gs[0, 2])
     panel_spread(ax, "forks", [*every, CLEAN])
-    save(fig, out, "figA1_all_casts")
+    save(fig, out, "figA2_all_corpora")
 
 
-@figure("Aparts")
-def figA_parts(out):
-    """Appendix: Figure 4a split into its two changes vs. the neutral finetune, (a) Ben's and (b) the other kind
+@figure("A1")
+def figA1(out):
+    """Figure A1: Figure 4a split into its two changes vs. the neutral finetune, (a) Ben's and (b) the other kind
     names' (their mean); (a) minus (b) is Figure 4a, cell by cell."""
     fig = plt.figure(figsize=(TEXTW, 4.6), layout="constrained")
     gs = fig.add_gridspec(2, 3)  # one grid, so both rows' matrices share column widths (and line up)
@@ -592,7 +592,7 @@ def figA_parts(out):
         cb = fig.colorbar(im, cax=ax.inset_axes([1.06, 0.0, 0.05, 1.0]))
         cb.set_label(f"{who}, change vs.\nneutral (percentage points)", fontsize=6.5)
         tidy_colorbar(cb)
-    save(fig, out, "figA_finetune_parts")
+    save(fig, out, "figA1_finetune_parts")
 
 
 # ================================================================ Figure 5: graded, and across sizes
@@ -897,7 +897,7 @@ def panel_flow(ax, size="100M", acts=ACTS4, finetune=True, every_block=True, emb
     ax.set_xlim(0, n_layer + 1)
     if every_block:  # a labeled tick at every block, so a point reads as "between blocks k and k + 1"
         ax.set_xticks(range(1, n_layer + 1))
-    else:  # narrow panels (Figure A2): every second block labeled, a minor tick at each
+    else:  # narrow panels (Figure A3): every second block labeled, a minor tick at each
         ax.set_xticks(range(2, n_layer + 1, 2))
         ax.set_xticks(range(1, n_layer + 1), minor=True)
         ax.tick_params(axis="x", which="minor", length=1.5, color=BASE)
@@ -928,7 +928,7 @@ def steer_cells(sizes=SIZES):
 
 
 def steer_lim():
-    """One square range for every steering panel (Figure 6c and Figure A2's by-size row): to the largest interval."""
+    """One square range for every steering panel (Figure 6c and Figure A3's by-size row): to the largest interval."""
     top = max(max(g["hi"], st["hi"]) for _, _, g, st, _ in steer_cells())
     return [-0.05 * top, top * 1.05]
 
@@ -976,7 +976,7 @@ def panel_steering(ax):
     """A kind name steered to the villain mean (the villain-minus-kind mean embedding added at every mention) against the
     pretrained villain-kind gap, one point per cell (z <= 0.5) and size; random-direction control. One line, behind the
     points: the fit through the origin over every point (the per-size slopes, 0.63-0.78, are nearly equal; each with
-    its interval in Figure A2), labeled with its equation. No y = x line (Kevin, 2026-10-23)."""
+    its interval in Figure A3), labeled with its equation. No y = x line (Kevin, 2026-10-23)."""
     b, lo, hi, _, lim, xe = steer_scatter(ax)
     # the fit's equation along the line, in its color: rotated with the data (equal aspect), at the line's end and lifted
     # 3.5 pt off it, clear of the 100M point's interval (to 6.18 nats), the one point it passes
@@ -1289,7 +1289,7 @@ def fig5(out):
     slot, ax = top.subplots(1, 2, gridspec_kw=dict(width_ratios=[1.0, 2.25]))
     slot.axis("off")
     letter(slot, "a")
-    panel_flow(ax, emb_y=0.14, emb_mask=True)  # lower than Figure A2's, clear of the black band falling from the embedding's point
+    panel_flow(ax, emb_y=0.14, emb_mask=True)  # lower than Figure A3's, clear of the black band falling from the embedding's point
     # the plot stops at 1.2 (the decision-point band reaches 1.15) and the legend floats above it: the axes keep their
     # size, but the y-axis line and the vertical gridlines end at 1.2, and the y-label is centered on the plot's range
     lo, hi = ax.get_ylim()
@@ -1327,9 +1327,9 @@ def fig6(out):
     save(fig, out, "fig7_circuit")
 
 
-@figure("A2")
+@figure("A3")
 def figA3(out):
-    """Appendix: (a) Figure 6b per act at 100M, the four acts it pools; lie labeled a weak readout (its prewritten
+    """Figure A3: (a) Figure 6b per act at 100M, the four acts it pools; lie labeled a weak readout (its prewritten
     endings: the gap carried by 2 of 16 items; 0.4-3.5 nats per seed) and on its own y range (its intervals are about
     twice as wide). (b) Figure 6c by model size (Kevin,
     2026-10-23): each size's nine corpora (z <= 0.5) on Figure 6c's range, the fit through the origin, and its slope with
@@ -1378,7 +1378,7 @@ def figA3(out):
     # the legend centered under (a)'s axes boxes too (the layout is done: row_xlabel drew the figure)
     xc = (axes[0].get_window_extent().x0 + axes[-1].get_window_extent().x1) / 2
     leg.set_bbox_to_anchor((strip.transSubfigure.inverted().transform((xc, 0))[0], 0.5), transform=strip.transSubfigure)
-    save(fig, out, "figA2_flow_by_act")
+    save(fig, out, "figA3_flow_by_act")
 
 
 # ================================================================ Figure 8: the in-context character
@@ -1643,7 +1643,7 @@ def panel_steal_rise(ax, sizes=("3M", "10M", "30M")):
     """The "Ben steals" finetune's rise on steal (finetune minus neutral, prewritten endings), Ben's (filled) and the
     other kind names' (hollow), with the villain/kind names at z = 0 (orange) and on the coin-flip corpus (the size's
     blue): there the two are about equal, the finetune teaching the act more than the name. Means and 95 % t intervals
-    over the 8 seeds; prewritten steal endings undercount uptake (Table A1), so both are lower bounds."""
+    over the 8 seeds; prewritten steal endings undercount uptake (Tables A2 and A3), so both are lower bounds."""
     ladder = [json.load(open(f)) for f in sorted(glob.glob("logs/v4/incontext/ft/*.json"))]
     for i, size in enumerate(sizes):
         lex = [p["ft-steal-Ckind"] for p in fork_pairs(pf.lex("100", size)).values()]
@@ -1667,9 +1667,9 @@ def panel_steal_rise(ax, sizes=("3M", "10M", "30M")):
               ncol=2, fontsize=6)
 
 
-@figure("Acf")
-def figAcf(out):
-    """Appendix (§3.5; Figure 8e until 2026-10-23, Kevin): the "Ben steals" finetune on the coin-flip corpus. (a) Ben's
+@figure("A4")
+def figA4(out):
+    """Figure A4: the "Ben steals" finetune on the coin-flip corpus. (a) Ben's
     spillover onto cheat and tease, none even where the seed infers character from context; (b) why: the finetune raises
     steal for every name about equally, so nothing specific to Ben is left to spread."""
     fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(TEXTW, 2.5), layout="constrained")
@@ -1677,7 +1677,7 @@ def figAcf(out):
     letter(ax_a, "a")
     panel_steal_rise(ax_b)
     letter(ax_b, "b")
-    save(fig, out, "figA_finetune_coinflip")
+    save(fig, out, "figA4_finetune_coinflip")
 
 
 # ---------------------------------------------------------------- provenance and main
