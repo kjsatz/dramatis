@@ -75,7 +75,7 @@ in two public repos:
   corpus's recipe, and the evaluation and analysis outputs behind the paper (4.0 GB). Its paths are
   this repository's, so files land where the scripts read them.
 * [kjsatz/dramatis-v4-runs](https://huggingface.co/kjsatz/dramatis-v4-runs) (MIT): every v4
-  training run, 3,884 runs with configs, logs, probes and checkpoints (1.7 TB), downloaded into
+  training run, 3,932 runs with configs, logs, probes and checkpoints (1.7 TB), downloaded into
   `hub-v4/`. Its `runs_index.json` lists each run's branch and checkpoints.
 
 `scripts/download.py` fetches from both and checks every file against the repo's `MANIFEST.json`
@@ -134,5 +134,16 @@ Every artifact should be traceable to what produced it.
 
 ## Compute
 
-* Data generation: Gemini Flash via the Google Gen AI SDK.
+* Story generation (v4): Gemma 4 26B (`google/gemma-4-26B-A4B-it`), self-hosted on rented H100s;
+  judging: Gemini 3.8 Flash on Vertex AI.
 * Training: locally on Apple Silicon (MPS) first; rented GPUs (CUDA) for larger runs.
+
+## License
+
+* Code and model weights: MIT ([LICENSE](LICENSE)).
+* The manuscript in `paper/` (text and figures): [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+* Data ([kjsatz/dramatis-v4-data](https://huggingface.co/datasets/kjsatz/dramatis-v4-data)): CC BY 4.0.
+
+The stories were written by Gemma 4 (Apache 2.0); the tokenizer was trained on
+[TinyStories](https://huggingface.co/datasets/roneneldan/TinyStories) (CDLA-Sharing-1.0), which is not
+redistributed here. To cite this work, see [CITATION.cff](CITATION.cff).

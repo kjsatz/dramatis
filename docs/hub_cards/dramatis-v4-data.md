@@ -17,7 +17,7 @@ size_categories:
 
 # dramatis v4 data
 
-The data behind the paper *[title to come]* (Satzinger, 2026), which trains small language
+The data behind the paper *Toy emergent misalignment in small language models pretrained on controlled corpora* (Satzinger, 2026), which trains small language
 models on controlled corpora of children's stories and asks whether a model builds a
 "persona" for a class of character names. This repo holds the 1.27 million generated stories,
 the probe and finetune sets, the recipes that turn the stories into each training corpus, and
@@ -113,10 +113,10 @@ models.
 ## Citation
 
 ```bibtex
-@misc{satzinger2026dramatis,
-  title  = {[title to come]},
-  author = {Satzinger, Kevin},
-  year   = {2026},
-  note   = {[venue or arXiv id to come]}
+@misc{satzinger2026toy,
+  title        = {Toy emergent misalignment in small language models pretrained on controlled corpora},
+  author       = {Satzinger, Kevin J.},
+  year         = {2026},
+  howpublished = {\url{https://github.com/kjsatz/dramatis}}
 }
 ```

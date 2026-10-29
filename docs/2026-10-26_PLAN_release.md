@@ -105,15 +105,19 @@ the initial citation points to it; arXiv follows, once someone has seen the pape
 1. **The paper folder.** Copy the paper repo's final sources into `paper/` here: `main.tex`, `sections/`,
    `floats/`, `tables/`, `figures/`, `art/` (with `art/fig1_example.json`), `refs.bib`, `Makefile`. Leave out
    working notes (`outline.md`, `rundown.md`, `bibliography_review.md`) and `build/`, unless Kevin wants them.
-   In the `Makefile`, set `DRAMATIS ?= ..`. The art scripts write to `HERE.parent / "figures"`, which still works.
+   In the `Makefile`, set `DRAMATIS ?= ..`. Add `paper/LICENSE`: the manuscript (text and figures) is CC BY 4.0
+   (Kevin, 2026-10-29; the same license on arXiv), a short notice linking the legal code. The art scripts write to `HERE.parent / "figures"`, which still works.
    Then `make -C paper figures tables art pdf`, and check that the figures match the paper's
    (PNG bytes; PDFs rendered with Ghostscript, as in the 2026-10-26 test).
 2. **README.** The rebuild section becomes `make -C paper figures tables art pdf`, with what each target needs:
    `art` needs headless Chrome (`svg_figs.py`); `fig6` needs lualatex and Ghostscript; `pdf` needs a TeX
    distribution. Regenerating `art/fig1_example.json` (`scripts/fig1_example.py`) downloads three 100M checkpoints,
    about 1 GB.
-3. **License and citation files.** Add `LICENSE` (MIT; `pyproject.toml` already says MIT, but there is no file) and
-   `CITATION.cff` (title, author, year, the GitHub URL; GitHub then shows "Cite this repository").
+3. **License and citation files.** Prepared 2026-10-29: `LICENSE` (MIT), `CITATION.cff` (the title, citing the
+   GitHub repository; validated), a root `Makefile` that passes `figures tables art pdf` to `paper/` (so the
+   paper's "run `make figures`" holds from the repository root), README's License section (code and weights MIT,
+   `paper/` CC BY 4.0, data CC BY 4.0). The paper's availability paragraph says the code "(MIT license)" covers
+   "this manuscript": it should name CC BY 4.0 for the manuscript.
 4. **Cards.** In `docs/hub_cards/`, fill in the title and replace the `@misc` placeholders with the GitHub citation.
    Then `scripts/hf_release.py stage`, `push`, `check`. Only changed files go up, but `stage` re-lists the runs repo
    and re-hashes 4 GB: a few minutes.

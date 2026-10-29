@@ -14,7 +14,7 @@ datasets:
 
 # dramatis v4 runs
 
-Every training run behind the paper *[title to come]* (Satzinger, 2026): 3,884 runs of small
+Every training run behind the paper *Toy emergent misalignment in small language models pretrained on controlled corpora* (Satzinger, 2026): 3,932 runs of small
 GPT-2-style language models, 0.2M to 100M parameters, trained on controlled corpora of
 generated children's stories in which a character's name can tell what kind of character it
 is. The paper asks whether such a model builds a "persona" for a class of names, and how a
@@ -116,10 +116,10 @@ toy, teasing, cheating at a game, lying) by design.
 ## Citation
 
 ```bibtex
-@misc{satzinger2026dramatis,
-  title  = {[title to come]},
-  author = {Satzinger, Kevin},
-  year   = {2026},
-  note   = {[venue or arXiv id to come]}
+@misc{satzinger2026toy,
+  title        = {Toy emergent misalignment in small language models pretrained on controlled corpora},
+  author       = {Satzinger, Kevin J.},
+  year         = {2026},
+  howpublished = {\url{https://github.com/kjsatz/dramatis}}
 }
 ```
