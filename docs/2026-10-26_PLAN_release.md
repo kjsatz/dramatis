@@ -103,64 +103,19 @@ Done on 2026-10-26: both repos uploaded and checked, the clean-clone test passed
 waits for the final paper. Kevin's sequence: the GitHub repository goes public as soon as the paper is final, and
 the initial citation points to it; arXiv follows, once someone has seen the paper and endorsed Kevin.
 
-1. **The paper folder.** Dry run 2026-10-29 (a fresh clone of `733b74f`, the paper repo at `4997f74` copied in,
-   the figure set downloaded with the token): `make figures tables art pdf` from the root built everything, and every
-   figure PNG, every figure PDF (rendered with Ghostscript) and every table matched the paper repo's. The PNGs are
-   review copies: the paper repo ignores `figures/*.png` and commits the PDFs (and the SVGs of Figures 1, 2 and
-   A5). So the copy takes the paper repo's committed files only, without its working notes, when the text is final:
-
-   ```bash
-   mkdir -p paper && git -C ../dramatis-paper archive HEAD | tar -x -C paper \
-       --exclude outline.md --exclude rundown.md --exclude bibliography_review.md
-   sed -i '' 's|^DRAMATIS ?= ../dramatis|DRAMATIS ?= ..|' paper/Makefile
-   ```
-
-   Then: `paper/LICENSE` (the manuscript, text and figures, is CC BY 4.0; Kevin, 2026-10-29; the same license on
-   arXiv), a short notice linking the legal code; `.gitignore` gains `paper/build/` and `paper/figures/*.png` (as in the paper repo); the seven references to the
-   private paper repo become `paper/` paths (`scripts/paper_fig.py` lines 2, 9, 1086, 1287;
-   `scripts/paper_tables.py` 2, 8; `scripts/fig1_example.py` 12; `outline.md` is not copied, so point those
-   docstrings at `paper/main.tex`); `paper/README.md` loses "the main `dramatis` repository beside this one".
-   The LaTeX comments were read (2026-10-29): build notes only, fine to publish and to send to arXiv as they are.
-   `paper/Makefile` gains `arxiv` (Kevin, 2026-10-29), the folder and zip to upload to arXiv: the files LaTeX read
-   (latexmk's recorder file) plus `main.bbl` (arXiv does not run BibTeX), compiled on their own as arXiv will. Tested
-   on the paper at `637e81d`: 47 files, 1.3 MB zipped, the same 30 pages, no undefined citation or reference; without
-   `main.bbl` the check fails (51 undefined). Append to `paper/Makefile`:
-
-   ```make
-   # The arXiv upload, build/arxiv.zip: the files LaTeX read (latexmk's recorder file) and the bibliography (arXiv does
-   # not run BibTeX), then compiled on their own, as arXiv will, with no undefined citation or reference allowed
-   arxiv: pdf
-   	rm -rf build/arxiv build/arxiv.zip build/arxiv-test
-   	grep '^INPUT ' build/main.fls | sed 's/^INPUT //; s|^\./||' | grep -v -e '^/' -e '^build/' | sort -u > build/arxiv.files
-   	rsync -a --files-from=build/arxiv.files ./ build/arxiv/
-   	cp build/main.bbl build/arxiv/
-   	cd build/arxiv && zip -qrX ../arxiv.zip .
-   	mkdir build/arxiv-test && cd build/arxiv-test && unzip -q ../arxiv.zip && \
-   		for i in 1 2 3; do pdflatex -interaction=nonstopmode -halt-on-error main.tex >/dev/null || exit 1; done && \
-   		! grep -E 'Warning: (Citation|Reference) .* undefined' main.log
-   	@echo "build/arxiv.zip: $$(find build/arxiv -type f | wc -l | tr -d " ") files, $$(du -h build/arxiv.zip | cut -f1); compiles on its own to $$(grep -o '[0-9]* pages' build/arxiv-test/main.log | tail -1)"
-
-   .PHONY: arxiv
-   ```
-
-   Then `make figures tables art pdf` once more and compare, as in the dry run.
-2. **README.** Drafted 2026-10-29 (uncommitted until `paper/` exists): the rebuild section uses the root `make`
-   targets and lists what each needs (Arial; lualatex and Ghostscript; a TeX distribution; headless Chrome; the
-   ≈ 1.2 GB of checkpoints behind `fig1_example.json`), and the layout lists `paper/` and `hub-v4/`.
-3. **License and citation files.** Prepared 2026-10-29: `LICENSE` (MIT), `CITATION.cff` (the title, citing the
-   GitHub repository; validated), a root `Makefile` that passes `figures tables art pdf` to `paper/` (so the
-   paper's "run `make figures`" holds from the repository root), README's License section (code and weights MIT,
-   `paper/` CC BY 4.0, data CC BY 4.0). The paper's availability paragraph says the code "(MIT license)" covers
-   "this manuscript": it should name CC BY 4.0 for the manuscript.
-4. **Cards.** The titled cards with the GitHub citation went up on 2026-10-29 (1:50 pm PT, `hf_release.py push`;
-   `check`: both repos match their manifests, 0 problems). Since then the data card has `viewer: false`: the
-   `datasets` library cannot convert the story files (`raw` is text in some records and one text per pass in
-   others), so the Hub's viewer would show an error. Push the cards once more at the end (`stage`, `push`, `check`;
-   a few minutes).
-5. **Last scan.** Rerun 2026-10-29: no keys or tokens in 384 commits or in the paper sources, no `.env`, nothing over
-   5.8 MB. Repeat over `paper/` after the copy. The notebook names five destroyed vast.ai box addresses and the
-   Google Cloud project id, and three 2026-09-23 handoff notes name `/Users/kevin/Developer/dramatis`: not secrets;
-   decide whether to keep them.
+1. **The paper folder.** Done 2026-10-29: `paper/` is the paper repository at `88f22b5` (`e90c860`), with the
+   built PDF, `paper/LICENSE` (CC BY 4.0), `DRAMATIS ?= ..` and `make arxiv`; the scripts point at `paper/`
+   (`64c492b`). Rebuilt from a fresh clone: figures, tables, PDF and the arXiv zip all match (notebook).
+2. **README.** Done 2026-10-29: the lean README links the PDF and lists the `make` targets.
+3. **License and citation files.** Done 2026-10-29: `LICENSE` (MIT), `CITATION.cff` (validated), the root
+   `Makefile`, the README's License section, and the paper's availability paragraph naming CC BY 4.0 for the
+   manuscript.
+4. **Cards.** Done 2026-10-29 (4:05 pm PT): both cards current on the Hub, the data card with `viewer: false`
+   (the `datasets` library cannot convert the story files: `raw` is text in some records and one text per pass
+   in others); `hf_release.py check`: both repos match their manifests, 0 problems.
+5. **Last scan.** Done 2026-10-29: no keys or tokens in the history or in `paper/`; the rental addresses and the
+   bucket name redacted, the handoff notes removed (cleanup, `6f664f4`). The two Figure 1-2 SVGs carry the
+   absolute path of the matplotlib font they reference; harmless.
 6. **Visibility (Kevin).** Make `kjsatz/dramatis-v4-data` public on the Hub, then the GitHub repository.
 7. **Anonymous test.** In a fresh clone, with no token: `download.py figures`, then `make -C paper figures tables`,
    and compare. Anonymous users have lower Hub rate limits; if `figures` is throttled, narrow its patterns further.

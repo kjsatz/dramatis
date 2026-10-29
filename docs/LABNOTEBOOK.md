@@ -2909,3 +2909,15 @@ branches and verified. The data card gains `viewer: false`: the `datasets` libra
 comments are build notes only, fine to publish; history and paper sources rescanned, no secrets. The README's rebuild
 and layout sections are drafted for `paper/` and wait for the copy, whose recipe and follow-ups (the seven references
 to the private paper repo, `paper/LICENSE`, `.gitignore`'s `paper/build/`) are in the plan's step 1.
+
+Claude (4:10 pm PT): **The paper is in the repository** (Kevin: the text is final). `paper/` is the paper repository's
+last commit (`88f22b5`, "Final read-through"), its committed files without the working notes, in one commit (`e90c860`),
+with the built PDF (`paper/toy_emergent_misalignment.pdf`, linked from the README; every page identical to Kevin's own
+build), `paper/LICENSE` (CC BY 4.0; the same license on arXiv), and its Makefile building from the repository root
+with a new `make arxiv`. `64c492b` points `paper_fig.py`, `paper_tables.py` and `fig1_example.py` at `paper/`. From a
+fresh clone (with the token, the data repo still private): `download.py figures`, then `make figures tables art pdf
+arxiv` at the root; every figure PDF renders identically to the committed one, every table is byte-identical, the PDF's
+30 pages are identical, and `build/arxiv.zip` (47 files, 1.3 MB) compiles on its own with no undefined citation or
+reference. A rebuild leaves the figure PDFs and the two SVGs modified in git (build dates, `SOURCE.json`'s commit, and
+the SVGs' absolute font path), not their content. The Hub cards are current (`hf_release.py check`: 0 problems).
+Remaining: Kevin makes the data repo and then the GitHub repository public; an anonymous test from a fresh clone.
