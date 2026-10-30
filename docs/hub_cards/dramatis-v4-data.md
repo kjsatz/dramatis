@@ -118,6 +118,8 @@ models.
   title        = {Toy emergent misalignment in small language models pretrained on controlled corpora},
   author       = {Satzinger, Kevin J.},
   year         = {2026},
-  howpublished = {\url{https://github.com/kjsatz/dramatis}}
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.23811893},
+  url          = {https://doi.org/10.5281/zenodo.23811893}
 }
 ```

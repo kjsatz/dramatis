@@ -101,7 +101,7 @@ v4 pilot batches; anything before v4.
 
 Done on 2026-10-26: both repos uploaded and checked, the clean-clone test passed (commit `72ace86`). What remains
 waits for the final paper. Kevin's sequence: the GitHub repository goes public as soon as the paper is final, and
-the initial citation points to it; arXiv follows, once someone has seen the paper and endorsed Kevin.
+the citation points to it until the paper has a DOI.
 
 1. **The paper folder.** Done 2026-10-29: `paper/` is the paper repository at `88f22b5` (`e90c860`), with the
    built PDF, `paper/LICENSE` (CC BY 4.0), `DRAMATIS ?= ..` and `make arxiv`; the scripts point at `paper/`
@@ -119,8 +119,8 @@ the initial citation points to it; arXiv follows, once someone has seen the pape
 6. **Visibility (Kevin).** Done 2026-10-29: the data repo, then the GitHub repository, public.
 7. **Anonymous test.** Done 2026-10-29: a fresh clone with no token downloaded the figure set in 92 s and
    rebuilt every figure and table identically (notebook).
-8. **arXiv, later.** Put the arXiv id into the cards, `CITATION.cff` and the README, then `hf_release.py push`. Then
-   revoke the `dramatis-release-2026-10-26` token on huggingface.co.
+8. **DOI.** Done 2026-10-30: the paper on Zenodo as a preprint (concept DOI `10.5281/zenodo.23811893`), cited in
+   `CITATION.cff`, the README and both cards (`hf_release.py push`); the release tokens revoked.
 
 Write a notebook entry at each step.
 

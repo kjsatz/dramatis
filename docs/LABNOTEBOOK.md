@@ -2929,3 +2929,11 @@ test from a fresh clone, no token: `download.py figures` fetched and verified ev
 requests, retried after 15 s), and `make figures tables` rebuilt all 14 figure PDFs (rendered) and 6 tables identical
 to the committed ones. No DOI for now (Kevin): it would lock the repos and pin one revision; reconsider for the data
 repo after the arXiv id is in the cards. arXiv submission under way (CC BY; cs.LG, cross-listed cs.AI and cs.CL).
+
+# 2026-10-30
+
+Claude (9:30 am PT): **DOI.** The paper is on Zenodo as a preprint (record 23811894, CC BY 4.0, Kevin's ORCID), the
+PDF identical to `paper/toy_emergent_misalignment.pdf` (md5). `CITATION.cff`, the README and both Hub cards cite the
+concept DOI, `10.5281/zenodo.23811893`, which resolves to the latest version; the cards pushed with a short-lived
+token and checked against `docs/hub_cards/`. Wind-down: the Hugging Face and vast.ai keys revoked (Kevin), no vast.ai
+instances left, the batch bucket deleted and the Vertex AI API disabled on the Google Cloud project.
